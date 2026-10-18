@@ -1,9 +1,8 @@
 extends Control
-## Main game screen. Shows GameState and Clock on screen and handles the buttons.
+## Main game screen. Shows GameState, Clock and Activities on screen and handles the buttons.
 ## Exercise, eat and entertainment are placeholders until their tasks.
 
 @export var day_background_color := Color(0.17, 0.2, 0.27)
-@export var sleep_background_color := Color(0.06, 0.07, 0.14)
 @export var background_fade_seconds := 0.8
 
 @onready var background: ColorRect = $Background
@@ -45,7 +44,7 @@ func _ready() -> void:
 	pause_button.pressed.connect(Clock.toggle_pause)
 	wake_button.pressed.connect(Clock.wake_up)
 	sleep_button.pressed.connect(_on_sleep_button_pressed)
-	stop_button.pressed.connect(Clock.stop_sleep)
+	stop_button.pressed.connect(Activities.stop)
 	sleep_slider.value_changed.connect(_refresh_sleep_info.unbind(1))
 	%SleepCancelButton.pressed.connect(sleep_panel.hide)
 	%SleepStartButton.pressed.connect(_on_sleep_start_pressed)
@@ -53,9 +52,12 @@ func _ready() -> void:
 	Clock.time_changed.connect(_refresh_clock)
 	Clock.phase_changed.connect(_on_phase_changed)
 	Clock.paused_changed.connect(_refresh_phase.unbind(1))
+	Activities.started.connect(_refresh_activity.unbind(2))
+	Activities.ended.connect(_refresh_activity.unbind(3))
+	Activities.progressed.connect(_refresh_activity_speech)
 
-	# The game may have been loaded mid-sleep, so show the current phase at once.
-	_on_phase_changed(Clock.phase, true)
+	# The game may have been loaded mid-activity, so show it at once.
+	_refresh_activity(true)
 	_refresh()
 	_refresh_clock()
 	_refresh_sleep_info()
@@ -72,16 +74,26 @@ func _on_sleep_button_pressed() -> void:
 
 func _on_sleep_start_pressed() -> void:
 	sleep_panel.hide()
-	Clock.start_sleep(sleep_slider.value)
+	Activities.start("sleep", "sleep", sleep_slider.value)
 
 
-func _on_phase_changed(phase: Clock.Phase, instant := false) -> void:
-	if phase == Clock.Phase.SLEEPING:
-		avatar.play_sleep()
+func _on_phase_changed(_phase: Clock.Phase) -> void:
+	_refresh_activity()
+
+
+## Animation and background of the running activity (or none).
+func _refresh_activity(instant := false) -> void:
+	var option := Activities.current_option_data()
+	if Activities.is_running():
+		avatar.play_animation(str(option.get("animation", "")))
+		_fade_background(Color.html(str(option.get("background_color", day_background_color.to_html()))), instant)
 	else:
 		avatar.stop_animation()
-	var asleep := phase == Clock.Phase.SLEEPING or phase == Clock.Phase.SLEEP_OVER
-	_fade_background(sleep_background_color if asleep else day_background_color, instant)
+		var color := day_background_color
+		if Clock.phase == Clock.Phase.SLEEP_OVER:
+			# Still night until the wake button: keep the sleep background.
+			color = Color.html(str(Activities.get_option("sleep", "sleep").get("background_color", color.to_html())))
+		_fade_background(color, instant)
 	_refresh_phase()
 
 
@@ -110,28 +122,33 @@ func _refresh_clock() -> void:
 	if Clock.is_debug_speed_active():
 		text += "\nx%d" % Clock.debug_speed
 	clock_label.text = text
-	if Clock.phase == Clock.Phase.SLEEPING:
-		speech_label.text = "Zzz... (%.1f of %.1f h)" % [Clock.sleep_elapsed_hours, Clock.sleep_target_hours]
+
+
+func _refresh_activity_speech() -> void:
+	if not Activities.is_running():
+		return
+	var label := "Zzz..." if Activities.current_activity == "sleep" else "%s..." % Activities.current_option_data().get("name", "")
+	speech_label.text = "%s (%.1f of %.1f h)" % [label, Activities.elapsed_hours, Activities.target_hours]
 
 
 func _refresh_phase() -> void:
 	var phase := Clock.phase
-	var sleeping := phase == Clock.Phase.SLEEPING
+	var running := Activities.is_running()
 	pause_button.disabled = phase != Clock.Phase.DAY
 	pause_button.set_pressed_no_signal(Clock.paused)
 	wake_button.disabled = phase != Clock.Phase.SLEEP_OVER
-	stop_button.visible = sleeping
+	stop_button.visible = running
 	for button in action_buttons:
-		button.disabled = sleeping
-	# Placeholder rule: sleep can only start at bedtime.
-	sleep_button.disabled = phase != Clock.Phase.BEDTIME
+		button.disabled = running
+	sleep_button.disabled = not Activities.can_start("sleep")
+	if running:
+		_refresh_activity_speech()
+		return
 	match phase:
 		Clock.Phase.DAY:
 			speech_label.text = "Paused" if Clock.paused else "Hello!"
 		Clock.Phase.BEDTIME:
 			speech_label.text = "I'm tired. It's bedtime: sleep is recommended."
-		Clock.Phase.SLEEPING:
-			_refresh_clock()
 		Clock.Phase.SLEEP_OVER:
 			speech_label.text = "I slept %.1f h. Press the wake button to start the day." % Clock.sleep_elapsed_hours
 

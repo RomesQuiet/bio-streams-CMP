@@ -1,0 +1,19 @@
+{
+	"_comment": "Activities the avatar can do. Each activity has options; each option has a duration in avatar hours (or \"slider\" for sleep), effects per avatar hour on GameState values, a background colour and an animation name. Effects only count for the time actually done. Options marked \"placeholder\": true use temporary numbers.",
+
+	"sleep": {
+		"name": "Sleep",
+		"uses_sleep_time": true,
+		"options": {
+			"sleep": {
+				"name": "Sleep",
+				"duration_hours": "slider",
+				"effects_per_hour": { "sleep": 0.07 },
+				"background_color": "#0f1224",
+				"animation": "sleep",
+				"placeholder": true,
+				"comment": "Duration comes from the sleep slider (config.json: sleep_activity, time.max_sleep_hours). Sleep measure +0.07 per hour slept (10 h restores 0.7)."
+			}
+		}
+	}
+}

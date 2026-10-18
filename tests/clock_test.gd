@@ -15,6 +15,7 @@ func _process(_delta: float) -> bool:
 	save_game.save_path = "user://test_save.json"
 	save_game.use_web_storage = false
 	save_game.auto_save_enabled = false
+	root.get_node("Activities").reset()
 	root.get_node("GameState").reset()
 	clock.reset()
 	_test_conversion(clock)
@@ -57,7 +58,7 @@ func _test_full_cycle(clock: Node) -> void:
 	_check("sleep measure falls during the day", sleep_at_bedtime < sleep_at_start)
 	clock._process(STEP_SECONDS)
 	_check("time waits at bedtime (no automatic sleep)", clock.phase == clock.Phase.BEDTIME and clock.clock_text() == "21:00")
-	clock.start_sleep(8.0)
+	root.get_node("Activities").start("sleep", "sleep", 8.0)
 	_run_until(clock, clock.Phase.SLEEP_OVER)
 	_check("8 h sleep ends at 05:00", clock.clock_text() == "05:00")
 	_check("sleep measure rises during sleep", game_state.sleep > sleep_at_bedtime)
@@ -71,10 +72,10 @@ func _test_full_cycle(clock: Node) -> void:
 
 
 func _test_stop_sleep_early(clock: Node) -> void:
-	clock.start_sleep(10.0)
+	root.get_node("Activities").start("sleep", "sleep", 10.0)
 	while clock.sleep_elapsed_hours < 5.0:
 		clock._process(STEP_SECONDS)
-	clock.stop_sleep()
+	root.get_node("Activities").stop()
 	var slept: float = clock.sleep_elapsed_hours
 	clock.wake_up()
 	_check("stopping early uses the hours slept", is_equal_approx(clock.day_length_hours, 24.0 - slept))
@@ -82,7 +83,7 @@ func _test_stop_sleep_early(clock: Node) -> void:
 
 func _test_five_hours_sleep(clock: Node) -> void:
 	_run_until(clock, clock.Phase.BEDTIME)
-	clock.start_sleep(5.0)
+	root.get_node("Activities").start("sleep", "sleep", 5.0)
 	_run_until(clock, clock.Phase.SLEEP_OVER)
 	clock.wake_up()
 	_check("5 h sleep gives a 19 h day", is_equal_approx(clock.day_length_hours, 19.0))

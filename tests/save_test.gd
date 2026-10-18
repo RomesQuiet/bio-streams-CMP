@@ -15,6 +15,7 @@ func _process(_delta: float) -> bool:
 	save_game.save_path = TEST_PATH
 	save_game.use_web_storage = false
 	save_game.auto_save_enabled = false
+	root.get_node("Activities").reset()
 	game_state.reset()
 	clock.reset()
 
@@ -25,7 +26,7 @@ func _process(_delta: float) -> bool:
 	clock.debug_speed = 600.0
 	while clock.phase != clock.Phase.BEDTIME:
 		clock._process(0.1)
-	clock.start_sleep(8.0)
+	root.get_node("Activities").start("sleep", "sleep", 8.0)
 	while clock.sleep_elapsed_hours < 3.0:
 		clock._process(0.1)
 	var saved_state: Dictionary = game_state.to_dict()
@@ -33,6 +34,8 @@ func _process(_delta: float) -> bool:
 	save_game.save_game()
 	_check("save file written", FileAccess.file_exists(TEST_PATH))
 
+	var saved_activity: Dictionary = root.get_node("Activities").to_dict()
+	root.get_node("Activities").reset()
 	game_state.reset()
 	clock.reset()
 	_check("state was cleared before loading", game_state.avatar_name != "Test Avatar")
@@ -40,6 +43,7 @@ func _process(_delta: float) -> bool:
 	_check("measures, XP and name restored", _same(game_state.to_dict(), saved_state))
 	_check("time restored", _same(clock.to_dict(), saved_clock))
 	_check("still asleep after loading", clock.phase == clock.Phase.SLEEPING)
+	_check("sleep activity restored", _same(root.get_node("Activities").to_dict(), saved_activity) and root.get_node("Activities").is_running())
 
 	var file := FileAccess.open(TEST_PATH, FileAccess.WRITE)
 	file.store_string("not json")

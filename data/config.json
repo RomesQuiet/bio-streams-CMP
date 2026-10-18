@@ -36,7 +36,6 @@
 		"slider_min_hours": { "value": 1, "placeholder": true, "comment": "Smallest value on the sleep slider. The largest is time.max_sleep_hours." },
 		"slider_step_hours": { "value": 0.5, "placeholder": true },
 		"slider_default_hours": { "value": 10, "placeholder": true, "comment": "Where the slider starts. 10 h is the baseline sleep." },
-		"measure_gain_per_avatar_hour": { "value": 0.07, "placeholder": true, "comment": "Sleep measure gained per avatar hour slept (10 h restores 0.7)." },
 		"measure_loss_per_avatar_hour_awake": { "value": 0.05, "placeholder": true, "comment": "Sleep measure lost per avatar hour awake (a 14 h day loses 0.7)." }
 	},
 

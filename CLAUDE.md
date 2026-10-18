@@ -39,7 +39,7 @@ The author is a 9th-grade student competing in the national phase. Goal: win and
 project.godot
 CLAUDE.md  README.md  .gitignore
 scenes/        main.tscn, ui/, avatar/
-scripts/       autoload/ (config.gd, game_state.gd, clock.gd, save_game.gd), ui/, avatar/
+scripts/       autoload/ (config.gd, game_state.gd, clock.gd, save_game.gd, activities.gd), ui/, avatar/
 data/          config.json, foods.json, activities.json
 translations/  strings.csv
 assets/        art/, audio/
@@ -47,7 +47,7 @@ documentation/ milestone notes
 docs/          web export (GitHub Pages)
 ```
 
-Autoloads: `Config`, `GameState`, `Clock`, `SaveGame`. The Clock never reads the device clock for game time; it advances only with the game open (delta time).
+Autoloads: `Config`, `GameState`, `Clock`, `SaveGame`, `Activities` (the general activity system for sleep, exercise and entertainment, reading `data/activities.json`). The Clock never reads the device clock for game time; it advances only with the game open (delta time).
 
 ## Game rules (confirmed)
 

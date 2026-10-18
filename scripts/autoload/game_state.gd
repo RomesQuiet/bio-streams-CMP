@@ -4,6 +4,9 @@ extends Node
 
 signal changed
 
+## Values that always stay between 0 and 1.
+const MEASURES_0_TO_1 := ["physical", "mental", "sleep", "hunger"]
+
 # Measures: physical, mental and sleep go from 0 to 1. Health goes from 1 to 5.
 var physical: float
 var mental: float
@@ -104,13 +107,25 @@ func apply_avatar_hours(hours: float, asleep: bool) -> void:
 	changed.emit()
 
 
-## Placeholder: the sleep measure rises while asleep and falls while awake.
+## Adds activity effects: {"value name": change per avatar hour} for this many hours.
+## Called by Activities. Unknown names are reported and skipped.
+func apply_effects(effects_per_hour: Dictionary, hours: float) -> void:
+	for key in effects_per_hour:
+		if not key in self:
+			push_error("GameState: unknown effect '%s'" % key)
+			continue
+		var value: float = get(key) + float(effects_per_hour[key]) * hours
+		if key in MEASURES_0_TO_1:
+			value = clampf(value, 0.0, 1.0)
+		set(key, value)
+	changed.emit()
+
+
+## Placeholder: the sleep measure falls while awake. (Sleeping raises it through
+## the sleep activity's effects in data/activities.json.)
 func _apply_sleep_measure(hours: float, asleep: bool) -> void:
-	if asleep:
-		sleep += Config.get_float("sleep_activity.measure_gain_per_avatar_hour") * hours
-	else:
-		sleep -= Config.get_float("sleep_activity.measure_loss_per_avatar_hour_awake") * hours
-	sleep = clampf(sleep, 0.0, 1.0)
+	if not asleep:
+		sleep = clampf(sleep - Config.get_float("sleep_activity.measure_loss_per_avatar_hour_awake") * hours, 0.0, 1.0)
 
 
 ## Placeholder XP rule: gain at high health, loss at low health. XP never goes below 0.

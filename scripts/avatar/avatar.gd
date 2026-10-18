@@ -10,6 +10,9 @@ extends Control
 ## Placeholder sleep animation: slow breathing (squash and stretch) in seconds per breath.
 @export var breath_seconds := 2.4
 @export var breath_squash := Vector2(1.04, 0.96)
+## Placeholder hop used by activities without their own animation yet.
+@export var hop_seconds := 0.6
+@export var hop_height := 24.0
 
 var eyes_closed := false:
 	set(value):
@@ -17,6 +20,7 @@ var eyes_closed := false:
 		queue_redraw()
 
 var _animation: Tween
+var _rest_y := 0.0
 
 
 func _ready() -> void:
@@ -29,20 +33,28 @@ func _on_resized() -> void:
 	queue_redraw()
 
 
-## Plays the repeating sleep animation until stop_animation() is called.
-func play_sleep() -> void:
+## Plays a repeating placeholder animation by name (from data/activities.json)
+## until stop_animation() is called. Unknown names use a simple hop.
+func play_animation(animation_name: String) -> void:
 	stop_animation()
-	eyes_closed = true
+	_rest_y = position.y
 	_animation = create_tween().set_loops()
 	_animation.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_animation.tween_property(self, "scale", breath_squash, breath_seconds * 0.5)
-	_animation.tween_property(self, "scale", Vector2.ONE, breath_seconds * 0.5)
+	match animation_name:
+		"sleep":
+			eyes_closed = true
+			_animation.tween_property(self, "scale", breath_squash, breath_seconds * 0.5)
+			_animation.tween_property(self, "scale", Vector2.ONE, breath_seconds * 0.5)
+		_:
+			_animation.tween_property(self, "position:y", position.y - hop_height, hop_seconds * 0.5)
+			_animation.tween_property(self, "position:y", position.y, hop_seconds * 0.5)
 
 
 func stop_animation() -> void:
 	if _animation:
 		_animation.kill()
 		_animation = null
+		position.y = _rest_y
 	scale = Vector2.ONE
 	eyes_closed = false
 

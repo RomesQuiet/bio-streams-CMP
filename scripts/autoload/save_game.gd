@@ -30,9 +30,12 @@ func _ready() -> void:
 	if loaded and Config.get_value("save.resume_paused") and Clock.phase == Clock.Phase.DAY:
 		Clock.set_paused(true)
 
-	# Key moments: every phase change (bedtime, sleep start, sleep end, wake) and pause.
+	# Key moments: every phase change (bedtime, sleep start, sleep end, wake), pause,
+	# and the start and end of every activity.
 	Clock.phase_changed.connect(_auto_save.unbind(1))
 	Clock.paused_changed.connect(_auto_save.unbind(1))
+	Activities.started.connect(_auto_save.unbind(2))
+	Activities.ended.connect(_auto_save.unbind(3))
 
 	var autosave := Timer.new()
 	autosave.wait_time = Config.get_float("save.autosave_real_seconds")
@@ -74,6 +77,7 @@ func save_game() -> void:
 		"save_count": _save_count,
 		"game_state": GameState.to_dict(),
 		"clock": Clock.to_dict(),
+		"activities": Activities.to_dict(),
 	}
 	var text := JSON.stringify(data, "\t")
 	var file := FileAccess.open(save_path, FileAccess.WRITE)
@@ -99,6 +103,7 @@ func load_game() -> bool:
 	_save_count = int(best["save_count"])
 	GameState.from_dict(best.get("game_state", {}))
 	Clock.from_dict(best.get("clock", {}))
+	Activities.from_dict(best.get("activities", {}))
 	return true
 
 
@@ -109,6 +114,7 @@ func delete_save() -> void:
 	if use_web_storage:
 		JavaScriptBridge.eval("try { localStorage.removeItem(%s); } catch (e) {}" % JSON.stringify(WEB_STORAGE_KEY))
 	_save_count = 0
+	Activities.reset()
 	GameState.reset()
 	Clock.reset()
 
