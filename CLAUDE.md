@@ -69,6 +69,8 @@ Autoloads: `Config`, `GameState`, `Clock`, `SaveGame`. The Clock never reads the
 - Game time only advances while the game is open. Closing the tab pauses time.
 - A pause button stops the day. The night starts when the day ends, but sleep is **not automatic**: the avatar gets tired, shows a recommendation to sleep, and the player decides. When sleep ends, the game pauses and a **wake button** starts a new day.
 - Sleep is optional and variable (a slider chooses the hours). Not sleeping lowers health significantly.
+- **Sleep at any time (confirmed).** The sleep button works at any moment of the day, not only at bedtime. A nap is simply a short sleep and follows the same rule: when any sleep ends, a new day starts whose length is `14 + (10 - hours slept)`, so one sleep plus the awake period after it always adds up to 24 hours.
+- **Ignoring the sleep recommendation (confirmed).** If the awake period runs out and the player has not slept, it counts as **0 hours slept**: a new 24-hour day starts at once, the avatar stays tired and the sleep measure keeps falling. The recommendation stays visible, and the player can still sleep at any time.
 
 **Food and mood** (build later)
 - The player chooses what the avatar eats when hungry (4 to 5 meals; menus decided later).
@@ -90,11 +92,12 @@ Autoloads: `Config`, `GameState`, `Clock`, `SaveGame`. The Clock never reads the
 
 ## Not decided yet (do not guess)
 
-Health formula; XP values and level size; death probabilities; failure effect; what carries over after death; food list, tastes and menus; entertainment options; activity durations; hunger and calorie numbers; the avatar state thresholds; what happens if the player ignores the sleep recommendation (a possible rule: it counts as 0 hours slept and the next day lasts 24 hours; ask before building it); settings contents; server and accounts (later, optional).
+Health formula; XP values and level size; death probabilities; failure effect; what carries over after death; food list, tastes and menus; entertainment options; activity durations; hunger and calorie numbers; the avatar state thresholds; settings contents; server and accounts (later, optional).
 
 ## Quality checks
 
-- After changes, run the project headless to catch script errors. On macOS the binary is usually `/Applications/Godot.app/Contents/MacOS/Godot`, for example `Godot --headless --path . --quit`. If it is not available, tell the user which scene to open and what to look for.
+- After changes, run the project headless to catch script errors. On this Mac Godot is installed as `Godot 2.app`, so the binary is `"/Applications/Godot 2.app/Contents/MacOS/Godot"`, for example `"/Applications/Godot 2.app/Contents/MacOS/Godot" --headless --path . --quit`.
+- In the Godot editor, close the game window instead of pressing Stop ■, because Stop kills the game without the save on close. If it is not available, tell the user which scene to open and what to look for.
 - No hard-coded game numbers in scripts. No use of the device clock for game time.
 - Keep commits small, with clear messages.
 
