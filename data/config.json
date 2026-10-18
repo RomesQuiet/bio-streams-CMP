@@ -1,0 +1,52 @@
+{
+	"_comment": "All tunable game numbers. A plain number is a confirmed rule from CLAUDE.md. An object with \"placeholder\": true is a temporary value that is not decided yet; read it through Config.get_value(), which returns its \"value\".",
+
+	"time": {
+		"day_baseline_hours": 14,
+		"sleep_baseline_hours": 10,
+		"first_day_hours": 14,
+		"day_avatar_minutes_per_real_minute": 28,
+		"sleep_avatar_minutes_per_real_minute": 5,
+		"first_day_start_hour": { "value": 7.0, "placeholder": true, "comment": "Clock time (24 h) when the first day starts." },
+		"max_sleep_hours": { "value": 12, "placeholder": true, "comment": "Maximum hours on the sleep slider." }
+	},
+
+	"measures": {
+		"health_min": 1,
+		"health_max": 5,
+		"health_start": 3,
+		"physical_start": 0.5,
+		"mental_start": 0.5,
+		"sleep_start": 1.0,
+		"fatigue_start": { "value": 0.0, "placeholder": true, "comment": "0 = rested, 1 = exhausted." },
+		"hunger_start": { "value": 0.0, "placeholder": true, "comment": "0 = full, 1 = starving." }
+	},
+
+	"health_weights": {
+		"_comment": "Placeholder health formula: weighted average of the three measures (0 to 1), mapped to health_min..health_max. Sleep has the largest weight because it affects the other measures the most.",
+		"physical": { "value": 1.0, "placeholder": true },
+		"mental": { "value": 1.0, "placeholder": true },
+		"sleep": { "value": 1.5, "placeholder": true }
+	},
+
+	"xp": {
+		"start": 0,
+		"per_level": { "value": 100, "placeholder": true, "comment": "XP needed to fill the bar once (one level)." },
+		"gain_per_avatar_hour": { "value": 2.0, "placeholder": true, "comment": "XP gained per avatar hour while health is at or above high_health_min." },
+		"loss_per_avatar_hour": { "value": 2.0, "placeholder": true, "comment": "XP lost per avatar hour while health is at or below low_health_max." },
+		"high_health_min": { "value": 4, "placeholder": true },
+		"low_health_max": { "value": 2, "placeholder": true }
+	},
+
+	"thresholds": {
+		"tired_fatigue": { "value": 0.7, "placeholder": true, "comment": "Fatigue at or above this shows the tired state." },
+		"hungry_hunger": { "value": 0.7, "placeholder": true, "comment": "Hunger at or above this shows the hungry state." },
+		"sad_mental": { "value": 0.3, "placeholder": true, "comment": "Mental at or below this shows the sad state." },
+		"ill_health": { "value": 1.5, "placeholder": true, "comment": "Health at or below this shows the ill state." }
+	},
+
+	"defaults": {
+		"language": { "value": "pt", "placeholder": true, "comment": "Starting language until settings exist. pt or en." },
+		"avatar_name": { "value": "", "placeholder": true, "comment": "Set on the avatar creation screen." }
+	}
+}
