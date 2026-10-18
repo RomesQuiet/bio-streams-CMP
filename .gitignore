@@ -1,0 +1,15 @@
+# Godot 4
+.godot/
+/android/
+*.translation
+export_presets.cfg.bak
+
+# macOS
+.DS_Store
+
+# Editor / tools
+.vscode/
+.idea/
+
+# Local secrets (never commit)
+.env
