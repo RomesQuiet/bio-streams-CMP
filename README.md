@@ -9,7 +9,7 @@ The player looks after an avatar who is a school student and tries to raise its 
 Play in the browser (computer, Android or iOS):
 **https://romesquiet.github.io/bio-streams-game-Porto-Portugal-Conservat-rio-de-M-sica-do-Porto/**
 
-The game saves on your device. Nothing is sent to a server.
+The game saves on your device. Nothing is sent to a server. 
 
 ## Run it yourself
 
