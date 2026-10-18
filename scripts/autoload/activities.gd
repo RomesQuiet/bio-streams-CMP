@@ -49,8 +49,7 @@ func can_start(activity_id: String) -> bool:
 	if is_running() or not definitions.has(activity_id):
 		return false
 	if uses_sleep_time(activity_id):
-		# Placeholder rule from Milestone 1: sleep only at bedtime (Milestone 2, Task 2 changes this).
-		return Clock.phase == Clock.Phase.BEDTIME
+		return Clock.can_start_sleep()
 	return Clock.phase == Clock.Phase.DAY
 
 
@@ -68,7 +67,7 @@ func start(activity_id: String, option_id: String, hours := -1.0) -> bool:
 	started.emit(activity_id, option_id)
 	if uses_sleep_time(activity_id):
 		Clock.start_sleep(target_hours)
-		if Clock.phase == Clock.Phase.BEDTIME:
+		if Clock.phase != Clock.Phase.SLEEPING and Clock.phase != Clock.Phase.SLEEP_OVER:
 			_end()
 			return false
 	else:

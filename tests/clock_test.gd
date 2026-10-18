@@ -22,6 +22,7 @@ func _process(_delta: float) -> bool:
 	_test_full_cycle(clock)
 	_test_stop_sleep_early(clock)
 	_test_five_hours_sleep(clock)
+	_test_nap(clock)
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
 	DirAccess.remove_absolute(save_game.save_path)
 	quit(1 if _failures > 0 else 0)
@@ -87,6 +88,35 @@ func _test_five_hours_sleep(clock: Node) -> void:
 	_run_until(clock, clock.Phase.SLEEP_OVER)
 	clock.wake_up()
 	_check("5 h sleep gives a 19 h day", is_equal_approx(clock.day_length_hours, 19.0))
+
+
+## Milestone 2, Task 2: a 1 h nap at 14:00 starts a 23 h day that ends at 14:00
+## the next day (24 h in total), and a normal 10 h sleep still gives a 14 h day.
+func _test_nap(clock: Node) -> void:
+	var activities: Node = root.get_node("Activities")
+	root.get_node("GameState").reset()
+	clock.reset()
+	# Exactly one avatar hour per step, so the clock lands on 14:00.
+	clock.debug_speed = clock.avatar_hours_to_real_seconds(1.0, false) / 0.5
+	for i in 7:
+		clock._process(0.5)
+	_check("clock reaches 14:00 during the day", _near_minute(clock, 14 * 60))
+	_check("nap starts during the day", activities.start("sleep", "sleep", 1.0))
+	_run_until(clock, clock.Phase.SLEEP_OVER)
+	_check("1 h nap ends at 15:00", _near_minute(clock, 15 * 60))
+	clock.wake_up()
+	_check("1 h nap starts a 23 h day", is_equal_approx(clock.day_length_hours, 23.0))
+	clock.debug_speed = 600.0
+	_run_until(clock, clock.Phase.BEDTIME)
+	_check("that day ends at 14:00 the next day (24 h after the nap started)", _near_minute(clock, 14 * 60))
+	activities.start("sleep", "sleep", 10.0)
+	_run_until(clock, clock.Phase.SLEEP_OVER)
+	clock.wake_up()
+	_check("a normal 10 h sleep still gives a 14 h day", is_equal_approx(clock.day_length_hours, 14.0))
+
+
+func _near_minute(clock: Node, minute: float) -> bool:
+	return absf(clock.minute_of_day - minute) < 0.01
 
 
 func _run_until(clock: Node, phase: int) -> void:

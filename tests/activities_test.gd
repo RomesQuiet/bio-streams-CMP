@@ -34,7 +34,7 @@ func _process(_delta: float) -> bool:
 
 func _test_sleep_activity(activities: Node, game_state: Node, clock: Node) -> void:
 	_check("sleep is defined in activities.json", activities.definitions.has("sleep"))
-	_check("sleep cannot start during the day (Milestone 1 rule)", not activities.start("sleep", "sleep", 8.0))
+	_check("sleep can start during the day (nap)", activities.can_start("sleep"))
 	_run_until_phase(clock, clock.Phase.BEDTIME)
 	var sleep_before: float = game_state.sleep
 	_check("sleep starts at bedtime", activities.start("sleep", "sleep", 10.0))

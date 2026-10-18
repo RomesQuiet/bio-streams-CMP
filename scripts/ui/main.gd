@@ -163,3 +163,5 @@ func _refresh_sleep_info() -> void:
 		day_hours,
 		Clock.avatar_hours_to_real_seconds(day_hours, false) / 60.0,
 	]
+	if Clock.phase == Clock.Phase.DAY:
+		sleep_info_label.text += "\nSleeping now ends the current day."

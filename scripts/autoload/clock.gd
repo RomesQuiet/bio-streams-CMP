@@ -4,6 +4,8 @@ extends Node
 ##
 ## Cycle: DAY -> BEDTIME (day over, avatar tired, waits for the player)
 ##        -> SLEEPING -> SLEEP_OVER (paused, waits for the wake button) -> DAY
+## Sleep can also start during the DAY (a nap). Any sleep, short or long, ends the
+## current day: after it, a new day starts with length 14 + (10 - hours slept).
 
 enum Phase { DAY, BEDTIME, SLEEPING, SLEEP_OVER }
 
@@ -161,9 +163,9 @@ func toggle_pause() -> void:
 	set_paused(not paused)
 
 
-## Starts sleep. Only allowed at bedtime for now (placeholder rule).
+## Starts sleep, during the day (a nap) or at bedtime.
 func start_sleep(hours: float) -> void:
-	if phase != Phase.BEDTIME:
+	if not can_start_sleep():
 		return
 	sleep_target_hours = clampf(hours, 0.0, Config.get_float("time.max_sleep_hours"))
 	sleep_elapsed_hours = 0.0
@@ -172,6 +174,10 @@ func start_sleep(hours: float) -> void:
 	_set_phase(Phase.SLEEPING)
 	if sleep_target_hours <= 0.0:
 		_end_sleep()
+
+
+func can_start_sleep() -> bool:
+	return phase == Phase.DAY or phase == Phase.BEDTIME
 
 
 ## Ends sleep early. The hours actually slept are used for the next day.
