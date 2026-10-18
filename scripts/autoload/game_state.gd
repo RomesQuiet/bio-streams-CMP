@@ -9,8 +9,9 @@ var physical: float
 var mental: float
 var sleep: float
 var health: float
-var fatigue: float
 var hunger: float
+## Tired means sleepy. Placeholder rule: the Clock sets this to true when the day ends.
+var tired: bool
 var xp: float
 var avatar_name: String
 var language: String
@@ -38,8 +39,8 @@ func reset() -> void:
 	mental = Config.get_float("measures.mental_start")
 	sleep = Config.get_float("measures.sleep_start")
 	health = Config.get_float("measures.health_start")
-	fatigue = Config.get_float("measures.fatigue_start")
 	hunger = Config.get_float("measures.hunger_start")
+	tired = false
 	xp = Config.get_float("xp.start")
 	avatar_name = Config.get_string("defaults.avatar_name")
 	language = Config.get_string("defaults.language")
@@ -86,6 +87,6 @@ func print_state() -> void:
 	print("--- GameState ---")
 	print("avatar_name='%s' language=%s" % [avatar_name, language])
 	print("physical=%.2f mental=%.2f sleep=%.2f" % [physical, mental, sleep])
-	print("fatigue=%.2f hunger=%.2f" % [fatigue, hunger])
+	print("hunger=%.2f tired=%s" % [hunger, tired])
 	print("health=%.2f (placeholder formula gives %.2f)" % [health, calculate_health()])
 	print("xp=%.1f level=%d progress=%.2f" % [xp, level, level_progress])

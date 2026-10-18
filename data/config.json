@@ -18,7 +18,6 @@
 		"physical_start": 0.5,
 		"mental_start": 0.5,
 		"sleep_start": 1.0,
-		"fatigue_start": { "value": 0.0, "placeholder": true, "comment": "0 = rested, 1 = exhausted." },
 		"hunger_start": { "value": 0.0, "placeholder": true, "comment": "0 = full, 1 = starving." }
 	},
 
@@ -39,7 +38,6 @@
 	},
 
 	"thresholds": {
-		"tired_fatigue": { "value": 0.7, "placeholder": true, "comment": "Fatigue at or above this shows the tired state." },
 		"hungry_hunger": { "value": 0.7, "placeholder": true, "comment": "Hunger at or above this shows the hungry state." },
 		"sad_mental": { "value": 0.3, "placeholder": true, "comment": "Mental at or below this shows the sad state." },
 		"ill_health": { "value": 1.5, "placeholder": true, "comment": "Health at or below this shows the ill state." }
