@@ -12,6 +12,11 @@
 		"max_frame_seconds": { "value": 0.5, "placeholder": true, "comment": "Longest real time counted in one frame, so a frozen or hidden tab cannot jump game time forward." }
 	},
 
+	"save": {
+		"autosave_real_seconds": { "value": 30, "placeholder": true, "comment": "Extra safety save every this many real seconds while the game is open." },
+		"resume_paused": { "value": true, "placeholder": true, "comment": "If true, a day in progress is paused when the game is reopened, so time only starts when the player presses pause again." }
+	},
+
 	"debug": {
 		"_comment": "Only works when the game runs from the Godot editor. Press F9 to change the speed. Never active in the published build.",
 		"speed_multipliers": [1, 60, 600]

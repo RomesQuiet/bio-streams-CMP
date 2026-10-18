@@ -10,11 +10,19 @@ var _failures := 0
 
 func _process(_delta: float) -> bool:
 	var clock: Node = root.get_node("Clock")
+	# Never touch the real save: use a test file, and start from a new game.
+	var save_game: Node = root.get_node("SaveGame")
+	save_game.save_path = "user://test_save.json"
+	save_game.use_web_storage = false
+	save_game.auto_save_enabled = false
+	root.get_node("GameState").reset()
+	clock.reset()
 	_test_conversion(clock)
 	_test_full_cycle(clock)
 	_test_stop_sleep_early(clock)
 	_test_five_hours_sleep(clock)
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
+	DirAccess.remove_absolute(save_game.save_path)
 	quit(1 if _failures > 0 else 0)
 	return true
 

@@ -36,9 +36,7 @@ var _phase_start_minute: float
 
 
 func _ready() -> void:
-	day_length_hours = Config.get_float("time.first_day_hours")
-	minute_of_day = Config.get_float("time.first_day_start_hour") * MINUTES_PER_HOUR
-	_phase_start_minute = minute_of_day
+	reset()
 	avatar_time_passed.connect(GameState.apply_avatar_hours)
 	if _debug_allowed():
 		print_conversion_table()
@@ -98,6 +96,54 @@ func _avatar_minutes_per_real_minute(asleep: bool) -> float:
 	if asleep:
 		return Config.get_float("time.sleep_avatar_minutes_per_real_minute")
 	return Config.get_float("time.day_avatar_minutes_per_real_minute")
+
+
+# --- Saving (used by SaveGame) ---
+
+## Starts time from the beginning (first day, new avatar).
+func reset() -> void:
+	phase = Phase.DAY
+	paused = false
+	day_number = 1
+	day_length_hours = Config.get_float("time.first_day_hours")
+	day_elapsed_hours = 0.0
+	sleep_target_hours = 0.0
+	sleep_elapsed_hours = 0.0
+	minute_of_day = Config.get_float("time.first_day_start_hour") * MINUTES_PER_HOUR
+	_phase_start_minute = minute_of_day
+	phase_changed.emit(phase)
+	paused_changed.emit(paused)
+	time_changed.emit()
+
+
+func to_dict() -> Dictionary:
+	return {
+		"phase": phase,
+		"paused": paused,
+		"day_number": day_number,
+		"day_length_hours": day_length_hours,
+		"day_elapsed_hours": day_elapsed_hours,
+		"sleep_target_hours": sleep_target_hours,
+		"sleep_elapsed_hours": sleep_elapsed_hours,
+		"minute_of_day": minute_of_day,
+		"phase_start_minute": _phase_start_minute,
+	}
+
+
+## Restores values from to_dict(). Missing keys keep their current value.
+func from_dict(data: Dictionary) -> void:
+	phase = clampi(int(data.get("phase", phase)), 0, Phase.size() - 1) as Phase
+	paused = bool(data.get("paused", paused)) and phase == Phase.DAY
+	day_number = int(data.get("day_number", day_number))
+	day_length_hours = float(data.get("day_length_hours", day_length_hours))
+	day_elapsed_hours = float(data.get("day_elapsed_hours", day_elapsed_hours))
+	sleep_target_hours = float(data.get("sleep_target_hours", sleep_target_hours))
+	sleep_elapsed_hours = float(data.get("sleep_elapsed_hours", sleep_elapsed_hours))
+	minute_of_day = float(data.get("minute_of_day", minute_of_day))
+	_phase_start_minute = float(data.get("phase_start_minute", _phase_start_minute))
+	phase_changed.emit(phase)
+	paused_changed.emit(paused)
+	time_changed.emit()
 
 
 # --- Controls used by the interface ---

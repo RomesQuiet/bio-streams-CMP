@@ -47,6 +47,35 @@ func reset() -> void:
 	changed.emit()
 
 
+## Everything that must be saved. Used by SaveGame (and later, maybe a server).
+func to_dict() -> Dictionary:
+	return {
+		"physical": physical,
+		"mental": mental,
+		"sleep": sleep,
+		"health": health,
+		"hunger": hunger,
+		"tired": tired,
+		"xp": xp,
+		"avatar_name": avatar_name,
+		"language": language,
+	}
+
+
+## Restores values from to_dict(). Missing keys keep their current value.
+func from_dict(data: Dictionary) -> void:
+	physical = float(data.get("physical", physical))
+	mental = float(data.get("mental", mental))
+	sleep = float(data.get("sleep", sleep))
+	health = float(data.get("health", health))
+	hunger = float(data.get("hunger", hunger))
+	tired = bool(data.get("tired", tired))
+	xp = float(data.get("xp", xp))
+	avatar_name = str(data.get("avatar_name", avatar_name))
+	language = str(data.get("language", language))
+	changed.emit()
+
+
 ## Placeholder health formula: weighted average of the three measures,
 ## mapped from 0..1 to health_min..health_max. Weights are in config.
 func calculate_health() -> float:

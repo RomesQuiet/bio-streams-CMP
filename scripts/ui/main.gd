@@ -40,7 +40,6 @@ func _ready() -> void:
 	sleep_slider.value = Config.get_float("sleep_activity.slider_default_hours")
 	health_panel.visible = false
 	sleep_panel.visible = false
-	background.color = day_background_color
 
 	health_button.pressed.connect(_on_health_button_pressed)
 	pause_button.pressed.connect(Clock.toggle_pause)
@@ -55,9 +54,10 @@ func _ready() -> void:
 	Clock.phase_changed.connect(_on_phase_changed)
 	Clock.paused_changed.connect(_refresh_phase.unbind(1))
 
+	# The game may have been loaded mid-sleep, so show the current phase at once.
+	_on_phase_changed(Clock.phase, true)
 	_refresh()
 	_refresh_clock()
-	_refresh_phase()
 	_refresh_sleep_info()
 
 
@@ -75,19 +75,22 @@ func _on_sleep_start_pressed() -> void:
 	Clock.start_sleep(sleep_slider.value)
 
 
-func _on_phase_changed(phase: Clock.Phase) -> void:
+func _on_phase_changed(phase: Clock.Phase, instant := false) -> void:
 	if phase == Clock.Phase.SLEEPING:
 		avatar.play_sleep()
 	else:
 		avatar.stop_animation()
 	var asleep := phase == Clock.Phase.SLEEPING or phase == Clock.Phase.SLEEP_OVER
-	_fade_background(sleep_background_color if asleep else day_background_color)
+	_fade_background(sleep_background_color if asleep else day_background_color, instant)
 	_refresh_phase()
 
 
-func _fade_background(color: Color) -> void:
+func _fade_background(color: Color, instant := false) -> void:
 	if _background_tween:
 		_background_tween.kill()
+	if instant:
+		background.color = color
+		return
 	_background_tween = create_tween()
 	_background_tween.tween_property(background, "color", color, background_fade_seconds)
 
