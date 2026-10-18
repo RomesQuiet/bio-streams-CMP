@@ -7,10 +7,44 @@ extends Control
 @export var outline_color := Color(0.35, 0.25, 0.2)
 @export var eye_color := Color(0.15, 0.12, 0.1)
 @export_range(16, 128) var point_count := 64
+## Placeholder sleep animation: slow breathing (squash and stretch) in seconds per breath.
+@export var breath_seconds := 2.4
+@export var breath_squash := Vector2(1.04, 0.96)
+
+var eyes_closed := false:
+	set(value):
+		eyes_closed = value
+		queue_redraw()
+
+var _animation: Tween
 
 
 func _ready() -> void:
-	resized.connect(queue_redraw)
+	resized.connect(_on_resized)
+	_on_resized()
+
+
+func _on_resized() -> void:
+	pivot_offset = Vector2(size.x * 0.5, size.y)
+	queue_redraw()
+
+
+## Plays the repeating sleep animation until stop_animation() is called.
+func play_sleep() -> void:
+	stop_animation()
+	eyes_closed = true
+	_animation = create_tween().set_loops()
+	_animation.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_animation.tween_property(self, "scale", breath_squash, breath_seconds * 0.5)
+	_animation.tween_property(self, "scale", Vector2.ONE, breath_seconds * 0.5)
+
+
+func stop_animation() -> void:
+	if _animation:
+		_animation.kill()
+		_animation = null
+	scale = Vector2.ONE
+	eyes_closed = false
 
 
 func _draw() -> void:
@@ -20,8 +54,11 @@ func _draw() -> void:
 	draw_polyline(points, outline_color, 4.0, true)
 	var eye_y := size.y * 0.42
 	var eye_radius := size.x * 0.05
-	draw_circle(Vector2(size.x * 0.38, eye_y), eye_radius, eye_color)
-	draw_circle(Vector2(size.x * 0.62, eye_y), eye_radius, eye_color)
+	for eye_x in [size.x * 0.38, size.x * 0.62]:
+		if eyes_closed:
+			draw_line(Vector2(eye_x - eye_radius, eye_y), Vector2(eye_x + eye_radius, eye_y), eye_color, 4.0, true)
+		else:
+			draw_circle(Vector2(eye_x, eye_y), eye_radius, eye_color)
 
 
 ## Egg outline: an ellipse whose top half is taller and narrower than its bottom half.

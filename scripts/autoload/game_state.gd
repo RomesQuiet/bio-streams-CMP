@@ -68,15 +68,29 @@ func update_health() -> void:
 	changed.emit()
 
 
-## Placeholder XP rule, called by the Clock as avatar time passes:
-## gain at high health, loss at low health. XP never goes below 0.
-func apply_avatar_hours(hours: float) -> void:
+## Called by the Clock as avatar time passes.
+func apply_avatar_hours(hours: float, asleep: bool) -> void:
+	_apply_sleep_measure(hours, asleep)
+	_apply_xp(hours)
+	changed.emit()
+
+
+## Placeholder: the sleep measure rises while asleep and falls while awake.
+func _apply_sleep_measure(hours: float, asleep: bool) -> void:
+	if asleep:
+		sleep += Config.get_float("sleep_activity.measure_gain_per_avatar_hour") * hours
+	else:
+		sleep -= Config.get_float("sleep_activity.measure_loss_per_avatar_hour_awake") * hours
+	sleep = clampf(sleep, 0.0, 1.0)
+
+
+## Placeholder XP rule: gain at high health, loss at low health. XP never goes below 0.
+func _apply_xp(hours: float) -> void:
 	var rounded_health := roundi(health)
 	if rounded_health >= Config.get_int("xp.high_health_min"):
 		xp += Config.get_float("xp.gain_per_avatar_hour") * hours
 	elif rounded_health <= Config.get_int("xp.low_health_max"):
 		xp = maxf(0.0, xp - Config.get_float("xp.loss_per_avatar_hour") * hours)
-	changed.emit()
 
 
 func _xp_per_level() -> float:

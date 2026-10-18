@@ -13,6 +13,7 @@ func _process(_delta: float) -> bool:
 	_test_conversion(clock)
 	_test_full_cycle(clock)
 	_test_stop_sleep_early(clock)
+	_test_five_hours_sleep(clock)
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
 	quit(1 if _failures > 0 else 0)
 	return true
@@ -39,14 +40,20 @@ func _test_full_cycle(clock: Node) -> void:
 	clock._process(STEP_SECONDS)
 	_check("pause stops time", clock.clock_text() == "07:00")
 	clock.set_paused(false)
+	var game_state: Node = root.get_node("GameState")
+	var sleep_at_start: float = game_state.sleep
 	_run_until(clock, clock.Phase.BEDTIME)
 	_check("day ends at 21:00", clock.clock_text() == "21:00")
-	_check("avatar is tired at bedtime", root.get_node("GameState").tired)
+	_check("avatar is tired at bedtime", game_state.tired)
+	var sleep_at_bedtime: float = game_state.sleep
+	_check("sleep measure falls during the day", sleep_at_bedtime < sleep_at_start)
 	clock._process(STEP_SECONDS)
 	_check("time waits at bedtime (no automatic sleep)", clock.phase == clock.Phase.BEDTIME and clock.clock_text() == "21:00")
 	clock.start_sleep(8.0)
 	_run_until(clock, clock.Phase.SLEEP_OVER)
 	_check("8 h sleep ends at 05:00", clock.clock_text() == "05:00")
+	_check("sleep measure rises during sleep", game_state.sleep > sleep_at_bedtime)
+	_check("avatar is not tired after sleep", not game_state.tired)
 	clock._process(STEP_SECONDS)
 	_check("time waits for the wake button", clock.clock_text() == "05:00")
 	clock.wake_up()
@@ -63,6 +70,14 @@ func _test_stop_sleep_early(clock: Node) -> void:
 	var slept: float = clock.sleep_elapsed_hours
 	clock.wake_up()
 	_check("stopping early uses the hours slept", is_equal_approx(clock.day_length_hours, 24.0 - slept))
+
+
+func _test_five_hours_sleep(clock: Node) -> void:
+	_run_until(clock, clock.Phase.BEDTIME)
+	clock.start_sleep(5.0)
+	_run_until(clock, clock.Phase.SLEEP_OVER)
+	clock.wake_up()
+	_check("5 h sleep gives a 19 h day", is_equal_approx(clock.day_length_hours, 19.0))
 
 
 func _run_until(clock: Node, phase: int) -> void:

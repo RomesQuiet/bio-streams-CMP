@@ -14,8 +14,9 @@ const MINUTES_PER_DAY := 24.0 * 60.0
 signal time_changed
 signal phase_changed(phase: Phase)
 signal paused_changed(paused: bool)
-## Emitted every frame that avatar time moves, with the avatar hours that passed.
-signal avatar_time_passed(hours: float)
+## Emitted every frame that avatar time moves, with the avatar hours that passed
+## and whether the avatar was asleep.
+signal avatar_time_passed(hours: float, asleep: bool)
 
 var phase := Phase.DAY
 var paused := false
@@ -161,7 +162,7 @@ func _advance(hours: float, elapsed_in_phase: float) -> void:
 	if hours <= 0.0:
 		return
 	minute_of_day = fposmod(_phase_start_minute + elapsed_in_phase * MINUTES_PER_HOUR, MINUTES_PER_DAY)
-	avatar_time_passed.emit(hours)
+	avatar_time_passed.emit(hours, phase == Phase.SLEEPING)
 	time_changed.emit()
 
 

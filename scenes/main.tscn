@@ -200,11 +200,20 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
 
-[node name="StopButton" type="Button" parent="Margin/Layout"]
-unique_name_in_owner = true
+[node name="StopSlot" type="Control" parent="Margin/Layout"]
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-disabled = true
+mouse_filter = 2
+
+[node name="StopButton" type="Button" parent="Margin/Layout/StopSlot"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 text = "Stop"
 
 [node name="ActionGrid" type="GridContainer" parent="Margin/Layout"]
@@ -296,3 +305,65 @@ layout_mode = 2
 max_value = 1.0
 step = 0.0
 show_percentage = false
+
+[node name="SleepPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -170.0
+offset_right = 300.0
+offset_bottom = 170.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="SleepPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="Content" type="VBoxContainer" parent="SleepPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="SleepTitle" type="Label" parent="SleepPanel/Margin/Content"]
+layout_mode = 2
+text = "How many hours of sleep?"
+horizontal_alignment = 1
+
+[node name="SleepSlider" type="HSlider" parent="SleepPanel/Margin/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
+[node name="SleepInfoLabel" type="Label" parent="SleepPanel/Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "10 h of sleep"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="SleepButtons" type="HBoxContainer" parent="SleepPanel/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="SleepCancelButton" type="Button" parent="SleepPanel/Margin/Content/SleepButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Cancel"
+
+[node name="SleepStartButton" type="Button" parent="SleepPanel/Margin/Content/SleepButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Sleep"
