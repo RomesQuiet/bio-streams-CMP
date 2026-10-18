@@ -9,7 +9,7 @@ Goal: a web-exportable Godot project that runs on the Mac with the main screen, 
 
 ## Task 2 — Config and global state
 - `data/config.json` with every tunable number (time scales, measure start values, health weights, XP placeholders, thresholds). Mark placeholders.
-- Autoloads `Config` (loads the JSON) and `GameState` (physical, mental, sleep, health 1 to 5, xp, level, fatigue, hunger, avatar name, language).
+- Autoloads `Config` (loads the JSON) and `GameState` (physical, mental, sleep, health 1 to 5, xp, level, hunger, avatar name, language).
 - Placeholder health = weighted average of the three measures mapped to 1 to 5 (weights in config). Placeholder XP: small gain per avatar hour at health 4 or 5, small loss at health 1 or 2.
 - Done when: values print correctly at startup and changing config changes the result.
 

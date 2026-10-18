@@ -58,6 +58,7 @@ Autoloads: `Config`, `GameState`, `Clock`, `SaveGame`. The Clock never reads the
 - Sleep: 0 to 1, starts at 1. It affects the other measures the most.
 - XP: unlimited. Health loss loses XP, health gain gains XP, and staying at high health for longer gives more. The XP bar shows the level (empty = start of a level, full = next level, then empty again). XP values per action are **not defined** (placeholders).
 - Sport and sleep drive progression. Food is built after them.
+- **No fatigue system.** Exercise only spends calories and builds muscle strength: more exercise means more calories spent and more muscle. "Tired" means sleepy and has nothing to do with exercise.
 
 **Time**
 - Day = 30 real minutes = 14 avatar hours (1 real minute = 28 avatar minutes).
@@ -89,7 +90,7 @@ Autoloads: `Config`, `GameState`, `Clock`, `SaveGame`. The Clock never reads the
 
 ## Not decided yet (do not guess)
 
-Health formula; XP values and level size; death probabilities; failure effect; what carries over after death; food list, tastes and menus; entertainment options; activity durations; fatigue, hunger and calorie numbers; the avatar state thresholds; what happens if the player ignores the sleep recommendation (a possible rule: it counts as 0 hours slept and the next day lasts 24 hours; ask before building it); settings contents; server and accounts (later, optional).
+Health formula; XP values and level size; death probabilities; failure effect; what carries over after death; food list, tastes and menus; entertainment options; activity durations; hunger and calorie numbers; the avatar state thresholds; what happens if the player ignores the sleep recommendation (a possible rule: it counts as 0 hours slept and the next day lasts 24 hours; ask before building it); settings contents; server and accounts (later, optional).
 
 ## Quality checks
 

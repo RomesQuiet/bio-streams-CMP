@@ -8,7 +8,13 @@
 		"day_avatar_minutes_per_real_minute": 28,
 		"sleep_avatar_minutes_per_real_minute": 5,
 		"first_day_start_hour": { "value": 7.0, "placeholder": true, "comment": "Clock time (24 h) when the first day starts." },
-		"max_sleep_hours": { "value": 12, "placeholder": true, "comment": "Maximum hours on the sleep slider." }
+		"max_sleep_hours": { "value": 12, "placeholder": true, "comment": "Maximum hours on the sleep slider." },
+		"max_frame_seconds": { "value": 0.5, "placeholder": true, "comment": "Longest real time counted in one frame, so a frozen or hidden tab cannot jump game time forward." }
+	},
+
+	"debug": {
+		"_comment": "Only works when the game runs from the Godot editor. Press F9 to change the speed. Never active in the published build.",
+		"speed_multipliers": [1, 60, 600]
 	},
 
 	"measures": {

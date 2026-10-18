@@ -119,6 +119,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 tooltip_text = "Pause"
+toggle_mode = true
 icon = ExtResource("3_pause")
 icon_alignment = 1
 expand_icon = true

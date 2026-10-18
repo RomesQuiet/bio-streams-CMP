@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 Config="*res://scripts/autoload/config.gd"
 GameState="*res://scripts/autoload/game_state.gd"
+Clock="*res://scripts/autoload/clock.gd"
 
 [display]
 
