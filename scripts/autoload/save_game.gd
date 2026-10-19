@@ -30,9 +30,10 @@ func _ready() -> void:
 	if loaded and Config.get_value("save.resume_paused") and Clock.phase == Clock.Phase.DAY:
 		Clock.set_paused(true)
 
-	# Key moments: every phase change (bedtime, sleep start, sleep end, wake), pause,
-	# and the start and end of every activity.
+	# Key moments: every phase change (sleep start, sleep end, wake), every new day,
+	# pause, and the start and end of every activity.
 	Clock.phase_changed.connect(_auto_save.unbind(1))
+	Clock.day_started.connect(_auto_save.unbind(1))
 	Clock.paused_changed.connect(_auto_save.unbind(1))
 	Activities.started.connect(_auto_save.unbind(2))
 	Activities.ended.connect(_auto_save.unbind(3))

@@ -2,11 +2,15 @@ extends Node
 ## Avatar time. Advances only with the game open, using frame delta time.
 ## It never reads the device clock. All numbers come from Config.
 ##
-## Cycle: DAY -> BEDTIME (day over, avatar tired, waits for the player)
-##        -> SLEEPING -> SLEEP_OVER (paused, waits for the wake button) -> DAY
-## Sleep can also start during the DAY (a nap). Any sleep, short or long, ends the
-## current day: after it, a new day starts with length 14 + (10 - hours slept).
+## Cycle: DAY -> SLEEPING -> SLEEP_OVER (paused, waits for the wake button) -> DAY
+## Sleep can start at any time during the DAY (a nap or a night). Any sleep, short or
+## long, ends the current day: after it, a new day starts with length 14 + (10 - hours slept).
+## If the awake period runs out and the player has not slept, it counts as 0 hours
+## slept: a new day of 14 + (10 - 0) = 24 hours starts at once, the avatar stays tired
+## and the sleep recommendation stays visible. Sleep is never automatic.
 
+## BEDTIME is no longer used (the game does not stop when the awake period runs out).
+## It stays in the list so the numbers in older saves keep their meaning.
 enum Phase { DAY, BEDTIME, SLEEPING, SLEEP_OVER }
 
 const MINUTES_PER_HOUR := 60.0
@@ -16,6 +20,9 @@ const MINUTES_PER_DAY := 24.0 * 60.0
 signal time_changed
 signal phase_changed(phase: Phase)
 signal paused_changed(paused: bool)
+## Emitted when a new day starts: after waking up, or when the awake period ran out
+## without sleep (then slept is false).
+signal day_started(slept: bool)
 ## Emitted every frame that avatar time moves, with the avatar hours that passed
 ## and whether the avatar was asleep.
 signal avatar_time_passed(hours: float, asleep: bool)
@@ -135,6 +142,9 @@ func to_dict() -> Dictionary:
 ## Restores values from to_dict(). Missing keys keep their current value.
 func from_dict(data: Dictionary) -> void:
 	phase = clampi(int(data.get("phase", phase)), 0, Phase.size() - 1) as Phase
+	var old_bedtime_save := phase == Phase.BEDTIME
+	if old_bedtime_save:
+		phase = Phase.DAY  # Saved by an older version, which waited at bedtime.
 	paused = bool(data.get("paused", paused)) and phase == Phase.DAY
 	day_number = int(data.get("day_number", day_number))
 	day_length_hours = float(data.get("day_length_hours", day_length_hours))
@@ -143,6 +153,8 @@ func from_dict(data: Dictionary) -> void:
 	sleep_elapsed_hours = float(data.get("sleep_elapsed_hours", sleep_elapsed_hours))
 	minute_of_day = float(data.get("minute_of_day", minute_of_day))
 	_phase_start_minute = float(data.get("phase_start_minute", _phase_start_minute))
+	if old_bedtime_save:
+		_start_day_without_sleep()
 	phase_changed.emit(phase)
 	paused_changed.emit(paused)
 	time_changed.emit()
@@ -163,7 +175,7 @@ func toggle_pause() -> void:
 	set_paused(not paused)
 
 
-## Starts sleep, during the day (a nap) or at bedtime.
+## Starts sleep at any time during the day (a nap or a night).
 func start_sleep(hours: float) -> void:
 	if not can_start_sleep():
 		return
@@ -177,7 +189,7 @@ func start_sleep(hours: float) -> void:
 
 
 func can_start_sleep() -> bool:
-	return phase == Phase.DAY or phase == Phase.BEDTIME
+	return phase == Phase.DAY
 
 
 ## Ends sleep early. The hours actually slept are used for the next day.
@@ -194,6 +206,7 @@ func wake_up() -> void:
 	day_length_hours = day_hours_after_sleep(sleep_elapsed_hours)
 	day_elapsed_hours = 0.0
 	_set_phase(Phase.DAY)
+	day_started.emit(true)
 
 
 ## How light the sky is at this time of day: 1 = day, 0 = night, in between at
@@ -225,7 +238,8 @@ func is_debug_speed_active() -> bool:
 # --- Internal ---
 
 ## Moves the clock. The time of day is worked out from the start of the phase
-## (not added up frame by frame), so it lands exactly on the bedtime and wake-up time.
+## (not added up frame by frame), so it lands exactly on the end of the awake period
+## and on the wake-up time.
 func _advance(hours: float, elapsed_in_phase: float) -> void:
 	if hours <= 0.0:
 		return
@@ -234,10 +248,22 @@ func _advance(hours: float, elapsed_in_phase: float) -> void:
 	time_changed.emit()
 
 
+## The awake period ran out and the player has not slept.
 func _end_day() -> void:
+	_start_day_without_sleep()
+	time_changed.emit()
+
+
+## Counts as 0 hours slept: a new day of 14 + (10 - 0) = 24 hours starts at once.
+## The avatar stays tired (until it sleeps) and time keeps running.
+func _start_day_without_sleep() -> void:
 	GameState.tired = true
 	GameState.changed.emit()
-	_set_phase(Phase.BEDTIME)
+	day_number += 1
+	day_length_hours = day_hours_after_sleep(0.0)
+	day_elapsed_hours = 0.0
+	_phase_start_minute = minute_of_day
+	day_started.emit(false)
 
 
 func _end_sleep() -> void:

@@ -24,6 +24,7 @@ func _process(_delta: float) -> bool:
 	_test_five_hours_sleep(clock)
 	_test_nap(clock)
 	_test_daylight(clock)
+	_test_ignoring_the_recommendation(clock)
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
 	DirAccess.remove_absolute(save_game.save_path)
 	quit(1 if _failures > 0 else 0)
@@ -53,13 +54,12 @@ func _test_full_cycle(clock: Node) -> void:
 	clock.set_paused(false)
 	var game_state: Node = root.get_node("GameState")
 	var sleep_at_start: float = game_state.sleep
-	_run_until(clock, clock.Phase.BEDTIME)
-	_check("day ends at 21:00", clock.clock_text() == "21:00")
-	_check("avatar is tired at bedtime", game_state.tired)
+	_run_until_new_day(clock)
+	_check("awake period ends at 21:00", clock.clock_text() == "21:00")
+	_check("avatar is tired when the awake period ends", game_state.tired)
 	var sleep_at_bedtime: float = game_state.sleep
 	_check("sleep measure falls during the day", sleep_at_bedtime < sleep_at_start)
-	clock._process(STEP_SECONDS)
-	_check("time waits at bedtime (no automatic sleep)", clock.phase == clock.Phase.BEDTIME and clock.clock_text() == "21:00")
+	_check("sleep is not automatic", clock.phase == clock.Phase.DAY)
 	root.get_node("Activities").start("sleep", "sleep", 8.0)
 	_run_until(clock, clock.Phase.SLEEP_OVER)
 	_check("8 h sleep ends at 05:00", clock.clock_text() == "05:00")
@@ -69,8 +69,8 @@ func _test_full_cycle(clock: Node) -> void:
 	_check("time waits for the wake button", clock.clock_text() == "05:00")
 	clock.wake_up()
 	_check("next day is 16 h", is_equal_approx(clock.day_length_hours, 16.0))
-	_run_until(clock, clock.Phase.BEDTIME)
-	_check("bedtime stays at 21:00", clock.clock_text() == "21:00")
+	_run_until_new_day(clock)
+	_check("awake period ends at 21:00 again", clock.clock_text() == "21:00")
 
 
 func _test_stop_sleep_early(clock: Node) -> void:
@@ -84,7 +84,7 @@ func _test_stop_sleep_early(clock: Node) -> void:
 
 
 func _test_five_hours_sleep(clock: Node) -> void:
-	_run_until(clock, clock.Phase.BEDTIME)
+	_run_until_new_day(clock)
 	root.get_node("Activities").start("sleep", "sleep", 5.0)
 	_run_until(clock, clock.Phase.SLEEP_OVER)
 	clock.wake_up()
@@ -108,7 +108,7 @@ func _test_nap(clock: Node) -> void:
 	clock.wake_up()
 	_check("1 h nap starts a 23 h day", is_equal_approx(clock.day_length_hours, 23.0))
 	clock.debug_speed = 600.0
-	_run_until(clock, clock.Phase.BEDTIME)
+	_run_until_new_day(clock)
 	_check("that day ends at 14:00 the next day (24 h after the nap started)", _near_minute(clock, 14 * 60))
 	activities.start("sleep", "sleep", 10.0)
 	_run_until(clock, clock.Phase.SLEEP_OVER)
@@ -135,8 +135,51 @@ func _test_daylight(clock: Node) -> void:
 	activities.stop()
 
 
+## Milestone 2, Task 3: if the awake period runs out and the player has not slept, it
+## counts as 0 hours slept: a new 24 h day starts at once, the avatar stays tired and
+## the sleep measure keeps falling. The player can still sleep at any time.
+func _test_ignoring_the_recommendation(clock: Node) -> void:
+	var activities: Node = root.get_node("Activities")
+	var game_state: Node = root.get_node("GameState")
+	game_state.reset()
+	clock.reset()
+	clock.debug_speed = 600.0
+	var sleep_at_start: float = game_state.sleep
+	var day_at_start: int = clock.day_number
+	var new_days: Array = []
+	clock.day_started.connect(func(slept): new_days.append(slept))
+	_run_until_new_day(clock)
+	_check("a day without sleep starts a new day at once", clock.day_number == day_at_start + 1 and clock.phase == clock.Phase.DAY)
+	_check("the new day starts without a stop at 21:00", clock.clock_text() == "21:00" and not clock.paused)
+	_check("the new day lasts 24 h", is_equal_approx(clock.day_length_hours, 24.0))
+	_check("the new day is reported as not slept", new_days == [false])
+	_check("the sleep measure is lower than at the start", game_state.sleep < sleep_at_start)
+	_check("the avatar stays tired", game_state.tired)
+	var sleep_after_day_1: float = game_state.sleep
+	_run_until_new_day(clock)
+	_check("a second day without sleep is 24 h again", is_equal_approx(clock.day_length_hours, 24.0) and clock.clock_text() == "21:00")
+	_check("the avatar is still tired", game_state.tired)
+	_check("the sleep measure keeps falling", game_state.sleep < sleep_after_day_1 or game_state.sleep == 0.0)
+	_check("the player can still sleep", activities.start("sleep", "sleep", 8.0))
+	_check("sleeping removes the tired state", not game_state.tired)
+	_run_until(clock, clock.Phase.SLEEP_OVER)
+	clock.wake_up()
+	_check("after sleeping the normal rule applies (16 h day)", is_equal_approx(clock.day_length_hours, 16.0))
+	_check("waking is reported as slept", new_days == [false, false, true])
+
+
 func _near_minute(clock: Node, minute: float) -> bool:
 	return absf(clock.minute_of_day - minute) < 0.01
+
+
+## Runs until the awake period runs out and a new day starts without sleep.
+func _run_until_new_day(clock: Node) -> void:
+	var day: int = clock.day_number
+	for i in 100000:
+		if clock.day_number != day:
+			return
+		clock._process(STEP_SECONDS)
+	_check("a new day started", false)
 
 
 func _run_until(clock: Node, phase: int) -> void:

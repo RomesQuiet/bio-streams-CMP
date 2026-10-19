@@ -24,7 +24,8 @@ func _process(_delta: float) -> bool:
 	game_state.xp = 157.5
 	game_state.physical = 0.8
 	clock.debug_speed = 600.0
-	while clock.phase != clock.Phase.BEDTIME:
+	var day: int = clock.day_number
+	while clock.day_number == day:
 		clock._process(0.1)
 	root.get_node("Activities").start("sleep", "sleep", 8.0)
 	while clock.sleep_elapsed_hours < 3.0:

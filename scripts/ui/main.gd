@@ -59,6 +59,7 @@ func _ready() -> void:
 	Clock.time_changed.connect(_refresh_clock)
 	Clock.phase_changed.connect(_on_phase_changed)
 	Clock.paused_changed.connect(_refresh_phase.unbind(1))
+	Clock.day_started.connect(_refresh_phase.unbind(1))
 	Activities.started.connect(_refresh_activity.unbind(2))
 	Activities.ended.connect(_refresh_activity.unbind(3))
 	Activities.progressed.connect(_refresh_activity_speech)
@@ -152,9 +153,11 @@ func _refresh_phase() -> void:
 		return
 	match phase:
 		Clock.Phase.DAY:
-			speech_label.text = "Paused" if Clock.paused else "Hello!"
-		Clock.Phase.BEDTIME:
-			speech_label.text = "I'm tired. It's bedtime: sleep is recommended."
+			if GameState.tired:
+				# Stays visible until the avatar sleeps.
+				speech_label.text = "I'm tired. Sleep is recommended."
+			else:
+				speech_label.text = "Paused" if Clock.paused else "Hello!"
 		Clock.Phase.SLEEP_OVER:
 			speech_label.text = "I slept %.1f h. Press the wake button to start the day." % Clock.sleep_elapsed_hours
 

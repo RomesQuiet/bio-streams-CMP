@@ -35,9 +35,9 @@ func _process(_delta: float) -> bool:
 func _test_sleep_activity(activities: Node, game_state: Node, clock: Node) -> void:
 	_check("sleep is defined in activities.json", activities.definitions.has("sleep"))
 	_check("sleep can start during the day (nap)", activities.can_start("sleep"))
-	_run_until_phase(clock, clock.Phase.BEDTIME)
+	_run_until_new_day(clock)
 	var sleep_before: float = game_state.sleep
-	_check("sleep starts at bedtime", activities.start("sleep", "sleep", 10.0))
+	_check("sleep starts when the avatar is tired", activities.start("sleep", "sleep", 10.0))
 	_check("sleep runs through the activity system", activities.is_running() and activities.current_activity == "sleep")
 	_check("clock is sleeping", clock.phase == clock.Phase.SLEEPING)
 	_check("a second activity cannot start", not activities.can_start("sleep"))
@@ -87,6 +87,16 @@ func _test_day_activity(activities: Node, game_state: Node, clock: Node) -> void
 	clock._process(STEP_SECONDS)
 	_check("no effects after the activity ends", is_equal_approx(game_state.mental, mental_after))
 	activities.definitions.erase("test_play")
+
+
+## Runs until the awake period runs out and a new day starts without sleep.
+func _run_until_new_day(clock: Node) -> void:
+	var day: int = clock.day_number
+	for i in 100000:
+		if clock.day_number != day:
+			return
+		clock._process(STEP_SECONDS)
+	_check("a new day started", false)
 
 
 func _run_until_phase(clock: Node, phase: int) -> void:
