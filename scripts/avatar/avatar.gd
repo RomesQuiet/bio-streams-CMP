@@ -13,14 +13,26 @@ extends Control
 ## Placeholder hop used by activities without their own animation yet.
 @export var hop_seconds := 0.6
 @export var hop_height := 24.0
+## Placeholder exercise animations: cardio is a fast, high hop; strength is a slow
+## squat (squash and stretch).
+@export var cardio_seconds := 0.35
+@export var cardio_height := 36.0
+@export var strength_seconds := 1.4
+@export var strength_squash := Vector2(1.08, 0.88)
 
 var eyes_closed := false:
 	set(value):
 		eyes_closed = value
 		queue_redraw()
 
+## How far the avatar is drawn above the ground during hops. Animations change this
+## instead of the node's position, so they never fight the screen layout.
+var hop_offset := 0.0:
+	set(value):
+		hop_offset = value
+		queue_redraw()
+
 var _animation: Tween
-var _rest_y := 0.0
 
 
 func _ready() -> void:
@@ -37,7 +49,6 @@ func _on_resized() -> void:
 ## until stop_animation() is called. Unknown names use a simple hop.
 func play_animation(animation_name: String) -> void:
 	stop_animation()
-	_rest_y = position.y
 	_animation = create_tween().set_loops()
 	_animation.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	match animation_name:
@@ -45,21 +56,28 @@ func play_animation(animation_name: String) -> void:
 			eyes_closed = true
 			_animation.tween_property(self, "scale", breath_squash, breath_seconds * 0.5)
 			_animation.tween_property(self, "scale", Vector2.ONE, breath_seconds * 0.5)
+		"cardio":
+			_animation.tween_property(self, "hop_offset", cardio_height, cardio_seconds * 0.5)
+			_animation.tween_property(self, "hop_offset", 0.0, cardio_seconds * 0.5)
+		"strength":
+			_animation.tween_property(self, "scale", strength_squash, strength_seconds * 0.5)
+			_animation.tween_property(self, "scale", Vector2.ONE, strength_seconds * 0.5)
 		_:
-			_animation.tween_property(self, "position:y", position.y - hop_height, hop_seconds * 0.5)
-			_animation.tween_property(self, "position:y", position.y, hop_seconds * 0.5)
+			_animation.tween_property(self, "hop_offset", hop_height, hop_seconds * 0.5)
+			_animation.tween_property(self, "hop_offset", 0.0, hop_seconds * 0.5)
 
 
 func stop_animation() -> void:
 	if _animation:
 		_animation.kill()
 		_animation = null
-		position.y = _rest_y
+	hop_offset = 0.0
 	scale = Vector2.ONE
 	eyes_closed = false
 
 
 func _draw() -> void:
+	draw_set_transform(Vector2(0.0, -hop_offset))
 	var points := _egg_points()
 	draw_colored_polygon(points, body_color)
 	points.append(points[0])

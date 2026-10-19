@@ -25,6 +25,7 @@ func _process(_delta: float) -> bool:
 
 	_test_sleep_activity(activities, game_state, clock)
 	_test_day_activity(activities, game_state, clock)
+	_test_exercise(activities, game_state, clock)
 
 	DirAccess.remove_absolute(save_game.save_path)
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
@@ -87,6 +88,50 @@ func _test_day_activity(activities: Node, game_state: Node, clock: Node) -> void
 	clock._process(STEP_SECONDS)
 	_check("no effects after the activity ends", is_equal_approx(game_state.mental, mental_after))
 	activities.definitions.erase("test_play")
+
+
+## Milestone 2, Task 4: cardio and muscle strength change calories spent, muscle and
+## the physical measure by the values in data/activities.json. Stop halfway applies half.
+func _test_exercise(activities: Node, game_state: Node, clock: Node) -> void:
+	_check("exercise is defined with cardio and strength", activities.get_option("exercise", "cardio").size() > 0 and activities.get_option("exercise", "strength").size() > 0)
+	var cardio: Dictionary = activities.get_option("exercise", "cardio")["effects_per_hour"]
+	var strength: Dictionary = activities.get_option("exercise", "strength")["effects_per_hour"]
+	_check("cardio spends more calories than strength", cardio["calories_spent"] > strength["calories_spent"])
+	_check("strength raises muscle more than cardio", strength["muscle"] > cardio["muscle"])
+	_check("both raise the physical measure", cardio["physical"] > 0.0 and strength["physical"] > 0.0)
+	_check("there is no fatigue effect", not cardio.has("fatigue") and not strength.has("fatigue"))
+
+	for option_id in ["cardio", "strength"]:
+		var effects: Dictionary = activities.get_option("exercise", option_id)["effects_per_hour"]
+		var hours: float = float(activities.get_option("exercise", option_id)["duration_hours"])
+		_check("%s lasts 1 avatar hour" % option_id, is_equal_approx(hours, 1.0))
+		clock.debug_speed = 600.0
+		var before := _snapshot(game_state)
+		_check("%s starts" % option_id, activities.start("exercise", option_id))
+		_check("sleep is locked during %s" % option_id, not activities.can_start("sleep"))
+		while activities.is_running():
+			clock._process(STEP_SECONDS)
+		_check("%s: calories spent change by the config value" % option_id, absf(game_state.calories_spent - (before["calories_spent"] + effects["calories_spent"] * hours)) < TOLERANCE)
+		_check("%s: muscle changes by the config value" % option_id, absf(game_state.muscle - (before["muscle"] + effects["muscle"] * hours)) < TOLERANCE)
+		_check("%s: physical changes by the config value" % option_id, absf(game_state.physical - (before["physical"] + effects["physical"] * hours)) < TOLERANCE)
+
+		# Stop halfway: effects count only for the time done.
+		clock.debug_speed = 60.0
+		before = _snapshot(game_state)
+		activities.start("exercise", option_id)
+		while activities.elapsed_hours < 0.5:
+			clock._process(STEP_SECONDS)
+		var done: float = activities.elapsed_hours
+		activities.stop()
+		_check("%s stopped halfway: about 0.5 h done" % option_id, absf(done - 0.5) < 0.05)
+		_check("%s stopped halfway: calories spent are in proportion" % option_id, absf(game_state.calories_spent - (before["calories_spent"] + effects["calories_spent"] * done)) < TOLERANCE)
+		_check("%s stopped halfway: muscle is in proportion" % option_id, absf(game_state.muscle - (before["muscle"] + effects["muscle"] * done)) < TOLERANCE)
+		_check("%s stopped halfway: physical is in proportion" % option_id, absf(game_state.physical - (before["physical"] + effects["physical"] * done)) < TOLERANCE)
+	clock.debug_speed = 600.0
+
+
+func _snapshot(game_state: Node) -> Dictionary:
+	return {"calories_spent": game_state.calories_spent, "muscle": game_state.muscle, "physical": game_state.physical}
 
 
 ## Runs until the awake period runs out and a new day starts without sleep.

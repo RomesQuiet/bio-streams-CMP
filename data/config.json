@@ -36,6 +36,8 @@
 		"physical_start": 0.5,
 		"mental_start": 0.5,
 		"sleep_start": 1.0,
+		"muscle_start": { "value": 0.5, "placeholder": true, "comment": "Muscle strength, 0 to 1." },
+		"calories_spent_start": { "value": 0, "placeholder": true, "comment": "Total kcal spent by exercise so far. Whether it resets each day is not decided." },
 		"hunger_start": { "value": 0.0, "placeholder": true, "comment": "0 = full, 1 = starving." }
 	},
 

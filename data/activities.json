@@ -15,5 +15,29 @@
 				"comment": "Duration comes from the sleep slider (config.json: sleep_activity, time.max_sleep_hours). Sleep measure +0.07 per hour slept (10 h restores 0.7)."
 			}
 		}
+	},
+
+	"exercise": {
+		"name": "Exercise",
+		"options": {
+			"cardio": {
+				"name": "Cardio",
+				"duration_hours": 1,
+				"effects_per_hour": { "calories_spent": 500, "muscle": 0.01, "physical": 0.03 },
+				"background_color": "#2d5a3d",
+				"animation": "cardio",
+				"placeholder": true,
+				"comment": "calories_spent is in kcal per avatar hour. Cardio spends more calories than muscle strength."
+			},
+			"strength": {
+				"name": "Muscle strength",
+				"duration_hours": 1,
+				"effects_per_hour": { "calories_spent": 300, "muscle": 0.04, "physical": 0.03 },
+				"background_color": "#5a3d2d",
+				"animation": "strength",
+				"placeholder": true,
+				"comment": "Muscle strength raises muscle more than cardio. There is no fatigue system."
+			}
+		}
 	}
 }

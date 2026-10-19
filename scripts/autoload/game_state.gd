@@ -5,7 +5,7 @@ extends Node
 signal changed
 
 ## Values that always stay between 0 and 1.
-const MEASURES_0_TO_1 := ["physical", "mental", "sleep", "hunger"]
+const MEASURES_0_TO_1 := ["physical", "mental", "sleep", "hunger", "muscle"]
 
 # Measures: physical, mental and sleep go from 0 to 1. Health goes from 1 to 5.
 var physical: float
@@ -13,6 +13,10 @@ var mental: float
 var sleep: float
 var health: float
 var hunger: float
+## Muscle strength, 0 to 1. Raised by exercise.
+var muscle: float
+## Total kcal spent by exercise so far (not limited to 1).
+var calories_spent: float
 ## Tired means sleepy. Placeholder rule: the Clock sets this to true when the day ends.
 var tired: bool
 var xp: float
@@ -43,6 +47,8 @@ func reset() -> void:
 	sleep = Config.get_float("measures.sleep_start")
 	health = Config.get_float("measures.health_start")
 	hunger = Config.get_float("measures.hunger_start")
+	muscle = Config.get_float("measures.muscle_start")
+	calories_spent = Config.get_float("measures.calories_spent_start")
 	tired = false
 	xp = Config.get_float("xp.start")
 	avatar_name = Config.get_string("defaults.avatar_name")
@@ -58,6 +64,8 @@ func to_dict() -> Dictionary:
 		"sleep": sleep,
 		"health": health,
 		"hunger": hunger,
+		"muscle": muscle,
+		"calories_spent": calories_spent,
 		"tired": tired,
 		"xp": xp,
 		"avatar_name": avatar_name,
@@ -72,6 +80,8 @@ func from_dict(data: Dictionary) -> void:
 	sleep = float(data.get("sleep", sleep))
 	health = float(data.get("health", health))
 	hunger = float(data.get("hunger", hunger))
+	muscle = float(data.get("muscle", muscle))
+	calories_spent = float(data.get("calories_spent", calories_spent))
 	tired = bool(data.get("tired", tired))
 	xp = float(data.get("xp", xp))
 	avatar_name = str(data.get("avatar_name", avatar_name))
@@ -145,6 +155,7 @@ func print_state() -> void:
 	print("--- GameState ---")
 	print("avatar_name='%s' language=%s" % [avatar_name, language])
 	print("physical=%.2f mental=%.2f sleep=%.2f" % [physical, mental, sleep])
+	print("muscle=%.2f calories_spent=%.0f" % [muscle, calories_spent])
 	print("hunger=%.2f tired=%s" % [hunger, tired])
 	print("health=%.2f (placeholder formula gives %.2f)" % [health, calculate_health()])
 	print("xp=%.1f level=%d progress=%.2f" % [xp, level, level_progress])

@@ -30,6 +30,10 @@ extends Control
 @onready var stop_button: Button = %StopButton
 @onready var action_buttons: Array[Button] = [%ExerciseButton, %SleepButton, %EatButton, %EntertainmentButton]
 @onready var sleep_button: Button = %SleepButton
+@onready var exercise_button: Button = %ExerciseButton
+@onready var options_panel: PanelContainer = %OptionsPanel
+@onready var options_title: Label = %OptionsTitle
+@onready var option_buttons: VBoxContainer = %OptionButtons
 @onready var sleep_panel: PanelContainer = %SleepPanel
 @onready var sleep_slider: HSlider = %SleepSlider
 @onready var sleep_info_label: Label = %SleepInfoLabel
@@ -46,11 +50,14 @@ func _ready() -> void:
 	sleep_slider.value = Config.get_float("sleep_activity.slider_default_hours")
 	health_panel.visible = false
 	sleep_panel.visible = false
+	options_panel.visible = false
 
 	health_button.pressed.connect(_on_health_button_pressed)
 	pause_button.pressed.connect(Clock.toggle_pause)
 	wake_button.pressed.connect(Clock.wake_up)
 	sleep_button.pressed.connect(_on_sleep_button_pressed)
+	exercise_button.pressed.connect(_open_options.bind("exercise"))
+	%OptionsCancelButton.pressed.connect(options_panel.hide)
 	stop_button.pressed.connect(Activities.stop)
 	sleep_slider.value_changed.connect(_refresh_sleep_info.unbind(1))
 	%SleepCancelButton.pressed.connect(sleep_panel.hide)
@@ -78,6 +85,28 @@ func _on_health_button_pressed() -> void:
 func _on_sleep_button_pressed() -> void:
 	_refresh_sleep_info()
 	sleep_panel.show()
+
+
+## Opens the list of options of an activity (cardio and muscle strength for exercise),
+## built from data/activities.json.
+func _open_options(activity_id: String) -> void:
+	for child in option_buttons.get_children():
+		child.queue_free()
+	var options: Dictionary = Activities.definitions.get(activity_id, {}).get("options", {})
+	options_title.text = str(Activities.definitions.get(activity_id, {}).get("name", activity_id))
+	for option_id in options:
+		var option: Dictionary = options[option_id]
+		var button := Button.new()
+		button.text = "%s (%s h)" % [option.get("name", option_id), option.get("duration_hours", "?")]
+		button.custom_minimum_size = Vector2(0, 72)
+		button.pressed.connect(_on_option_chosen.bind(activity_id, option_id))
+		option_buttons.add_child(button)
+	options_panel.show()
+
+
+func _on_option_chosen(activity_id: String, option_id: String) -> void:
+	options_panel.hide()
+	Activities.start(activity_id, option_id)
 
 
 func _on_sleep_start_pressed() -> void:
@@ -148,6 +177,7 @@ func _refresh_phase() -> void:
 	for button in action_buttons:
 		button.disabled = running
 	sleep_button.disabled = not Activities.can_start("sleep")
+	exercise_button.disabled = not Activities.can_start("exercise")
 	if running:
 		_refresh_activity_speech()
 		return
