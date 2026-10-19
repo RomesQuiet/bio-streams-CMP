@@ -45,6 +45,7 @@ translations/  strings.csv
 assets/        art/, audio/
 documentation/ milestone notes
 docs/          web export (GitHub Pages)
+tests/         headless test scripts (one per area: clock, save, activities, health and XP)
 ```
 
 Autoloads: `Config`, `GameState`, `Clock`, `SaveGame`, `Activities` (the general activity system for sleep, exercise and entertainment, reading `data/activities.json`). The Clock never reads the device clock for game time; it advances only with the game open (delta time).
@@ -52,11 +53,15 @@ Autoloads: `Config`, `GameState`, `Clock`, `SaveGame`, `Activities` (the general
 ## Game rules (confirmed)
 
 **Measures**
-- Health: 1 to 5, starts at 3. Formula **not defined yet** (use a placeholder weighted average, weights in config).
-- Physical: 0 to 1, starts at 0.5 (calories and muscle strength; weight/height ratio may come later).
+- Health: 1 to 5. It **always equals the health formula**, so it rises and falls with the measures at every moment (there is no separate start value: the start measures give about 3.9). The real formula is **not defined yet**; the placeholder is a weighted average of physical, mental and sleep mapped to 1–5, with the weights in `data/config.json`. The **health level** is health rounded to a whole number (1 to 5).
+- Physical: 0 to 1, starts at 0.5 (calories and muscle strength; weight/height ratio may come later). Its values are kept separately in `GameState`: **muscle** (0 to 1, raised by exercise, mostly muscle strength) and **calories spent** (total kcal spent by exercise, never reset). **Endurance** is planned as the value that cardio trains, but it does not exist in the game yet.
 - Mental: 0 to 1, starts at 0.5.
 - Sleep: 0 to 1, starts at 1. It affects the other measures the most.
-- XP: unlimited. Health loss loses XP, health gain gains XP, and staying at high health for longer gives more. The XP bar shows the level (empty = start of a level, full = next level, then empty again). XP values per action are **not defined** (placeholders).
+- XP: unlimited. Health loss loses XP, health gain gains XP, and staying at high health for longer gives more. The XP bar shows the level (empty = start of a level, full = next level, then empty again). XP values per action are **not defined** (placeholders). How it works now (all numbers are placeholders in `data/config.json`, section `xp`):
+  - Every health change gives or takes XP: change in health × `per_health_point`.
+  - Each avatar hour at a high health level (`high_health_min` or more) gives `gain_per_avatar_hour` × a multiplier that grows with the hours spent at high health without a break (`high_health_bonus_per_hour`, up to `high_health_max_multiplier`). Dropping below the high level resets the streak.
+  - Each avatar hour at a low health level (`low_health_max` or less) loses `loss_per_avatar_hour`.
+  - XP never goes below 0. The level is XP ÷ `per_level` (rounded down), so losing XP can lower the level. Reaching a new level shows "Level up!" in the speech bubble for a few seconds.
 - Sport and sleep drive progression. Food is built after them.
 - **No fatigue system.** Exercise only spends calories and builds muscle strength: more exercise means more calories spent and more muscle. "Tired" means sleepy and has nothing to do with exercise.
 
@@ -65,7 +70,7 @@ Autoloads: `Config`, `GameState`, `Clock`, `SaveGame`, `Activities` (the general
 - Night = 2 real hours = 10 avatar hours of sleep (1 real minute = 5 avatar minutes). Sleeping less is proportional (8 h of sleep = 96 real minutes).
 - **Sleep-to-day conversion (confirmed).** The baseline is 10 hours of sleep and a 14-hour day (24 hours in total). Hours slept below 10 are **added to the next day** and hours slept above 10 are **taken from it**: `day_hours = 14 + (10 - sleep_hours)`. Example: 5 hours of sleep give a 19-hour day, and 12 hours of sleep give a 12-hour day. The day's real length uses the same scale: `day_real_minutes = day_hours * 60 / 28` (19 h is about 40.7 real minutes, 14 h is 30 real minutes). The first day is 14 hours.
 - Implement this as one small, well-tested conversion function in `Clock` (avatar hours to real seconds, and back), with the numbers read from `Config`. Put the maximum sleep on the slider in config (placeholder, for example 12 hours).
-- A **24-hour clock** in the interface (top, between the settings button and the XP level indicator, next to the pause and wake buttons) shows the avatar's time of day. Placeholder: the first day starts at 07:00. With this conversion bedtime stays at the same clock time and the wake-up time moves with the hours slept.
+- A **24-hour clock** in the interface (in the top-right column, under the XP level box, above the pause button) shows the avatar's time of day. Placeholder: the first day starts at 07:00. With this conversion bedtime stays at the same clock time and the wake-up time moves with the hours slept.
 - Game time only advances while the game is open. Closing the tab pauses time.
 - A pause button stops the day. The night starts when the day ends, but sleep is **not automatic**: the avatar gets tired, shows a recommendation to sleep, and the player decides. When sleep ends, the game pauses and a **wake button** starts a new day.
 - Sleep is optional and variable (a slider chooses the hours). Not sleeping lowers health significantly.
@@ -83,8 +88,12 @@ Autoloads: `Config`, `GameState`, `Clock`, `SaveGame`, `Activities` (the general
 ## Interface (from the user's sketch)
 
 - Avatar in the centre, standing on a ground line. Short messages from the avatar ("I'm hungry!", "I'm tired", others).
-- Top left: health bar (1 to 5). **Clicking it opens a panel with the three measures**; they are hidden otherwise.
-- Top right: XP bar with level indicator, and the **settings button**. Between the settings button and the level indicator: the 24-hour day clock, pause button, wake button.
+- Top bar (positions and functions from the user's sketch; the art is placeholder):
+  - **Top left:** a square **health level** box (the health level, 1 to 5) and, to its right along the top edge, the **health bar** (1 to 5).
+  - **Clicking the health level box or the health bar** opens the measures panel directly under the health bar (no gap between them). It shows three bars with their names: **Physical**, **Mental** and **Sleep amount**. Clicking either again closes it.
+  - **Clicking the physical bar** opens a box to the right of the measures panel with the physical **values as numbers, not bars**: calories spent and muscle (endurance will be added when it exists). It closes with the measures panel.
+  - **Top middle:** the **XP bar** along the top edge, with "XP current / needed" written on it.
+  - **Top right:** a column with, from top to bottom: the **XP level** box, the **24-hour clock**, the **pause** button, the **settings** button and the **Wake** button (a button with the word "Wake" written on it, enabled only after a sleep ends).
 - Bottom: four buttons in a 2x2 grid: **exercise, sleep, eat, entertainment**. Each opens its options. Exercise: cardio and muscle strength. Eat: junk food and healthy food. Sleep: a **slider** for the hours. Menus for eat, entertainment and sleep are decided later. There is **no gardening**.
 - While an activity runs: the four buttons are locked, the avatar plays a short repeating animation, a **stop button above the four buttons** ends the activity, and each activity has its own background.
 - Avatar states are separate (ill or not ill, tired, sad, hungry), never a progressive illness. Only the body states (muscular, thin, overweight, muscular with fat) combine with the other states.
@@ -92,7 +101,7 @@ Autoloads: `Config`, `GameState`, `Clock`, `SaveGame`, `Activities` (the general
 
 ## Not decided yet (do not guess)
 
-Health formula; XP values and level size; death probabilities; failure effect; what carries over after death; food list, tastes and menus; entertainment options; activity durations; hunger and calorie numbers; the avatar state thresholds; settings contents; server and accounts (later, optional).
+Health formula (a placeholder is in use); XP values and level size (placeholders are in use); whether the level can go down when XP is lost; endurance (how it is measured and changed); death probabilities; failure effect; what carries over after death; food list, tastes and menus; entertainment options; activity durations; hunger and calorie numbers; the avatar state thresholds; settings contents; server and accounts (later, optional).
 
 ## Quality checks
 

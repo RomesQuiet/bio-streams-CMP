@@ -3,7 +3,6 @@
 [ext_resource type="Script" path="res://scripts/ui/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/avatar/avatar.tscn" id="2_avatar"]
 [ext_resource type="Texture2D" path="res://assets/art/ui/pause.svg" id="3_pause"]
-[ext_resource type="Texture2D" path="res://assets/art/ui/wake.svg" id="4_wake"]
 [ext_resource type="Texture2D" path="res://assets/art/ui/settings.svg" id="5_settings"]
 
 [node name="Main" type="Control"]
@@ -41,107 +40,10 @@ theme_override_constants/margin_bottom = 32
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="TopBar" type="HBoxContainer" parent="Margin/Layout"]
+[node name="TopSpace" type="Control" parent="Margin/Layout"]
+custom_minimum_size = Vector2(0, 72)
 layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="HealthButton" type="Button" parent="Margin/Layout/TopBar"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(190, 64)
-layout_mode = 2
-tooltip_text = "Show the three measures"
-
-[node name="HealthBar" type="ProgressBar" parent="Margin/Layout/TopBar/HealthButton"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 6.0
-offset_top = 6.0
-offset_right = -6.0
-offset_bottom = -6.0
-grow_horizontal = 2
-grow_vertical = 2
 mouse_filter = 2
-min_value = 1.0
-max_value = 5.0
-step = 0.0
-value = 3.0
-show_percentage = false
-
-[node name="HealthLabel" type="Label" parent="Margin/Layout/TopBar/HealthButton"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-text = "Health 3.0"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Spacer" type="Control" parent="Margin/Layout/TopBar"]
-layout_mode = 2
-size_flags_horizontal = 3
-mouse_filter = 2
-
-[node name="XPBox" type="VBoxContainer" parent="Margin/Layout/TopBar"]
-custom_minimum_size = Vector2(120, 0)
-layout_mode = 2
-alignment = 1
-
-[node name="LevelLabel" type="Label" parent="Margin/Layout/TopBar/XPBox"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Level 0"
-horizontal_alignment = 1
-
-[node name="XPBar" type="ProgressBar" parent="Margin/Layout/TopBar/XPBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 14)
-layout_mode = 2
-max_value = 1.0
-step = 0.0
-show_percentage = false
-
-[node name="ClockLabel" type="Label" parent="Margin/Layout/TopBar"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(84, 0)
-layout_mode = 2
-text = "07:00"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="PauseButton" type="Button" parent="Margin/Layout/TopBar"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(64, 64)
-layout_mode = 2
-tooltip_text = "Pause"
-toggle_mode = true
-icon = ExtResource("3_pause")
-icon_alignment = 1
-expand_icon = true
-
-[node name="WakeButton" type="Button" parent="Margin/Layout/TopBar"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(64, 64)
-layout_mode = 2
-tooltip_text = "Wake up"
-disabled = true
-icon = ExtResource("4_wake")
-icon_alignment = 1
-expand_icon = true
-
-[node name="SettingsButton" type="Button" parent="Margin/Layout/TopBar"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(64, 64)
-layout_mode = 2
-tooltip_text = "Settings"
-icon = ExtResource("5_settings")
-icon_alignment = 1
-expand_icon = true
 
 [node name="Stage" type="Control" parent="Margin/Layout"]
 layout_mode = 2
@@ -262,14 +164,150 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Entertainment"
 
+[node name="HealthLevelButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 112.0
+offset_bottom = 112.0
+tooltip_text = "Health level (1 to 5). Click to show the measures."
+theme_override_font_sizes/font_size = 44
+text = "4"
+
+[node name="HealthBarButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 120.0
+offset_top = 24.0
+offset_right = 340.0
+offset_bottom = 64.0
+tooltip_text = "Health. Click to show the measures."
+
+[node name="HealthBar" type="ProgressBar" parent="HealthBarButton"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+min_value = 1.0
+max_value = 5.0
+step = 0.0
+value = 3.0
+show_percentage = false
+
+[node name="HealthLabel" type="Label" parent="HealthBarButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 20
+text = "Health"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="XPBar" type="ProgressBar" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 352.0
+offset_top = 24.0
+offset_right = 588.0
+offset_bottom = 64.0
+mouse_filter = 2
+max_value = 1.0
+step = 0.0
+show_percentage = false
+
+[node name="XPLabel" type="Label" parent="XPBar"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 20
+text = "XP 0 / 100"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RightColumn" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -112.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = 340.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="LevelBox" type="PanelContainer" parent="RightColumn"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+tooltip_text = "XP level"
+
+[node name="LevelLabel" type="Label" parent="RightColumn/LevelBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Lv 0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ClockLabel" type="Label" parent="RightColumn"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "07:00"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PauseButton" type="Button" parent="RightColumn"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+tooltip_text = "Pause"
+toggle_mode = true
+icon = ExtResource("3_pause")
+icon_alignment = 1
+expand_icon = true
+
+[node name="SettingsButton" type="Button" parent="RightColumn"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+tooltip_text = "Settings"
+icon = ExtResource("5_settings")
+icon_alignment = 1
+expand_icon = true
+
+[node name="WakeButton" type="Button" parent="RightColumn"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+tooltip_text = "Start the new day"
+disabled = true
+text = "Wake"
+
 [node name="HealthPanel" type="PanelContainer" parent="."]
 unique_name_in_owner = true
 visible = false
 layout_mode = 0
-offset_left = 24.0
-offset_top = 100.0
-offset_right = 384.0
-offset_bottom = 380.0
+offset_left = 120.0
+offset_top = 64.0
+offset_right = 420.0
+offset_bottom = 300.0
 
 [node name="Margin" type="MarginContainer" parent="HealthPanel"]
 layout_mode = 2
@@ -284,23 +322,40 @@ theme_override_constants/separation = 6
 
 [node name="PhysicalLabel" type="Label" parent="HealthPanel/Margin/Measures"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 22
 text = "Physical"
 
-[node name="PhysicalBar" type="ProgressBar" parent="HealthPanel/Margin/Measures"]
+[node name="PhysicalButton" type="Button" parent="HealthPanel/Margin/Measures"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 20)
+custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
+tooltip_text = "Click to show calories and muscle"
+
+[node name="PhysicalBar" type="ProgressBar" parent="HealthPanel/Margin/Measures/PhysicalButton"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = -3.0
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 max_value = 1.0
 step = 0.0
 show_percentage = false
 
 [node name="MentalLabel" type="Label" parent="HealthPanel/Margin/Measures"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 22
 text = "Mental"
 
 [node name="MentalBar" type="ProgressBar" parent="HealthPanel/Margin/Measures"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 20)
+custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 max_value = 1.0
 step = 0.0
@@ -308,15 +363,50 @@ show_percentage = false
 
 [node name="SleepLabel" type="Label" parent="HealthPanel/Margin/Measures"]
 layout_mode = 2
-text = "Sleep"
+theme_override_font_sizes/font_size = 22
+text = "Sleep amount"
 
 [node name="SleepBar" type="ProgressBar" parent="HealthPanel/Margin/Measures"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 20)
+custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 max_value = 1.0
 step = 0.0
 show_percentage = false
+
+[node name="ValuesPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_left = 428.0
+offset_top = 64.0
+offset_right = 588.0
+offset_bottom = 200.0
+
+[node name="Margin" type="MarginContainer" parent="ValuesPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="Values" type="VBoxContainer" parent="ValuesPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="CaloriesLabel" type="Label" parent="ValuesPanel/Margin/Values"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Calories spent
+0 kcal"
+
+[node name="MuscleLabel" type="Label" parent="ValuesPanel/Margin/Values"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Muscle
+0.50"
 
 [node name="OptionsPanel" type="PanelContainer" parent="."]
 unique_name_in_owner = true

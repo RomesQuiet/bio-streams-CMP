@@ -3,11 +3,14 @@ extends Node
 ## Time (Clock) and saving (SaveGame) live in their own scripts.
 
 signal changed
+## Emitted when XP reaches a new level.
+signal leveled_up(new_level: int)
 
 ## Values that always stay between 0 and 1.
 const MEASURES_0_TO_1 := ["physical", "mental", "sleep", "hunger", "muscle"]
 
-# Measures: physical, mental and sleep go from 0 to 1. Health goes from 1 to 5.
+# Measures: physical, mental and sleep go from 0 to 1. Health goes from 1 to 5 and
+# always equals the health formula, so it rises and falls with the measures.
 var physical: float
 var mental: float
 var sleep: float
@@ -20,8 +23,15 @@ var calories_spent: float
 ## Tired means sleepy. Placeholder rule: the Clock sets this to true when the day ends.
 var tired: bool
 var xp: float
+## Avatar hours spent at high health without a break (for the XP bonus).
+var high_health_hours: float
 var avatar_name: String
 var language: String
+
+## Health as a whole number from 1 to 5 (health rounded). Shown in the health level box.
+var health_level: int:
+	get:
+		return roundi(health)
 
 ## Level shown next to the XP bar. Starts at 0.
 var level: int:
@@ -45,12 +55,13 @@ func reset() -> void:
 	physical = Config.get_float("measures.physical_start")
 	mental = Config.get_float("measures.mental_start")
 	sleep = Config.get_float("measures.sleep_start")
-	health = Config.get_float("measures.health_start")
 	hunger = Config.get_float("measures.hunger_start")
 	muscle = Config.get_float("measures.muscle_start")
 	calories_spent = Config.get_float("measures.calories_spent_start")
 	tired = false
+	health = calculate_health()
 	xp = Config.get_float("xp.start")
+	high_health_hours = 0.0
 	avatar_name = Config.get_string("defaults.avatar_name")
 	language = Config.get_string("defaults.language")
 	changed.emit()
@@ -68,6 +79,7 @@ func to_dict() -> Dictionary:
 		"calories_spent": calories_spent,
 		"tired": tired,
 		"xp": xp,
+		"high_health_hours": high_health_hours,
 		"avatar_name": avatar_name,
 		"language": language,
 	}
@@ -84,8 +96,10 @@ func from_dict(data: Dictionary) -> void:
 	calories_spent = float(data.get("calories_spent", calories_spent))
 	tired = bool(data.get("tired", tired))
 	xp = float(data.get("xp", xp))
+	high_health_hours = float(data.get("high_health_hours", high_health_hours))
 	avatar_name = str(data.get("avatar_name", avatar_name))
 	language = str(data.get("language", language))
+	health = calculate_health()
 	changed.emit()
 
 
@@ -105,15 +119,11 @@ func calculate_health() -> float:
 	return lerpf(health_min, health_max, clampf(average, 0.0, 1.0))
 
 
-func update_health() -> void:
-	health = calculate_health()
-	changed.emit()
-
-
 ## Called by the Clock as avatar time passes.
 func apply_avatar_hours(hours: float, asleep: bool) -> void:
 	_apply_sleep_measure(hours, asleep)
-	_apply_xp(hours)
+	_update_health()
+	_apply_time_xp(hours)
 	changed.emit()
 
 
@@ -128,6 +138,7 @@ func apply_effects(effects_per_hour: Dictionary, hours: float) -> void:
 		if key in MEASURES_0_TO_1:
 			value = clampf(value, 0.0, 1.0)
 		set(key, value)
+	_update_health()
 	changed.emit()
 
 
@@ -138,13 +149,37 @@ func _apply_sleep_measure(hours: float, asleep: bool) -> void:
 		sleep = clampf(sleep - Config.get_float("sleep_activity.measure_loss_per_avatar_hour_awake") * hours, 0.0, 1.0)
 
 
-## Placeholder XP rule: gain at high health, loss at low health. XP never goes below 0.
-func _apply_xp(hours: float) -> void:
-	var rounded_health := roundi(health)
-	if rounded_health >= Config.get_int("xp.high_health_min"):
-		xp += Config.get_float("xp.gain_per_avatar_hour") * hours
-	elif rounded_health <= Config.get_int("xp.low_health_max"):
-		xp = maxf(0.0, xp - Config.get_float("xp.loss_per_avatar_hour") * hours)
+## Recalculates health from the measures. A health gain gives XP and a health loss
+## takes XP away (xp.per_health_point per point).
+func _update_health() -> void:
+	var new_health := calculate_health()
+	var change := new_health - health
+	health = new_health
+	if change != 0.0:
+		add_xp(change * Config.get_float("xp.per_health_point"))
+
+
+## Placeholder XP over time: at high health XP grows, and faster the longer health
+## stays high; at low health XP falls.
+func _apply_time_xp(hours: float) -> void:
+	if health_level >= Config.get_int("xp.high_health_min"):
+		high_health_hours += hours
+		var multiplier := minf(1.0 + Config.get_float("xp.high_health_bonus_per_hour") * high_health_hours,
+				Config.get_float("xp.high_health_max_multiplier"))
+		add_xp(Config.get_float("xp.gain_per_avatar_hour") * multiplier * hours)
+	else:
+		high_health_hours = 0.0
+		if health_level <= Config.get_int("xp.low_health_max"):
+			add_xp(-Config.get_float("xp.loss_per_avatar_hour") * hours)
+
+
+## Adds (or, if negative, removes) XP. XP never goes below 0.
+func add_xp(amount: float) -> void:
+	var old_level := level
+	xp = maxf(0.0, xp + amount)
+	if level > old_level:
+		leveled_up.emit(level)
+	changed.emit()
 
 
 func _xp_per_level() -> float:
@@ -157,5 +192,5 @@ func print_state() -> void:
 	print("physical=%.2f mental=%.2f sleep=%.2f" % [physical, mental, sleep])
 	print("muscle=%.2f calories_spent=%.0f" % [muscle, calories_spent])
 	print("hunger=%.2f tired=%s" % [hunger, tired])
-	print("health=%.2f (placeholder formula gives %.2f)" % [health, calculate_health()])
+	print("health=%.2f (level %d)" % [health, health_level])
 	print("xp=%.1f level=%d progress=%.2f" % [xp, level, level_progress])

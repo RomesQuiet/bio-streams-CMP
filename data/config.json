@@ -32,7 +32,6 @@
 	"measures": {
 		"health_min": 1,
 		"health_max": 5,
-		"health_start": 3,
 		"physical_start": 0.5,
 		"mental_start": 0.5,
 		"sleep_start": 1.0,
@@ -49,17 +48,21 @@
 	},
 
 	"health_weights": {
-		"_comment": "Placeholder health formula: weighted average of the three measures (0 to 1), mapped to health_min..health_max. Sleep has the largest weight because it affects the other measures the most.",
+		"_comment": "Placeholder health formula: weighted average of the three measures (0 to 1), mapped to health_min..health_max. Health always equals this formula, so it rises and falls with the measures. Sleep has the largest weight because it affects the other measures the most.",
 		"physical": { "value": 1.0, "placeholder": true },
 		"mental": { "value": 1.0, "placeholder": true },
 		"sleep": { "value": 1.5, "placeholder": true }
 	},
 
 	"xp": {
+		"_comment": "Health level = health rounded to the nearest whole number (1 to 5). XP never goes below 0; the level is XP divided by per_level, so losing XP can also lower the level.",
 		"start": 0,
 		"per_level": { "value": 100, "placeholder": true, "comment": "XP needed to fill the bar once (one level)." },
-		"gain_per_avatar_hour": { "value": 2.0, "placeholder": true, "comment": "XP gained per avatar hour while health is at or above high_health_min." },
-		"loss_per_avatar_hour": { "value": 2.0, "placeholder": true, "comment": "XP lost per avatar hour while health is at or below low_health_max." },
+		"per_health_point": { "value": 20.0, "placeholder": true, "comment": "XP gained when health rises by 1 point, and lost when it falls by 1 point (in proportion for smaller changes)." },
+		"gain_per_avatar_hour": { "value": 4.0, "placeholder": true, "comment": "Base XP gained per avatar hour while the health level is at or above high_health_min." },
+		"high_health_bonus_per_hour": { "value": 0.05, "placeholder": true, "comment": "Staying at high health for longer gives more: the hourly gain is multiplied by 1 + this x hours spent at high health without a break." },
+		"high_health_max_multiplier": { "value": 3.0, "placeholder": true, "comment": "Largest multiplier for the hourly gain at high health." },
+		"loss_per_avatar_hour": { "value": 4.0, "placeholder": true, "comment": "XP lost per avatar hour while the health level is at or below low_health_max." },
 		"high_health_min": { "value": 4, "placeholder": true },
 		"low_health_max": { "value": 2, "placeholder": true }
 	},

@@ -24,6 +24,13 @@ Goal: reuse the sleep activity from Milestone 1 to add **exercise** (cardio and 
 - Effects (placeholders, per avatar hour): both spend calories; cardio spends more calories, muscle strength raises muscle more. Store `calories_spent` and `muscle` in `GameState` (save them), and raise the physical measure by a small placeholder amount per hour of exercise. There is **no fatigue system**.
 - Done when: one hour of cardio and one hour of muscle strength change calories spent, muscle and the physical measure by the config values, and Stop halfway applies half.
 
+## Task 4.5 — Big fix: health, XP and top bar
+- Health always equals the placeholder health formula, so the health bar rises and falls with the measures (it no longer stays at 3). The health level box shows health rounded (1 to 5).
+- XP follows the confirmed rule with placeholder numbers in `data/config.json` (section `xp`): every health gain gives XP and every health loss takes XP; each avatar hour at high health gives XP, more the longer health stays high (capped); each hour at low health loses XP; XP never goes below 0. Levelling up works and shows "Level up!" for a few seconds.
+- The top bar follows the user's sketch (see "Interface" in `CLAUDE.md`): health level box and health bar top left; clicking either opens the measures panel (Physical, Mental, Sleep amount) right under the bar; clicking the physical bar opens the values box (calories spent and muscle as numbers); XP bar top middle; top-right column with XP level, clock, pause, settings and a "Wake" text button.
+- Endurance is planned as the value trained by cardio; it is not added until it exists in the rules.
+- Done when: `tests/health_xp_test.gd` shows that health equals the formula, falls when the sleep measure falls and rises with exercise; that health gains and losses change XP by the config value; that a longer time at high health gives more XP per hour (up to the maximum); that low health loses XP but never below 0; and that reaching the XP for a level raises the level. All earlier tests still pass.
+
 ## Task 5 — Entertainment
 - The entertainment button opens one option for now ("Entertainment"; the real menu is decided later).
 - Placeholder duration 1 avatar hour. Effect: raises the mental measure **significantly** (placeholder, for example +0.1 per hour).

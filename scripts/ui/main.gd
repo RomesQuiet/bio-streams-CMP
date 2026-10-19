@@ -10,19 +10,26 @@ extends Control
 ## so day or night stays visible.
 @export var activity_backdrop_alpha := 0.6
 @export var backdrop_fade_seconds := 0.8
+## How long the "Level up!" message stays in the speech bubble (real seconds).
+@export var level_up_message_seconds := 3.0
 
 @onready var sky: ColorRect = $Background
 @onready var activity_backdrop: ColorRect = %ActivityBackdrop
 @onready var avatar: Control = %Avatar
-@onready var health_button: Button = %HealthButton
+@onready var health_level_button: Button = %HealthLevelButton
+@onready var health_bar_button: Button = %HealthBarButton
 @onready var health_bar: ProgressBar = %HealthBar
-@onready var health_label: Label = %HealthLabel
 @onready var health_panel: PanelContainer = %HealthPanel
+@onready var physical_button: Button = %PhysicalButton
 @onready var physical_bar: ProgressBar = %PhysicalBar
+@onready var values_panel: PanelContainer = %ValuesPanel
+@onready var calories_label: Label = %CaloriesLabel
+@onready var muscle_label: Label = %MuscleLabel
 @onready var mental_bar: ProgressBar = %MentalBar
 @onready var sleep_bar: ProgressBar = %SleepBar
 @onready var level_label: Label = %LevelLabel
 @onready var xp_bar: ProgressBar = %XPBar
+@onready var xp_label: Label = %XPLabel
 @onready var clock_label: Label = %ClockLabel
 @onready var pause_button: Button = %PauseButton
 @onready var wake_button: Button = %WakeButton
@@ -39,6 +46,8 @@ extends Control
 @onready var sleep_info_label: Label = %SleepInfoLabel
 
 var _backdrop_tween: Tween
+## A short message (such as "Level up!") shown instead of the normal speech for a moment.
+var _flash_text := ""
 
 
 func _ready() -> void:
@@ -49,10 +58,13 @@ func _ready() -> void:
 	sleep_slider.step = Config.get_float("sleep_activity.slider_step_hours")
 	sleep_slider.value = Config.get_float("sleep_activity.slider_default_hours")
 	health_panel.visible = false
+	values_panel.visible = false
 	sleep_panel.visible = false
 	options_panel.visible = false
 
-	health_button.pressed.connect(_on_health_button_pressed)
+	health_level_button.pressed.connect(_toggle_health_panel)
+	health_bar_button.pressed.connect(_toggle_health_panel)
+	physical_button.pressed.connect(_toggle_values_panel)
 	pause_button.pressed.connect(Clock.toggle_pause)
 	wake_button.pressed.connect(Clock.wake_up)
 	sleep_button.pressed.connect(_on_sleep_button_pressed)
@@ -63,6 +75,7 @@ func _ready() -> void:
 	%SleepCancelButton.pressed.connect(sleep_panel.hide)
 	%SleepStartButton.pressed.connect(_on_sleep_start_pressed)
 	GameState.changed.connect(_refresh)
+	GameState.leveled_up.connect(_on_leveled_up)
 	Clock.time_changed.connect(_refresh_clock)
 	Clock.phase_changed.connect(_on_phase_changed)
 	Clock.paused_changed.connect(_refresh_phase.unbind(1))
@@ -78,8 +91,33 @@ func _ready() -> void:
 	_refresh_sleep_info()
 
 
-func _on_health_button_pressed() -> void:
+## Clicking the health level or the health bar shows or hides the three measures.
+func _toggle_health_panel() -> void:
 	health_panel.visible = not health_panel.visible
+	if not health_panel.visible:
+		values_panel.visible = false
+
+
+## Clicking the physical bar shows or hides its values (calories and muscle).
+func _toggle_values_panel() -> void:
+	values_panel.visible = not values_panel.visible
+
+
+func _on_leveled_up(new_level: int) -> void:
+	_flash_text = "Level up! Level %d" % new_level
+	speech_label.text = _flash_text
+	get_tree().create_timer(level_up_message_seconds).timeout.connect(_end_flash)
+
+
+func _end_flash() -> void:
+	_flash_text = ""
+	_refresh_phase()
+
+
+## Writes to the speech bubble, unless a short message is being shown.
+func _set_speech(text: String) -> void:
+	if _flash_text.is_empty():
+		speech_label.text = text
 
 
 func _on_sleep_button_pressed() -> void:
@@ -143,13 +181,17 @@ func _refresh_sky() -> void:
 
 
 func _refresh() -> void:
+	health_level_button.text = str(GameState.health_level)
 	health_bar.value = GameState.health
-	health_label.text = "Health %.1f" % GameState.health
 	physical_bar.value = GameState.physical
 	mental_bar.value = GameState.mental
 	sleep_bar.value = GameState.sleep
-	level_label.text = "Level %d" % GameState.level
+	calories_label.text = "Calories spent\n%d kcal" % roundi(GameState.calories_spent)
+	muscle_label.text = "Muscle\n%.2f" % GameState.muscle
+	level_label.text = "Lv %d" % GameState.level
 	xp_bar.value = GameState.level_progress
+	var per_level := Config.get_float("xp.per_level")
+	xp_label.text = "XP %d / %d" % [floori(GameState.level_progress * per_level), roundi(per_level)]
 
 
 func _refresh_clock() -> void:
@@ -164,7 +206,7 @@ func _refresh_activity_speech() -> void:
 	if not Activities.is_running():
 		return
 	var label := "Zzz..." if Activities.current_activity == "sleep" else "%s..." % Activities.current_option_data().get("name", "")
-	speech_label.text = "%s (%.1f of %.1f h)" % [label, Activities.elapsed_hours, Activities.target_hours]
+	_set_speech("%s (%.1f of %.1f h)" % [label, Activities.elapsed_hours, Activities.target_hours])
 
 
 func _refresh_phase() -> void:
@@ -185,11 +227,11 @@ func _refresh_phase() -> void:
 		Clock.Phase.DAY:
 			if GameState.tired:
 				# Stays visible until the avatar sleeps.
-				speech_label.text = "I'm tired. Sleep is recommended."
+				_set_speech("I'm tired. Sleep is recommended.")
 			else:
-				speech_label.text = "Paused" if Clock.paused else "Hello!"
+				_set_speech("Paused" if Clock.paused else "Hello!")
 		Clock.Phase.SLEEP_OVER:
-			speech_label.text = "I slept %.1f h. Press the wake button to start the day." % Clock.sleep_elapsed_hours
+			_set_speech("I slept %.1f h. Press the wake button to start the day." % Clock.sleep_elapsed_hours)
 
 
 ## Shows what the chosen hours mean: real sleep time and the length of the next day.
