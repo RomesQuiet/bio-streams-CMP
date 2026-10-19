@@ -23,6 +23,7 @@ func _process(_delta: float) -> bool:
 	_test_stop_sleep_early(clock)
 	_test_five_hours_sleep(clock)
 	_test_nap(clock)
+	_test_daylight(clock)
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
 	DirAccess.remove_absolute(save_game.save_path)
 	quit(1 if _failures > 0 else 0)
@@ -113,6 +114,25 @@ func _test_nap(clock: Node) -> void:
 	_run_until(clock, clock.Phase.SLEEP_OVER)
 	clock.wake_up()
 	_check("a normal 10 h sleep still gives a 14 h day", is_equal_approx(clock.day_length_hours, 14.0))
+
+
+## Task 2.5: the sky looks like day from 07:00 to 19:00 and like night otherwise,
+## with a 1 h dawn and dusk. It depends only on the clock, not on sleeping.
+func _test_daylight(clock: Node) -> void:
+	for pair in [[12.0, 1.0], [0.0, 0.0], [3.0, 0.0], [6.0, 0.0], [7.0, 0.5], [8.0, 1.0], [18.0, 1.0], [19.0, 0.5], [20.0, 0.0]]:
+		_check("sky at %02d:00 is %.1f light" % pair, is_equal_approx(clock.daylight_amount(pair[0] * 60.0), pair[1]))
+	# A nap at noon still shows a day sky.
+	var activities: Node = root.get_node("Activities")
+	root.get_node("GameState").reset()
+	clock.reset()
+	clock.debug_speed = clock.avatar_hours_to_real_seconds(1.0, false) / 0.5
+	for i in 5:
+		clock._process(0.5)
+	activities.start("sleep", "sleep", 1.0)
+	clock.debug_speed = 60.0
+	clock._process(0.1)
+	_check("napping at noon: avatar asleep, sky still day", clock.phase == clock.Phase.SLEEPING and clock.daylight_amount() == 1.0)
+	activities.stop()
 
 
 func _near_minute(clock: Node, minute: float) -> bool:

@@ -196,6 +196,22 @@ func wake_up() -> void:
 	_set_phase(Phase.DAY)
 
 
+## How light the sky is at this time of day: 1 = day, 0 = night, in between at
+## dawn and dusk. Only for the look of the game; it does not change any rule.
+## Uses the current time when minute is negative.
+func daylight_amount(minute := -1.0) -> float:
+	if minute < 0.0:
+		minute = minute_of_day
+	var start := Config.get_float("daylight.start_hour") * MINUTES_PER_HOUR
+	var end := Config.get_float("daylight.end_hour") * MINUTES_PER_HOUR
+	var twilight := Config.get_float("daylight.twilight_hours") * MINUTES_PER_HOUR
+	if twilight <= 0.0:
+		return 1.0 if minute >= start and minute < end else 0.0
+	var dawn := clampf((minute - (start - twilight * 0.5)) / twilight, 0.0, 1.0)
+	var dusk := clampf(((end + twilight * 0.5) - minute) / twilight, 0.0, 1.0)
+	return minf(dawn, dusk)
+
+
 ## Time of day as "HH:MM" (24-hour clock).
 func clock_text() -> String:
 	var total_minutes := floori(minute_of_day)

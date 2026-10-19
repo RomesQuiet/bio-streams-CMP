@@ -2,10 +2,17 @@ extends Control
 ## Main game screen. Shows GameState, Clock and Activities on screen and handles the buttons.
 ## Exercise, eat and entertainment are placeholders until their tasks.
 
-@export var day_background_color := Color(0.17, 0.2, 0.27)
-@export var background_fade_seconds := 0.8
+## Sky colours. The sky follows the clock (daylight hours in config), not whether
+## the avatar is awake or asleep.
+@export var day_sky_color := Color(0.3, 0.45, 0.62)
+@export var night_sky_color := Color(0.06, 0.07, 0.14)
+## The running activity's background is shown behind the avatar, see-through,
+## so day or night stays visible.
+@export var activity_backdrop_alpha := 0.6
+@export var backdrop_fade_seconds := 0.8
 
-@onready var background: ColorRect = $Background
+@onready var sky: ColorRect = $Background
+@onready var activity_backdrop: ColorRect = %ActivityBackdrop
 @onready var avatar: Control = %Avatar
 @onready var health_button: Button = %HealthButton
 @onready var health_bar: ProgressBar = %HealthBar
@@ -27,7 +34,7 @@ extends Control
 @onready var sleep_slider: HSlider = %SleepSlider
 @onready var sleep_info_label: Label = %SleepInfoLabel
 
-var _background_tween: Tween
+var _backdrop_tween: Tween
 
 
 func _ready() -> void:
@@ -84,27 +91,25 @@ func _on_phase_changed(_phase: Clock.Phase) -> void:
 ## Animation and background of the running activity (or none).
 func _refresh_activity(instant := false) -> void:
 	var option := Activities.current_option_data()
+	var alpha := 0.0
 	if Activities.is_running():
 		avatar.play_animation(str(option.get("animation", "")))
-		_fade_background(Color.html(str(option.get("background_color", day_background_color.to_html()))), instant)
+		activity_backdrop.color = Color.html(str(option.get("background_color", "#000000")))
+		alpha = activity_backdrop_alpha
 	else:
 		avatar.stop_animation()
-		var color := day_background_color
-		if Clock.phase == Clock.Phase.SLEEP_OVER:
-			# Still night until the wake button: keep the sleep background.
-			color = Color.html(str(Activities.get_option("sleep", "sleep").get("background_color", color.to_html())))
-		_fade_background(color, instant)
+	if _backdrop_tween:
+		_backdrop_tween.kill()
+	if instant:
+		activity_backdrop.modulate.a = alpha
+	else:
+		_backdrop_tween = create_tween()
+		_backdrop_tween.tween_property(activity_backdrop, "modulate:a", alpha, backdrop_fade_seconds)
 	_refresh_phase()
 
 
-func _fade_background(color: Color, instant := false) -> void:
-	if _background_tween:
-		_background_tween.kill()
-	if instant:
-		background.color = color
-		return
-	_background_tween = create_tween()
-	_background_tween.tween_property(background, "color", color, background_fade_seconds)
+func _refresh_sky() -> void:
+	sky.color = night_sky_color.lerp(day_sky_color, Clock.daylight_amount())
 
 
 func _refresh() -> void:
@@ -122,6 +127,7 @@ func _refresh_clock() -> void:
 	if Clock.is_debug_speed_active():
 		text += "\nx%d" % Clock.debug_speed
 	clock_label.text = text
+	_refresh_sky()
 
 
 func _refresh_activity_speech() -> void:

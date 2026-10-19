@@ -12,6 +12,13 @@
 		"max_frame_seconds": { "value": 0.5, "placeholder": true, "comment": "Longest real time counted in one frame, so a frozen or hidden tab cannot jump game time forward." }
 	},
 
+	"daylight": {
+		"_comment": "Only how the sky looks. Being awake or asleep follows the time rules above, not these hours.",
+		"start_hour": 7,
+		"end_hour": 19,
+		"twilight_hours": { "value": 1.0, "placeholder": true, "comment": "Length of dawn and dusk, centred on start_hour and end_hour, when the sky fades between day and night." }
+	},
+
 	"save": {
 		"autosave_real_seconds": { "value": 30, "placeholder": true, "comment": "Extra safety save every this many real seconds while the game is open." },
 		"resume_paused": { "value": true, "placeholder": true, "comment": "If true, a day in progress is paused when the game is reopened, so time only starts when the player presses pause again." }
