@@ -20,6 +20,7 @@ The author is a 9th-grade student competing in the national phase. Goal: win and
 
 - Concept (English): https://docs.google.com/document/d/1R0EbQ2yzbhNdxQLjlmTEXIn4UyA-KSvChki2aoFJwrg/edit
 - Development plan (Portuguese): https://docs.google.com/document/d/1fdYX6jyFzwiqxBsbWS87-_f4zdx2h0r5TUSW9UQCXoM/edit
+- Health system plan: "Architecture Decisions: Health System" (English) and "Decisões de Arquitetura: Sistema de Saúde" (Portuguese), plus "Por Definir: Sistema de Saúde" (what is still undefined). If you cannot open them, ask the user to paste them.
 - The summary below is the minimum. If this file and the documents disagree, tell the user and ask.
 
 ## Technical decisions (fixed)
@@ -53,16 +54,20 @@ Autoloads: `Config`, `GameState`, `Clock`, `SaveGame`, `Activities` (the general
 ## Game rules (confirmed)
 
 **Measures**
-- Health: 1 to 5. It **always equals the health formula**, so it rises and falls with the measures at every moment (there is no separate start value: the start measures give about 3.9). The real formula is **not defined yet**; the placeholder is a weighted average of physical, mental and sleep mapped to 1–5, with the weights in `data/config.json`. The **health level** is health rounded to a whole number (1 to 5).
-- Physical: 0 to 1, starts at 0.5 (calories and muscle strength; weight/height ratio may come later). Its values are kept separately in `GameState`: **muscle** (0 to 1, raised by exercise, mostly muscle strength) and **calories spent** (total kcal spent by exercise, never reset). **Endurance** is planned as the value that cardio trains, but it does not exist in the game yet.
-- Mental: 0 to 1, starts at 0.5.
-- Sleep: 0 to 1, starts at 1. It affects the other measures the most.
+- Health: 1 to 5, **calculated from the starting measures** (3 on Normal), not fixed. Formula numbers **not defined yet**: until a milestone asks for the new system, keep the placeholder weighted average (weights in config). Health **always equals the health formula**, so it rises and falls with the measures at every moment. The **health level** is health rounded to a whole number (1 to 5).
+- Physical: 0 to 1, 0.50 on Normal (calories and muscle strength; weight/height ratio may come later). Its values are kept separately in `GameState`: **muscle** (0 to 1, raised by exercise, mostly muscle strength) and **calories spent** (total kcal spent by exercise, never reset). **Endurance** is planned as the value that cardio trains, but it does not exist in the game yet.
+- Mental: 0 to 1, 0.50 on Normal.
+- Sleep: 0 to 1, 0.50 on Normal. It affects the other measures the most.
+- The starting measures depend on the difficulty (below). The code from Milestone 1 still uses the old start values (physical 0.5, mental 0.5, sleep 1), which give health about 3.9 with the placeholder formula; change them only when a milestone says so.
 - XP: unlimited. Health loss loses XP, health gain gains XP, and staying at high health for longer gives more. The XP bar shows the level (empty = start of a level, full = next level, then empty again). XP values per action are **not defined** (placeholders). How it works now (all numbers are placeholders in `data/config.json`, section `xp`):
   - Every health change gives or takes XP: change in health × `per_health_point`.
   - Each avatar hour at a high health level (`high_health_min` or more) gives `gain_per_avatar_hour` × a multiplier that grows with the hours spent at high health without a break (`high_health_bonus_per_hour`, up to `high_health_max_multiplier`). Dropping below the high level resets the streak.
   - Each avatar hour at a low health level (`low_health_max` or less) loses `loss_per_avatar_hour`.
   - XP never goes below 0. The level is XP ÷ `per_level` (rounded down), so losing XP can lower the level. Reaching a new level shows "Level up!" in the speech bubble for a few seconds.
 - Sport and sleep drive progression. Food is built after them.
+- **Player choices:** age group (child or teenager), sex (male or female) and difficulty. The age sets the recommended sleep range (child 9 to 12 h, teenager 8 to 10 h; placeholder) and the sex sets the WHO BMI-for-age tables.
+- **Difficulty and starting values (placeholders):** Easy about 4 (0.75, 0.75, 0.75); Normal 3 (0.50, 0.50, 0.50); Hard about 2 (0.15, 0.30, 0.30), with obesity but cheap habit changes; Very hard about 1.3 (0.05, 0.05, 0.10), shown as level 1, with severe obesity and very bad habits, where changing habits quickly costs mental health. Starting health comes from these measures.
+- **Planned health calculation (working plan, numbers undecided):** once per avatar day, at wake-up, habit scores (sleep, activity, strength, screens, each compared with a recommended range) change slow body states (fitness, muscle, weight as WHO BMI-for-age z-score, sleep debt, mood), which give the three measures. Health combines them with a weighted power mean (p about 0.5, equal weights; placeholders), moving gradually toward the target. The body changes faster than real life with a multiplier k (placeholder 4, in config). Do not build this until a milestone asks for it.
 - **No fatigue system.** Exercise only spends calories and builds muscle strength: more exercise means more calories spent and more muscle. "Tired" means sleepy and has nothing to do with exercise.
 
 **Time**
@@ -101,7 +106,7 @@ Autoloads: `Config`, `GameState`, `Clock`, `SaveGame`, `Activities` (the general
 
 ## Not decided yet (do not guess)
 
-Health formula (a placeholder is in use); XP values and level size (placeholders are in use); whether the level can go down when XP is lost; endurance (how it is measured and changed); death probabilities; failure effect; what carries over after death; food list, tastes and menus; entertainment options; activity durations; hunger and calorie numbers; the avatar state thresholds; settings contents; server and accounts (later, optional).
+Health formula numbers (p, weights, curves, k, speeds) and the calibration scenarios (a placeholder formula is in use); XP values and level size (placeholders are in use); whether the level can go down when XP is lost; endurance (how it is measured and changed); death probabilities; failure effect; what carries over after death; food list, tastes and menus; entertainment options; activity durations; hunger and calorie numbers; the avatar state thresholds; settings contents; server and accounts (later, optional).
 
 ## Quality checks
 
