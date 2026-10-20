@@ -26,6 +26,7 @@ func _process(_delta: float) -> bool:
 	_test_sleep_activity(activities, game_state, clock)
 	_test_day_activity(activities, game_state, clock)
 	_test_exercise(activities, game_state, clock)
+	_test_entertainment(activities, game_state, clock, save_game)
 
 	DirAccess.remove_absolute(save_game.save_path)
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
@@ -128,6 +129,28 @@ func _test_exercise(activities: Node, game_state: Node, clock: Node) -> void:
 		_check("%s stopped halfway: muscle is in proportion" % option_id, absf(game_state.muscle - (before["muscle"] + effects["muscle"] * done)) < TOLERANCE)
 		_check("%s stopped halfway: physical is in proportion" % option_id, absf(game_state.physical - (before["physical"] + effects["physical"] * done)) < TOLERANCE)
 	clock.debug_speed = 600.0
+
+
+## Milestone 2, Task 5: one hour of entertainment raises the mental measure by the
+## value in data/activities.json, and the new value is saved.
+func _test_entertainment(activities: Node, game_state: Node, clock: Node, save_game: Node) -> void:
+	var option: Dictionary = activities.get_option("entertainment", "entertainment")
+	_check("entertainment has one option", activities.definitions.get("entertainment", {}).get("options", {}).size() == 1)
+	_check("entertainment lasts 1 avatar hour", is_equal_approx(float(option.get("duration_hours", 0)), 1.0))
+	var gain: float = option["effects_per_hour"]["mental"]
+	game_state.reset()
+	var mental_before: float = game_state.mental
+	clock.debug_speed = 600.0
+	_check("entertainment starts", activities.start("entertainment", "entertainment"))
+	while activities.is_running():
+		clock._process(STEP_SECONDS)
+	_check("one hour raises mental by the config value", absf(game_state.mental - (mental_before + gain)) < TOLERANCE)
+	var mental_after: float = game_state.mental
+	save_game.save_game()
+	game_state.reset()
+	_check("mental was reset before loading", not is_equal_approx(game_state.mental, mental_after))
+	save_game.load_game()
+	_check("the new mental value is saved", absf(game_state.mental - mental_after) < TOLERANCE)
 
 
 func _snapshot(game_state: Node) -> Dictionary:

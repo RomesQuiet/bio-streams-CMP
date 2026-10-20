@@ -39,5 +39,20 @@
 				"comment": "Muscle strength raises muscle more than cardio. There is no fatigue system."
 			}
 		}
+	},
+
+	"entertainment": {
+		"name": "Entertainment",
+		"options": {
+			"entertainment": {
+				"name": "Entertainment",
+				"duration_hours": 1,
+				"effects_per_hour": { "mental": 0.1 },
+				"background_color": "#4a3a6a",
+				"animation": "entertainment",
+				"placeholder": true,
+				"comment": "One option until the real entertainment menu is decided. Raises the mental measure significantly."
+			}
+		}
 	}
 }

@@ -1,6 +1,6 @@
 extends Control
 ## Main game screen. Shows GameState, Clock and Activities on screen and handles the buttons.
-## Exercise, eat and entertainment are placeholders until their tasks.
+## Eat is a placeholder until its task.
 
 ## Sky colours. The sky follows the clock (daylight hours in config), not whether
 ## the avatar is awake or asleep.
@@ -38,6 +38,7 @@ extends Control
 @onready var action_buttons: Array[Button] = [%ExerciseButton, %SleepButton, %EatButton, %EntertainmentButton]
 @onready var sleep_button: Button = %SleepButton
 @onready var exercise_button: Button = %ExerciseButton
+@onready var entertainment_button: Button = %EntertainmentButton
 @onready var options_panel: PanelContainer = %OptionsPanel
 @onready var options_title: Label = %OptionsTitle
 @onready var option_buttons: VBoxContainer = %OptionButtons
@@ -69,6 +70,7 @@ func _ready() -> void:
 	wake_button.pressed.connect(Clock.wake_up)
 	sleep_button.pressed.connect(_on_sleep_button_pressed)
 	exercise_button.pressed.connect(_open_options.bind("exercise"))
+	entertainment_button.pressed.connect(_open_options.bind("entertainment"))
 	%OptionsCancelButton.pressed.connect(options_panel.hide)
 	stop_button.pressed.connect(Activities.stop)
 	sleep_slider.value_changed.connect(_refresh_sleep_info.unbind(1))
@@ -128,7 +130,10 @@ func _on_sleep_button_pressed() -> void:
 ## Opens the list of options of an activity (cardio and muscle strength for exercise),
 ## built from data/activities.json.
 func _open_options(activity_id: String) -> void:
+	# Remove the old buttons at once (not only at the end of the frame), so the
+	# panel never holds the options of another activity.
 	for child in option_buttons.get_children():
+		option_buttons.remove_child(child)
 		child.queue_free()
 	var options: Dictionary = Activities.definitions.get(activity_id, {}).get("options", {})
 	options_title.text = str(Activities.definitions.get(activity_id, {}).get("name", activity_id))
@@ -220,6 +225,7 @@ func _refresh_phase() -> void:
 		button.disabled = running
 	sleep_button.disabled = not Activities.can_start("sleep")
 	exercise_button.disabled = not Activities.can_start("exercise")
+	entertainment_button.disabled = not Activities.can_start("entertainment")
 	if running:
 		_refresh_activity_speech()
 		return
