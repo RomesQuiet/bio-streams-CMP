@@ -2,7 +2,7 @@
 
 A web game about **childhood obesity**, made for the Bio-Streams (EU) science competition.
 
-The player looks after an avatar who is a school student and tries to raise its health (from 1 to 5) through **sport, sleep and food**. The game uses scientifically correct information and is available in Portuguese and English.
+The player looks after an avatar who is a school student and tries to raise its health (from 1 to 5) through **sport, sleep and food**. The game uses scientifically correct information and will be available in Portuguese and English.
 
 ## Play
 
