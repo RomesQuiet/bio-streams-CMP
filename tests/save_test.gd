@@ -19,8 +19,18 @@ func _process(_delta: float) -> bool:
 	game_state.reset()
 	clock.reset()
 
-	# A game in the middle of a sleep, with a name and some XP.
+	# Before the avatar is created nothing is saved automatically.
+	save_game.auto_save_enabled = true
+	save_game._auto_save()
+	save_game.auto_save_enabled = false
+	_check("no autosave before the avatar is created", not FileAccess.file_exists(TEST_PATH))
+
+	# A game in the middle of a sleep, with the creation choices and some XP.
 	game_state.avatar_name = "Test Avatar"
+	game_state.age_group = "teenager"
+	game_state.sex = "male"
+	game_state.difficulty = "hard"
+	_check("avatar counts as created", game_state.is_created())
 	game_state.xp = 157.5
 	game_state.physical = 0.8
 	game_state.muscle = 0.7
@@ -44,6 +54,8 @@ func _process(_delta: float) -> bool:
 	_check("state was cleared before loading", game_state.avatar_name != "Test Avatar")
 	_check("load finds the save", save_game.load_game())
 	_check("measures, XP and name restored", _same(game_state.to_dict(), saved_state))
+	_check("age group, sex and difficulty restored", game_state.age_group == "teenager"
+			and game_state.sex == "male" and game_state.difficulty == "hard")
 	_check("time restored", _same(clock.to_dict(), saved_clock))
 	_check("still asleep after loading", clock.phase == clock.Phase.SLEEPING)
 	_check("sleep activity restored", _same(root.get_node("Activities").to_dict(), saved_activity) and root.get_node("Activities").is_running())
@@ -52,6 +64,19 @@ func _process(_delta: float) -> bool:
 	file.store_string("not json")
 	file.close()
 	_check("a broken save is ignored", not save_game.load_game())
+
+	# A save from Milestones 1 and 2 has no creation choices: it is ignored and
+	# the player starts a new game.
+	var old_state: Dictionary = saved_state.duplicate()
+	for key in ["age_group", "sex", "difficulty"]:
+		old_state.erase(key)
+	file = FileAccess.open(TEST_PATH, FileAccess.WRITE)
+	file.store_string(JSON.stringify({"version": 1, "save_count": 5, "game_state": old_state,
+			"clock": saved_clock, "activities": {}}))
+	file.close()
+	game_state.reset()
+	_check("a save without the creation choices is ignored", not save_game.load_game())
+	_check("so the creation screen is shown", not game_state.is_created())
 
 	DirAccess.remove_absolute(TEST_PATH)
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])

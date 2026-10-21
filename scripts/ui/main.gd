@@ -2,6 +2,8 @@ extends Control
 ## Main game screen. Shows GameState, Clock and Activities on screen and handles the buttons.
 ## Eat is a placeholder until its task.
 
+const CREATION_SCENE := "res://scenes/ui/creation.tscn"
+
 ## Sky colours. The sky follows the clock (daylight hours in config), not whether
 ## the avatar is awake or asleep.
 @export var day_sky_color := Color(0.3, 0.45, 0.62)
@@ -52,6 +54,10 @@ var _flash_text := ""
 
 
 func _ready() -> void:
+	# A new game (no save) starts on the avatar creation screen.
+	if not GameState.is_created():
+		get_tree().change_scene_to_file.call_deferred(CREATION_SCENE)
+		return
 	health_bar.min_value = Config.get_float("measures.health_min")
 	health_bar.max_value = Config.get_float("measures.health_max")
 	sleep_slider.min_value = Config.get_float("sleep_activity.slider_min_hours")

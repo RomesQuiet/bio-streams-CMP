@@ -67,7 +67,7 @@ Autoloads: `Config`, `GameState`, `Clock`, `SaveGame`, `Activities` (the general
 - Sport and sleep drive progression. Food is built after them.
 - **Player choices:** age group (child or teenager), sex (male or female) and difficulty. The age sets the recommended sleep range (child 9 to 12 h, teenager 8 to 10 h; placeholder) and the sex sets the WHO BMI-for-age tables.
 - **Difficulty and starting values (placeholders):** Easy about 4 (0.75, 0.75, 0.75); Normal 3 (0.50, 0.50, 0.50); Hard about 2 (0.15, 0.30, 0.30), with obesity but cheap habit changes; Very hard about 1.3 (0.05, 0.05, 0.10), shown as level 1, with severe obesity and very bad habits, where changing habits quickly costs mental health. Starting health comes from these measures.
-- **Planned health calculation (working plan, numbers undecided):** once per avatar day, at wake-up, habit scores (sleep, activity, strength, screens, each compared with a recommended range) change slow body states (fitness, muscle, weight as WHO BMI-for-age z-score, sleep debt, mood), which give the three measures. Health combines them with a weighted power mean (p about 0.5, equal weights; placeholders), moving gradually toward the target. The body changes faster than real life with a multiplier k (placeholder 4, in config). Do not build this until a milestone asks for it.
+- **Planned health calculation:** the full working plan is in the section "Health calculation (working plan)" below. The structure is decided, **all numbers are placeholders**. Do not build it until a milestone asks for it.
 - **No fatigue system.** Exercise only spends calories and builds muscle strength: more exercise means more calories spent and more muscle. "Tired" means sleepy and has nothing to do with exercise.
 
 **Time**
@@ -89,6 +89,54 @@ Autoloads: `Config`, `GameState`, `Clock`, `SaveGame`, `Activities` (the general
 
 **Failure and death**
 - Failure at minimum health (effect not defined). Death can happen at any time, more likely at low health (probabilities not defined). After death the player restarts with a new avatar.
+
+## Health calculation (working plan)
+
+Source: "Architecture Decisions: Health System" (see Documents). The structure is decided; every number below is a **placeholder** that goes in `data/config.json`, marked as a placeholder. Do not build this until a milestone asks for it. Until then keep the simple weighted average of the three measures.
+
+**Idea.** Health (1 to 5) is not set by hand. It comes from three measures (Physical, Mental, Sleep, each 0 to 1), which come from habits compared with scientific recommendations.
+
+**Player choices and recommendations**
+- Age group: child (reference age 10) or teenager (reference age 14). Sex: male or female (changes the WHO BMI-for-age tables and, later, energy use).
+- Recommended sleep: child (6 to 12 years) 9 to 12 h per 24 h; teenager (13 to 18 years) 8 to 10 h. Recommended activity for both: at least 60 min/day of moderate-to-vigorous activity.
+- Difficulty and starting measures: see "Difficulty and starting values" above. Starting health is **calculated** from those measures with the formula below, never set by hand. The "Hard" difficulty has low cost of changing habits; "Very hard" has high cost.
+
+**Body speed.** Slow body changes run faster than real life with a multiplier **k** (placeholder 4, test between 3 and 4, kept in config, stated openly in the presentation). k applies to body fat, fitness, muscle and the usual level of each habit. k does **not** apply to the clock, each night's sleep or the daily habit scores. One avatar day is about 2.5 real hours, so with k = 4 one avatar day counts as 4 days for the body.
+
+**Six steps, run once per avatar day at wake-up** (steps 1 and 6 also run during the day):
+1. **Action log:** every activity is logged with the avatar's time and its duration.
+2. **Habit scores (0 to 1):** compare the last day (and the last 7 days for weekly rules) with the recommendation. 0 when far too little, 1 inside the healthy range, lower again when too much. Doing more gives no extra points.
+   - Sleep s(S): 1 inside the range for the age; falls below it (0 at 4 h or less) and, slowly, above it.
+   - Activity a(A) = minutes of moderate-to-vigorous activity ÷ 60, at most 1.
+   - Strength w = strength days in the last 7 ÷ 3, at most 1 (vigorous activity uses the same rule).
+   - Screens c(T) = 1 up to 2 h of recreational screens per day; falls to 0 (placeholder: 6 h).
+3. **Slow body states** (change only part of the way each day, using k):
+   - Sleep debt: new = old × r + (recommended sleep − hours slept), never below 0. r sets how fast debt is forgiven (undecided).
+   - Fitness and muscle: new = fitness + k_up × a × (1 − fitness) − k_down × (1 − a) × fitness.
+   - Weight: WHO BMI-for-age z-score, z = ((BMI ÷ M)^L − 1) ÷ (L × S), with L, M, S from the WHO tables for age and sex. Overweight above +1, obesity above +2.
+   - Mood: moves toward a level set by sleep, activity, enjoyment, food and too much screen time.
+   - Usual level of each habit: moves slowly toward what the avatar does; used for the cost of changing habits.
+4. **Measures (0 to 1):**
+   - Physical = mix of fitness, muscle and a weight score (1 when z is between −1 and +1, falling toward 0 near ±3). The mix is undecided.
+   - Sleep = the day's sleep score, lowered by sleep debt.
+   - Mental = mood, lowered by the cost of changing habits quickly (doing much more than the usual level lowers mental health; changing step by step costs little; same rule as the gradual food transition).
+5. **Target health** = 1 + 4 × C, where C combines the three measures (below).
+6. **Displayed health** moves part of the way toward the target each day: new health = health + α × (target − health). α is undecided (example 0.3 per day). The bar changes slowly; messages and animations give immediate feedback.
+
+**Combining the measures: weighted power mean**
+
+`C = (w_P · P^p + w_M · M^p + w_S · S^p)^(1/p)`, with `w_P + w_M + w_S = 1`.
+
+- p = 1 is the ordinary average (a strong measure fully makes up for a weak one). p close to 0 is the geometric mean (the weakest measure pulls everything down).
+- Placeholder: p = 0.5 and equal weights (1/3 each).
+- Example (physical 0.9, mental 0.6, sleep 0.1): ordinary average gives health 3.1, p = 0.5 gives 2.9, geometric mean gives 2.5.
+- p and the weights are **calibrated** with test scenarios taken from the recommendations, not invented. Example scenario: "sleeping 5 hours every day can never give health above 3, even with lots of exercise". Write these scenarios as tests when the system is built.
+- Sleep is not counted twice: it already lowers mental and physical health through steps 3 and 4, so the weights stay almost equal.
+- Normal start check: measures 0.5 · 0.5 · 0.5 give health 3. The old start values (physical 0.5, mental 0.5, sleep 1) would give 3.6, which is why Normal now starts with sleep 0.5.
+
+**Food and energy.** Until the food system is built there is **no automatic eating**: body fat and BMI stay at the difficulty's starting value. Exercise only records calories spent and muscle. Energy balance (energy eaten minus energy used, rule of thumb about 7700 kcal per kg, a simplification) only enters the calculation once food exists.
+
+**Still to define** (see "Por Definir: Sistema de Saúde"): curve shapes, energy model for children, k_up, k_down, r, α, the mix of the Physical measure, how mental health reacts to sleep, activity, screens and food, habit formation, a European starting point for the measures, the definition of severe obesity for children, realistic consequences (long-term risk instead of death), calibration scenarios, XP per day, and whether active entertainment (football) counts toward the 60 minutes.
 
 ## Interface (from the user's sketch)
 

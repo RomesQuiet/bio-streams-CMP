@@ -139,6 +139,11 @@ func _test_entertainment(activities: Node, game_state: Node, clock: Node, save_g
 	_check("entertainment lasts 1 avatar hour", is_equal_approx(float(option.get("duration_hours", 0)), 1.0))
 	var gain: float = option["effects_per_hour"]["mental"]
 	game_state.reset()
+	# A save is only loaded if the avatar was created.
+	game_state.avatar_name = "Test Avatar"
+	game_state.age_group = "child"
+	game_state.sex = "female"
+	game_state.difficulty = "normal"
 	var mental_before: float = game_state.mental
 	clock.debug_speed = 600.0
 	_check("entertainment starts", activities.start("entertainment", "entertainment"))

@@ -8,6 +8,8 @@ signal leveled_up(new_level: int)
 
 ## Values that always stay between 0 and 1.
 const MEASURES_0_TO_1 := ["physical", "mental", "sleep", "hunger", "muscle"]
+## The player's choices on the avatar creation screen. Empty means not chosen yet.
+const CHOICE_KEYS := ["avatar_name", "age_group", "sex", "difficulty"]
 
 # Measures: physical, mental and sleep go from 0 to 1. Health goes from 1 to 5 and
 # always equals the health formula, so it rises and falls with the measures.
@@ -26,6 +28,12 @@ var xp: float
 ## Avatar hours spent at high health without a break (for the XP bonus).
 var high_health_hours: float
 var avatar_name: String
+## "child" or "teenager".
+var age_group: String
+## "male" or "female".
+var sex: String
+## "easy", "normal", "hard" or "very_hard".
+var difficulty: String
 var language: String
 
 ## Health as a whole number from 1 to 5 (health rounded). Shown in the health level box.
@@ -63,6 +71,9 @@ func reset() -> void:
 	xp = Config.get_float("xp.start")
 	high_health_hours = 0.0
 	avatar_name = Config.get_string("defaults.avatar_name")
+	age_group = ""
+	sex = ""
+	difficulty = ""
 	language = Config.get_string("defaults.language")
 	changed.emit()
 
@@ -81,6 +92,9 @@ func to_dict() -> Dictionary:
 		"xp": xp,
 		"high_health_hours": high_health_hours,
 		"avatar_name": avatar_name,
+		"age_group": age_group,
+		"sex": sex,
+		"difficulty": difficulty,
 		"language": language,
 	}
 
@@ -98,9 +112,26 @@ func from_dict(data: Dictionary) -> void:
 	xp = float(data.get("xp", xp))
 	high_health_hours = float(data.get("high_health_hours", high_health_hours))
 	avatar_name = str(data.get("avatar_name", avatar_name))
+	age_group = str(data.get("age_group", age_group))
+	sex = str(data.get("sex", sex))
+	difficulty = str(data.get("difficulty", difficulty))
 	language = str(data.get("language", language))
 	health = calculate_health()
 	changed.emit()
+
+
+## True once the avatar has been created (name, age group, sex and difficulty chosen).
+func is_created() -> bool:
+	return has_all_choices(to_dict())
+
+
+## True if saved GameState data (from to_dict()) holds all the creation choices.
+## Saves from before the creation screen do not.
+func has_all_choices(data: Dictionary) -> bool:
+	for key in CHOICE_KEYS:
+		if str(data.get(key, "")).strip_edges().is_empty():
+			return false
+	return true
 
 
 ## Placeholder health formula: weighted average of the three measures,
@@ -188,7 +219,8 @@ func _xp_per_level() -> float:
 
 func print_state() -> void:
 	print("--- GameState ---")
-	print("avatar_name='%s' language=%s" % [avatar_name, language])
+	print("avatar_name='%s' age_group=%s sex=%s difficulty=%s language=%s" % [
+			avatar_name, age_group, sex, difficulty, language])
 	print("physical=%.2f mental=%.2f sleep=%.2f" % [physical, mental, sleep])
 	print("muscle=%.2f calories_spent=%.0f" % [muscle, calories_spent])
 	print("hunger=%.2f tired=%s" % [hunger, tired])

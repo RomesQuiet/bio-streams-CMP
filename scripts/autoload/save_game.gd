@@ -64,10 +64,13 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F8:
 		delete_save()
 		print("SaveGame: save deleted, new game started")
+		# Reloading the main screen opens the avatar creation screen.
+		get_tree().reload_current_scene()
 
 
+## Nothing is saved before the avatar is created, so an old save stays until then.
 func _auto_save() -> void:
-	if auto_save_enabled:
+	if auto_save_enabled and GameState.is_created():
 		save_game()
 
 
@@ -146,6 +149,12 @@ func _parse(text: String) -> Dictionary:
 		return {}
 	if int(parsed.get("version", 0)) != SAVE_VERSION:
 		push_warning("SaveGame: ignoring a save with an unknown version")
+		return {}
+	var state: Variant = parsed.get("game_state", {})
+	if not state is Dictionary or not GameState.has_all_choices(state):
+		# Saves from Milestones 1 and 2 have no age group, sex or difficulty:
+		# the player starts a new game on the creation screen.
+		push_warning("SaveGame: ignoring a save without the avatar creation choices")
 		return {}
 	return parsed
 

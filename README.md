@@ -31,6 +31,7 @@ Godot --headless --path . -s res://tests/clock_test.gd
 Godot --headless --path . -s res://tests/save_test.gd
 Godot --headless --path . -s res://tests/activities_test.gd
 Godot --headless --path . -s res://tests/health_xp_test.gd
+Godot --headless --path . -s res://tests/creation_test.gd
 ```
 
 ## Export the web version

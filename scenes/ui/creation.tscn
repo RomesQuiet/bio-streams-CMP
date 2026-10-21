@@ -1,0 +1,95 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/creation.gd" id="1_creation"]
+
+[node name="Creation" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_creation")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.17, 0.2, 0.27, 1)
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 48
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 48
+
+[node name="Layout" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="Margin/Layout"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "Create your avatar"
+horizontal_alignment = 1
+
+[node name="NameLabel" type="Label" parent="Margin/Layout"]
+layout_mode = 2
+text = "Name"
+
+[node name="NameEdit" type="LineEdit" parent="Margin/Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+placeholder_text = "Type a name"
+
+[node name="AgeLabel" type="Label" parent="Margin/Layout"]
+layout_mode = 2
+text = "Age group"
+
+[node name="AgeButtons" type="HBoxContainer" parent="Margin/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="SexLabel" type="Label" parent="Margin/Layout"]
+layout_mode = 2
+text = "Sex"
+
+[node name="SexButtons" type="HBoxContainer" parent="Margin/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="DifficultyLabel" type="Label" parent="Margin/Layout"]
+layout_mode = 2
+text = "Difficulty"
+
+[node name="DifficultyButtons" type="GridContainer" parent="Margin/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 2
+
+[node name="DifficultyInfo" type="Label" parent="Margin/Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="Spacer" type="Control" parent="Margin/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="StartButton" type="Button" parent="Margin/Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 96)
+layout_mode = 2
+text = "Start"

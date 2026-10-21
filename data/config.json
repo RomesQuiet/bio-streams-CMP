@@ -76,5 +76,9 @@
 	"defaults": {
 		"language": { "value": "pt", "placeholder": true, "comment": "Starting language until settings exist. pt or en." },
 		"avatar_name": { "value": "", "placeholder": true, "comment": "Set on the avatar creation screen." }
+	},
+
+	"creation": {
+		"name_max_length": { "value": 20, "placeholder": true, "comment": "Most characters allowed in the avatar's name." }
 	}
 }
