@@ -46,7 +46,7 @@ translations/  strings.csv
 assets/        art/, audio/
 documentation/ milestone notes
 docs/          web export (GitHub Pages)
-tests/         headless test scripts (one per area: clock, save, activities, health and XP, creation, difficulty, habits)
+tests/         headless test scripts (one per area: clock, save, activities, health and XP, creation, difficulty, habits, body)
 ```
 
 Autoloads: `Config`, `GameState`, `Clock`, `Activities` (the general activity system for sleep, exercise and entertainment, reading `data/activities.json`), `Habits` (the action log and daily habit scores) and `SaveGame`. The Clock never reads the device clock for game time; it advances only with the game open (delta time).
@@ -55,7 +55,7 @@ Autoloads: `Config`, `GameState`, `Clock`, `Activities` (the general activity sy
 
 **Measures**
 - Health: 1 to 5, **calculated from the starting measures** (3 on Normal), not fixed. Health is the **weighted power mean** of the three measures (section `health_formula` in `data/config.json`; p 0.5 and equal weights, placeholders; see "Health calculation (working plan)"). For now health **always equals this formula**, so it rises and falls with the measures at every moment; Milestone 3 Task 5 makes it move toward it once per avatar day. The **health level** is health rounded to a whole number (1 to 5).
-- Physical: 0 to 1, 0.50 on Normal (calories and muscle strength; weight/height ratio may come later). Its values are kept separately in `GameState`: **muscle** (0 to 1, raised by exercise, mostly muscle strength) and **calories spent** (total kcal spent by exercise, never reset). **Endurance** is planned as the value that cardio trains, but it does not exist in the game yet.
+- Physical: 0 to 1, 0.50 on Normal (calories and muscle strength; weight/height ratio may come later). Its values are kept separately in `GameState`: **fitness** and **muscle** (0 to 1, slow body states that change once per avatar day, see "Health calculation (working plan)"), the **weight z-score**, and **calories spent** (total kcal spent by exercise, never reset; a record only). Fitness takes the place of the planned "endurance".
 - Mental: 0 to 1, 0.50 on Normal.
 - Sleep: 0 to 1, 0.50 on Normal. It affects the other measures the most.
 - The starting measures and muscle come from the chosen difficulty (section `difficulties` in `data/config.json`). Before the player chooses, the Normal values are used.
@@ -69,7 +69,7 @@ Autoloads: `Config`, `GameState`, `Clock`, `Activities` (the general activity sy
 - **Old saves do not load.** A save without the creation choices (from Milestones 1 and 2) is ignored: the creation screen opens and the player starts a new avatar. The old save is replaced when the new avatar is saved.
 - **Difficulty and starting values (placeholders):** Easy about 4 (0.75, 0.75, 0.75); Normal 3 (0.50, 0.50, 0.50); Hard about 2 (0.15, 0.30, 0.30), with obesity but cheap habit changes; Very hard about 1.3 (0.05, 0.05, 0.10), shown as level 1, with severe obesity and very bad habits, where changing habits quickly costs mental health. Starting health comes from these measures.
 - **Planned health calculation:** the full working plan is in the section "Health calculation (working plan)" below. The structure is decided, **all numbers are placeholders**. Milestone 3 builds it step by step.
-- **No fatigue system.** Exercise only spends calories and builds muscle strength: more exercise means more calories spent and more muscle. "Tired" means sleepy and has nothing to do with exercise.
+- **No fatigue system.** Exercise only spends calories and trains fitness and muscle: more exercise means more calories spent and, day by day, more fitness and muscle. "Tired" means sleepy and has nothing to do with exercise.
 
 **Time**
 - Day = 30 real minutes = 14 avatar hours (1 real minute = 28 avatar minutes).
@@ -134,8 +134,15 @@ Source: "Architecture Decisions: Health System" (see Documents). The structure i
 - Example (physical 0.9, mental 0.6, sleep 0.1): ordinary average gives health 3.1, p = 0.5 gives 2.9, geometric mean gives 2.5.
 - p and the weights are **calibrated** with test scenarios taken from the recommendations, not invented. Example scenario: "sleeping 5 hours every day can never give health above 3, even with lots of exercise". Write these scenarios as tests when the system is built.
 - Sleep is not counted twice: it already lowers mental and physical health through steps 3 and 4, so the weights stay almost equal.
-- **Built so far:** the health formula (section `health_formula`), the starting values per difficulty (section `difficulties`), and the action log and habit scores (`Habits`, section `habits`).
-- **How the action log and habit scores work** (`scripts/autoload/habits.gd`): every activity that ends is logged with its type (the activity option id: cardio, strength, entertainment), the avatar time it started (avatar hours since the game began, day number and time of day) and the avatar hours actually done (Stop counts only the time done). Entries older than 7 avatar days (7 × 24 avatar hours) are dropped. The log and the last scores are saved. When any sleep ends (a night, a nap, or the 0-hour rule when the awake period runs out) the four scores are calculated from the log: sleep from the hours of that sleep; activity from the minutes of cardio and strength that started in the last 24 avatar hours; strength from the number of different days (24-hour blocks counted back from now) with strength in the last 7 days ÷ 3; screens from the hours of entertainment in the last 24 avatar hours (all entertainment counts as screens for now). The scores are only stored for now (`Habits.scores`); Task 4 uses them.
+- **Built so far:** the health formula (section `health_formula`), the starting values per difficulty (section `difficulties`), and the action log and habit scores (`Habits`, section `habits`), and the slow body states (`GameState`, section `body_states`). The measures do not use the body states yet (Task 5); until then exercise and entertainment do not change the measures.
+- **How the action log and habit scores work** (`scripts/autoload/habits.gd`): every activity that ends is logged with its type (the activity option id: cardio, strength, entertainment), the avatar time it started (avatar hours since the game began, day number and time of day) and the avatar hours actually done (Stop counts only the time done). Entries older than 7 avatar days (7 × 24 avatar hours) are dropped. The log and the last scores are saved. When any sleep ends (a night, a nap, or the 0-hour rule when the awake period runs out) the four scores are calculated from the log: sleep from the hours of that sleep; activity from the minutes of cardio and strength that started in the last 24 avatar hours; strength from the number of different days (24-hour blocks counted back from now) with strength in the last 7 days ÷ 3; screens from the hours of entertainment in the last 24 avatar hours (all entertainment counts as screens for now). The scores are kept in `Habits.scores` and passed to `GameState.update_body_states()`.
+- **How the slow body states work** (`GameState.update_body_states()`, numbers in section `body_states`, all placeholders): once per avatar day, right after the habit scores, at the end of any sleep. k (body speed, 4) multiplies the speeds of fitness, muscle and the usual habit levels only, never the clock, the sleep, the scores, mood or sleep debt; each speed × k is kept at 1 or less.
+  - Fitness (from the activity score a) and muscle (from the strength score w): new = x + k·k_up·score·(1 − x) − k·k_down·(1 − score)·x, with k_up 0.05 and k_down 0.02, so they fall more slowly than they rise.
+  - Sleep debt (hours): new = old × r + (recommended minimum sleep for the age group − hours slept), never below 0; r = 0.7.
+  - Mood moves 0.3 of the way each day toward the average of the sleep, activity and screens scores (enjoyment and food join later).
+  - Usual level of each habit (a habit score, 0 to 1) moves k × 0.05 of the way toward that day's score.
+  - Weight z-score stays at the difficulty's value (no food yet).
+  - The Milestone 2 per-hour effects on muscle, physical and mental are gone. Exercise still adds calories spent per hour, as a record only, and the sleep activity still raises the sleep measure per hour slept until Task 5.
 - Normal start check: measures 0.5 · 0.5 · 0.5 give health 3. The old start values (physical 0.5, mental 0.5, sleep 1) would give 3.6, which is why Normal now starts with sleep 0.5.
 
 **Food and energy.** Until the food system is built there is **no automatic eating**: body fat and BMI stay at the difficulty's starting value. Exercise only records calories spent and muscle. Energy balance (energy eaten minus energy used, rule of thumb about 7700 kcal per kg, a simplification) only enters the calculation once food exists.

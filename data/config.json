@@ -83,6 +83,21 @@
 		"sleep_above_range_loss_per_hour": { "value": 0.1, "placeholder": true, "comment": "Sleep score lost per hour above the recommended maximum (slow fall)." }
 	},
 
+	"body_states": {
+		"_comment": "Slow body states (CLAUDE.md, Health calculation, step 3). Updated once per avatar day, when a sleep ends, after the habit scores. k (body speed) multiplies the speeds of fitness, muscle and the usual habit levels only (each speed times k is kept at 1 or less). Fitness and muscle: new = x + k*k_up*score*(1 - x) - k*k_down*(1 - score)*x, with the activity score for fitness and the strength score for muscle. Sleep debt (hours): new = old*r + (recommended minimum sleep - hours slept), never below 0. Mood moves mood_speed of the way toward a target = weighted average of the sleep, activity and screens scores. Weight z-score stays at the difficulty's value until food exists.",
+		"k": { "value": 4.0, "placeholder": true, "comment": "Body speed multiplier. Test between 3 and 4. One avatar day counts as k days for the body." },
+		"fitness_k_up": { "value": 0.05, "placeholder": true, "comment": "Per day, before k." },
+		"fitness_k_down": { "value": 0.02, "placeholder": true, "comment": "Per day, before k. Smaller than k_up, so fitness falls slowly." },
+		"muscle_k_up": { "value": 0.05, "placeholder": true },
+		"muscle_k_down": { "value": 0.02, "placeholder": true },
+		"sleep_debt_r": { "value": 0.7, "placeholder": true, "comment": "Share of the old sleep debt kept each day (0 = all forgiven at once, 1 = never forgiven)." },
+		"mood_speed": { "value": 0.3, "placeholder": true, "comment": "Share of the way mood moves toward its target each day. Not multiplied by k." },
+		"mood_weight_sleep": { "value": 1.0, "placeholder": true },
+		"mood_weight_activity": { "value": 1.0, "placeholder": true },
+		"mood_weight_screens": { "value": 1.0, "placeholder": true, "comment": "Too much screen time lowers the screens score and so the mood. Enjoyment and food join later." },
+		"usual_habit_speed": { "value": 0.05, "placeholder": true, "comment": "Share of the way each usual habit level moves toward the day's habit score, before k." }
+	},
+
 	"difficulties": {
 		"_comment": "Starting values per difficulty (all placeholders). physical, mental and sleep are the starting measures; starting health is calculated from them with health_formula, never typed in. weight_z is the WHO BMI-for-age z-score and stays fixed until food exists. habit_change_cost multiplies how much changing habits fast lowers mental health (1 = normal, lower = cheaper). The body states are chosen so that on day 1 they give the starting measures: (fitness + muscle + weight score) / 3 = physical, mood = mental, sleep_debt = 0. usual_habits are habit scores (0 to 1): sleep = starting sleep measure, activity = fitness, strength = muscle, screens = starting mental measure, so the body states do not drift on their own.",
 		"easy": { "physical": 0.75, "mental": 0.75, "sleep": 0.75, "weight_z": 0.0, "habit_change_cost": 1.0,

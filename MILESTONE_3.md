@@ -37,6 +37,7 @@ Milestone 2 must be finished before starting (activity system, exercise, enterta
 - Update them once per avatar day, after the habit scores, using the formulas in `CLAUDE.md` and the body speed multiplier `k` (placeholder 4) from config. `k` applies to fitness, muscle and usual habit levels only; not to the clock, the night's sleep or the scores.
 - Weight z-score **stays at the difficulty's starting value** (no food yet, no automatic eating).
 - The Milestone 2 per-hour effects (calories spent, muscle, physical +, mental +) are replaced by this system. Keep `calories_spent` as a record only.
+- Built in `GameState.update_body_states()`, called by `Habits` after the scores; numbers in `data/config.json` section `body_states`. Mood and the usual habit levels use the habit scores (sleep, activity, strength, screens).
 - Done when: a test shows fitness rising after days of activity and falling slowly after days without, and sleep debt growing with short sleep and shrinking with enough sleep.
 
 ## Task 5 — Measures and health

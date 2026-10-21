@@ -7,7 +7,7 @@ signal changed
 signal leveled_up(new_level: int)
 
 ## Values that always stay between 0 and 1.
-const MEASURES_0_TO_1 := ["physical", "mental", "sleep", "hunger", "muscle"]
+const MEASURES_0_TO_1 := ["physical", "mental", "sleep", "hunger", "muscle", "fitness", "mood"]
 ## The player's choices on the avatar creation screen. Empty means not chosen yet.
 const CHOICE_KEYS := ["avatar_name", "age_group", "sex", "difficulty"]
 
@@ -18,10 +18,21 @@ var mental: float
 var sleep: float
 var health: float
 var hunger: float
-## Muscle strength, 0 to 1. Raised by exercise.
+## Muscle strength, 0 to 1. A slow body state, trained by muscle strength (strength score).
 var muscle: float
-## Total kcal spent by exercise so far (not limited to 1).
+## Total kcal spent by exercise so far (not limited to 1). A record only.
 var calories_spent: float
+## Slow body states (Milestone 3, Task 4). Updated once per avatar day by update_body_states().
+## Fitness, 0 to 1. Trained by cardio and muscle strength (activity score).
+var fitness: float
+## Hours of sleep owed. Never below 0.
+var sleep_debt: float
+## WHO BMI-for-age z-score. Stays at the difficulty's value until food exists.
+var weight_z: float
+## Mood, 0 to 1.
+var mood: float
+## Usual level of each habit, as a habit score (0 to 1): sleep, activity, strength, screens.
+var usual_habits: Dictionary
 ## Tired means sleepy. Placeholder rule: the Clock sets this to true when the day ends.
 var tired: bool
 var xp: float
@@ -86,6 +97,11 @@ func to_dict() -> Dictionary:
 		"hunger": hunger,
 		"muscle": muscle,
 		"calories_spent": calories_spent,
+		"fitness": fitness,
+		"sleep_debt": sleep_debt,
+		"weight_z": weight_z,
+		"mood": mood,
+		"usual_habits": usual_habits.duplicate(),
 		"tired": tired,
 		"xp": xp,
 		"high_health_hours": high_health_hours,
@@ -106,6 +122,14 @@ func from_dict(data: Dictionary) -> void:
 	hunger = float(data.get("hunger", hunger))
 	muscle = float(data.get("muscle", muscle))
 	calories_spent = float(data.get("calories_spent", calories_spent))
+	fitness = float(data.get("fitness", fitness))
+	sleep_debt = float(data.get("sleep_debt", sleep_debt))
+	weight_z = float(data.get("weight_z", weight_z))
+	mood = float(data.get("mood", mood))
+	var saved_habits: Variant = data.get("usual_habits", {})
+	if saved_habits is Dictionary:
+		for habit in saved_habits:
+			usual_habits[habit] = float(saved_habits[habit])
 	tired = bool(data.get("tired", tired))
 	xp = float(data.get("xp", xp))
 	high_health_hours = float(data.get("high_health_hours", high_health_hours))
@@ -130,13 +154,67 @@ func start_new_avatar(new_name: String, new_age_group: String, new_sex: String, 
 	changed.emit()
 
 
-## Starting measures and muscle of a difficulty (section difficulties in config).
+## Starting measures and body states of a difficulty (section difficulties in config).
 func _apply_difficulty_start(difficulty_id: String) -> void:
 	var path := "difficulties." + difficulty_id
 	physical = Config.get_float(path + ".physical")
 	mental = Config.get_float(path + ".mental")
 	sleep = Config.get_float(path + ".sleep")
 	muscle = Config.get_float(path + ".muscle")
+	fitness = Config.get_float(path + ".fitness")
+	sleep_debt = Config.get_float(path + ".sleep_debt")
+	weight_z = Config.get_float(path + ".weight_z")
+	mood = Config.get_float(path + ".mood")
+	usual_habits = Config.get_value(path + ".usual_habits").duplicate()
+
+
+## Recommended sleep range for an age group, in hours: x = minimum, y = maximum.
+## An empty age group uses the default one.
+func sleep_range(group: String) -> Vector2:
+	var path := "recommended_sleep." + (group if not group.is_empty() else Config.get_string("defaults.age_group"))
+	return Vector2(Config.get_float(path + ".min_hours"), Config.get_float(path + ".max_hours"))
+
+
+## Once per avatar day, when a sleep ends, after the habit scores (Habits calls this).
+## scores: sleep, activity, strength, screens (0 to 1). sleep_hours: hours of that sleep.
+func update_body_states(scores: Dictionary, sleep_hours: float) -> void:
+	var k := Config.get_float("body_states.k")
+	var r := Config.get_float("body_states.sleep_debt_r")
+	sleep_debt = maxf(0.0, sleep_debt * r + (sleep_range(age_group).x - sleep_hours))
+	fitness = _train(fitness, float(scores.get("activity", 0.0)), k,
+			Config.get_float("body_states.fitness_k_up"), Config.get_float("body_states.fitness_k_down"))
+	muscle = _train(muscle, float(scores.get("strength", 0.0)), k,
+			Config.get_float("body_states.muscle_k_up"), Config.get_float("body_states.muscle_k_down"))
+	# weight_z stays the same: no food yet, so no automatic eating.
+	mood = clampf(mood + Config.get_float("body_states.mood_speed") * (mood_target(scores) - mood), 0.0, 1.0)
+	var habit_speed := minf(1.0, k * Config.get_float("body_states.usual_habit_speed"))
+	for habit in usual_habits:
+		if scores.has(habit):
+			usual_habits[habit] = clampf(usual_habits[habit] + habit_speed * (float(scores[habit]) - usual_habits[habit]), 0.0, 1.0)
+	changed.emit()
+
+
+## The level mood moves toward: weighted average of the sleep, activity and screens scores.
+func mood_target(scores: Dictionary) -> float:
+	var weights := {
+		"sleep": Config.get_float("body_states.mood_weight_sleep"),
+		"activity": Config.get_float("body_states.mood_weight_activity"),
+		"screens": Config.get_float("body_states.mood_weight_screens"),
+	}
+	var total := 0.0
+	var weight_sum := 0.0
+	for key in weights:
+		total += weights[key] * float(scores.get(key, 0.0))
+		weight_sum += weights[key]
+	return total / weight_sum if weight_sum > 0.0 else mood
+
+
+## Fitness or muscle after one avatar day: rises with the score toward 1 and falls
+## without it toward 0. k multiplies both speeds; each is kept at 1 or less.
+func _train(value: float, score: float, k: float, k_up: float, k_down: float) -> float:
+	var up := minf(1.0, k * k_up)
+	var down := minf(1.0, k * k_down)
+	return clampf(value + up * score * (1.0 - value) - down * (1.0 - score) * value, 0.0, 1.0)
 
 
 ## True once the avatar has been created (name, age group, sex and difficulty chosen).
@@ -275,6 +353,8 @@ func print_state() -> void:
 			avatar_name, age_group, sex, difficulty, language])
 	print("physical=%.2f mental=%.2f sleep=%.2f" % [physical, mental, sleep])
 	print("muscle=%.2f calories_spent=%.0f" % [muscle, calories_spent])
+	print("fitness=%.3f sleep_debt=%.2f h weight_z=%+.1f mood=%.3f" % [fitness, sleep_debt, weight_z, mood])
+	print("usual_habits=%s" % usual_habits)
 	print("hunger=%.2f tired=%s" % [hunger, tired])
 	print("health=%.2f (level %d)" % [health, health_level])
 	print("xp=%.1f level=%d progress=%.2f" % [xp, level, level_progress])

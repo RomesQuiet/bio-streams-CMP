@@ -91,7 +91,10 @@ func _same(a: Dictionary, b: Dictionary) -> bool:
 	for key in a:
 		if not b.has(key):
 			return false
-		if a[key] is float or b[key] is float:
+		if a[key] is Dictionary and b[key] is Dictionary:
+			if not _same(a[key], b[key]):
+				return false
+		elif a[key] is float or b[key] is float:
 			if not is_equal_approx(float(a[key]), float(b[key])):
 				print("  differs: %s %s != %s" % [key, a[key], b[key]])
 				return false

@@ -91,16 +91,17 @@ func _test_day_activity(activities: Node, game_state: Node, clock: Node) -> void
 	activities.definitions.erase("test_play")
 
 
-## Milestone 2, Task 4: cardio and muscle strength change calories spent, muscle and
-## the physical measure by the values in data/activities.json. Stop halfway applies half.
+## Cardio and muscle strength add calories spent (a record only) by the values in
+## data/activities.json. Since Milestone 3 they no longer change muscle or the physical
+## measure per hour: fitness and muscle change once per avatar day. Stop halfway counts half.
 func _test_exercise(activities: Node, game_state: Node, clock: Node) -> void:
 	_check("exercise is defined with cardio and strength", activities.get_option("exercise", "cardio").size() > 0 and activities.get_option("exercise", "strength").size() > 0)
 	var cardio: Dictionary = activities.get_option("exercise", "cardio")["effects_per_hour"]
 	var strength: Dictionary = activities.get_option("exercise", "strength")["effects_per_hour"]
 	_check("cardio spends more calories than strength", cardio["calories_spent"] > strength["calories_spent"])
-	_check("strength raises muscle more than cardio", strength["muscle"] > cardio["muscle"])
-	_check("both raise the physical measure", cardio["physical"] > 0.0 and strength["physical"] > 0.0)
 	_check("there is no fatigue effect", not cardio.has("fatigue") and not strength.has("fatigue"))
+	_check("no per-hour muscle or physical effects", not cardio.has("muscle") and not strength.has("muscle")
+			and not cardio.has("physical") and not strength.has("physical"))
 
 	for option_id in ["cardio", "strength"]:
 		var effects: Dictionary = activities.get_option("exercise", option_id)["effects_per_hour"]
@@ -113,10 +114,10 @@ func _test_exercise(activities: Node, game_state: Node, clock: Node) -> void:
 		while activities.is_running():
 			clock._process(STEP_SECONDS)
 		_check("%s: calories spent change by the config value" % option_id, absf(game_state.calories_spent - (before["calories_spent"] + effects["calories_spent"] * hours)) < TOLERANCE)
-		_check("%s: muscle changes by the config value" % option_id, absf(game_state.muscle - (before["muscle"] + effects["muscle"] * hours)) < TOLERANCE)
-		_check("%s: physical changes by the config value" % option_id, absf(game_state.physical - (before["physical"] + effects["physical"] * hours)) < TOLERANCE)
+		_check("%s: muscle and physical do not change during the day" % option_id,
+				is_equal_approx(game_state.muscle, before["muscle"]) and is_equal_approx(game_state.physical, before["physical"]))
 
-		# Stop halfway: effects count only for the time done.
+		# Stop halfway: calories count only for the time done.
 		clock.debug_speed = 60.0
 		before = _snapshot(game_state)
 		activities.start("exercise", option_id)
@@ -126,36 +127,26 @@ func _test_exercise(activities: Node, game_state: Node, clock: Node) -> void:
 		activities.stop()
 		_check("%s stopped halfway: about 0.5 h done" % option_id, absf(done - 0.5) < 0.05)
 		_check("%s stopped halfway: calories spent are in proportion" % option_id, absf(game_state.calories_spent - (before["calories_spent"] + effects["calories_spent"] * done)) < TOLERANCE)
-		_check("%s stopped halfway: muscle is in proportion" % option_id, absf(game_state.muscle - (before["muscle"] + effects["muscle"] * done)) < TOLERANCE)
-		_check("%s stopped halfway: physical is in proportion" % option_id, absf(game_state.physical - (before["physical"] + effects["physical"] * done)) < TOLERANCE)
 	clock.debug_speed = 600.0
 
 
-## Milestone 2, Task 5: one hour of entertainment raises the mental measure by the
-## value in data/activities.json, and the new value is saved.
-func _test_entertainment(activities: Node, game_state: Node, clock: Node, save_game: Node) -> void:
+## Entertainment lasts one hour. Since Milestone 3 it has no per-hour effect on the
+## mental measure: it is logged as screen time, and mood changes once per avatar day.
+func _test_entertainment(activities: Node, game_state: Node, clock: Node, _save_game: Node) -> void:
 	var option: Dictionary = activities.get_option("entertainment", "entertainment")
 	_check("entertainment has one option", activities.definitions.get("entertainment", {}).get("options", {}).size() == 1)
 	_check("entertainment lasts 1 avatar hour", is_equal_approx(float(option.get("duration_hours", 0)), 1.0))
-	var gain: float = option["effects_per_hour"]["mental"]
+	_check("entertainment has no per-hour effects", option.get("effects_per_hour", {}).is_empty())
 	game_state.reset()
-	# A save is only loaded if the avatar was created.
-	game_state.avatar_name = "Test Avatar"
-	game_state.age_group = "child"
-	game_state.sex = "female"
-	game_state.difficulty = "normal"
+	var habits: Node = root.get_node("Habits")
+	var logged_before: int = habits.entries.size()
 	var mental_before: float = game_state.mental
 	clock.debug_speed = 600.0
 	_check("entertainment starts", activities.start("entertainment", "entertainment"))
 	while activities.is_running():
 		clock._process(STEP_SECONDS)
-	_check("one hour raises mental by the config value", absf(game_state.mental - (mental_before + gain)) < TOLERANCE)
-	var mental_after: float = game_state.mental
-	save_game.save_game()
-	game_state.reset()
-	_check("mental was reset before loading", not is_equal_approx(game_state.mental, mental_after))
-	save_game.load_game()
-	_check("the new mental value is saved", absf(game_state.mental - mental_after) < TOLERANCE)
+	_check("mental does not change during entertainment", is_equal_approx(game_state.mental, mental_before))
+	_check("entertainment is logged", habits.entries.size() == logged_before + 1 and habits.entries[-1]["type"] == "entertainment")
 
 
 func _snapshot(game_state: Node) -> Dictionary:

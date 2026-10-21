@@ -2,9 +2,9 @@ extends Node
 ## Action log and daily habit scores (Milestone 3, Task 3).
 ## Every activity is logged with its type, the avatar time it started and the avatar
 ## hours actually done (Stop counts only the time done). The last log_days avatar days
-## are kept. When a sleep ends, four habit scores (0 to 1) are worked out from the log.
-## All numbers come from Config (section habits). Kept apart from GameState so the
-## slow body states (Task 4) can read the scores without changing this script.
+## are kept. When a sleep ends, four habit scores (0 to 1) are worked out from the log,
+## and then GameState updates the slow body states from them.
+## All numbers come from Config (section habits).
 
 ## Emitted when new habit scores were calculated (a sleep ended).
 signal scores_updated
@@ -102,9 +102,9 @@ func calculate_scores(sleep_hours: float, age_group: String) -> Dictionary:
 ## 1 inside the recommended range for the age group; falls in a straight line to 0
 ## at sleep_zero_at_hours or less; falls slowly above the range.
 func sleep_score(hours: float, age_group: String) -> float:
-	var range_path := "recommended_sleep." + (age_group if not age_group.is_empty() else Config.get_string("defaults.age_group"))
-	var low := Config.get_float(range_path + ".min_hours")
-	var high := Config.get_float(range_path + ".max_hours")
+	var sleep_range := GameState.sleep_range(age_group)
+	var low := sleep_range.x
+	var high := sleep_range.y
 	var zero_at := Config.get_float("habits.sleep_zero_at_hours")
 	if hours < low:
 		return clampf((hours - zero_at) / (low - zero_at), 0.0, 1.0)
@@ -151,6 +151,8 @@ func _score_sleep(hours: float) -> void:
 	_prune()
 	last_sleep_hours = hours
 	scores = calculate_scores(hours, GameState.age_group)
+	# Then the slow body states change, once per avatar day.
+	GameState.update_body_states(scores, hours)
 	scores_updated.emit()
 
 

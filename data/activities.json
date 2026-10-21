@@ -23,20 +23,20 @@
 			"cardio": {
 				"name": "Cardio",
 				"duration_hours": 1,
-				"effects_per_hour": { "calories_spent": 500, "muscle": 0.01, "physical": 0.03 },
+				"effects_per_hour": { "calories_spent": 500 },
 				"background_color": "#2d5a3d",
 				"animation": "cardio",
 				"placeholder": true,
-				"comment": "calories_spent is in kcal per avatar hour. Cardio spends more calories than muscle strength."
+				"comment": "calories_spent is in kcal per avatar hour, a record only. Cardio spends more calories than muscle strength. Fitness changes once per avatar day from the activity score (config.json: body_states)."
 			},
 			"strength": {
 				"name": "Muscle strength",
 				"duration_hours": 1,
-				"effects_per_hour": { "calories_spent": 300, "muscle": 0.04, "physical": 0.03 },
+				"effects_per_hour": { "calories_spent": 300 },
 				"background_color": "#5a3d2d",
 				"animation": "strength",
 				"placeholder": true,
-				"comment": "Muscle strength raises muscle more than cardio. There is no fatigue system."
+				"comment": "calories_spent is a record only. Muscle changes once per avatar day from the strength score (config.json: body_states). There is no fatigue system."
 			}
 		}
 	},
@@ -47,11 +47,11 @@
 			"entertainment": {
 				"name": "Entertainment",
 				"duration_hours": 1,
-				"effects_per_hour": { "mental": 0.1 },
+				"effects_per_hour": {},
 				"background_color": "#4a3a6a",
 				"animation": "entertainment",
 				"placeholder": true,
-				"comment": "One option until the real entertainment menu is decided. Raises the mental measure significantly."
+				"comment": "One option until the real entertainment menu is decided. It is logged as screen time and counts in the screens habit score; mood changes once per avatar day."
 			}
 		}
 	}
