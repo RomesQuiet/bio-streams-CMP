@@ -29,6 +29,7 @@ Milestone 2 must be finished before starting (activity system, exercise, enterta
   - Activity a = minutes of cardio and muscle strength ÷ 60, at most 1.
   - Strength w = days with muscle strength in the last 7 ÷ 3, at most 1.
   - Screens c = 1 up to 2 h of entertainment; falls linearly to 0 at 6 h. For now all entertainment counts as recreational screen time (placeholder until sedentary and active entertainment exist).
+- Built in `scripts/autoload/habits.gd` (autoload `Habits`), numbers in `data/config.json` section `habits`. The window of "the last day" is the last 24 avatar hours of avatar time.
 - Done when: a test with a known log gives the expected four scores.
 
 ## Task 4 — Slow body states

@@ -68,6 +68,21 @@
 		"teenager": { "min_hours": 8, "max_hours": 10, "placeholder": true, "comment": "13 to 18 years, reference age 14." }
 	},
 
+	"habits": {
+		"_comment": "Action log and daily habit scores (0 to 1). Scores are worked out when a sleep ends, from the log of the last log_days avatar days. 'Last day' means the last avatar_day_hours of avatar time. The log types are the activity option ids in data/activities.json (sleep is not logged as a type).",
+		"avatar_day_hours": 24,
+		"log_days": 7,
+		"activity_types": ["cardio", "strength"],
+		"strength_types": ["strength"],
+		"screen_types": { "value": ["entertainment"], "placeholder": true, "comment": "All entertainment counts as recreational screen time until sedentary and active entertainment exist." },
+		"activity_minutes_target": 60,
+		"strength_days_target": 3,
+		"screens_full_up_to_hours": { "value": 2.0, "placeholder": true, "comment": "Screen score is 1 up to this many hours per day." },
+		"screens_zero_at_hours": { "value": 6.0, "placeholder": true, "comment": "Screen score falls in a straight line to 0 at this many hours per day." },
+		"sleep_zero_at_hours": { "value": 4.0, "placeholder": true, "comment": "Sleep score falls in a straight line from 1 at the recommended minimum to 0 at this many hours or less." },
+		"sleep_above_range_loss_per_hour": { "value": 0.1, "placeholder": true, "comment": "Sleep score lost per hour above the recommended maximum (slow fall)." }
+	},
+
 	"difficulties": {
 		"_comment": "Starting values per difficulty (all placeholders). physical, mental and sleep are the starting measures; starting health is calculated from them with health_formula, never typed in. weight_z is the WHO BMI-for-age z-score and stays fixed until food exists. habit_change_cost multiplies how much changing habits fast lowers mental health (1 = normal, lower = cheaper). The body states are chosen so that on day 1 they give the starting measures: (fitness + muscle + weight score) / 3 = physical, mood = mental, sleep_debt = 0. usual_habits are habit scores (0 to 1): sleep = starting sleep measure, activity = fitness, strength = muscle, screens = starting mental measure, so the body states do not drift on their own.",
 		"easy": { "physical": 0.75, "mental": 0.75, "sleep": 0.75, "weight_z": 0.0, "habit_change_cost": 1.0,
@@ -110,6 +125,7 @@
 	"defaults": {
 		"language": { "value": "pt", "placeholder": true, "comment": "Starting language until settings exist. pt or en." },
 		"avatar_name": { "value": "", "placeholder": true, "comment": "Set on the avatar creation screen." },
+		"age_group": { "value": "child", "placeholder": true, "comment": "Used for the recommended sleep before the player chooses an age group." },
 		"difficulty": { "value": "normal", "placeholder": true, "comment": "Starting values used before the player chooses a difficulty." }
 	},
 

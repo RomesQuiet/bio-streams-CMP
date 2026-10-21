@@ -46,10 +46,10 @@ translations/  strings.csv
 assets/        art/, audio/
 documentation/ milestone notes
 docs/          web export (GitHub Pages)
-tests/         headless test scripts (one per area: clock, save, activities, health and XP, creation, difficulty)
+tests/         headless test scripts (one per area: clock, save, activities, health and XP, creation, difficulty, habits)
 ```
 
-Autoloads: `Config`, `GameState`, `Clock`, `SaveGame`, `Activities` (the general activity system for sleep, exercise and entertainment, reading `data/activities.json`). The Clock never reads the device clock for game time; it advances only with the game open (delta time).
+Autoloads: `Config`, `GameState`, `Clock`, `Activities` (the general activity system for sleep, exercise and entertainment, reading `data/activities.json`), `Habits` (the action log and daily habit scores) and `SaveGame`. The Clock never reads the device clock for game time; it advances only with the game open (delta time).
 
 ## Game rules (confirmed)
 
@@ -134,7 +134,8 @@ Source: "Architecture Decisions: Health System" (see Documents). The structure i
 - Example (physical 0.9, mental 0.6, sleep 0.1): ordinary average gives health 3.1, p = 0.5 gives 2.9, geometric mean gives 2.5.
 - p and the weights are **calibrated** with test scenarios taken from the recommendations, not invented. Example scenario: "sleeping 5 hours every day can never give health above 3, even with lots of exercise". Write these scenarios as tests when the system is built.
 - Sleep is not counted twice: it already lowers mental and physical health through steps 3 and 4, so the weights stay almost equal.
-- **Built so far:** the health formula (section `health_formula`) and the starting values per difficulty (section `difficulties`).
+- **Built so far:** the health formula (section `health_formula`), the starting values per difficulty (section `difficulties`), and the action log and habit scores (`Habits`, section `habits`).
+- **How the action log and habit scores work** (`scripts/autoload/habits.gd`): every activity that ends is logged with its type (the activity option id: cardio, strength, entertainment), the avatar time it started (avatar hours since the game began, day number and time of day) and the avatar hours actually done (Stop counts only the time done). Entries older than 7 avatar days (7 × 24 avatar hours) are dropped. The log and the last scores are saved. When any sleep ends (a night, a nap, or the 0-hour rule when the awake period runs out) the four scores are calculated from the log: sleep from the hours of that sleep; activity from the minutes of cardio and strength that started in the last 24 avatar hours; strength from the number of different days (24-hour blocks counted back from now) with strength in the last 7 days ÷ 3; screens from the hours of entertainment in the last 24 avatar hours (all entertainment counts as screens for now). The scores are only stored for now (`Habits.scores`); Task 4 uses them.
 - Normal start check: measures 0.5 · 0.5 · 0.5 give health 3. The old start values (physical 0.5, mental 0.5, sleep 1) would give 3.6, which is why Normal now starts with sleep 0.5.
 
 **Food and energy.** Until the food system is built there is **no automatic eating**: body fat and BMI stay at the difficulty's starting value. Exercise only records calories spent and muscle. Energy balance (energy eaten minus energy used, rule of thumb about 7700 kcal per kg, a simplification) only enters the calculation once food exists.

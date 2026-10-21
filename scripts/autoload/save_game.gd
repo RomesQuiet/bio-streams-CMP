@@ -82,6 +82,7 @@ func save_game() -> void:
 		"game_state": GameState.to_dict(),
 		"clock": Clock.to_dict(),
 		"activities": Activities.to_dict(),
+		"habits": Habits.to_dict(),
 	}
 	var text := JSON.stringify(data, "\t")
 	var file := FileAccess.open(save_path, FileAccess.WRITE)
@@ -108,6 +109,7 @@ func load_game() -> bool:
 	GameState.from_dict(best.get("game_state", {}))
 	Clock.from_dict(best.get("clock", {}))
 	Activities.from_dict(best.get("activities", {}))
+	Habits.from_dict(best.get("habits", {}))
 	return true
 
 
@@ -119,6 +121,7 @@ func delete_save() -> void:
 		JavaScriptBridge.eval("try { localStorage.removeItem(%s); } catch (e) {}" % JSON.stringify(WEB_STORAGE_KEY))
 	_save_count = 0
 	Activities.reset()
+	Habits.reset()
 	GameState.reset()
 	Clock.reset()
 
