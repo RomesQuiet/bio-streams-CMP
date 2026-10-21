@@ -85,11 +85,7 @@ func _refresh() -> void:
 
 
 func _on_start_pressed() -> void:
-	GameState.avatar_name = name_edit.text.strip_edges()
-	GameState.age_group = _age_group
-	GameState.sex = _sex
-	GameState.difficulty = _difficulty
-	GameState.changed.emit()
+	GameState.start_new_avatar(name_edit.text.strip_edges(), _age_group, _sex, _difficulty)
 	# Unpausing is a key moment, so the new game is saved here.
 	Clock.set_paused(false)
 	get_tree().change_scene_to_file(MAIN_SCENE)

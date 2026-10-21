@@ -30,12 +30,9 @@
 	},
 
 	"measures": {
+		"_comment": "The starting physical, mental and sleep measures and muscle come from the chosen difficulty (section difficulties).",
 		"health_min": 1,
 		"health_max": 5,
-		"physical_start": 0.5,
-		"mental_start": 0.5,
-		"sleep_start": 1.0,
-		"muscle_start": { "value": 0.5, "placeholder": true, "comment": "Muscle strength, 0 to 1." },
 		"calories_spent_start": { "value": 0, "placeholder": true, "comment": "Total kcal spent by exercise so far. Whether it resets each day is not decided." },
 		"hunger_start": { "value": 0.0, "placeholder": true, "comment": "0 = full, 1 = starving." }
 	},
@@ -47,11 +44,48 @@
 		"measure_loss_per_avatar_hour_awake": { "value": 0.05, "placeholder": true, "comment": "Sleep measure lost per avatar hour awake (a 14 h day loses 0.7)." }
 	},
 
-	"health_weights": {
-		"_comment": "Placeholder health formula: weighted average of the three measures (0 to 1), mapped to health_min..health_max. Health always equals this formula, so it rises and falls with the measures. Sleep has the largest weight because it affects the other measures the most.",
-		"physical": { "value": 1.0, "placeholder": true },
-		"mental": { "value": 1.0, "placeholder": true },
-		"sleep": { "value": 1.5, "placeholder": true }
+	"health_formula": {
+		"_comment": "Weighted power mean (CLAUDE.md, Health calculation): C = (w_P*P^p + w_M*M^p + w_S*S^p)^(1/p), with the weights divided by their sum. Health = health_min + (health_max - health_min) * C. p = 1 is the ordinary average; p near 0 is the geometric mean (the weakest measure pulls everything down). For now health always equals this formula; Milestone 3 Task 5 makes it move toward it once per avatar day.",
+		"p": { "value": 0.5, "placeholder": true },
+		"weight_physical": { "value": 1.0, "placeholder": true, "comment": "Equal weights = 1/3 each." },
+		"weight_mental": { "value": 1.0, "placeholder": true },
+		"weight_sleep": { "value": 1.0, "placeholder": true }
+	},
+
+	"physical_measure": {
+		"_comment": "Physical measure (built in Milestone 3 Task 5) = mix of fitness, muscle and a weight score. The weight score is 1 while the WHO BMI-for-age z-score is between -full_within_z and +full_within_z, and falls to 0 at +-zero_at_z along the curve t^curve_power, where t goes in a straight line from 1 (at full_within_z) to 0 (at zero_at_z). curve_power 1 is a straight line; 2 makes the score fall faster just above the healthy range (at z = +2, obesity, the score is 0.25 instead of 0.5) and keeps the starting fitness in order from Easy to Very hard. Used now to choose the starting body states of each difficulty.",
+		"weight_fitness": { "value": 1.0, "placeholder": true, "comment": "Equal thirds." },
+		"weight_muscle": { "value": 1.0, "placeholder": true },
+		"weight_weight_score": { "value": 1.0, "placeholder": true },
+		"weight_score_full_within_z": { "value": 1.0, "placeholder": true },
+		"weight_score_zero_at_z": { "value": 3.0, "placeholder": true },
+		"weight_score_curve_power": { "value": 2.0, "placeholder": true, "comment": "1 = straight line. Curve shapes are not decided yet." }
+	},
+
+	"recommended_sleep": {
+		"_comment": "Recommended sleep per 24 h for each age group (CLAUDE.md).",
+		"child": { "min_hours": 9, "max_hours": 12, "placeholder": true, "comment": "6 to 12 years, reference age 10." },
+		"teenager": { "min_hours": 8, "max_hours": 10, "placeholder": true, "comment": "13 to 18 years, reference age 14." }
+	},
+
+	"difficulties": {
+		"_comment": "Starting values per difficulty (all placeholders). physical, mental and sleep are the starting measures; starting health is calculated from them with health_formula, never typed in. weight_z is the WHO BMI-for-age z-score and stays fixed until food exists. habit_change_cost multiplies how much changing habits fast lowers mental health (1 = normal, lower = cheaper). The body states are chosen so that on day 1 they give the starting measures: (fitness + muscle + weight score) / 3 = physical, mood = mental, sleep_debt = 0. usual_habits are habit scores (0 to 1): sleep = starting sleep measure, activity = fitness, strength = muscle, screens = starting mental measure, so the body states do not drift on their own.",
+		"easy": { "physical": 0.75, "mental": 0.75, "sleep": 0.75, "weight_z": 0.0, "habit_change_cost": 1.0,
+			"fitness": 0.625, "muscle": 0.625, "mood": 0.75, "sleep_debt": 0.0,
+			"usual_habits": { "sleep": 0.75, "activity": 0.625, "strength": 0.625, "screens": 0.75 },
+			"placeholder": true, "comment": "Health about 4." },
+		"normal": { "physical": 0.5, "mental": 0.5, "sleep": 0.5, "weight_z": 1.0, "habit_change_cost": 1.0,
+			"fitness": 0.25, "muscle": 0.25, "mood": 0.5, "sleep_debt": 0.0,
+			"usual_habits": { "sleep": 0.5, "activity": 0.25, "strength": 0.25, "screens": 0.5 },
+			"placeholder": true, "comment": "Health 3." },
+		"hard": { "physical": 0.15, "mental": 0.3, "sleep": 0.3, "weight_z": 2.2, "habit_change_cost": 0.5,
+			"fitness": 0.145, "muscle": 0.145, "mood": 0.3, "sleep_debt": 0.0,
+			"usual_habits": { "sleep": 0.3, "activity": 0.145, "strength": 0.145, "screens": 0.3 },
+			"placeholder": true, "comment": "Health about 2. Habit changes are cheap." },
+		"very_hard": { "physical": 0.05, "mental": 0.05, "sleep": 0.1, "weight_z": 3.2, "habit_change_cost": 2.0,
+			"fitness": 0.075, "muscle": 0.075, "mood": 0.05, "sleep_debt": 0.0,
+			"usual_habits": { "sleep": 0.1, "activity": 0.075, "strength": 0.075, "screens": 0.05 },
+			"placeholder": true, "comment": "Health about 1.3, shown as level 1. Changing habits fast is expensive." }
 	},
 
 	"xp": {
@@ -75,7 +109,8 @@
 
 	"defaults": {
 		"language": { "value": "pt", "placeholder": true, "comment": "Starting language until settings exist. pt or en." },
-		"avatar_name": { "value": "", "placeholder": true, "comment": "Set on the avatar creation screen." }
+		"avatar_name": { "value": "", "placeholder": true, "comment": "Set on the avatar creation screen." },
+		"difficulty": { "value": "normal", "placeholder": true, "comment": "Starting values used before the player chooses a difficulty." }
 	},
 
 	"creation": {

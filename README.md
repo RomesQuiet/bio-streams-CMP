@@ -9,7 +9,7 @@ The player looks after an avatar who is a school student and tries to raise its 
 Play in the browser (computer, Android or iOS):
 **https://romesquiet.github.io/bio-streams-game-Porto-Portugal-Conservat-rio-de-M-sica-do-Porto/**
 
-The game saves on your device. Nothing is sent to a server. 
+The game saves on your device. Nothing is sent to a server. A new game starts on the avatar creation screen. Saves from before Milestone 3 do not load: you create a new avatar. 
 
 ## Run it yourself
 
@@ -32,6 +32,7 @@ Godot --headless --path . -s res://tests/save_test.gd
 Godot --headless --path . -s res://tests/activities_test.gd
 Godot --headless --path . -s res://tests/health_xp_test.gd
 Godot --headless --path . -s res://tests/creation_test.gd
+Godot --headless --path . -s res://tests/difficulty_test.gd
 ```
 
 ## Export the web version

@@ -45,6 +45,8 @@ func _process(_delta: float) -> bool:
 	_check("sex stored", game_state.sex == "female")
 	_check("difficulty stored", game_state.difficulty == "very_hard")
 	_check("the avatar is created", game_state.is_created())
+	_check("Very hard starting measures are used", is_equal_approx(game_state.physical, 0.05)
+			and is_equal_approx(game_state.mental, 0.05) and is_equal_approx(game_state.sleep, 0.1))
 	_check("game time runs again after Start", not clock.paused)
 
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])

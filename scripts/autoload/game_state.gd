@@ -58,13 +58,11 @@ func _ready() -> void:
 		print_state()
 
 
-## Sets every value to its start value from Config (new avatar).
+## Sets every value to its start value from Config (new avatar). Until the player
+## chooses a difficulty, the default difficulty's starting values are used.
 func reset() -> void:
-	physical = Config.get_float("measures.physical_start")
-	mental = Config.get_float("measures.mental_start")
-	sleep = Config.get_float("measures.sleep_start")
+	_apply_difficulty_start(Config.get_string("defaults.difficulty"))
 	hunger = Config.get_float("measures.hunger_start")
-	muscle = Config.get_float("measures.muscle_start")
 	calories_spent = Config.get_float("measures.calories_spent_start")
 	tired = false
 	health = calculate_health()
@@ -120,6 +118,27 @@ func from_dict(data: Dictionary) -> void:
 	changed.emit()
 
 
+## Called by the creation screen's Start button: stores the choices and sets the
+## starting values of the chosen difficulty. Starting health is calculated from them.
+func start_new_avatar(new_name: String, new_age_group: String, new_sex: String, new_difficulty: String) -> void:
+	avatar_name = new_name
+	age_group = new_age_group
+	sex = new_sex
+	difficulty = new_difficulty
+	_apply_difficulty_start(difficulty)
+	health = calculate_health()
+	changed.emit()
+
+
+## Starting measures and muscle of a difficulty (section difficulties in config).
+func _apply_difficulty_start(difficulty_id: String) -> void:
+	var path := "difficulties." + difficulty_id
+	physical = Config.get_float(path + ".physical")
+	mental = Config.get_float(path + ".mental")
+	sleep = Config.get_float(path + ".sleep")
+	muscle = Config.get_float(path + ".muscle")
+
+
 ## True once the avatar has been created (name, age group, sex and difficulty chosen).
 func is_created() -> bool:
 	return has_all_choices(to_dict())
@@ -134,20 +153,53 @@ func has_all_choices(data: Dictionary) -> bool:
 	return true
 
 
-## Placeholder health formula: weighted average of the three measures,
-## mapped from 0..1 to health_min..health_max. Weights are in config.
+## Health from the current measures.
 func calculate_health() -> float:
-	var w_physical := Config.get_float("health_weights.physical")
-	var w_mental := Config.get_float("health_weights.mental")
-	var w_sleep := Config.get_float("health_weights.sleep")
-	var total_weight := w_physical + w_mental + w_sleep
+	return health_from_measures(physical, mental, sleep)
+
+
+## Weighted power mean of the three measures (section health_formula in config),
+## mapped from 0..1 to health_min..health_max.
+func health_from_measures(p_physical: float, p_mental: float, p_sleep: float) -> float:
+	var values := [clampf(p_physical, 0.0, 1.0), clampf(p_mental, 0.0, 1.0), clampf(p_sleep, 0.0, 1.0)]
+	var weights := [Config.get_float("health_formula.weight_physical"),
+			Config.get_float("health_formula.weight_mental"), Config.get_float("health_formula.weight_sleep")]
+	var total_weight: float = weights[0] + weights[1] + weights[2]
 	if total_weight <= 0.0:
 		push_error("GameState: health weights must add up to more than 0")
 		return health
-	var average := (physical * w_physical + mental * w_mental + sleep * w_sleep) / total_weight
+	var p := Config.get_float("health_formula.p")
+	var combined := 0.0
+	if is_zero_approx(p):
+		# p = 0 is the geometric mean.
+		for i in 3:
+			combined += weights[i] / total_weight * log(values[i])
+		combined = exp(combined)
+	else:
+		for i in 3:
+			combined += weights[i] / total_weight * pow(values[i], p)
+		combined = pow(combined, 1.0 / p)
 	var health_min := Config.get_float("measures.health_min")
 	var health_max := Config.get_float("measures.health_max")
-	return lerpf(health_min, health_max, clampf(average, 0.0, 1.0))
+	return lerpf(health_min, health_max, clampf(combined, 0.0, 1.0))
+
+
+## Weight score (0 to 1) from the WHO BMI-for-age z-score: 1 near the median,
+## falling to 0 along a curve (section physical_measure in config).
+func weight_score(weight_z: float) -> float:
+	var full := Config.get_float("physical_measure.weight_score_full_within_z")
+	var zero := Config.get_float("physical_measure.weight_score_zero_at_z")
+	var power := Config.get_float("physical_measure.weight_score_curve_power")
+	return pow(clampf((zero - absf(weight_z)) / (zero - full), 0.0, 1.0), power)
+
+
+## Physical measure from the body states: weighted mix of fitness, muscle and weight score.
+func physical_from_body(fitness: float, muscle_value: float, weight_z: float) -> float:
+	var w_fitness := Config.get_float("physical_measure.weight_fitness")
+	var w_muscle := Config.get_float("physical_measure.weight_muscle")
+	var w_weight := Config.get_float("physical_measure.weight_weight_score")
+	return (w_fitness * fitness + w_muscle * muscle_value + w_weight * weight_score(weight_z)) \
+			/ (w_fitness + w_muscle + w_weight)
 
 
 ## Called by the Clock as avatar time passes.

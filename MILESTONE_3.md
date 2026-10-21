@@ -8,6 +8,7 @@ Milestone 2 must be finished before starting (activity system, exercise, enterta
 - New screen shown when there is no save: avatar name, age group (child or teenager), sex (male or female) and difficulty (Easy, Normal, Hard, Very hard). A "Start" button opens the main screen.
 - Show the difficulties with neutral wording (describe the starting habits, do not use words that stigmatise weight). The texts are placeholders.
 - Store `age_group`, `sex` and `difficulty` in `GameState` and save them.
+- A save without these choices (from Milestones 1 and 2) is **not loaded**: the creation screen opens and the player starts a new avatar.
 - Done when: a new game asks for the four choices, and they are restored after closing and reopening.
 
 ## Task 2 — Starting values per difficulty
@@ -18,7 +19,7 @@ Milestone 2 must be finished before starting (activity system, exercise, enterta
   - Very hard: 0.05, 0.05, 0.10, z +3.2, habit change cost high.
 - Also in config: recommended sleep per age group (child 9 to 12 h, teenager 8 to 10 h) and starting values for fitness, muscle and the usual level of each habit per difficulty.
 - Choose the starting body states so that the measures they give on day 1 match the starting measures above (otherwise health jumps after the first sleep). List the values you chose.
-- **Starting health is calculated** with the formula from Task 5, never typed in. Saves from Milestones 1 and 2 must still load: if the new fields are missing, use the Normal values.
+- **Starting health is calculated** with the formula from Task 5, never typed in. Saves from Milestones 1 and 2 **do not load** (see Task 1): the player creates a new avatar. Before a difficulty is chosen, the Normal values are used.
 - Done when: a printout shows starting health of about 4.0 (Easy), 3.0 (Normal), 2.0 (Hard) and 1.3 (Very hard, shown as level 1).
 
 ## Task 3 — Action log and daily habit scores

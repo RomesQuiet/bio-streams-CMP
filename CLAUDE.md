@@ -46,7 +46,7 @@ translations/  strings.csv
 assets/        art/, audio/
 documentation/ milestone notes
 docs/          web export (GitHub Pages)
-tests/         headless test scripts (one per area: clock, save, activities, health and XP)
+tests/         headless test scripts (one per area: clock, save, activities, health and XP, creation, difficulty)
 ```
 
 Autoloads: `Config`, `GameState`, `Clock`, `SaveGame`, `Activities` (the general activity system for sleep, exercise and entertainment, reading `data/activities.json`). The Clock never reads the device clock for game time; it advances only with the game open (delta time).
@@ -54,20 +54,21 @@ Autoloads: `Config`, `GameState`, `Clock`, `SaveGame`, `Activities` (the general
 ## Game rules (confirmed)
 
 **Measures**
-- Health: 1 to 5, **calculated from the starting measures** (3 on Normal), not fixed. Formula numbers **not defined yet**: until a milestone asks for the new system, keep the placeholder weighted average (weights in config). Health **always equals the health formula**, so it rises and falls with the measures at every moment. The **health level** is health rounded to a whole number (1 to 5).
+- Health: 1 to 5, **calculated from the starting measures** (3 on Normal), not fixed. Health is the **weighted power mean** of the three measures (section `health_formula` in `data/config.json`; p 0.5 and equal weights, placeholders; see "Health calculation (working plan)"). For now health **always equals this formula**, so it rises and falls with the measures at every moment; Milestone 3 Task 5 makes it move toward it once per avatar day. The **health level** is health rounded to a whole number (1 to 5).
 - Physical: 0 to 1, 0.50 on Normal (calories and muscle strength; weight/height ratio may come later). Its values are kept separately in `GameState`: **muscle** (0 to 1, raised by exercise, mostly muscle strength) and **calories spent** (total kcal spent by exercise, never reset). **Endurance** is planned as the value that cardio trains, but it does not exist in the game yet.
 - Mental: 0 to 1, 0.50 on Normal.
 - Sleep: 0 to 1, 0.50 on Normal. It affects the other measures the most.
-- The starting measures depend on the difficulty (below). The code from Milestone 1 still uses the old start values (physical 0.5, mental 0.5, sleep 1), which give health about 3.9 with the placeholder formula; change them only when a milestone says so.
+- The starting measures and muscle come from the chosen difficulty (section `difficulties` in `data/config.json`). Before the player chooses, the Normal values are used.
 - XP: unlimited. Health loss loses XP, health gain gains XP, and staying at high health for longer gives more. The XP bar shows the level (empty = start of a level, full = next level, then empty again). XP values per action are **not defined** (placeholders). How it works now (all numbers are placeholders in `data/config.json`, section `xp`):
   - Every health change gives or takes XP: change in health × `per_health_point`.
   - Each avatar hour at a high health level (`high_health_min` or more) gives `gain_per_avatar_hour` × a multiplier that grows with the hours spent at high health without a break (`high_health_bonus_per_hour`, up to `high_health_max_multiplier`). Dropping below the high level resets the streak.
   - Each avatar hour at a low health level (`low_health_max` or less) loses `loss_per_avatar_hour`.
   - XP never goes below 0. The level is XP ÷ `per_level` (rounded down), so losing XP can lower the level. Reaching a new level shows "Level up!" in the speech bubble for a few seconds.
 - Sport and sleep drive progression. Food is built after them.
-- **Player choices:** age group (child or teenager), sex (male or female) and difficulty. The age sets the recommended sleep range (child 9 to 12 h, teenager 8 to 10 h; placeholder) and the sex sets the WHO BMI-for-age tables.
+- **Player choices:** age group (child or teenager), sex (male or female) and difficulty. The age sets the recommended sleep range (child 9 to 12 h, teenager 8 to 10 h; placeholder) and the sex sets the WHO BMI-for-age tables. The player chooses them, with the avatar's name, on the **avatar creation screen**, which opens when there is no save; they are saved in `GameState`. Nothing is saved before Start is pressed.
+- **Old saves do not load.** A save without the creation choices (from Milestones 1 and 2) is ignored: the creation screen opens and the player starts a new avatar. The old save is replaced when the new avatar is saved.
 - **Difficulty and starting values (placeholders):** Easy about 4 (0.75, 0.75, 0.75); Normal 3 (0.50, 0.50, 0.50); Hard about 2 (0.15, 0.30, 0.30), with obesity but cheap habit changes; Very hard about 1.3 (0.05, 0.05, 0.10), shown as level 1, with severe obesity and very bad habits, where changing habits quickly costs mental health. Starting health comes from these measures.
-- **Planned health calculation:** the full working plan is in the section "Health calculation (working plan)" below. The structure is decided, **all numbers are placeholders**. Do not build it until a milestone asks for it.
+- **Planned health calculation:** the full working plan is in the section "Health calculation (working plan)" below. The structure is decided, **all numbers are placeholders**. Milestone 3 builds it step by step.
 - **No fatigue system.** Exercise only spends calories and builds muscle strength: more exercise means more calories spent and more muscle. "Tired" means sleepy and has nothing to do with exercise.
 
 **Time**
@@ -92,14 +93,15 @@ Autoloads: `Config`, `GameState`, `Clock`, `SaveGame`, `Activities` (the general
 
 ## Health calculation (working plan)
 
-Source: "Architecture Decisions: Health System" (see Documents). The structure is decided; every number below is a **placeholder** that goes in `data/config.json`, marked as a placeholder. Do not build this until a milestone asks for it. Until then keep the simple weighted average of the three measures.
+Source: "Architecture Decisions: Health System" (see Documents). The structure is decided; every number below is a **placeholder** that goes in `data/config.json`, marked as a placeholder. Milestone 3 builds it step by step; what is already built is said below.
 
 **Idea.** Health (1 to 5) is not set by hand. It comes from three measures (Physical, Mental, Sleep, each 0 to 1), which come from habits compared with scientific recommendations.
 
 **Player choices and recommendations**
 - Age group: child (reference age 10) or teenager (reference age 14). Sex: male or female (changes the WHO BMI-for-age tables and, later, energy use).
 - Recommended sleep: child (6 to 12 years) 9 to 12 h per 24 h; teenager (13 to 18 years) 8 to 10 h. Recommended activity for both: at least 60 min/day of moderate-to-vigorous activity.
-- Difficulty and starting measures: see "Difficulty and starting values" above. Starting health is **calculated** from those measures with the formula below, never set by hand. The "Hard" difficulty has low cost of changing habits; "Very hard" has high cost.
+- Difficulty and starting measures: see "Difficulty and starting values" above. Starting health is **calculated** from those measures with the formula below, never set by hand. The "Hard" difficulty has low cost of changing habits; "Very hard" has high cost (`habit_change_cost`: 1 normal, 0.5 Hard, 2 Very hard; placeholders).
+- **Starting body states** (in `difficulties`, placeholders) are chosen so that on day 1 they give the starting measures, and health does not jump after the first sleep: (fitness + muscle + weight score) ÷ 3 = physical, with fitness = muscle; mood = mental; sleep debt = 0. The weight score is 1 for z between −1 and +1 and falls to 0 at ±3 along a curve (section `physical_measure`): t² where t goes in a straight line from 1 at ±1 to 0 at ±3, so obesity (z = +2) already gives 0.25. The curve power is a placeholder; with a straight line the starting fitness of Very hard would be higher than Hard. The usual level of each habit is kept as a habit score (0 to 1): sleep = starting sleep, activity = fitness, strength = muscle, screens = starting mental.
 
 **Body speed.** Slow body changes run faster than real life with a multiplier **k** (placeholder 4, test between 3 and 4, kept in config, stated openly in the presentation). k applies to body fat, fitness, muscle and the usual level of each habit. k does **not** apply to the clock, each night's sleep or the daily habit scores. One avatar day is about 2.5 real hours, so with k = 4 one avatar day counts as 4 days for the body.
 
@@ -132,6 +134,7 @@ Source: "Architecture Decisions: Health System" (see Documents). The structure i
 - Example (physical 0.9, mental 0.6, sleep 0.1): ordinary average gives health 3.1, p = 0.5 gives 2.9, geometric mean gives 2.5.
 - p and the weights are **calibrated** with test scenarios taken from the recommendations, not invented. Example scenario: "sleeping 5 hours every day can never give health above 3, even with lots of exercise". Write these scenarios as tests when the system is built.
 - Sleep is not counted twice: it already lowers mental and physical health through steps 3 and 4, so the weights stay almost equal.
+- **Built so far:** the health formula (section `health_formula`) and the starting values per difficulty (section `difficulties`).
 - Normal start check: measures 0.5 · 0.5 · 0.5 give health 3. The old start values (physical 0.5, mental 0.5, sleep 1) would give 3.6, which is why Normal now starts with sleep 0.5.
 
 **Food and energy.** Until the food system is built there is **no automatic eating**: body fat and BMI stay at the difficulty's starting value. Exercise only records calories spent and muscle. Energy balance (energy eaten minus energy used, rule of thumb about 7700 kcal per kg, a simplification) only enters the calculation once food exists.
