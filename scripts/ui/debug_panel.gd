@@ -38,7 +38,9 @@ func _refresh() -> void:
 				Habits.scores["screens"], Habits.scores.get("enjoyment", 0.0)])
 	lines.append("Body states")
 	lines.append("  fitness %.3f  muscle %.3f" % [gs.fitness, gs.muscle])
-	lines.append("  sleep debt %.2f h  mood %.3f" % [gs.sleep_debt, gs.mood])
+	lines.append("  sleep debt %.2f h  mood %.1f / %d" % [gs.sleep_debt, gs.mood, Config.get_int("health.mood_max")])
+	lines.append("  habit cost %.2f mood points %s" % [gs.habit_cost_total,
+			", ".join(gs.habit_costs.keys().map(func(h): return "%s %.2f" % [h, gs.habit_costs[h]]))])
 	lines.append("  weight z %+.1f (score %.2f)" % [gs.weight_z, gs.weight_score(gs.weight_z)])
 	lines.append("  usual H / rooted R:")
 	for habit in gs.usual_habits:

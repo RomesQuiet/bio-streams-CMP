@@ -44,7 +44,7 @@
 	},
 
 	"health": {
-		"_comment": "Every value of the health calculation (CLAUDE.md, Health calculation; MILESTONE_4.md has the key names). Each value has a status (placeholder, team decision or from source) and an owner (Pessoa 1 to 4, as in the research plan). Changing a value here changes the game without any code change; in debug builds press F6 to reload this file while the game runs. Keys marked \"Milestone 3 rule\" are still used by the old formulas and are removed when Milestone 4 replaces those formulas.",
+		"_comment": "Every value of the health calculation (CLAUDE.md, Health calculation; MILESTONE_4.md has the key names). Each value has a status (placeholder, team decision or from source) and an owner (Pessoa 1 to 4, as in the research plan). Changing a value here changes the game without any code change; in debug builds press F6 to reload this file while the game runs. ",
 		"k": {"value": 5, "status": "team decision", "owner": "team", "comment": "Body speed multiplier: how much faster health and the body change than the real-life average. Same k for habits."},
 		"death_enabled": {"value": false, "status": "team decision", "owner": "team", "comment": "There is no death, only failure."},
 		"habit_days_to_95": {"value": 66, "status": "team decision", "owner": "team", "comment": "Real days for a habit to reach 95% of its usual level (Lally and colleagues 2010, median)."},
@@ -84,6 +84,7 @@
 		"screens_zero_at_h": {"value": 6, "status": "placeholder", "owner": "Pessoa 3", "comment": "Screen score falls in a straight line to 0 here. A game choice."},
 		"enjoyment_full_at_h": {"value": 1, "status": "placeholder", "owner": "Pessoa 3", "comment": "Enjoyment score e = entertainment hours / this, at most 1."},
 		"mood_speed": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 3", "comment": "Mood moves this share of the way to its target per avatar day. Not multiplied by k."},
+		"mood_max": {"value": 100, "status": "team decision", "owner": "team", "comment": "Mood is kept on a 0 to mood_max scale. Mental = mood / mood_max. Mood target = mood_max x average of the sleep, activity, screens and enjoyment scores."},
 		"fitness_k_down": {"value": 0.0056, "status": "placeholder", "owner": "Pessoa 1", "comment": "Per real day. 21% VO2max loss after 6 weeks without training (young footballers)."},
 		"fitness_k_up": {"value": 0.0056, "status": "placeholder", "owner": "Pessoa 1", "comment": "Per real day. Same as k_down until a source is found."},
 		"muscle_k_up": {"value": 0.0056, "status": "placeholder", "owner": "Pessoa 1", "comment": "Per real day. Same as fitness until a source is found."},
@@ -118,20 +119,12 @@
 			"entertainment_types": ["entertainment"],
 			"screen_types": {"value": ["entertainment"], "status": "placeholder", "owner": "Pessoa 3", "comment": "All entertainment counts as recreational screen time until sedentary and active entertainment exist."}
 		},
-		"milestone3_rules": {
-			"_comment": "Milestone 3 rules still in use. Milestone 4 Task 5 replaces them with habit_cost and the enjoyment score, and then they are deleted.",
-			"mood_weight_sleep": {"value": 1.0, "status": "placeholder", "owner": "Pessoa 3"},
-			"mood_weight_activity": {"value": 1.0, "status": "placeholder", "owner": "Pessoa 3"},
-			"mood_weight_screens": {"value": 1.0, "status": "placeholder", "owner": "Pessoa 3"},
-			"habit_change_free_step": {"value": 0.1, "status": "placeholder", "owner": "Pessoa 4"},
-			"habit_change_penalty": {"value": 0.1, "status": "placeholder", "owner": "Pessoa 4"}
-		},
 		"difficulties": {
-			"_comment": "Starting values per difficulty. physical, mental and sleep are the starting measures; starting health is calculated from them, never typed in. weight_z is the WHO BMI-for-age z-score and stays fixed until food exists. The body states are chosen so that on day 1 they give the starting measures: (fitness + muscle + weight score) / 3 = physical, mood = mental, sleep_debt = 0. start_R is the starting rootedness of the habits (low on Hard = cheap habit changes, high on Very hard). start_H is the usual level H of each habit at the start, as an intensity (health.habit_intensity), derived from the difficulty's starting habits for a child (the default age group): sleep from the starting sleep score (4 h + score x 5 h, then / 12), activity = starting fitness, strength = starting muscle x 3 days / 7, screens from the starting mental score (6 h - 4 h x score, then / 6). All placeholders. habit_change_cost is a Milestone 3 rule, replaced in Milestone 4 Task 5.",
-			"easy": {"physical": 0.75, "mental": 0.75, "sleep": 0.75, "weight_z": 0.0, "fitness": 0.625, "muscle": 0.625, "mood": 0.75, "sleep_debt": 0.0, "start_H": {"sleep": 0.646, "activity": 0.625, "strength": 0.268, "screens": 0.5}, "start_R": 0.5, "habit_change_cost": 1.0, "status": "placeholder", "owner": "Pessoa 4", "comment": "Health about 4."},
-			"normal": {"physical": 0.5, "mental": 0.5, "sleep": 0.5, "weight_z": 1.0, "fitness": 0.25, "muscle": 0.25, "mood": 0.5, "sleep_debt": 0.0, "start_H": {"sleep": 0.542, "activity": 0.25, "strength": 0.107, "screens": 0.667}, "start_R": 0.5, "habit_change_cost": 1.0, "status": "placeholder", "owner": "Pessoa 4", "comment": "Health 3."},
-			"hard": {"physical": 0.15, "mental": 0.3, "sleep": 0.3, "weight_z": 2.2, "fitness": 0.145, "muscle": 0.145, "mood": 0.3, "sleep_debt": 0.0, "start_H": {"sleep": 0.458, "activity": 0.145, "strength": 0.062, "screens": 0.8}, "start_R": 0.2, "habit_change_cost": 0.5, "status": "placeholder", "owner": "Pessoa 4", "comment": "Health about 2. Habit changes are cheap."},
-			"very_hard": {"physical": 0.05, "mental": 0.05, "sleep": 0.1, "weight_z": 3.2, "fitness": 0.075, "muscle": 0.075, "mood": 0.05, "sleep_debt": 0.0, "start_H": {"sleep": 0.375, "activity": 0.075, "strength": 0.032, "screens": 0.967}, "start_R": 0.8, "habit_change_cost": 2.0, "status": "placeholder", "owner": "Pessoa 4", "comment": "Health about 1.3, shown as level 1. Changing habits fast is expensive."}
+			"_comment": "Starting values per difficulty. physical, mental and sleep are the starting measures; starting health is calculated from them, never typed in. weight_z is the WHO BMI-for-age z-score and stays fixed until food exists. The body states are chosen so that on day 1 they give the starting measures: (fitness + muscle + weight score) / 3 = physical, mood = mental x mood_max (0 to 100), sleep_debt = 0. start_R is the starting rootedness of the habits (low on Hard = cheap habit changes, high on Very hard). start_H is the usual level H of each habit at the start, as an intensity (health.habit_intensity), derived from the difficulty's starting habits for a child (the default age group): sleep from the starting sleep score (4 h + score x 5 h, then / 12), activity = starting fitness, strength = starting muscle x 3 days / 7, screens from the starting mental score (6 h - 4 h x score, then / 6). All placeholders.",
+			"easy": {"physical": 0.75, "mental": 0.75, "sleep": 0.75, "weight_z": 0.0, "fitness": 0.625, "muscle": 0.625, "mood": 75, "sleep_debt": 0.0, "start_H": {"sleep": 0.646, "activity": 0.625, "strength": 0.268, "screens": 0.5}, "start_R": 0.5, "status": "placeholder", "owner": "Pessoa 4", "comment": "Health about 4."},
+			"normal": {"physical": 0.5, "mental": 0.5, "sleep": 0.5, "weight_z": 1.0, "fitness": 0.25, "muscle": 0.25, "mood": 50, "sleep_debt": 0.0, "start_H": {"sleep": 0.542, "activity": 0.25, "strength": 0.107, "screens": 0.667}, "start_R": 0.5, "status": "placeholder", "owner": "Pessoa 4", "comment": "Health 3."},
+			"hard": {"physical": 0.15, "mental": 0.3, "sleep": 0.3, "weight_z": 2.2, "fitness": 0.145, "muscle": 0.145, "mood": 30, "sleep_debt": 0.0, "start_H": {"sleep": 0.458, "activity": 0.145, "strength": 0.062, "screens": 0.8}, "start_R": 0.2, "status": "placeholder", "owner": "Pessoa 4", "comment": "Health about 2. Habit changes are cheap."},
+			"very_hard": {"physical": 0.05, "mental": 0.05, "sleep": 0.1, "weight_z": 3.2, "fitness": 0.075, "muscle": 0.075, "mood": 5, "sleep_debt": 0.0, "start_H": {"sleep": 0.375, "activity": 0.075, "strength": 0.032, "screens": 0.967}, "start_R": 0.8, "status": "placeholder", "owner": "Pessoa 4", "comment": "Health about 1.3, shown as level 1. Changing habits fast is expensive."}
 		}
 	},
 

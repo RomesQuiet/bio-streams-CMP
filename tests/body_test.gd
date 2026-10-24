@@ -33,6 +33,7 @@ func _process(_delta: float) -> bool:
 	_test_mood_and_habits(gs)
 	_test_habit_levels(gs, config)
 	_test_milestone3_save(gs, config)
+	_test_habit_cost(gs, config)
 	_test_in_play(gs, save_game)
 
 	DirAccess.remove_absolute(save_game.save_path)
@@ -139,7 +140,7 @@ func _test_mood_and_habits(gs: Node) -> void:
 	var mood_start: float = gs.mood
 	var usual_start: float = gs.usual_habits["activity"]
 	gs.update_body_states(ACTIVE_DAY, 10.0, ACTIVE_INTENSITY)
-	_check("mood moves toward the day's scores", gs.mood > mood_start and gs.mood < 1.0)
+	_check("mood moves toward the day's scores", gs.mood > mood_start and gs.mood < 100.0)
 	_check("usual activity level moves toward the day's intensity", gs.usual_habits["activity"] > usual_start
 			and gs.usual_habits["activity"] < 1.0)
 	var bad_day := {"sleep": 0.0, "activity": 0.0, "strength": 0.0, "screens": 0.0}
@@ -174,6 +175,55 @@ func _test_habit_levels(gs: Node, config: Node) -> void:
 			config.get_float("health.difficulties.hard.start_H.screens")))
 
 
+## Milestone 4 Task 5: the team model for the cost of changing habits, on Very hard.
+func _test_habit_cost(gs: Node, config: Node) -> void:
+	gs.start_new_avatar("Test", "child", "female", "very_hard")
+	_check("Very hard: R starts at 0.8", is_equal_approx(gs.rootedness["activity"], 0.8))
+	gs.usual_habits["activity"] = 0.0
+	var same: Dictionary = gs.usual_habits.duplicate()
+	var jump: Dictionary = same.duplicate()
+	jump["activity"] = 1.0
+	var costs: Dictionary = gs.habit_change_costs(jump)
+	print("activity 0 -> 1 in one day (R 0.8, D 0.9): cost %.2f mood points" % costs["activity"])
+	_check("changing activity from 0 to 1 in one day costs about 6 points", absf(costs["activity"] - 6.0) < 0.25)
+	_check("habits that did not change cost nothing", is_zero_approx(costs["sleep"]) and is_zero_approx(costs["screens"]))
+	var step: Dictionary = same.duplicate()
+	step["activity"] = 0.2
+	var step_cost: float = gs.habit_change_costs(step)["activity"]
+	print("activity 0 -> 0.2 in one day: cost %.2f mood points" % step_cost)
+	_check("changing by 0.2 per day costs almost nothing (under 0.5 points)", step_cost < 0.5)
+	var small: Dictionary = same.duplicate()
+	small["activity"] = 0.1
+	_check("a change up to T (0.10) costs nothing", is_zero_approx(gs.habit_change_costs(small)["activity"]))
+	var down: Dictionary = same.duplicate()
+	down["screens"] = 0.0
+	_check("cutting a habit costs too (|A - H|)", gs.habit_change_costs(down)["screens"] > 0.0)
+	var all_jump := {"sleep": 1.0, "activity": 1.0, "strength": 1.0, "screens": 0.0}
+	_check("the day's total is at most P_max (10)", is_equal_approx(gs.total_habit_cost(gs.habit_change_costs(all_jump)),
+			config.get_float("health.habit_cost.P_max")))
+	gs.start_new_avatar("Test", "child", "female", "hard")
+	var hard_jump: Dictionary = gs.usual_habits.duplicate()
+	hard_jump["activity"] = 1.0
+	var hard_cost: float = gs.habit_change_costs(hard_jump)["activity"]
+	gs.start_new_avatar("Test", "child", "female", "very_hard")
+	var very_hard_jump: Dictionary = gs.usual_habits.duplicate()
+	very_hard_jump["activity"] = 1.0
+	_check("the same jump costs much less on Hard (R 0.2) than on Very hard (R 0.8)",
+			hard_cost < 0.25 * gs.habit_change_costs(very_hard_jump)["activity"])
+	# The cost comes off mood: mood = mood + mood_speed x (target - mood) - cost.
+	gs.start_new_avatar("Test", "child", "female", "very_hard")
+	var scores := {"sleep": 1.0, "activity": 1.0, "strength": 1.0, "screens": 1.0, "enjoyment": 1.0}
+	var mood_start: float = gs.mood
+	var expected_cost: float = gs.total_habit_cost(gs.habit_change_costs(all_jump))
+	var expected: float = clampf(mood_start + config.get_float("health.mood_speed") * (gs.mood_target(scores) - mood_start)
+			- expected_cost, 0.0, 100.0)
+	gs.update_body_states(scores, 10.5, all_jump)
+	_check("mood = mood + mood_speed x (target - mood) - cost", absf(gs.mood - expected) < TOLERANCE
+			and is_equal_approx(gs.habit_cost_total, expected_cost))
+	_check("mood target = 100 x average of s, a, c and e", is_equal_approx(gs.mood_target(scores), 100.0))
+	_check("mental = mood / 100", is_equal_approx(gs.mental, gs.mood / 100.0))
+
+
 ## A Milestone 3 save has no rootedness, and its usual levels were habit scores:
 ## it loads with the Normal starting H and R.
 func _test_milestone3_save(gs: Node, config: Node) -> void:
@@ -187,6 +237,11 @@ func _test_milestone3_save(gs: Node, config: Node) -> void:
 	_check("and the Normal start_H", is_equal_approx(gs.usual_habits["screens"],
 			config.get_float("health.difficulties.normal.start_H.screens")))
 	_check("the rest of the save still loads", gs.difficulty == "very_hard")
+	old = gs.to_dict()
+	old.erase("rootedness")
+	old["mood"] = 0.3
+	gs.from_dict(old)
+	_check("a Milestone 3 mood (0 to 1) is scaled to 0 to 100", is_equal_approx(gs.mood, 30.0))
 
 
 ## In play: the body states change when a sleep ends, and they are saved and loaded.

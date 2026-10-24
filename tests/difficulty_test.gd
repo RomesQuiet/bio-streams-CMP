@@ -35,8 +35,8 @@ func _process(_delta: float) -> bool:
 		_check("%s: starting health about %.1f" % [id, EXPECTED_HEALTH[id]],
 				absf(gs.health - EXPECTED_HEALTH[id]) <= HEALTH_TOLERANCE)
 		_check("%s: body states give the starting physical measure" % id, absf(body_physical - gs.physical) < TOLERANCE)
-		_check("%s: mood equals the starting mental measure" % id,
-				is_equal_approx(config.get_float(path + ".mood"), gs.mental))
+		_check("%s: mood / mood_max equals the starting mental measure" % id,
+				is_equal_approx(config.get_float(path + ".mood") / config.get_float("health.mood_max"), gs.mental))
 		_check("%s: no sleep debt at the start" % id, is_zero_approx(config.get_float(path + ".sleep_debt")))
 	_check("Very hard is shown as level 1", gs.health_level == 1)
 	var previous_fitness := INF
