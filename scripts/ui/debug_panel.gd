@@ -34,7 +34,8 @@ func _refresh() -> void:
 		lines.append("  none yet (no sleep has ended)")
 	else:
 		lines.append("  sleep %.2f  activity %.2f" % [Habits.scores["sleep"], Habits.scores["activity"]])
-		lines.append("  strength %.2f  screens %.2f" % [Habits.scores["strength"], Habits.scores["screens"]])
+		lines.append("  strength %.2f  screens %.2f  enjoyment %.2f" % [Habits.scores["strength"],
+				Habits.scores["screens"], Habits.scores.get("enjoyment", 0.0)])
 	lines.append("Body states")
 	lines.append("  fitness %.3f  muscle %.3f" % [gs.fitness, gs.muscle])
 	lines.append("  sleep debt %.2f h  mood %.3f" % [gs.sleep_debt, gs.mood])

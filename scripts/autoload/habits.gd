@@ -24,7 +24,8 @@ var current_day := 0
 var entries: Array[Dictionary] = []
 ## Totals of the closed scoring days (see day_totals()), oldest first. The last log_days are kept.
 var days: Array[Dictionary] = []
-## Scores from the last closed scoring day: sleep, activity, strength, screens. Empty before the first sleep.
+## Scores from the last closed scoring day: sleep, activity, strength, screens, enjoyment.
+## Empty before the first sleep.
 var scores: Dictionary = {}
 ## Hours of the sleep that closed the last scoring day.
 var last_sleep_hours := 0.0
@@ -139,15 +140,31 @@ func day_totals(day: int) -> Dictionary:
 	return totals
 
 
-## The four habit scores of a scoring day's totals: {"sleep", "activity", "strength",
-## "screens"}, each 0 to 1.
+## The habit scores of a scoring day's totals (Milestone 4 Task 3), each 0 to 1:
+## sleep s, activity a, strength w, screens c and enjoyment e.
 func calculate_scores(totals: Dictionary, age_group: String) -> Dictionary:
 	return {
 		"sleep": sleep_score(totals["sleep_hours"], age_group),
-		"activity": clampf(totals["activity_minutes"] / Config.get_float("health.activity_target_min"), 0.0, 1.0),
-		"strength": clampf(totals["strength_days"] / Config.get_float("health.strength_days_target"), 0.0, 1.0),
+		"activity": activity_score(totals["activity_minutes"]),
+		"strength": strength_score(totals["strength_days"]),
 		"screens": screen_score(totals["screen_hours"]),
+		"enjoyment": enjoyment_score(totals["entertainment_hours"]),
 	}
+
+
+## Moderate-to-vigorous minutes ÷ activity_target_min, at most 1.
+func activity_score(minutes: float) -> float:
+	return clampf(minutes / Config.get_float("health.activity_target_min"), 0.0, 1.0)
+
+
+## Strength days in the last 7 scoring days ÷ strength_days_target, at most 1.
+func strength_score(strength_days: int) -> float:
+	return clampf(strength_days / Config.get_float("health.strength_days_target"), 0.0, 1.0)
+
+
+## Entertainment hours ÷ enjoyment_full_at_h, at most 1.
+func enjoyment_score(hours: float) -> float:
+	return clampf(hours / Config.get_float("health.enjoyment_full_at_h"), 0.0, 1.0)
 
 
 ## Closes the current scoring day after a sleep of this many hours (0 for the 0-hour
@@ -170,7 +187,7 @@ func end_scoring_day(sleep_hours: float, start: Dictionary = {}) -> void:
 
 
 ## 1 inside the recommended range for the age group; falls in a straight line to 0
-## at sleep_zero_at_hours or less; falls slowly above the range.
+## at sleep_zero_at or less; above the range it falls by sleep_over_penalty_per_h per hour.
 func sleep_score(hours: float, age_group: String) -> float:
 	var sleep_range := GameState.sleep_range(age_group)
 	var low := sleep_range.x
@@ -183,7 +200,7 @@ func sleep_score(hours: float, age_group: String) -> float:
 	return 1.0
 
 
-## 1 up to screens_full_up_to_hours; falls in a straight line to 0 at screens_zero_at_hours.
+## 1 up to screens_full_until_h; falls in a straight line to 0 at screens_zero_at_h.
 func screen_score(hours: float) -> float:
 	var full := Config.get_float("health.screens_full_until_h")
 	var zero := Config.get_float("health.screens_zero_at_h")

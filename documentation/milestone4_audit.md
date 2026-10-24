@@ -2,7 +2,7 @@
 
 This table compares what the code did at the end of Milestone 3 with `MILESTONE_4.md` (approved by the user). Decisions: points 1 to 3 below approved as proposed; the weight score keeps the t² curve; Milestone 3 saves load, Milestone 1 and 2 saves stay ignored.
 
-**Progress:** Task 1 done (health block, activity fields, F6 reload, no health number in scripts). Task 2 done (scoring days wake to wake, log with intensity and calories, sleep logged, totals per scoring day).
+**Progress:** Task 1 done (health block, activity fields, F6 reload, no health number in scripts). Task 2 done (scoring days wake to wake, log with intensity and calories, sleep logged, totals per scoring day). Task 3 done (enjoyment score; every score tested at its limits).
 
 **Legend:** ✅ exists and matches · 🟡 exists but differs · ❌ missing
 

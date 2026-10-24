@@ -24,6 +24,7 @@ func _process(_delta: float) -> bool:
 	clock.reset()
 
 	_test_known_log(h)
+	_test_score_limits(h)
 	_test_sleep_score(h)
 	_test_screen_score(h)
 	_test_old_entries_dropped(h)
@@ -81,6 +82,43 @@ func _totals_are(totals: Dictionary, sleep_hours: float, activity_minutes: float
 	if not ok:
 		print("  totals: %s" % totals)
 	return ok
+
+
+## Milestone 4 Task 3: each score at its limits, with the config values.
+func _test_score_limits(h: Node) -> void:
+	# Sleep, teenager (range 8 to 10 h): 0 at 4 h, 1 at 8 h and 9 h, 0.8 at 12 h (2 h above x 0.1).
+	_check("teenager sleep 4 h gives 0", is_zero_approx(h.sleep_score(4.0, "teenager")))
+	_check("teenager sleep 8 h gives 1", is_equal_approx(h.sleep_score(8.0, "teenager"), 1.0))
+	_check("teenager sleep 9 h gives 1", is_equal_approx(h.sleep_score(9.0, "teenager"), 1.0))
+	_check("teenager sleep 12 h gives 0.8", absf(h.sleep_score(12.0, "teenager") - 0.8) < TOLERANCE)
+	_check("teenager sleep 10 h (upper limit) gives 1", is_equal_approx(h.sleep_score(10.0, "teenager"), 1.0))
+	_check("child sleep 12 h (upper limit) gives 1, 13 h gives 0.9", is_equal_approx(h.sleep_score(12.0, "child"), 1.0)
+			and absf(h.sleep_score(13.0, "child") - 0.9) < TOLERANCE)
+	# Activity: minutes / 60, at most 1.
+	_check("activity 0 min gives 0", is_zero_approx(h.activity_score(0.0)))
+	_check("activity 30 min gives 0.5", absf(h.activity_score(30.0) - 0.5) < TOLERANCE)
+	_check("activity 60 min gives 1", is_equal_approx(h.activity_score(60.0), 1.0))
+	_check("activity 120 min still gives 1", is_equal_approx(h.activity_score(120.0), 1.0))
+	# Strength: days in the last 7 / 3, at most 1.
+	_check("strength 0 days gives 0", is_zero_approx(h.strength_score(0)))
+	_check("strength 1 day gives 1/3", absf(h.strength_score(1) - 1.0 / 3.0) < TOLERANCE)
+	_check("strength 3 days gives 1", is_equal_approx(h.strength_score(3), 1.0))
+	_check("strength 7 days still gives 1", is_equal_approx(h.strength_score(7), 1.0))
+	# Screens: 1 up to 2 h, linear to 0 at 6 h.
+	_check("screens 0 h gives 1", is_equal_approx(h.screen_score(0.0), 1.0))
+	_check("screens 2 h gives 1", is_equal_approx(h.screen_score(2.0), 1.0))
+	_check("screens 6 h gives 0, 8 h gives 0", is_zero_approx(h.screen_score(6.0)) and is_zero_approx(h.screen_score(8.0)))
+	# Enjoyment: entertainment hours / 1, at most 1.
+	_check("enjoyment 0 h gives 0", is_zero_approx(h.enjoyment_score(0.0)))
+	_check("enjoyment 0.5 h gives 0.5", absf(h.enjoyment_score(0.5) - 0.5) < TOLERANCE)
+	_check("enjoyment 1 h gives 1", is_equal_approx(h.enjoyment_score(1.0), 1.0))
+	_check("enjoyment 3 h still gives 1", is_equal_approx(h.enjoyment_score(3.0), 1.0))
+	# All five scores come out of a closed scoring day.
+	h.reset()
+	h.add_entry("entertainment", 0.5)
+	h.end_scoring_day(9.0)
+	_check("a scoring day gives five scores, with enjoyment 0.5 for 30 min of entertainment",
+			h.scores.size() == 5 and absf(h.scores["enjoyment"] - 0.5) < TOLERANCE)
 
 
 func _test_sleep_score(h: Node) -> void:
