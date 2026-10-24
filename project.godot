@@ -22,6 +22,7 @@ GameState="*res://scripts/autoload/game_state.gd"
 Clock="*res://scripts/autoload/clock.gd"
 Activities="*res://scripts/autoload/activities.gd"
 Habits="*res://scripts/autoload/habits.gd"
+HealthLog="*res://scripts/autoload/health_log.gd"
 SaveGame="*res://scripts/autoload/save_game.gd"
 
 [display]
