@@ -47,7 +47,7 @@
 		"_comment": "Every value of the health calculation (CLAUDE.md, Health calculation; MILESTONE_4.md has the key names). Each value has a status (placeholder, team decision or from source) and an owner (Pessoa 1 to 4, as in the research plan). Changing a value here changes the game without any code change; in debug builds press F6 to reload this file while the game runs. ",
 		"k": {"value": 5, "status": "team decision", "owner": "team", "comment": "Body speed multiplier: how much faster health and the body change than the real-life average. Same k for habits."},
 		"death_enabled": {"value": false, "status": "team decision", "owner": "team", "comment": "There is no death, only failure."},
-		"failure_at_health": {"value": 1.05, "status": "placeholder", "owner": "Pessoa 4", "comment": "Failure happens when the displayed health is at or below this (minimum health is 1; the bar only comes close to it). For now only a placeholder message is shown; the failure effect is not decided."},
+		"failure_at_health": {"value": 1.2, "status": "placeholder", "owner": "Pessoa 4", "comment": "Failure happens when the displayed health is at or below this (minimum health is 1; the bar only comes close to it). Set to 1.2 by the user after the Task 7 simulation (1.05 before), so a player who ignores everything reaches it with p = 0.2. For now only a placeholder message is shown; the failure effect is not decided."},
 		"habit_days_to_95": {"value": 66, "status": "team decision", "owner": "team", "comment": "Real days for a habit to reach 95% of its usual level (Lally and colleagues 2010, median)."},
 		"habit_share_reached": {"value": 0.95, "status": "team decision", "owner": "team", "comment": "The share of a new habit that is reached after habit_days_to_95 real days."},
 		"habit_intensity": {
@@ -103,7 +103,7 @@
 		},
 		"combine": {
 			"_comment": "C = (w_P*P^p + w_M*M^p + w_S*S^p)^(1/p), weights divided by their sum. Target health = health_min + (health_max - health_min) x C = 1 + 4C.",
-			"p": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 2", "comment": "Calibration. Between the ordinary (1) and the geometric (0) mean."},
+			"p": {"value": 0.2, "status": "placeholder", "owner": "Pessoa 2", "comment": "Calibration. Between the ordinary (1) and the geometric (0) mean. Set to 0.2 by the user after the Milestone 4 Task 7 simulation (0.5 before): the middle between 0.1 (ignoring everything reaches the minimum, but a 5 h sleeper falls almost to it) and 0.5."},
 			"weights": {
 				"physical": {"value": 0.3333333333333333, "status": "placeholder", "owner": "Pessoa 2", "comment": "Equal."},
 				"mental": {"value": 0.3333333333333333, "status": "placeholder", "owner": "Pessoa 2"},

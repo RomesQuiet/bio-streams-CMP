@@ -47,9 +47,14 @@ func _process(_delta: float) -> bool:
 
 	_check("child sleep range 9 to 12 h", gs.sleep_range("child") == Vector2(9.0, 12.0))
 	_check("teenager sleep range 8 to 10 h", gs.sleep_range("teenager") == Vector2(8.0, 10.0))
-	# CLAUDE.md rounds this example to 2.9; the exact value is 2.85.
-	_check("example from CLAUDE.md: 0.9, 0.6, 0.1 gives health 2.85",
+	# The CLAUDE.md example is worked out with p = 0.5 (it rounds 2.85 to 2.9), so p is set
+	# to 0.5 just for this check.
+	var p_entry: Dictionary = config._data["health"]["combine"]["p"]
+	var p_config: float = p_entry["value"]
+	p_entry["value"] = 0.5
+	_check("example from CLAUDE.md with p = 0.5: 0.9, 0.6, 0.1 gives health 2.85",
 			absf(gs.health_from_measures(0.9, 0.6, 0.1) - 2.85) < 0.01)
+	p_entry["value"] = p_config
 
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
 	quit(1 if _failures > 0 else 0)

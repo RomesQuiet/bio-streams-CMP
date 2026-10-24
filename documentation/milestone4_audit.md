@@ -61,3 +61,41 @@ No other health number is in a script. The clamps to 0 and 1 and the loop over t
 4. **Very hard start_R 0.8.** With the team model, a Very hard avatar that changes everything on day 1 loses up to 10 mood points. Its mood starts at 5 (0.05 × 100), so it hits 0 at once. That is what the team wants ("high cost"), but I'm flagging it.
 5. **Fitness speed.** With 0.0056 per real day and k = 5, one avatar day of full activity closes only about 2.8% of the gap to 1. Health will rise much more slowly than in Milestone 3. The calibration scenarios in Task 7 will show whether "perfect player reaches 5" still happens.
 6. **Total cost limit.** M4 says the day's total cost is the sum over the habits, at most P_max. M4 itself marks this as a placeholder rule, so I'll flag it again when I build it.
+
+## Task 7 results (simulation tests, p = 0.5 from config)
+
+| Scenario | Easy | Normal | Hard | Very hard |
+|---|---|---|---|---|
+| Athlete who sleeps 5 h: never above 3 | PASS | PASS | PASS | PASS |
+| Sedentary who sleeps well: below perfect, never at the minimum | PASS | PASS | PASS | PASS |
+| Perfect player: reaches 5, but slowly (not before day 10) | FAIL (day 5) | PASS (day 17) | FAIL (never, 4.43) | FAIL (never, 4.33) |
+| Gradual vs sudden: gradual gives better mental health | FAIL | FAIL | FAIL | FAIL |
+| Ignores everything: reaches the minimum, but not at once | FAIL (1.58) | FAIL (1.54) | FAIL (1.26) | FAIL (1.16) |
+| Very hard: recovery is possible | — | — | — | PASS (health 3 on day 7) |
+
+Proposals for the team (nothing was changed): see the reply in the session and CLAUDE.md, "Simulation tests".
+
+### After trying p = 0.1
+
+| Scenario | Easy | Normal | Hard | Very hard |
+|---|---|---|---|---|
+| Athlete who sleeps 5 h: never above 3 | PASS (falls to 1.06) | PASS (1.05) | PASS (1.04) | PASS (1.03) |
+| Sedentary who sleeps well | PASS | PASS | PASS | PASS |
+| Perfect player: reaches 5, but slowly | FAIL (day 6) | PASS (day 18) | FAIL (never, 4.39) | FAIL (never, 4.28) |
+| Gradual vs sudden | FAIL | FAIL | FAIL | FAIL |
+| Ignores everything: minimum, not at once | PASS (day 11) | PASS (day 10) | PASS (day 8) | PASS (day 4) |
+| Very hard: recovery is possible | — | — | — | PASS (day 9) |
+
+### Values chosen by the user: p = 0.2, failure_at_health 1.2
+
+| Scenario | Easy | Normal | Hard | Very hard |
+|---|---|---|---|---|
+| Athlete who sleeps 5 h: never above 3 | PASS | PASS | PASS | PASS |
+| Sedentary who sleeps well | PASS | PASS | PASS | PASS |
+| Perfect player: reaches 5, but slowly (criterion kept) | FAIL (day 6) | PASS (day 18) | FAIL (never) | FAIL (never) |
+| Gradual vs sudden (model question) | FAIL | FAIL | FAIL | FAIL |
+| Ignores everything: minimum (1.2), not at once | PASS (day 24) | PASS (day 11) | PASS (day 5) | FAIL (day 1; starts at 1.25) |
+| Very hard: recovery is possible | — | — | — | PASS (day 8) |
+
+Larger habit costs tried for gradual vs sudden (average mental, days 1 to 15, sudden / gradual): alpha 10 / P_max 10 gradual wins 0 of 4; 50 / 50: 0; 100 / 100: 0; 200 / 100: 2 (Easy tie, Normal tie); 300 / 100: 1; 500 / 100: 1. Not changed.
+

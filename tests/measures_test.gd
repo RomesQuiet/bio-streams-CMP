@@ -78,9 +78,9 @@ func _test_days(gs: Node, clock: Node, activities: Node, main: Node) -> void:
 func _test_failure(gs: Node, main: Node) -> void:
 	var config: Node = root.get_node("Config")
 	_check("there is no death", config.get_value("health.death_enabled") == false)
-	gs.health = 1.2
+	gs.health = config.get_float("health.failure_at_health") + 0.1
 	gs.changed.emit()
-	_check("health 1.2 is not failure", not gs.is_at_failure() and main.speech_label.text != main.FAILURE_TEXT)
+	_check("health just above the failure line is not failure", not gs.is_at_failure() and main.speech_label.text != main.FAILURE_TEXT)
 	gs.health = config.get_float("measures.health_min")
 	gs.changed.emit()
 	_check("health at the minimum is failure", gs.is_at_failure())

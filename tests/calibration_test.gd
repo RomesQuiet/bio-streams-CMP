@@ -1,16 +1,39 @@
 extends SceneTree
-## Calibration scenarios (Milestone 3, Task 6). Run from the project folder:
+## Simulation tests with the team's scenarios (Milestone 4, Task 7). Run from the project folder:
 ##   Godot --headless --path . -s res://tests/calibration_test.gd
-## Simulates many avatar days with fixed habits and prints health per day. The habits
-## go through the real action log (Habits) and the real daily update (GameState).
-## If a scenario fails, p and the weights are NOT changed here: the result is reported
-## so the values can be decided. Nothing is saved.
+## Simulates many avatar days with fixed habits, on each difficulty, through the real
+## action log (Habits) and the real daily update (GameState), and prints health per day.
+## The pass criteria come from the research plan (Phase 1). The run is repeated with
+## p = 0.2, 0.5 and 1 so the team can compare; only the run with the p in config decides
+## the result. If a scenario fails, NO value is changed here: the numbers are reported so
+## the team can decide. Nothing is saved.
 
 ## How many avatar days each scenario runs.
-const DAYS := 28
+const DAYS := 60
+## Values of p printed for comparison (MILESTONE_4.md Task 7).
+const COMPARE_P := [0.2, 0.5, 1.0]
+const DIFFICULTIES := ["easy", "normal", "hard", "very_hard"]
+## The scenarios use a child (reference age 10).
+const AGE_GROUP := "child"
 ## Days of the week with muscle strength in the recommended plan (3 of 7).
 const STRENGTH_WEEKDAYS := [0, 2, 4]
-## The four habit types, as in data/config.json (habits).
+## Days printed in each row.
+const SHOWN_DAYS := [0, 1, 3, 5, 10, 20, 30, 45, 60]
+## How the criteria are read (my reading of the research plan; the team can change them):
+## "reaches 5" = health level 5 (health 4.5 or more, shown rounded as 5);
+## "not in the first avatar days" = not before day SLOW_DAYS;
+## "the minimum" = the failure threshold (health.failure_at_health);
+## "not at once" = not before day NOT_AT_ONCE_DAYS;
+## "recovery is possible" = Very hard reaches health RECOVERED_HEALTH;
+## "better mental health" = higher average mental over the first COMPARE_MENTAL_DAYS days;
+## the gradual change takes GRADUAL_DAYS days.
+const LEVEL_5_HEALTH := 4.5
+const SLOW_DAYS := 10
+const NOT_AT_ONCE_DAYS := 3
+const RECOVERED_HEALTH := 3.0
+const COMPARE_MENTAL_DAYS := 15
+const GRADUAL_DAYS := 10.0
+## The habit types, as in data/activities.json.
 const CARDIO := "cardio"
 const STRENGTH := "strength"
 const SCREENS := "entertainment"
@@ -18,6 +41,7 @@ const SCREENS := "entertainment"
 var _failures := 0
 var _gs: Node
 var _habits: Node
+var _config: Node
 
 
 func _process(_delta: float) -> bool:
@@ -27,117 +51,171 @@ func _process(_delta: float) -> bool:
 	save_game.auto_save_enabled = false
 	_gs = root.get_node("GameState")
 	_habits = root.get_node("Habits")
+	_config = root.get_node("Config")
 	root.get_node("Activities").reset()
 	root.get_node("Clock").reset()
 
-	for age_group in ["child", "teenager"]:
-		_scenario_recommended(age_group)
-		_scenario_short_sleep(age_group)
-		_scenario_no_activity(age_group)
-	_scenario_habit_change()
+	var p_entry: Dictionary = _config._data["health"]["combine"]["p"]
+	var p_config: float = p_entry["value"]
+	# First the p in config, which decides PASS/FAIL; then the comparison values.
+	var runs := [p_config]
+	for p in COMPARE_P:
+		if not is_equal_approx(p, p_config):
+			runs.append(p)
+	for i in runs.size():
+		p_entry["value"] = runs[i]
+		print("\n################ p = %.2f %s ################" % [runs[i], "(the value in config: decides PASS/FAIL)" if i == 0 else "(comparison only)"])
+		_run_all(i == 0)
+	p_entry["value"] = p_config
 
-	print("%s (%d failed)" % ["ALL SCENARIOS PASSED" if _failures == 0 else "SOME SCENARIOS FAILED", _failures])
+	print("\n%s (%d failed, with p = %.2f from config)" % ["ALL SCENARIOS PASSED" if _failures == 0 else "SOME SCENARIOS FAILED",
+			_failures, p_config])
 	quit(1 if _failures > 0 else 0)
 	return true
 
 
-## 1. Recommended habits every day: health rises above 4 on Normal.
-func _scenario_recommended(age_group: String) -> void:
-	var sleep_hours := _recommended_sleep(age_group)
-	var result := _simulate("normal", age_group, func(day: int) -> Dictionary:
-		var exercise := STRENGTH if day % 7 in STRENGTH_WEEKDAYS else CARDIO
-		return {"sleep": sleep_hours, "log": [[exercise, 1.0], [SCREENS, 2.0]]})
-	_report("1 (%s) recommended habits: health rises above 4 on Normal" % age_group,
-			"sleep %.1f h, 60 min activity, strength 3 days a week, 2 h screens" % sleep_hours,
-			result, result["health"][-1] > 4.0)
+func _run_all(counts: bool) -> void:
+	print("   %-34s %-9s %s" % ["scenario", "level", "health on day " + ", ".join(SHOWN_DAYS.map(func(d): return str(d)))])
+	for difficulty in DIFFICULTIES:
+		var perfect := _simulate(difficulty, _perfect_plan)
+		var athlete := _simulate(difficulty, _athlete_plan)
+		var sedentary := _simulate(difficulty, _sedentary_plan)
+		var ignores := _simulate(difficulty, _ignore_plan)
+		var gradual := _simulate(difficulty, _gradual_plan.bind(difficulty))
+		print("\n   -- %s (start health %.2f)" % [difficulty, perfect["health"][0]])
+
+		_row("athlete, sleeps 5 h", difficulty, athlete)
+		var athlete_ok: bool = _max_after_start(athlete) <= maxf(3.0, athlete["health"][0]) and athlete["health"][-1] <= 3.0
+		_verdict("athlete who sleeps 5 h: health never goes above 3", difficulty, athlete_ok, counts)
+
+		_row("sedentary, sleeps well", difficulty, sedentary)
+		var sedentary_ok: bool = sedentary["health"][-1] < perfect["health"][-1] \
+				and (sedentary["health"] as Array).min() > _config.get_float("health.failure_at_health")
+		_verdict("sedentary who sleeps well: below perfect, never at the minimum", difficulty, sedentary_ok, counts)
+
+		_row("perfect player", difficulty, perfect)
+		var day_5 := _first_day_at_least(perfect, LEVEL_5_HEALTH)
+		var perfect_ok := day_5 >= SLOW_DAYS
+		print("      reaches level 5 (health %.1f) on day %s" % [LEVEL_5_HEALTH, str(day_5) if day_5 >= 0 else "never"])
+		_verdict("perfect player: reaches 5, but slowly (not before day %d)" % SLOW_DAYS, difficulty, perfect_ok, counts)
+
+		_row("sudden change (perfect at once)", difficulty, perfect, "mental")
+		_row("gradual change (%d days)" % GRADUAL_DAYS, difficulty, gradual, "mental")
+		var mental_sudden := _average(perfect["mental"], COMPARE_MENTAL_DAYS)
+		var mental_gradual := _average(gradual["mental"], COMPARE_MENTAL_DAYS)
+		print("      average mental, days 1 to %d: sudden %.3f, gradual %.3f" % [COMPARE_MENTAL_DAYS, mental_sudden, mental_gradual])
+		_verdict("gradual change gives better mental health than sudden", difficulty, mental_gradual > mental_sudden, counts)
+
+		_row("ignores everything", difficulty, ignores)
+		var minimum_day := _first_day_at_most(ignores, _config.get_float("health.failure_at_health"))
+		var ignore_ok := minimum_day >= NOT_AT_ONCE_DAYS
+		print("      reaches the minimum (health %.2f) on day %s" % [_config.get_float("health.failure_at_health"),
+				str(minimum_day) if minimum_day >= 0 else "never"])
+		_verdict("ignores everything: reaches the minimum, but not at once", difficulty, ignore_ok, counts)
+
+		if difficulty == "very_hard":
+			var recovered := _first_day_at_least(perfect, RECOVERED_HEALTH)
+			print("      Very hard with perfect habits reaches health %.1f on day %s" % [RECOVERED_HEALTH,
+					str(recovered) if recovered >= 0 else "never"])
+			_verdict("Very hard: recovery is possible", difficulty, recovered >= 0, counts)
 
 
-## 2. 5 hours of sleep every day with lots of exercise: health never goes above 3.
-func _scenario_short_sleep(age_group: String) -> void:
-	var result := _simulate("normal", age_group, func(_day: int) -> Dictionary:
-		return {"sleep": 5.0, "log": [[CARDIO, 1.0], [STRENGTH, 1.0], [SCREENS, 1.0]]})
-	_report("2 (%s) 5 h of sleep and lots of exercise: health never goes above 3" % age_group,
-			"sleep 5 h, 1 h cardio and 1 h strength every day, 1 h screens", result, result["health"].max() <= 3.0)
+# --- Habit plans: plan(day) -> {"sleep": hours, "log": [[type, hours], ...]} ---
+
+## Recommended habits: sleep in the range, 60 min of activity, strength 3 days a week,
+## 2 h of screens (which also gives full enjoyment).
+func _perfect_plan(day: int) -> Dictionary:
+	return {"sleep": _good_sleep(), "log": [[_exercise(day), 1.0], [SCREENS, 2.0]]}
 
 
-## 3. Good sleep but no activity and 6 h of screens: health falls below 3.
-func _scenario_no_activity(age_group: String) -> void:
-	var sleep_hours := _recommended_sleep(age_group)
-	var result := _simulate("normal", age_group, func(_day: int) -> Dictionary:
-		return {"sleep": sleep_hours, "log": [[SCREENS, 6.0]]})
-	_report("3 (%s) good sleep, no activity, 6 h of screens: health falls below 3" % age_group,
-			"sleep %.1f h, no exercise, 6 h screens" % sleep_hours, result, result["health"][-1] < 3.0)
+## Lots of exercise (2 h a day, strength every day) but only 5 h of sleep.
+func _athlete_plan(_day: int) -> Dictionary:
+	return {"sleep": 5.0, "log": [[CARDIO, 1.0], [STRENGTH, 1.0], [SCREENS, 1.0]]}
 
 
-## 4. Very hard: changing every habit on day 1 makes mental health drop; changing step
-## by step makes it drop much less.
-func _scenario_habit_change() -> void:
-	var age_group := "child"
-	var sleep_hours := _recommended_sleep(age_group)
-	var start_mental: float = root.get_node("Config").get_float("health.difficulties.very_hard.mental")
-	var start_sleep := 4.0  # Very hard sleeps very little at first.
-	var at_once := _simulate("very_hard", age_group, func(day: int) -> Dictionary:
-		var exercise := STRENGTH if day % 7 in STRENGTH_WEEKDAYS else CARDIO
-		return {"sleep": sleep_hours, "log": [[exercise, 1.0], [SCREENS, 2.0]]})
-	# Step by step: over 10 days, more sleep and exercise and fewer screens, a little each day.
-	var step_days := 10.0
-	var gradual := _simulate("very_hard", age_group, func(day: int) -> Dictionary:
-		var t := minf(1.0, (day + 1) / step_days)
-		var exercise := STRENGTH if day % 7 in STRENGTH_WEEKDAYS else CARDIO
-		return {"sleep": lerpf(start_sleep, sleep_hours, t), "log": [[exercise, t], [SCREENS, lerpf(6.0, 2.0, t)]]})
-	var drop_at_once: float = start_mental - (at_once["mental"] as Array).min()
-	var drop_gradual: float = maxf(0.0, start_mental - (gradual["mental"] as Array).min())
-	_print_series("4 Very hard, every habit changed on day 1", at_once)
-	_print_series("4 Very hard, habits changed step by step over 10 days", gradual)
-	var ok := drop_at_once > 0.0 and drop_gradual < 0.5 * drop_at_once
-	print("   lowest mental: at once %.3f, step by step %.3f (start %.3f)" % [
-			(at_once["mental"] as Array).min(), (gradual["mental"] as Array).min(), start_mental])
-	_verdict("4 Very hard: changing every habit on day 1 makes mental drop; step by step much less", ok)
+## Good sleep, no activity, 4 h of screens.
+func _sedentary_plan(_day: int) -> Dictionary:
+	return {"sleep": _good_sleep(), "log": [[SCREENS, 4.0]]}
 
 
-## Runs the days of one scenario. plan(day) gives {"sleep": hours, "log": [[type, hours], ...]}.
-## Returns {"health": [...], "mental": [...], "physical": [...], "sleep": [...]}, one value per day,
+## Never sleeps (the 0-hour rule every day), no activity, 6 h of screens.
+func _ignore_plan(_day: int) -> Dictionary:
+	return {"sleep": 0.0, "log": [[SCREENS, 6.0]]}
+
+
+## From the difficulty's usual habits (start_H) to the perfect plan in GRADUAL_DAYS days.
+func _gradual_plan(day: int, difficulty: String) -> Dictionary:
+	var t := minf(1.0, (day + 1) / GRADUAL_DAYS)
+	var path := "health.difficulties.%s.start_H." % difficulty
+	var intensity := "health.habit_intensity."
+	var start_sleep: float = _config.get_float(path + "sleep") * _config.get_float(intensity + "sleep_full_h")
+	var start_activity: float = _config.get_float(path + "activity") * _config.get_float(intensity + "activity_full_min") / 60.0
+	var start_screens: float = _config.get_float(path + "screens") * _config.get_float(intensity + "screens_full_h")
+	return {"sleep": lerpf(start_sleep, _good_sleep(), t),
+			"log": [[_exercise(day), lerpf(start_activity, 1.0, t)], [SCREENS, lerpf(start_screens, 2.0, t)]]}
+
+
+func _good_sleep() -> float:
+	var sleep_range: Vector2 = _gs.sleep_range(AGE_GROUP)
+	return (sleep_range.x + sleep_range.y) / 2.0
+
+
+func _exercise(day: int) -> String:
+	return STRENGTH if day % 7 in STRENGTH_WEEKDAYS else CARDIO
+
+
+# --- Simulation and output ---
+
+## Runs DAYS scoring days. Returns {"health": [...], "mental": [...]}, one value per day,
 ## starting with the value before day 1.
-func _simulate(difficulty: String, age_group: String, plan: Callable) -> Dictionary:
+func _simulate(difficulty: String, plan: Callable) -> Dictionary:
 	_habits.reset()
 	_gs.reset()
-	_gs.start_new_avatar("Test", age_group, "female", difficulty)
-	var result := {"health": [_gs.health], "mental": [_gs.mental], "physical": [_gs.physical], "sleep": [_gs.sleep]}
+	_gs.start_new_avatar("Test", AGE_GROUP, "female", difficulty)
+	var result := {"health": [_gs.health], "mental": [_gs.mental]}
 	for day in DAYS:
 		var day_plan: Dictionary = plan.call(day)
 		for item in day_plan["log"]:
 			if item[1] > 0.0:
 				_habits.add_entry(item[0], item[1])
-		# The sleep closes the scoring day.
 		_habits.end_scoring_day(day_plan["sleep"])
 		for key in result:
 			result[key].append(_gs.get(key))
 	return result
 
 
-func _recommended_sleep(age_group: String) -> float:
-	var sleep_range: Vector2 = _gs.sleep_range(age_group)
-	return (sleep_range.x + sleep_range.y) / 2.0
+func _row(name: String, _difficulty: String, result: Dictionary, key := "health") -> void:
+	var values: Array = result[key]
+	var shown := SHOWN_DAYS.map(func(d): return "%.2f" % values[d])
+	print("   %-34s %-9s %s" % [name, key, "  ".join(shown)])
 
 
-func _report(title: String, habits: String, result: Dictionary, ok: bool) -> void:
-	_print_series("%s\n   habits: %s" % [title, habits], result)
-	_verdict(title, ok)
+func _max_after_start(result: Dictionary) -> float:
+	return (result["health"] as Array).slice(1).max()
 
 
-func _print_series(title: String, result: Dictionary) -> void:
-	print("\n== %s" % title)
-	for key in ["health", "physical", "mental", "sleep"]:
-		var line := "   %-8s" % key
-		for i in result[key].size():
-			if i % 4 == 0:
-				line += " %d:%.2f" % [i, result[key][i]]
-		print(line)
-	print("   final: health %.2f, highest %.2f, lowest %.2f" % [result["health"][-1],
-			(result["health"] as Array).max(), (result["health"] as Array).min()])
+func _first_day_at_least(result: Dictionary, value: float) -> int:
+	for day in result["health"].size():
+		if result["health"][day] >= value:
+			return day
+	return -1
 
 
-func _verdict(title: String, ok: bool) -> void:
-	if not ok:
+func _first_day_at_most(result: Dictionary, value: float) -> int:
+	for day in result["health"].size():
+		if result["health"][day] <= value:
+			return day
+	return -1
+
+
+func _average(values: Array, days: int) -> float:
+	var total := 0.0
+	for day in range(1, days + 1):
+		total += values[day]
+	return total / days
+
+
+func _verdict(title: String, difficulty: String, ok: bool, counts: bool) -> void:
+	if counts and not ok:
 		_failures += 1
-	print("%s  scenario %s" % ["PASS" if ok else "FAIL", title])
+	print("   %s  %s: %s" % ["PASS" if ok else "FAIL", difficulty, title])
