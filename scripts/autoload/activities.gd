@@ -40,6 +40,15 @@ func current_option_data() -> Dictionary:
 	return get_option(current_activity, current_option)
 
 
+## The option with this id in any activity (for example "cardio"), or {} if there is none.
+func find_option(option_id: String) -> Dictionary:
+	for activity_id in definitions:
+		var options: Dictionary = definitions[activity_id].get("options", {})
+		if options.has(option_id):
+			return options[option_id]
+	return {}
+
+
 ## A value of an option that may be written as {"value": ..., "status": ..., "owner": ...}.
 ## Returns default when the option does not have it.
 func option_value(option: Dictionary, key: String, default: Variant = null) -> Variant:

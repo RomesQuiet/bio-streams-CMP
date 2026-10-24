@@ -103,11 +103,12 @@
 		},
 		"alpha_bar": {"value": 0.37, "status": "placeholder", "owner": "Pessoa 4", "comment": "Health bar speed: 90% of the way to the target in 5 avatar days ((1 - 0.37)^5 = 0.1). Not the same as habit_cost.alpha."},
 		"log": {
-			"_comment": "Action log. The types are the activity option ids in data/activities.json.",
-			"avatar_day_hours": 24,
-			"log_days": 7,
-			"activity_types": ["cardio", "strength"],
+			"_comment": "Action log (Milestone 4 Task 2). One scoring day follows score_window (wake_to_wake: from one wake-up to the next, closed when any sleep ends). The types are the activity option ids in data/activities.json.",
+			"log_days": {"value": 7, "status": "from source", "owner": "Pessoa 3", "comment": "Scoring days kept in the log; strength days are counted over this many (CDC: per week)."},
+			"sleep_types": ["sleep"],
+			"activity_intensities": {"value": ["moderate_vigorous"], "status": "from source", "owner": "Pessoa 3", "comment": "Entries with one of these activity_intensity values count as moderate-to-vigorous minutes (CDC)."},
 			"strength_types": ["strength"],
+			"entertainment_types": ["entertainment"],
 			"screen_types": {"value": ["entertainment"], "status": "placeholder", "owner": "Pessoa 3", "comment": "All entertainment counts as recreational screen time until sedentary and active entertainment exist."}
 		},
 		"milestone3_rules": {

@@ -35,34 +35,52 @@ func _process(_delta: float) -> bool:
 	return true
 
 
-## A log with known entries gives the expected four scores.
+## A known log over several scoring days returns the right totals per scoring day,
+## and the right four scores.
 func _test_known_log(h: Node) -> void:
 	h.reset()
-	h.avatar_hours_total = 100.0
-	# Last avatar day (started less than 24 h ago): 0.5 h cardio, 0.25 h strength, 3 h entertainment.
-	h.add_entry("cardio", 90.0, 0.5)
-	h.add_entry("strength", 95.0, 0.25)
-	h.add_entry("entertainment", 80.0, 3.0)
-	# Older: strength 2 days ago and 5 days ago, and a cardio hour 3 days ago (not in the last day).
-	h.add_entry("strength", 52.0, 1.0)
-	h.add_entry("strength", 4.0, 1.0)
-	h.add_entry("cardio", 28.0, 1.0)
-	var s: Dictionary = h.calculate_scores(9.0, "child")
+	# Scoring day 0: strength 1 h, 9 h of sleep.
+	h.add_entry("strength", 1.0)
+	h.end_scoring_day(9.0)
+	# Scoring day 1: nothing, a 0-hour day (the awake period ran out).
+	h.end_scoring_day(0.0)
+	# Scoring day 2: strength twice (counts as one day), 7 h of sleep.
+	h.add_entry("strength", 0.5)
+	h.add_entry("strength", 0.5)
+	h.end_scoring_day(7.0)
+	# Scoring day 3 (not closed yet): 0.5 h cardio, 0.25 h strength, 3 h entertainment.
+	h.add_entry("cardio", 0.5)
+	h.add_entry("strength", 0.25)
+	h.add_entry("entertainment", 3.0)
+	_check("three scoring days were closed", h.days.size() == 3 and h.current_day == 3)
+	_check("day 0: 9 h sleep, 60 activity min, 1 strength day", _totals_are(h.days[0], 9.0, 60.0, 1, 0.0))
+	_check("day 1: 0 h sleep, nothing done, strength day 0 still counts", _totals_are(h.days[1], 0.0, 0.0, 1, 0.0))
+	_check("day 2: 7 h sleep, 60 min, two sessions = one more strength day", _totals_are(h.days[2], 7.0, 60.0, 2, 0.0))
+	h.end_scoring_day(9.0)
+	var day3: Dictionary = h.days[-1]
+	_check("day 3: 9 h sleep, 45 min, 3 strength days in the last 7, 3 h entertainment", _totals_are(day3, 9.0, 45.0, 3, 3.0))
+	_check("day 3: calories = 0.5 h x 300 + 0.25 h x 200 = 200 kcal", is_equal_approx(day3["kcal"], 200.0))
+	var s: Dictionary = h.scores
 	_check("sleep: 9 h is inside the child range", is_equal_approx(s["sleep"], 1.0))
-	_check("activity: 45 min of cardio and strength / 60 = 0.75", absf(s["activity"] - 0.75) < TOLERANCE)
-	# Strength days: today (95), 2 days ago (52) and 4 days ago (start 4.0 -> age 96 h) = 3 days / 3 = 1.
-	_check("strength: 3 different days with strength / 3 = 1", absf(s["strength"] - 1.0) < TOLERANCE)
+	_check("activity: 45 min / 60 = 0.75", absf(s["activity"] - 0.75) < TOLERANCE)
+	_check("strength: 3 strength days / 3 = 1", absf(s["strength"] - 1.0) < TOLERANCE)
 	_check("screens: 3 h of entertainment = 0.75", absf(s["screens"] - 0.75) < TOLERANCE)
+	var entry: Dictionary = h.entries.filter(func(e: Dictionary) -> bool: return e["type"] == "cardio")[0]
+	_check("an entry has its intensity and calories", entry["intensity"] == "moderate_vigorous" and is_equal_approx(entry["kcal"], 150.0))
 	h.reset()
-	h.avatar_hours_total = 100.0
-	h.add_entry("strength", 99.0, 1.0)
-	h.add_entry("strength", 98.0, 1.0)  # Same day: counts once.
-	_check("strength: two sessions on one day count once (1/3)",
-			absf(h.calculate_scores(9.0, "child")["strength"] - 1.0 / 3.0) < TOLERANCE)
-	_check("activity: 2 h of exercise is at most 1", is_equal_approx(h.calculate_scores(9.0, "child")["activity"], 1.0))
-	h.reset()
-	_check("empty log: activity, strength 0 and screens 1", h.calculate_scores(9.0, "child")["activity"] == 0.0
-			and h.calculate_scores(9.0, "child")["strength"] == 0.0 and h.calculate_scores(9.0, "child")["screens"] == 1.0)
+	h.end_scoring_day(9.0)
+	_check("empty day: activity 0, strength 0, screens 1", h.scores["activity"] == 0.0
+			and h.scores["strength"] == 0.0 and h.scores["screens"] == 1.0)
+
+
+## Totals of a closed scoring day, compared with expected values.
+func _totals_are(totals: Dictionary, sleep_hours: float, activity_minutes: float, strength_days: int,
+		entertainment_hours: float) -> bool:
+	var ok: bool = absf(totals["sleep_hours"] - sleep_hours) < TOLERANCE and absf(totals["activity_minutes"] - activity_minutes) < TOLERANCE \
+			and totals["strength_days"] == strength_days and absf(totals["entertainment_hours"] - entertainment_hours) < TOLERANCE
+	if not ok:
+		print("  totals: %s" % totals)
+	return ok
 
 
 func _test_sleep_score(h: Node) -> void:
@@ -85,14 +103,15 @@ func _test_screen_score(h: Node) -> void:
 
 func _test_old_entries_dropped(h: Node) -> void:
 	h.reset()
-	h.avatar_hours_total = 10.0
-	h.add_entry("cardio", 10.0, 1.0)
-	h.avatar_hours_total = 10.0 + 7.0 * 24.0 - 1.0
-	h.add_entry("cardio", h.avatar_hours_total, 1.0)
-	_check("an entry less than 7 avatar days old is kept", h.entries.size() == 2)
-	h.avatar_hours_total += 2.0
-	h.add_entry("cardio", h.avatar_hours_total, 1.0)
-	_check("an entry older than 7 avatar days is dropped", h.entries.size() == 2)
+	h.add_entry("strength", 1.0)
+	for day in 6:
+		h.end_scoring_day(9.0)
+	_check("strength 6 scoring days ago is still kept and counted", h.entries.any(func(e: Dictionary) -> bool: return e["type"] == "strength")
+			and h.day_totals(h.current_day)["strength_days"] == 1)
+	h.end_scoring_day(9.0)
+	_check("after 7 scoring days the strength entry is dropped", not h.entries.any(func(e: Dictionary) -> bool: return e["type"] == "strength")
+			and h.day_totals(h.current_day)["strength_days"] == 0)
+	_check("only the last 7 closed scoring days are kept", h.days.size() == 7)
 
 
 ## Real play: exercise logs the hours done (Stop counts only the time done), and the
@@ -132,7 +151,9 @@ func _test_real_play(h: Node, gs: Node, clock: Node, activities: Node, save_game
 	_check("activity score matches the logged cardio", absf(h.scores["activity"] - cardio_hours * 60.0 / 60.0) < TOLERANCE)
 	_check("strength score is 0 (no strength)", is_zero_approx(h.scores["strength"]))
 	_check("screens score is 1 (1 h of entertainment)", is_equal_approx(h.scores["screens"], 1.0))
-	_check("sleep is not logged as an exercise type", h.entries.size() == 2)
+	_check("the sleep is logged too", h.entries.size() == 3 and h.entries[-1]["type"] == "sleep"
+			and absf(h.entries[-1]["hours"] - 9.0) < 0.1)
+	_check("a new scoring day starts after the sleep", h.current_day == 1 and h.days.size() == 1)
 
 	# The log and scores are saved and loaded.
 	var saved: Dictionary = h.to_dict()
@@ -142,7 +163,7 @@ func _test_real_play(h: Node, gs: Node, clock: Node, activities: Node, save_game
 	h.reset()
 	_check("log was cleared before loading", h.entries.is_empty())
 	_check("load finds the save", save_game.load_game())
-	_check("log and scores restored", h.entries.size() == 2 and absf(h.avatar_hours_total - saved["avatar_hours_total"]) < TOLERANCE
+	_check("log and scores restored", h.entries.size() == 3 and h.current_day == 1 and h.days.size() == 1 and absf(h.avatar_hours_total - saved["avatar_hours_total"]) < TOLERANCE
 			and absf(h.scores["activity"] - saved["scores"]["activity"]) < TOLERANCE)
 	_check("game state still restored", before_gs["avatar_name"] == gs.avatar_name)
 

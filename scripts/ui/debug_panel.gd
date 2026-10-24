@@ -45,5 +45,5 @@ func _refresh() -> void:
 	lines.append("  physical %.3f  mental %.3f" % [gs.physical, gs.mental])
 	lines.append("  sleep %.3f" % gs.sleep)
 	lines.append("Health target %.2f  displayed %.2f (level %d)" % [gs.target_health, gs.health, gs.health_level])
-	lines.append("Log entries %d  XP %.1f" % [Habits.entries.size(), gs.xp])
+	lines.append("Scoring day %d  log entries %d  XP %.1f" % [Habits.current_day, Habits.entries.size(), gs.xp])
 	info.text = "\n".join(lines)

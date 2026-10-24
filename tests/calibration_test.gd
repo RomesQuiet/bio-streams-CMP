@@ -8,8 +8,6 @@ extends SceneTree
 
 ## How many avatar days each scenario runs.
 const DAYS := 28
-## Hours of one avatar day in the log.
-const DAY_HOURS := 24.0
 ## Days of the week with muscle strength in the recommended plan (3 of 7).
 const STRENGTH_WEEKDAYS := [0, 2, 4]
 ## The four habit types, as in data/config.json (habits).
@@ -107,15 +105,11 @@ func _simulate(difficulty: String, age_group: String, plan: Callable) -> Diction
 	var result := {"health": [_gs.health], "mental": [_gs.mental], "physical": [_gs.physical], "sleep": [_gs.sleep]}
 	for day in DAYS:
 		var day_plan: Dictionary = plan.call(day)
-		var start := day * DAY_HOURS
-		var hour := 1.0
 		for item in day_plan["log"]:
 			if item[1] > 0.0:
-				_habits.add_entry(item[0], start + hour, item[1])
-			hour += item[1]
-		# The sleep ends just before the next avatar day starts.
-		_habits.avatar_hours_total = start + DAY_HOURS - 0.01
-		_habits._score_sleep(day_plan["sleep"])
+				_habits.add_entry(item[0], item[1])
+		# The sleep closes the scoring day.
+		_habits.end_scoring_day(day_plan["sleep"])
 		for key in result:
 			result[key].append(_gs.get(key))
 	return result
