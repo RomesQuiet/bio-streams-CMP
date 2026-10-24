@@ -408,6 +408,13 @@ theme_override_font_sizes/font_size = 20
 text = "Muscle
 0.50"
 
+[node name="FitnessLabel" type="Label" parent="ValuesPanel/Margin/Values"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Fitness
+0.50"
+
 [node name="OptionsPanel" type="PanelContainer" parent="."]
 unique_name_in_owner = true
 visible = false

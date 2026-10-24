@@ -45,6 +45,7 @@ Milestone 2 must be finished before starting (activity system, exercise, enterta
 - Target health = 1 + 4 × C, with the weighted power mean `C = (w_P·P^p + w_M·M^p + w_S·S^p)^(1/p)`; p = 0.5 and equal weights from config.
 - Displayed health moves toward the target once per avatar day: `health += α × (target − health)`, α placeholder 0.3. The health bar shows the displayed health.
 - XP keeps the Milestone 1 placeholder rule, now driven by the new health.
+- Built in `GameState` (`_update_measures`, `_step_health`), numbers in `data/config.json` sections `measures_from_body` and `health_formula`. The sleep activity no longer raises the sleep measure per hour, and the sleep measure no longer falls per hour awake: the sleep measure comes from the sleep score and the sleep debt. The values panel shows fitness too.
 - Done when: the measures panel shows the new values and the health bar moves gradually after each sleep.
 
 ## Task 6 — Calibration scenario tests

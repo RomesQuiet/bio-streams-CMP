@@ -29,42 +29,55 @@ func _process(_delta: float) -> bool:
 	return true
 
 
+## Scores of a day with recommended habits, and of a day with none.
+const GOOD_DAY := {"sleep": 1.0, "activity": 1.0, "strength": 1.0, "screens": 1.0}
+const BAD_DAY := {"sleep": 0.0, "activity": 0.0, "strength": 0.0, "screens": 0.0}
+
+
+## Health starts at the target and then moves part of the way toward it once per avatar day.
 func _test_health_follows_measures(gs: Node) -> void:
-	gs.reset()
-	_check("health equals the formula at the start", is_equal_approx(gs.health, gs.calculate_health()))
+	gs.start_new_avatar("Test", "child", "female", "normal")
+	var config: Node = root.get_node("Config")
+	var alpha: float = config.get_float("health_formula.daily_alpha")
+	_check("health equals the target at the start", is_equal_approx(gs.health, gs.target_health))
 	_check("health level is health rounded", gs.health_level == roundi(gs.health))
 	var start: float = gs.health
-	gs.apply_avatar_hours(5.0, false)  # Awake: the sleep measure falls.
-	_check("health falls when the sleep measure falls", gs.health < start)
-	var low: float = gs.health
-	gs.apply_effects({"physical": 0.3}, 1.0)  # Like exercise.
-	_check("health rises when the physical measure rises", gs.health > low)
-	_check("health stays equal to the formula", is_equal_approx(gs.health, gs.calculate_health()))
+	gs.apply_avatar_hours(5.0, false)
+	gs.apply_effects({"physical": 0.3}, 1.0)
+	_check("health does not change during the day", is_equal_approx(gs.health, start))
+	gs.start_new_avatar("Test", "child", "female", "normal")
+	gs.update_body_states(GOOD_DAY, 10.0)
+	var target: float = gs.target_health
+	_check("a good day raises the target health", target > start)
+	_check("health moves daily_alpha of the way to the target", absf(gs.health - (start + alpha * (target - start))) < TOLERANCE)
+	var values := [start, gs.health]
+	for day in 10:
+		gs.update_body_states(GOOD_DAY, 10.0)
+		values.append(gs.health)
+	print("health on 11 good days: %s" % ", ".join(values.map(func(v): return "%.2f" % v)))
+	_check("health rises gradually, day by day", values[2] > values[1] and values[-1] > values[2] and values[-1] <= 5.0)
+	_check("the measures come from the body states", is_equal_approx(gs.physical, gs.physical_from_body(gs.fitness, gs.muscle, gs.weight_z)))
 
 
 func _test_xp_from_health_changes(gs: Node, config: Node) -> void:
-	gs.reset()
+	gs.start_new_avatar("Test", "child", "female", "normal")
 	gs.xp = 50.0
 	var per_point: float = config.get_float("xp.per_health_point")
 	var before_health: float = gs.health
-	gs.apply_effects({"physical": 0.2}, 1.0)
+	gs.update_body_states(GOOD_DAY, 10.0)
 	var gain: float = gs.health - before_health
 	_check("a health gain gives XP", absf(gs.xp - (50.0 + gain * per_point)) < TOLERANCE and gain > 0.0)
 	var xp_before: float = gs.xp
 	before_health = gs.health
-	gs.apply_effects({"mental": -0.2}, 1.0)
+	gs.update_body_states(BAD_DAY, 0.0)
 	var loss: float = before_health - gs.health
 	_check("a health loss takes XP away", absf(gs.xp - (xp_before - loss * per_point)) < TOLERANCE and loss > 0.0)
 
 
 func _test_xp_over_time(gs: Node, config: Node) -> void:
-	# Full measures: health 5. Asleep, so the sleep measure does not fall and health stays 5.
+	# Health 5 (set directly): XP grows over time.
 	gs.reset()
-	gs.physical = 1.0
-	gs.mental = 1.0
-	gs.sleep = 1.0
-	gs.apply_effects({}, 0.0)
-	_check("full measures give health 5", is_equal_approx(gs.health, 5.0))
+	gs.health = 5.0
 	var xp0: float = gs.xp
 	gs.apply_avatar_hours(1.0, true)
 	var first_hour: float = gs.xp - xp0
@@ -78,11 +91,8 @@ func _test_xp_over_time(gs: Node, config: Node) -> void:
 	var max_rate: float = config.get_float("xp.gain_per_avatar_hour") * config.get_float("xp.high_health_max_multiplier")
 	_check("the hourly gain has a maximum", later_hour <= max_rate + TOLERANCE)
 
-	# Empty measures: health 1. XP falls, but never below 0.
-	gs.physical = 0.0
-	gs.mental = 0.0
-	gs.sleep = 0.0
-	gs.apply_effects({}, 0.0)
+	# Health 1: XP falls, but never below 0.
+	gs.health = 1.0
 	var xp2: float = gs.xp
 	gs.apply_avatar_hours(1.0, true)
 	_check("low health loses XP over time", gs.xp < xp2)

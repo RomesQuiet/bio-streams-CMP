@@ -27,6 +27,7 @@ const CREATION_SCENE := "res://scenes/ui/creation.tscn"
 @onready var values_panel: PanelContainer = %ValuesPanel
 @onready var calories_label: Label = %CaloriesLabel
 @onready var muscle_label: Label = %MuscleLabel
+@onready var fitness_label: Label = %FitnessLabel
 @onready var mental_bar: ProgressBar = %MentalBar
 @onready var sleep_bar: ProgressBar = %SleepBar
 @onready var level_label: Label = %LevelLabel
@@ -106,7 +107,7 @@ func _toggle_health_panel() -> void:
 		values_panel.visible = false
 
 
-## Clicking the physical bar shows or hides its values (calories and muscle).
+## Clicking the physical bar shows or hides its values (calories, muscle and fitness).
 func _toggle_values_panel() -> void:
 	values_panel.visible = not values_panel.visible
 
@@ -199,6 +200,7 @@ func _refresh() -> void:
 	sleep_bar.value = GameState.sleep
 	calories_label.text = "Calories spent\n%d kcal" % roundi(GameState.calories_spent)
 	muscle_label.text = "Muscle\n%.2f" % GameState.muscle
+	fitness_label.text = "Fitness\n%.2f" % GameState.fitness
 	level_label.text = "Lv %d" % GameState.level
 	xp_bar.value = GameState.level_progress
 	var per_level := Config.get_float("xp.per_level")

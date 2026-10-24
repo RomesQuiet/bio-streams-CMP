@@ -11,8 +11,9 @@ const MEASURES_0_TO_1 := ["physical", "mental", "sleep", "hunger", "muscle", "fi
 ## The player's choices on the avatar creation screen. Empty means not chosen yet.
 const CHOICE_KEYS := ["avatar_name", "age_group", "sex", "difficulty"]
 
-# Measures: physical, mental and sleep go from 0 to 1. Health goes from 1 to 5 and
-# always equals the health formula, so it rises and falls with the measures.
+# Measures: physical, mental and sleep go from 0 to 1. They are worked out from the
+# body states once per avatar day. Health (1 to 5) is the displayed health: it starts at
+# the target health and moves part of the way toward it once per avatar day.
 var physical: float
 var mental: float
 var sleep: float
@@ -46,6 +47,11 @@ var sex: String
 ## "easy", "normal", "hard" or "very_hard".
 var difficulty: String
 var language: String
+
+## Health the displayed health moves toward: the health formula of the current measures.
+var target_health: float:
+	get:
+		return calculate_health()
 
 ## Health as a whole number from 1 to 5 (health rounded). Shown in the health level box.
 var health_level: int:
@@ -138,7 +144,6 @@ func from_dict(data: Dictionary) -> void:
 	sex = str(data.get("sex", sex))
 	difficulty = str(data.get("difficulty", difficulty))
 	language = str(data.get("language", language))
-	health = calculate_health()
 	changed.emit()
 
 
@@ -181,6 +186,8 @@ func update_body_states(scores: Dictionary, sleep_hours: float) -> void:
 	var k := Config.get_float("body_states.k")
 	var r := Config.get_float("body_states.sleep_debt_r")
 	sleep_debt = maxf(0.0, sleep_debt * r + (sleep_range(age_group).x - sleep_hours))
+	# How far the habits jumped above their usual levels, before those levels move.
+	var change := habit_change(scores)
 	fitness = _train(fitness, float(scores.get("activity", 0.0)), k,
 			Config.get_float("body_states.fitness_k_up"), Config.get_float("body_states.fitness_k_down"))
 	muscle = _train(muscle, float(scores.get("strength", 0.0)), k,
@@ -191,7 +198,43 @@ func update_body_states(scores: Dictionary, sleep_hours: float) -> void:
 	for habit in usual_habits:
 		if scores.has(habit):
 			usual_habits[habit] = clampf(usual_habits[habit] + habit_speed * (float(scores[habit]) - usual_habits[habit]), 0.0, 1.0)
+	_update_measures(float(scores.get("sleep", 0.0)), change)
+	_step_health()
 	changed.emit()
+
+
+## Sum, over the habits, of how far the day's score is above the usual level by more
+## than the free step (section measures_from_body). 0 when habits change step by step.
+func habit_change(scores: Dictionary) -> float:
+	var free_step := Config.get_float("measures_from_body.habit_change_free_step")
+	var total := 0.0
+	for habit in usual_habits:
+		if scores.has(habit):
+			total += maxf(0.0, float(scores[habit]) - usual_habits[habit] - free_step)
+	return total
+
+
+## The three measures from the body states (CLAUDE.md, Health calculation, step 4).
+func _update_measures(sleep_score: float, change: float) -> void:
+	physical = physical_from_body(fitness, muscle, weight_z)
+	var debt_factor := 1.0 - Config.get_float("measures_from_body.sleep_debt_penalty_per_hour") * sleep_debt
+	sleep = clampf(sleep_score * debt_factor, 0.0, 1.0)
+	var cost := Config.get_float("difficulties.%s.habit_change_cost" % _difficulty_or_default())
+	mental = clampf(mood - cost * Config.get_float("measures_from_body.habit_change_penalty") * change, 0.0, 1.0)
+
+
+## The displayed health moves daily_alpha of the way toward the target health.
+## A health gain gives XP and a health loss takes XP away (xp.per_health_point per point).
+func _step_health() -> void:
+	var new_health := health + Config.get_float("health_formula.daily_alpha") * (target_health - health)
+	var change := new_health - health
+	health = new_health
+	if change != 0.0:
+		add_xp(change * Config.get_float("xp.per_health_point"))
+
+
+func _difficulty_or_default() -> String:
+	return difficulty if not difficulty.is_empty() else Config.get_string("defaults.difficulty")
 
 
 ## The level mood moves toward: weighted average of the sleep, activity and screens scores.
@@ -231,7 +274,7 @@ func has_all_choices(data: Dictionary) -> bool:
 	return true
 
 
-## Health from the current measures.
+## Target health from the current measures.
 func calculate_health() -> float:
 	return health_from_measures(physical, mental, sleep)
 
@@ -280,16 +323,16 @@ func physical_from_body(fitness: float, muscle_value: float, weight_z: float) ->
 			/ (w_fitness + w_muscle + w_weight)
 
 
-## Called by the Clock as avatar time passes.
-func apply_avatar_hours(hours: float, asleep: bool) -> void:
-	_apply_sleep_measure(hours, asleep)
-	_update_health()
+## Called by the Clock as avatar time passes. Measures and health change only once per
+## avatar day (update_body_states); here only the XP over time.
+func apply_avatar_hours(hours: float, _asleep: bool) -> void:
 	_apply_time_xp(hours)
 	changed.emit()
 
 
 ## Adds activity effects: {"value name": change per avatar hour} for this many hours.
-## Called by Activities. Unknown names are reported and skipped.
+## Called by Activities. Unknown names are reported and skipped. Health does not change
+## here; it moves once per avatar day.
 func apply_effects(effects_per_hour: Dictionary, hours: float) -> void:
 	for key in effects_per_hour:
 		if not key in self:
@@ -299,25 +342,7 @@ func apply_effects(effects_per_hour: Dictionary, hours: float) -> void:
 		if key in MEASURES_0_TO_1:
 			value = clampf(value, 0.0, 1.0)
 		set(key, value)
-	_update_health()
 	changed.emit()
-
-
-## Placeholder: the sleep measure falls while awake. (Sleeping raises it through
-## the sleep activity's effects in data/activities.json.)
-func _apply_sleep_measure(hours: float, asleep: bool) -> void:
-	if not asleep:
-		sleep = clampf(sleep - Config.get_float("sleep_activity.measure_loss_per_avatar_hour_awake") * hours, 0.0, 1.0)
-
-
-## Recalculates health from the measures. A health gain gives XP and a health loss
-## takes XP away (xp.per_health_point per point).
-func _update_health() -> void:
-	var new_health := calculate_health()
-	var change := new_health - health
-	health = new_health
-	if change != 0.0:
-		add_xp(change * Config.get_float("xp.per_health_point"))
 
 
 ## Placeholder XP over time: at high health XP grows, and faster the longer health
@@ -356,5 +381,5 @@ func print_state() -> void:
 	print("fitness=%.3f sleep_debt=%.2f h weight_z=%+.1f mood=%.3f" % [fitness, sleep_debt, weight_z, mood])
 	print("usual_habits=%s" % usual_habits)
 	print("hunger=%.2f tired=%s" % [hunger, tired])
-	print("health=%.2f (level %d)" % [health, health_level])
+	print("health=%.2f (level %d) target=%.2f" % [health, health_level, target_health])
 	print("xp=%.1f level=%d progress=%.2f" % [xp, level, level_progress])

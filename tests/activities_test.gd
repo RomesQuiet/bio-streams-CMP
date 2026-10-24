@@ -38,7 +38,6 @@ func _test_sleep_activity(activities: Node, game_state: Node, clock: Node) -> vo
 	_check("sleep is defined in activities.json", activities.definitions.has("sleep"))
 	_check("sleep can start during the day (nap)", activities.can_start("sleep"))
 	_run_until_new_day(clock)
-	var sleep_before: float = game_state.sleep
 	_check("sleep starts when the avatar is tired", activities.start("sleep", "sleep", 10.0))
 	_check("sleep runs through the activity system", activities.is_running() and activities.current_activity == "sleep")
 	_check("clock is sleeping", clock.phase == clock.Phase.SLEEPING)
@@ -47,10 +46,12 @@ func _test_sleep_activity(activities: Node, game_state: Node, clock: Node) -> vo
 		clock._process(STEP_SECONDS)
 	var slept: float = activities.elapsed_hours
 	activities.stop()
-	var gain: float = activities.get_option("sleep", "sleep")["effects_per_hour"]["sleep"]
 	_check("stop ends the activity", not activities.is_running())
 	_check("stop reports the hours done", absf(_ended_hours - slept) < TOLERANCE)
-	_check("sleep effect counts only the hours slept", absf(game_state.sleep - (sleep_before + gain * slept)) < TOLERANCE)
+	_check("sleep has no per-hour effect", activities.get_option("sleep", "sleep")["effects_per_hour"].is_empty())
+	_check("the sleep measure comes from the hours slept", is_equal_approx(game_state.sleep,
+			root.get_node("Habits").sleep_score(slept, game_state.age_group)
+			* (1.0 - root.get_node("Config").get_float("measures_from_body.sleep_debt_penalty_per_hour") * game_state.sleep_debt)))
 	_check("clock waits for the wake button", clock.phase == clock.Phase.SLEEP_OVER)
 	clock.wake_up()
 

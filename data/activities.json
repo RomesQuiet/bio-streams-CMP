@@ -8,11 +8,11 @@
 			"sleep": {
 				"name": "Sleep",
 				"duration_hours": "slider",
-				"effects_per_hour": { "sleep": 0.07 },
+				"effects_per_hour": {},
 				"background_color": "#0f1224",
 				"animation": "sleep",
 				"placeholder": true,
-				"comment": "Duration comes from the sleep slider (config.json: sleep_activity, time.max_sleep_hours). Sleep measure +0.07 per hour slept (10 h restores 0.7)."
+				"comment": "Duration comes from the sleep slider (config.json: sleep_activity, time.max_sleep_hours). No per-hour effect: when the sleep ends, its hours give the sleep score, and the sleep measure is worked out from it (config.json: measures_from_body)."
 			}
 		}
 	},

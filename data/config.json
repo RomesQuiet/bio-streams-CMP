@@ -40,16 +40,23 @@
 	"sleep_activity": {
 		"slider_min_hours": { "value": 1, "placeholder": true, "comment": "Smallest value on the sleep slider. The largest is time.max_sleep_hours." },
 		"slider_step_hours": { "value": 0.5, "placeholder": true },
-		"slider_default_hours": { "value": 10, "placeholder": true, "comment": "Where the slider starts. 10 h is the baseline sleep." },
-		"measure_loss_per_avatar_hour_awake": { "value": 0.05, "placeholder": true, "comment": "Sleep measure lost per avatar hour awake (a 14 h day loses 0.7)." }
+		"slider_default_hours": { "value": 10, "placeholder": true, "comment": "Where the slider starts. 10 h is the baseline sleep." }
 	},
 
 	"health_formula": {
-		"_comment": "Weighted power mean (CLAUDE.md, Health calculation): C = (w_P*P^p + w_M*M^p + w_S*S^p)^(1/p), with the weights divided by their sum. Health = health_min + (health_max - health_min) * C. p = 1 is the ordinary average; p near 0 is the geometric mean (the weakest measure pulls everything down). For now health always equals this formula; Milestone 3 Task 5 makes it move toward it once per avatar day.",
+		"_comment": "Weighted power mean (CLAUDE.md, Health calculation): C = (w_P*P^p + w_M*M^p + w_S*S^p)^(1/p), with the weights divided by their sum. Target health = health_min + (health_max - health_min) * C. p = 1 is the ordinary average; p near 0 is the geometric mean (the weakest measure pulls everything down). The displayed health starts at the target and then moves toward it once per avatar day (daily_alpha).",
 		"p": { "value": 0.5, "placeholder": true },
 		"weight_physical": { "value": 1.0, "placeholder": true, "comment": "Equal weights = 1/3 each." },
 		"weight_mental": { "value": 1.0, "placeholder": true },
-		"weight_sleep": { "value": 1.0, "placeholder": true }
+		"weight_sleep": { "value": 1.0, "placeholder": true },
+		"daily_alpha": { "value": 0.3, "placeholder": true, "comment": "Share of the way the displayed health moves toward the target health once per avatar day: health += daily_alpha * (target - health)." }
+	},
+
+	"measures_from_body": {
+		"_comment": "The three measures, worked out once per avatar day after the body states (CLAUDE.md, Health calculation, step 4). Physical = mix of fitness, muscle and weight score (section physical_measure). Sleep = the day's sleep score x (1 - sleep_debt_penalty_per_hour x sleep debt), never below 0. Mental = mood - habit_change_cost (from the difficulty) x habit_change_penalty x the sum, over the four habits, of how far the day's score is above the usual level by more than habit_change_free_step. Doing much more than usual costs mental health; changing step by step costs little.",
+		"sleep_debt_penalty_per_hour": { "value": 0.05, "placeholder": true, "comment": "10 h of sleep debt halve the sleep measure; 20 h make it 0." },
+		"habit_change_free_step": { "value": 0.1, "placeholder": true, "comment": "A habit score up to this much above its usual level costs nothing." },
+		"habit_change_penalty": { "value": 0.1, "placeholder": true, "comment": "Mental lost per score point above the free step, before the difficulty's habit_change_cost." }
 	},
 
 	"physical_measure": {
