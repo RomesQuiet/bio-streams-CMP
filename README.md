@@ -20,7 +20,7 @@ The game saves on your device. Nothing is sent to a server. A new game starts on
 
 The project uses the **Compatibility** renderer so that it works in web browsers on computers, Android and iOS.
 
-Debug keys (only when running from the Godot editor): **F9** changes the game speed (x1, x60, x600), **F8** deletes the save and starts a new game.
+Debug keys (only when running from the Godot editor): **F9** changes the game speed (x1, x60, x600), **F8** deletes the save and starts a new game, **F7** shows or hides the debug panel (habit scores, body states, measures, target and displayed health; only in debug builds, never in the published game).
 
 ## Tests
 

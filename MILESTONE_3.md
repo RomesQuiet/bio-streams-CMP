@@ -61,6 +61,7 @@ Milestone 2 must be finished before starting (activity system, exercise, enterta
 - A debug panel (only in debug builds) showing the habit scores, body states, measures, target and displayed health.
 - Run all tests (Milestones 1 to 3). Play a few avatar days on the Mac with the debug speed on each difficulty.
 - Export to `docs/`, check the web build (creation screen, saving after a reload), then commit and push.
+- Built: `scenes/ui/debug_panel.tscn` with `scripts/ui/debug_panel.gd`, shown with **F7** in debug builds only.
 - Done when: the published game has the creation screen and the new health system.
 
 ## Out of scope for this milestone

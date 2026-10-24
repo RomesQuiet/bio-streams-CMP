@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" path="res://scenes/avatar/avatar.tscn" id="2_avatar"]
 [ext_resource type="Texture2D" path="res://assets/art/ui/pause.svg" id="3_pause"]
 [ext_resource type="Texture2D" path="res://assets/art/ui/settings.svg" id="5_settings"]
+[ext_resource type="PackedScene" path="res://scenes/ui/debug_panel.tscn" id="6_debug"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -520,3 +521,6 @@ custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Sleep"
+
+[node name="DebugPanel" parent="." instance=ExtResource("6_debug")]
+layout_mode = 0
