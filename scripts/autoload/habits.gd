@@ -152,6 +152,18 @@ func calculate_scores(totals: Dictionary, age_group: String) -> Dictionary:
 	}
 
 
+## Today's intensity A of each habit (0 to 1), from a scoring day's totals
+## (health.habit_intensity): sleep, activity, strength, screens.
+func intensities(totals: Dictionary) -> Dictionary:
+	var path := "health.habit_intensity."
+	return {
+		"sleep": clampf(totals["sleep_hours"] / Config.get_float(path + "sleep_full_h"), 0.0, 1.0),
+		"activity": clampf(totals["activity_minutes"] / Config.get_float(path + "activity_full_min"), 0.0, 1.0),
+		"strength": clampf(totals["strength_days"] / Config.get_float(path + "strength_full_days"), 0.0, 1.0),
+		"screens": clampf(totals["screen_hours"] / Config.get_float(path + "screens_full_h"), 0.0, 1.0),
+	}
+
+
 ## Moderate-to-vigorous minutes ÷ activity_target_min, at most 1.
 func activity_score(minutes: float) -> float:
 	return clampf(minutes / Config.get_float("health.activity_target_min"), 0.0, 1.0)
@@ -180,7 +192,7 @@ func end_scoring_day(sleep_hours: float, start: Dictionary = {}) -> void:
 	last_sleep_hours = sleep_hours
 	scores = calculate_scores(totals, GameState.age_group)
 	# Then the slow body states change, once per scoring day.
-	GameState.update_body_states(scores, sleep_hours)
+	GameState.update_body_states(scores, sleep_hours, intensities(totals))
 	current_day += 1
 	_prune()
 	scores_updated.emit()

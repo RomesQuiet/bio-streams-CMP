@@ -32,8 +32,12 @@ var sleep_debt: float
 var weight_z: float
 ## Mood, 0 to 1.
 var mood: float
-## Usual level of each habit, as a habit score (0 to 1): sleep, activity, strength, screens.
+## Usual level H of each habit, as an intensity (0 to 1, see health.habit_intensity):
+## sleep, activity, strength, screens.
 var usual_habits: Dictionary
+## Rootedness R of each habit (0 to 1): how deeply the habit is rooted. It grows every
+## real day and makes changing that habit cost more (Milestone 4 Task 5).
+var rootedness: Dictionary
 ## Tired means sleepy. Placeholder rule: the Clock sets this to true when the day ends.
 var tired: bool
 var xp: float
@@ -108,6 +112,7 @@ func to_dict() -> Dictionary:
 		"weight_z": weight_z,
 		"mood": mood,
 		"usual_habits": usual_habits.duplicate(),
+		"rootedness": rootedness.duplicate(),
 		"tired": tired,
 		"xp": xp,
 		"high_health_hours": high_health_hours,
@@ -132,10 +137,15 @@ func from_dict(data: Dictionary) -> void:
 	sleep_debt = float(data.get("sleep_debt", sleep_debt))
 	weight_z = float(data.get("weight_z", weight_z))
 	mood = float(data.get("mood", mood))
-	var saved_habits: Variant = data.get("usual_habits", {})
-	if saved_habits is Dictionary:
-		for habit in saved_habits:
-			usual_habits[habit] = float(saved_habits[habit])
+	if data.get("rootedness") is Dictionary:
+		for habit in data["usual_habits"]:
+			usual_habits[habit] = float(data["usual_habits"][habit])
+		for habit in data["rootedness"]:
+			rootedness[habit] = float(data["rootedness"][habit])
+	else:
+		# A Milestone 3 save: no rootedness, and its usual levels were habit scores.
+		# Both start again from the Normal starting values.
+		_apply_habit_start(Config.get_string("defaults.difficulty"))
 	tired = bool(data.get("tired", tired))
 	xp = float(data.get("xp", xp))
 	high_health_hours = float(data.get("high_health_hours", high_health_hours))
@@ -170,7 +180,16 @@ func _apply_difficulty_start(difficulty_id: String) -> void:
 	sleep_debt = Config.get_float(path + ".sleep_debt")
 	weight_z = Config.get_float(path + ".weight_z")
 	mood = Config.get_float(path + ".mood")
-	usual_habits = Config.get_value(path + ".usual_habits").duplicate()
+	_apply_habit_start(difficulty_id)
+
+
+## Starting usual level H and rootedness R of each habit for a difficulty.
+func _apply_habit_start(difficulty_id: String) -> void:
+	var path := "health.difficulties." + difficulty_id
+	usual_habits = Config.get_value(path + ".start_H").duplicate()
+	rootedness = {}
+	for habit in usual_habits:
+		rootedness[habit] = Config.get_float(path + ".start_R")
 
 
 ## Recommended sleep range for an age group, in hours: x = minimum, y = maximum.
@@ -189,43 +208,54 @@ func _age_group_or_default(group: String) -> String:
 	return group if not group.is_empty() else Config.get_string("defaults.age_group")
 
 
-## Once per avatar day, when a sleep ends, after the habit scores (Habits calls this).
-## scores: sleep, activity, strength, screens (0 to 1). sleep_hours: hours of that sleep.
-func update_body_states(scores: Dictionary, sleep_hours: float) -> void:
-	var k := Config.get_float("health.k")
+## Once per scoring day, when a sleep ends, after the habit scores (Habits calls this).
+## scores: sleep, activity, strength, screens, enjoyment (0 to 1). sleep_hours: hours of
+## that sleep. intensities: today's intensity A of each habit (Habits.intensities());
+## a habit missing from it keeps its usual level.
+## The slow states that use k run the real-day update k times (Milestone 4 Task 4), so
+## one avatar day counts as k real days for the body and never overshoots.
+func update_body_states(scores: Dictionary, sleep_hours: float, intensities: Dictionary = {}) -> void:
+	var real_days := real_days_per_avatar_day()
 	var r := Config.get_float("health.r")
-	var debt_updates := roundi(k) if Config.get_value("health.k_applies_to_sleep_debt") else 1
+	var debt_updates := real_days if Config.get_value("health.k_applies_to_sleep_debt") else 1
 	for i in debt_updates:
 		sleep_debt = maxf(0.0, sleep_debt * r + (recommended_sleep(age_group) - sleep_hours))
 	# How far the habits jumped above their usual levels, before those levels move.
-	var change := habit_change(scores)
-	fitness = _train(fitness, float(scores.get("activity", 0.0)), k,
-			Config.get_float("health.fitness_k_up"), Config.get_float("health.fitness_k_down"))
-	muscle = _train(muscle, float(scores.get("strength", 0.0)), k,
-			Config.get_float("health.muscle_k_up"), Config.get_float("health.muscle_k_down"))
-	# weight_z stays the same: no food yet, so no automatic eating.
-	mood = clampf(mood + Config.get_float("health.mood_speed") * (mood_target(scores) - mood), 0.0, 1.0)
+	var change := habit_change(intensities)
+	var activity := float(scores.get("activity", 0.0))
+	var strength := float(scores.get("strength", 0.0))
 	# Per real day, a habit moves the share that reaches habit_share_reached (95%) of a
 	# new habit in habit_days_to_95 days.
 	var habit_rate := 1.0 - pow(1.0 - Config.get_float("health.habit_share_reached"),
 			1.0 / Config.get_float("health.habit_days_to_95"))
-	var habit_speed := minf(1.0, k * habit_rate)
-	for habit in usual_habits:
-		if scores.has(habit):
-			usual_habits[habit] = clampf(usual_habits[habit] + habit_speed * (float(scores[habit]) - usual_habits[habit]), 0.0, 1.0)
+	var lambda := Config.get_float("health.habit_cost.lambda")
+	for i in real_days:
+		fitness = _train(fitness, activity, Config.get_float("health.fitness_k_up"), Config.get_float("health.fitness_k_down"))
+		muscle = _train(muscle, strength, Config.get_float("health.muscle_k_up"), Config.get_float("health.muscle_k_down"))
+		for habit in usual_habits:
+			if intensities.has(habit):
+				usual_habits[habit] = clampf(usual_habits[habit] + habit_rate * (float(intensities[habit]) - usual_habits[habit]), 0.0, 1.0)
+			rootedness[habit] = clampf(rootedness[habit] + lambda * (1.0 - rootedness[habit]), 0.0, 1.0)
+	# weight_z stays the same: no food yet, so no automatic eating.
+	mood = clampf(mood + Config.get_float("health.mood_speed") * (mood_target(scores) - mood), 0.0, 1.0)
 	_update_measures(float(scores.get("sleep", 0.0)), change)
 	_step_health()
 	changed.emit()
 
 
-## Sum, over the habits, of how far the day's score is above the usual level by more
-## than the free step (health.milestone3_rules). 0 when habits change step by step.
-func habit_change(scores: Dictionary) -> float:
+## How many real days one avatar day counts for the body: k, rounded to a whole number.
+func real_days_per_avatar_day() -> int:
+	return maxi(1, roundi(Config.get_float("health.k")))
+
+
+## Milestone 3 rule until Task 5: sum, over the habits, of how far today's intensity is
+## above the usual level by more than the free step (health.milestone3_rules).
+func habit_change(intensities: Dictionary) -> float:
 	var free_step := Config.get_float("health.milestone3_rules.habit_change_free_step")
 	var total := 0.0
 	for habit in usual_habits:
-		if scores.has(habit):
-			total += maxf(0.0, float(scores[habit]) - usual_habits[habit] - free_step)
+		if intensities.has(habit):
+			total += maxf(0.0, float(intensities[habit]) - usual_habits[habit] - free_step)
 	return total
 
 
@@ -267,12 +297,10 @@ func mood_target(scores: Dictionary) -> float:
 	return total / weight_sum if weight_sum > 0.0 else mood
 
 
-## Fitness or muscle after one avatar day: rises with the score toward 1 and falls
-## without it toward 0. k multiplies both speeds; each is kept at 1 or less.
-func _train(value: float, score: float, k: float, k_up: float, k_down: float) -> float:
-	var up := minf(1.0, k * k_up)
-	var down := minf(1.0, k * k_down)
-	return clampf(value + up * score * (1.0 - value) - down * (1.0 - score) * value, 0.0, 1.0)
+## Fitness or muscle after one real day: rises with the score toward 1 and falls
+## without it toward 0 (k_up and k_down are per real day).
+func _train(value: float, score: float, k_up: float, k_down: float) -> float:
+	return clampf(value + k_up * score * (1.0 - value) - k_down * (1.0 - score) * value, 0.0, 1.0)
 
 
 ## True once the avatar has been created (name, age group, sex and difficulty chosen).
@@ -397,6 +425,7 @@ func print_state() -> void:
 	print("muscle=%.2f calories_spent=%.0f" % [muscle, calories_spent])
 	print("fitness=%.3f sleep_debt=%.2f h weight_z=%+.1f mood=%.3f" % [fitness, sleep_debt, weight_z, mood])
 	print("usual_habits=%s" % usual_habits)
+	print("rootedness=%s" % rootedness)
 	print("hunger=%.2f tired=%s" % [hunger, tired])
 	print("health=%.2f (level %d) target=%.2f" % [health, health_level, target_health])
 	print("xp=%.1f level=%d progress=%.2f" % [xp, level, level_progress])

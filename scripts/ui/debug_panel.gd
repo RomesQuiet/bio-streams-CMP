@@ -40,8 +40,9 @@ func _refresh() -> void:
 	lines.append("  fitness %.3f  muscle %.3f" % [gs.fitness, gs.muscle])
 	lines.append("  sleep debt %.2f h  mood %.3f" % [gs.sleep_debt, gs.mood])
 	lines.append("  weight z %+.1f (score %.2f)" % [gs.weight_z, gs.weight_score(gs.weight_z)])
-	lines.append("  usual: sleep %.2f activity %.2f" % [gs.usual_habits.get("sleep", 0.0), gs.usual_habits.get("activity", 0.0)])
-	lines.append("         strength %.2f screens %.2f" % [gs.usual_habits.get("strength", 0.0), gs.usual_habits.get("screens", 0.0)])
+	lines.append("  usual H / rooted R:")
+	for habit in gs.usual_habits:
+		lines.append("    %s %.3f / %.3f" % [habit, gs.usual_habits[habit], gs.rootedness.get(habit, 0.0)])
 	lines.append("Measures")
 	lines.append("  physical %.3f  mental %.3f" % [gs.physical, gs.mental])
 	lines.append("  sleep %.3f" % gs.sleep)
