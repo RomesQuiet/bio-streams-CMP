@@ -43,7 +43,7 @@ Read `CLAUDE.md` first. After each task, say how to run it and what to check. Ke
 | `k_applies_to_sleep_debt` | false | Open team decision; debt changes once per avatar day. | Pessoa 4 |
 | `sleep_range.child` | [9, 12] | CDC / AASM | Pessoa 2 |
 | `sleep_range.teen` | [8, 10] | CDC / AASM | Pessoa 2 |
-| `sleep_recommended.child` / `.teen` | 10.5 / 9 | Midpoint of each range (one number for the debt formula) | Pessoa 2 |
+| `sleep_recommended.child` / `.teen` | 9 / 8 | Lower limit of each range (Task 6.5: with the midpoint, sleep inside the range still built up debt) | Pessoa 2 |
 | `sleep_zero_at` | 4 | Sleep score 0 at 4 h or less, linear up to the lower limit | Pessoa 2 |
 | `sleep_over_penalty_per_h` | 0.1 | Score falls 0.1 per hour above the upper limit | Pessoa 2 |
 | `r` | 0.8 | Debt halves in about 3 days without new debt (r^n = 0.5) | Pessoa 2 |

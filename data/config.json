@@ -72,8 +72,8 @@
 			"teenager": {"value": [8, 10], "status": "from source", "owner": "Pessoa 2", "comment": "CDC / AASM, 13 to 18 years. MILESTONE_4.md calls it teen; the game saves the age group as teenager."}
 		},
 		"sleep_recommended": {
-			"child": {"value": 10.5, "status": "placeholder", "owner": "Pessoa 2", "comment": "Midpoint of the range: one number for the sleep debt formula."},
-			"teenager": {"value": 9, "status": "placeholder", "owner": "Pessoa 2", "comment": "Midpoint of the range."}
+			"child": {"value": 9, "status": "team decision", "owner": "Pessoa 2", "comment": "Lower limit of the range (Task 6.5): sleep inside the recommended range adds no sleep debt."},
+			"teenager": {"value": 8, "status": "team decision", "owner": "Pessoa 2", "comment": "Lower limit of the range (Task 6.5)."}
 		},
 		"sleep_zero_at": {"value": 4, "status": "placeholder", "owner": "Pessoa 2", "comment": "Sleep score 0 at this many hours or less, linear up to the lower limit of the range."},
 		"sleep_over_penalty_per_h": {"value": 0.1, "status": "placeholder", "owner": "Pessoa 2", "comment": "Sleep score lost per hour above the upper limit."},
