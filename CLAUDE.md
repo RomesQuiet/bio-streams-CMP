@@ -46,7 +46,7 @@ translations/  strings.csv
 assets/        art/, audio/
 documentation/ milestone notes
 docs/          web export (GitHub Pages)
-tests/         headless test scripts (one per area: clock, save, activities, health and XP, creation, difficulty, habits, body)
+tests/         headless test scripts (one per area: clock, save, activities, health and XP, creation, difficulty, habits, body, calibration)
 ```
 
 Autoloads: `Config`, `GameState`, `Clock`, `Activities` (the general activity system for sleep, exercise and entertainment, reading `data/activities.json`), `Habits` (the action log and daily habit scores) and `SaveGame`. The Clock never reads the device clock for game time; it advances only with the game open (delta time).
@@ -149,6 +149,7 @@ Source: "Architecture Decisions: Health System" (see Documents). The structure i
   - Mental = mood − habit_change_cost × 0.1 × the sum, over the four habits, of how far the day's score is above its usual level by more than 0.1 (the usual levels from before that day). Doing much more than usual costs mental health; changing step by step costs little; Very hard pays twice as much, Hard half.
   - Target health = the weighted power mean of the three measures; displayed health += 0.3 × (target − health). Each change of displayed health gives or takes XP; the XP over time uses the displayed health level.
   - Before the first sleep the measures are the difficulty's starting measures.
+- **Calibration scenarios** (`tests/calibration_test.gd`): simulates 28 avatar days with fixed habits through the real action log and daily update, for a child and a teenager, and prints health per day and PASS or FAIL per scenario: (1) recommended habits rise above 4 on Normal; (2) 5 h of sleep with lots of exercise never goes above 3; (3) good sleep, no activity and 6 h of screens falls below 3; (4) on Very hard, changing every habit on day 1 makes mental drop, and changing step by step over 10 days makes it drop much less. When a scenario fails, p and the weights are not changed by Claude: the result and proposed values go to the user to decide. **Current status (decision pending):** with p = 0.5, scenario 2 fails for the teenager (health ends at 3.19) and scenario 3 fails for both ages (3.10); with p = 0.1 every scenario passes (scenario 3 only just, 2.99 after 28 days). The user keeps p = 0.5 for now and will decide the calibration later.
 - Normal start check: measures 0.5 · 0.5 · 0.5 give health 3. The old start values (physical 0.5, mental 0.5, sleep 1) would give 3.6, which is why Normal now starts with sleep 0.5.
 
 **Food and energy.** Until the food system is built there is **no automatic eating**: body fat and BMI stay at the difficulty's starting value. Exercise only records calories spent and muscle. Energy balance (energy eaten minus energy used, rule of thumb about 7700 kcal per kg, a simplification) only enters the calculation once food exists.
