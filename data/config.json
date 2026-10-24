@@ -47,6 +47,7 @@
 		"_comment": "Every value of the health calculation (CLAUDE.md, Health calculation; MILESTONE_4.md has the key names). Each value has a status (placeholder, team decision or from source) and an owner (Pessoa 1 to 4, as in the research plan). Changing a value here changes the game without any code change; in debug builds press F6 to reload this file while the game runs. ",
 		"k": {"value": 5, "status": "team decision", "owner": "team", "comment": "Body speed multiplier: how much faster health and the body change than the real-life average. Same k for habits."},
 		"death_enabled": {"value": false, "status": "team decision", "owner": "team", "comment": "There is no death, only failure."},
+		"failure_at_health": {"value": 1.05, "status": "placeholder", "owner": "Pessoa 4", "comment": "Failure happens when the displayed health is at or below this (minimum health is 1; the bar only comes close to it). For now only a placeholder message is shown; the failure effect is not decided."},
 		"habit_days_to_95": {"value": 66, "status": "team decision", "owner": "team", "comment": "Real days for a habit to reach 95% of its usual level (Lally and colleagues 2010, median)."},
 		"habit_share_reached": {"value": 0.95, "status": "team decision", "owner": "team", "comment": "The share of a new habit that is reached after habit_days_to_95 real days."},
 		"habit_intensity": {

@@ -46,7 +46,7 @@ translations/  strings.csv
 assets/        art/, audio/
 documentation/ milestone notes
 docs/          web export (GitHub Pages)
-tests/         headless test scripts (one per area: clock, save, activities, health and XP, creation, difficulty, habits, body, calibration, config)
+tests/         headless test scripts (one per area: clock, save, activities, health and XP, creation, difficulty, habits, body, calibration, config, measures)
 ```
 
 Autoloads: `Config`, `GameState`, `Clock`, `Activities` (the general activity system for sleep, exercise and entertainment, reading `data/activities.json`), `Habits` (the action log and daily habit scores) and `SaveGame`. The Clock never reads the device clock for game time; it advances only with the game open (delta time).
@@ -152,6 +152,8 @@ Source: "Architecture Decisions: Health System" (see Documents) and the team's "
   - Mental = mood ÷ 100 (the habit-change cost is already taken off mood). The Milestone 3 rules (`habit_change_cost` per difficulty and the old mood weights) are deleted. Doing much more than usual costs mental health; changing step by step costs little; Very hard pays twice as much, Hard half.
   - Target health = the weighted power mean of the three measures; displayed health += `alpha_bar` (0.37) × (target − health). Each change of displayed health gives or takes XP; the XP over time uses the displayed health level.
   - Before the first sleep the measures are the difficulty's starting measures.
+  - **Failure** (Milestone 4 Task 6; there is no death, `death_enabled` false): when the displayed health is at or below `health.failure_at_health` (1.05, placeholder; the bar only comes close to the minimum 1), `GameState.is_at_failure()` is true and the speech bubble shows a placeholder failure message ("Failure: my health has reached the minimum."). Nothing else happens; the failure effect is not decided. The message goes away when health rises again.
+  - `tests/measures_test.gd` plays avatar days with the main screen open and checks after each sleep that the three measures, the target and the displayed health follow these formulas and that the health bar, level box and measures panel show them.
 - **Calibration scenarios** (`tests/calibration_test.gd`): simulates 28 avatar days with fixed habits through the real action log and daily update, for a child and a teenager, and prints health per day and PASS or FAIL per scenario: (1) recommended habits rise above 4 on Normal; (2) 5 h of sleep with lots of exercise never goes above 3; (3) good sleep, no activity and 6 h of screens falls below 3; (4) on Very hard, changing every habit on day 1 makes mental drop, and changing step by step over 10 days makes it drop much less. When a scenario fails, p and the weights are not changed by Claude: the result and proposed values go to the user to decide. **Current status (decision pending):** with p = 0.5, scenario 2 fails for the teenager (health ends at 3.19) and scenario 3 fails for both ages (3.10); with p = 0.1 every scenario passes (scenario 3 only just, 2.99 after 28 days). The user keeps p = 0.5 for now and will decide the calibration later.
 - Normal start check: measures 0.5 · 0.5 · 0.5 give health 3. The old start values (physical 0.5, mental 0.5, sleep 1) would give 3.6, which is why Normal now starts with sleep 0.5.
 

@@ -37,6 +37,7 @@ Godot --headless --path . -s res://tests/habits_test.gd
 Godot --headless --path . -s res://tests/body_test.gd
 Godot --headless --path . -s res://tests/calibration_test.gd
 Godot --headless --path . -s res://tests/config_test.gd
+Godot --headless --path . -s res://tests/measures_test.gd
 ```
 
 ## Export the web version

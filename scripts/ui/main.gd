@@ -3,6 +3,8 @@ extends Control
 ## Eat is a placeholder until its task.
 
 const CREATION_SCENE := "res://scenes/ui/creation.tscn"
+## Placeholder message at minimum health (the failure effect is not decided yet).
+const FAILURE_TEXT := "Failure: my health has reached the minimum."
 
 ## Sky colours. The sky follows the clock (daylight hours in config), not whether
 ## the avatar is awake or asleep.
@@ -205,6 +207,7 @@ func _refresh() -> void:
 	xp_bar.value = GameState.level_progress
 	var per_level := Config.get_float("xp.per_level")
 	xp_label.text = "XP %d / %d" % [floori(GameState.level_progress * per_level), roundi(per_level)]
+	_refresh_phase()
 
 
 func _refresh_clock() -> void:
@@ -239,13 +242,18 @@ func _refresh_phase() -> void:
 		return
 	match phase:
 		Clock.Phase.DAY:
-			if GameState.tired:
+			if GameState.is_at_failure():
+				_set_speech(FAILURE_TEXT)
+			elif GameState.tired:
 				# Stays visible until the avatar sleeps.
 				_set_speech("I'm tired. Sleep is recommended.")
 			else:
 				_set_speech("Paused" if Clock.paused else "Hello!")
 		Clock.Phase.SLEEP_OVER:
-			_set_speech("I slept %.1f h. Press the wake button to start the day." % Clock.sleep_elapsed_hours)
+			var text := "I slept %.1f h. Press the wake button to start the day." % Clock.sleep_elapsed_hours
+			if GameState.is_at_failure():
+				text = FAILURE_TEXT + "\n" + text
+			_set_speech(text)
 
 
 ## Shows what the chosen hours mean: real sleep time and the length of the next day.

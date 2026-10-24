@@ -321,6 +321,12 @@ func _train(value: float, score: float, k_up: float, k_down: float) -> float:
 	return clampf(value + k_up * score * (1.0 - value) - k_down * (1.0 - score) * value, 0.0, 1.0)
 
 
+## Failure (there is no death): the displayed health has reached the minimum
+## (health.failure_at_health). The effect is not decided; the main screen shows a message.
+func is_at_failure() -> bool:
+	return health <= Config.get_float("health.failure_at_health")
+
+
 ## True once the avatar has been created (name, age group, sex and difficulty chosen).
 func is_created() -> bool:
 	return has_all_choices(to_dict())
