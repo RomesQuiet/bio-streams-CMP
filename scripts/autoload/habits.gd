@@ -4,7 +4,7 @@ extends Node
 ## hours actually done (Stop counts only the time done). The last log_days avatar days
 ## are kept. When a sleep ends, four habit scores (0 to 1) are worked out from the log,
 ## and then GameState updates the slow body states from them.
-## All numbers come from Config (section habits).
+## All numbers come from Config (section health).
 
 ## Emitted when new habit scores were calculated (a sleep ended).
 signal scores_updated
@@ -73,28 +73,28 @@ func add_entry(type: String, start_total: float, hours: float, day := 0, start_m
 ## The four habit scores for a sleep of this many hours, from the log up to now:
 ## {"sleep", "activity", "strength", "screens"}, each 0 to 1.
 func calculate_scores(sleep_hours: float, age_group: String) -> Dictionary:
-	var day_hours := Config.get_float("habits.avatar_day_hours")
+	var day_hours := Config.get_float("health.log.avatar_day_hours")
 	var activity_minutes := 0.0
 	var screen_hours := 0.0
 	var strength_days := {}
-	var activity_types: Array = Config.get_value("habits.activity_types")
-	var strength_types: Array = Config.get_value("habits.strength_types")
-	var screen_types: Array = Config.get_value("habits.screen_types")
+	var activity_types: Array = Config.get_value("health.log.activity_types")
+	var strength_types: Array = Config.get_value("health.log.strength_types")
+	var screen_types: Array = Config.get_value("health.log.screen_types")
 	for entry in entries:
 		var age: float = avatar_hours_total - float(entry["start_total"])
 		var type: String = entry["type"]
 		var hours: float = entry["hours"]
 		if age < day_hours:  # Started in the last avatar day.
 			if type in activity_types:
-				activity_minutes += hours * 60.0
+				activity_minutes += hours * Clock.MINUTES_PER_HOUR
 			if type in screen_types:
 				screen_hours += hours
-		if type in strength_types and hours > 0.0 and age < Config.get_float("habits.log_days") * day_hours:
+		if type in strength_types and hours > 0.0 and age < Config.get_float("health.log.log_days") * day_hours:
 			strength_days[floori(maxf(age, 0.0) / day_hours)] = true
 	return {
 		"sleep": sleep_score(sleep_hours, age_group),
-		"activity": clampf(activity_minutes / Config.get_float("habits.activity_minutes_target"), 0.0, 1.0),
-		"strength": clampf(strength_days.size() / Config.get_float("habits.strength_days_target"), 0.0, 1.0),
+		"activity": clampf(activity_minutes / Config.get_float("health.activity_target_min"), 0.0, 1.0),
+		"strength": clampf(strength_days.size() / Config.get_float("health.strength_days_target"), 0.0, 1.0),
 		"screens": screen_score(screen_hours),
 	}
 
@@ -105,18 +105,18 @@ func sleep_score(hours: float, age_group: String) -> float:
 	var sleep_range := GameState.sleep_range(age_group)
 	var low := sleep_range.x
 	var high := sleep_range.y
-	var zero_at := Config.get_float("habits.sleep_zero_at_hours")
+	var zero_at := Config.get_float("health.sleep_zero_at")
 	if hours < low:
 		return clampf((hours - zero_at) / (low - zero_at), 0.0, 1.0)
 	if hours > high:
-		return clampf(1.0 - (hours - high) * Config.get_float("habits.sleep_above_range_loss_per_hour"), 0.0, 1.0)
+		return clampf(1.0 - (hours - high) * Config.get_float("health.sleep_over_penalty_per_h"), 0.0, 1.0)
 	return 1.0
 
 
 ## 1 up to screens_full_up_to_hours; falls in a straight line to 0 at screens_zero_at_hours.
 func screen_score(hours: float) -> float:
-	var full := Config.get_float("habits.screens_full_up_to_hours")
-	var zero := Config.get_float("habits.screens_zero_at_hours")
+	var full := Config.get_float("health.screens_full_until_h")
+	var zero := Config.get_float("health.screens_zero_at_h")
 	return clampf((zero - hours) / (zero - full), 0.0, 1.0)
 
 
@@ -158,7 +158,7 @@ func _score_sleep(hours: float) -> void:
 
 ## Keeps only the last log_days avatar days.
 func _prune() -> void:
-	var limit := Config.get_float("habits.log_days") * Config.get_float("habits.avatar_day_hours")
+	var limit := Config.get_float("health.log.log_days") * Config.get_float("health.log.avatar_day_hours")
 	entries = entries.filter(func(entry: Dictionary) -> bool: return avatar_hours_total - float(entry["start_total"]) < limit)
 
 

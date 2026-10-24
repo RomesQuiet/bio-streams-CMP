@@ -20,7 +20,7 @@ The game saves on your device. Nothing is sent to a server. A new game starts on
 
 The project uses the **Compatibility** renderer so that it works in web browsers on computers, Android and iOS.
 
-Debug keys (only when running from the Godot editor): **F9** changes the game speed (x1, x60, x600), **F8** deletes the save and starts a new game, **F7** shows or hides the debug panel (habit scores, body states, measures, target and displayed health; only in debug builds, never in the published game).
+Debug keys (only when running from the Godot editor): **F9** changes the game speed (x1, x60, x600), **F8** deletes the save and starts a new game, **F6** reloads `data/config.json` (change a value, save the file, press F6), **F7** shows or hides the debug panel (habit scores, body states, measures, target and displayed health; only in debug builds, never in the published game).
 
 ## Tests
 
@@ -36,6 +36,7 @@ Godot --headless --path . -s res://tests/difficulty_test.gd
 Godot --headless --path . -s res://tests/habits_test.gd
 Godot --headless --path . -s res://tests/body_test.gd
 Godot --headless --path . -s res://tests/calibration_test.gd
+Godot --headless --path . -s res://tests/config_test.gd
 ```
 
 ## Export the web version

@@ -40,6 +40,13 @@ func current_option_data() -> Dictionary:
 	return get_option(current_activity, current_option)
 
 
+## A value of an option that may be written as {"value": ..., "status": ..., "owner": ...}.
+## Returns default when the option does not have it.
+func option_value(option: Dictionary, key: String, default: Variant = null) -> Variant:
+	var entry: Variant = option.get(key, default)
+	return entry["value"] if entry is Dictionary and entry.has("value") else entry
+
+
 func uses_sleep_time(activity_id: String) -> bool:
 	return bool(definitions.get(activity_id, {}).get("uses_sleep_time", false))
 
@@ -130,7 +137,10 @@ func _on_avatar_time_passed(hours: float, asleep: bool) -> void:
 	var done := minf(hours, target_hours - elapsed_hours)
 	if done > 0.0:
 		elapsed_hours += done
-		GameState.apply_effects(current_option_data().get("effects_per_hour", {}), done)
+		var option := current_option_data()
+		GameState.apply_effects(option.get("effects_per_hour", {}), done)
+		# Calories spent: a record only.
+		GameState.apply_effects({"calories_spent": float(option_value(option, "kcal_per_hour", 0.0))}, done)
 	progressed.emit()
 	if not uses_sleep_time(current_activity) and elapsed_hours >= target_hours:
 		_end()

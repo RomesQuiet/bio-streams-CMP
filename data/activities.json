@@ -1,5 +1,5 @@
 {
-	"_comment": "Activities the avatar can do. Each activity has options; each option has a duration in avatar hours (or \"slider\" for sleep), effects per avatar hour on GameState values, a background colour and an animation name. Effects only count for the time actually done. Options marked \"placeholder\": true use temporary numbers.",
+	"_comment": "Activities the avatar can do. Each activity has options; each option has a duration in avatar hours (or \"slider\" for sleep), effects per avatar hour on GameState values (none for now), kcal_per_hour (calories spent, a record only), activity_intensity (\"moderate_vigorous\" counts toward the 60 minutes), a background colour and an animation name. Effects and calories only count for the time actually done. Options marked \"placeholder\": true use temporary numbers; kcal_per_hour and activity_intensity have their own status and owner (MILESTONE_4.md).",
 
 	"sleep": {
 		"name": "Sleep",
@@ -12,7 +12,7 @@
 				"background_color": "#0f1224",
 				"animation": "sleep",
 				"placeholder": true,
-				"comment": "Duration comes from the sleep slider (config.json: sleep_activity, time.max_sleep_hours). No per-hour effect: when the sleep ends, its hours give the sleep score, and the sleep measure is worked out from it (config.json: measures_from_body)."
+				"comment": "Duration comes from the sleep slider (config.json: sleep_activity, time.max_sleep_hours). No per-hour effect: when the sleep ends, its hours give the sleep score, and the sleep measure is worked out from it (config.json: health.debt_max)."
 			}
 		}
 	},
@@ -23,20 +23,24 @@
 			"cardio": {
 				"name": "Cardio",
 				"duration_hours": 1,
-				"effects_per_hour": { "calories_spent": 500 },
+				"effects_per_hour": {},
+				"kcal_per_hour": { "value": 300, "status": "placeholder", "owner": "Pessoa 3", "comment": "Record only (no food yet)." },
+				"activity_intensity": { "value": "moderate_vigorous", "status": "placeholder", "owner": "Pessoa 3", "comment": "Until the MET values from the Youth Compendium are in." },
 				"background_color": "#2d5a3d",
 				"animation": "cardio",
 				"placeholder": true,
-				"comment": "calories_spent is in kcal per avatar hour, a record only. Cardio spends more calories than muscle strength. Fitness changes once per avatar day from the activity score (config.json: body_states)."
+				"comment": "Cardio spends more calories than muscle strength. Fitness changes once per avatar day from the activity score (config.json: health)."
 			},
 			"strength": {
 				"name": "Muscle strength",
 				"duration_hours": 1,
-				"effects_per_hour": { "calories_spent": 300 },
+				"effects_per_hour": {},
+				"kcal_per_hour": { "value": 200, "status": "placeholder", "owner": "Pessoa 3", "comment": "Record only (no food yet)." },
+				"activity_intensity": { "value": "moderate_vigorous", "status": "placeholder", "owner": "Pessoa 3", "comment": "Until the MET values from the Youth Compendium are in." },
 				"background_color": "#5a3d2d",
 				"animation": "strength",
 				"placeholder": true,
-				"comment": "calories_spent is a record only. Muscle changes once per avatar day from the strength score (config.json: body_states). There is no fatigue system."
+				"comment": "Muscle changes once per avatar day from the strength score (config.json: health). There is no fatigue system."
 			}
 		}
 	},

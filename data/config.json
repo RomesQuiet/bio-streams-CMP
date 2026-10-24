@@ -1,5 +1,5 @@
 {
-	"_comment": "All tunable game numbers. A plain number is a confirmed rule from CLAUDE.md. An object with \"placeholder\": true is a temporary value that is not decided yet; read it through Config.get_value(), which returns its \"value\".",
+	"_comment": "All tunable game numbers. A plain number is a confirmed rule from CLAUDE.md. An object with \"placeholder\": true, or with \"status\": \"placeholder\" (health block), is a temporary value that is not decided yet; read it through Config.get_value(), which returns its \"value\".",
 
 	"time": {
 		"day_baseline_hours": 14,
@@ -30,7 +30,7 @@
 	},
 
 	"measures": {
-		"_comment": "The starting physical, mental and sleep measures and muscle come from the chosen difficulty (section difficulties).",
+		"_comment": "The starting physical, mental and sleep measures and the body states come from the chosen difficulty (health.difficulties).",
 		"health_min": 1,
 		"health_max": 5,
 		"calories_spent_start": { "value": 0, "placeholder": true, "comment": "Total kcal spent by exercise so far. Whether it resets each day is not decided." },
@@ -43,86 +43,88 @@
 		"slider_default_hours": { "value": 10, "placeholder": true, "comment": "Where the slider starts. 10 h is the baseline sleep." }
 	},
 
-	"health_formula": {
-		"_comment": "Weighted power mean (CLAUDE.md, Health calculation): C = (w_P*P^p + w_M*M^p + w_S*S^p)^(1/p), with the weights divided by their sum. Target health = health_min + (health_max - health_min) * C. p = 1 is the ordinary average; p near 0 is the geometric mean (the weakest measure pulls everything down). The displayed health starts at the target and then moves toward it once per avatar day (daily_alpha).",
-		"p": { "value": 0.5, "placeholder": true },
-		"weight_physical": { "value": 1.0, "placeholder": true, "comment": "Equal weights = 1/3 each." },
-		"weight_mental": { "value": 1.0, "placeholder": true },
-		"weight_sleep": { "value": 1.0, "placeholder": true },
-		"daily_alpha": { "value": 0.3, "placeholder": true, "comment": "Share of the way the displayed health moves toward the target health once per avatar day: health += daily_alpha * (target - health)." }
-	},
-
-	"measures_from_body": {
-		"_comment": "The three measures, worked out once per avatar day after the body states (CLAUDE.md, Health calculation, step 4). Physical = mix of fitness, muscle and weight score (section physical_measure). Sleep = the day's sleep score x (1 - sleep_debt_penalty_per_hour x sleep debt), never below 0. Mental = mood - habit_change_cost (from the difficulty) x habit_change_penalty x the sum, over the four habits, of how far the day's score is above the usual level by more than habit_change_free_step. Doing much more than usual costs mental health; changing step by step costs little.",
-		"sleep_debt_penalty_per_hour": { "value": 0.05, "placeholder": true, "comment": "10 h of sleep debt halve the sleep measure; 20 h make it 0." },
-		"habit_change_free_step": { "value": 0.1, "placeholder": true, "comment": "A habit score up to this much above its usual level costs nothing." },
-		"habit_change_penalty": { "value": 0.1, "placeholder": true, "comment": "Mental lost per score point above the free step, before the difficulty's habit_change_cost." }
-	},
-
-	"physical_measure": {
-		"_comment": "Physical measure (built in Milestone 3 Task 5) = mix of fitness, muscle and a weight score. The weight score is 1 while the WHO BMI-for-age z-score is between -full_within_z and +full_within_z, and falls to 0 at +-zero_at_z along the curve t^curve_power, where t goes in a straight line from 1 (at full_within_z) to 0 (at zero_at_z). curve_power 1 is a straight line; 2 makes the score fall faster just above the healthy range (at z = +2, obesity, the score is 0.25 instead of 0.5) and keeps the starting fitness in order from Easy to Very hard. Used now to choose the starting body states of each difficulty.",
-		"weight_fitness": { "value": 1.0, "placeholder": true, "comment": "Equal thirds." },
-		"weight_muscle": { "value": 1.0, "placeholder": true },
-		"weight_weight_score": { "value": 1.0, "placeholder": true },
-		"weight_score_full_within_z": { "value": 1.0, "placeholder": true },
-		"weight_score_zero_at_z": { "value": 3.0, "placeholder": true },
-		"weight_score_curve_power": { "value": 2.0, "placeholder": true, "comment": "1 = straight line. Curve shapes are not decided yet." }
-	},
-
-	"recommended_sleep": {
-		"_comment": "Recommended sleep per 24 h for each age group (CLAUDE.md).",
-		"child": { "min_hours": 9, "max_hours": 12, "placeholder": true, "comment": "6 to 12 years, reference age 10." },
-		"teenager": { "min_hours": 8, "max_hours": 10, "placeholder": true, "comment": "13 to 18 years, reference age 14." }
-	},
-
-	"habits": {
-		"_comment": "Action log and daily habit scores (0 to 1). Scores are worked out when a sleep ends, from the log of the last log_days avatar days. 'Last day' means the last avatar_day_hours of avatar time. The log types are the activity option ids in data/activities.json (sleep is not logged as a type).",
-		"avatar_day_hours": 24,
-		"log_days": 7,
-		"activity_types": ["cardio", "strength"],
-		"strength_types": ["strength"],
-		"screen_types": { "value": ["entertainment"], "placeholder": true, "comment": "All entertainment counts as recreational screen time until sedentary and active entertainment exist." },
-		"activity_minutes_target": 60,
-		"strength_days_target": 3,
-		"screens_full_up_to_hours": { "value": 2.0, "placeholder": true, "comment": "Screen score is 1 up to this many hours per day." },
-		"screens_zero_at_hours": { "value": 6.0, "placeholder": true, "comment": "Screen score falls in a straight line to 0 at this many hours per day." },
-		"sleep_zero_at_hours": { "value": 4.0, "placeholder": true, "comment": "Sleep score falls in a straight line from 1 at the recommended minimum to 0 at this many hours or less." },
-		"sleep_above_range_loss_per_hour": { "value": 0.1, "placeholder": true, "comment": "Sleep score lost per hour above the recommended maximum (slow fall)." }
-	},
-
-	"body_states": {
-		"_comment": "Slow body states (CLAUDE.md, Health calculation, step 3). Updated once per avatar day, when a sleep ends, after the habit scores. k (body speed) multiplies the speeds of fitness, muscle and the usual habit levels only (each speed times k is kept at 1 or less). Fitness and muscle: new = x + k*k_up*score*(1 - x) - k*k_down*(1 - score)*x, with the activity score for fitness and the strength score for muscle. Sleep debt (hours): new = old*r + (recommended minimum sleep - hours slept), never below 0. Mood moves mood_speed of the way toward a target = weighted average of the sleep, activity and screens scores. Weight z-score stays at the difficulty's value until food exists.",
-		"k": { "value": 4.0, "placeholder": true, "comment": "Body speed multiplier. Test between 3 and 4. One avatar day counts as k days for the body." },
-		"fitness_k_up": { "value": 0.05, "placeholder": true, "comment": "Per day, before k." },
-		"fitness_k_down": { "value": 0.02, "placeholder": true, "comment": "Per day, before k. Smaller than k_up, so fitness falls slowly." },
-		"muscle_k_up": { "value": 0.05, "placeholder": true },
-		"muscle_k_down": { "value": 0.02, "placeholder": true },
-		"sleep_debt_r": { "value": 0.7, "placeholder": true, "comment": "Share of the old sleep debt kept each day (0 = all forgiven at once, 1 = never forgiven)." },
-		"mood_speed": { "value": 0.3, "placeholder": true, "comment": "Share of the way mood moves toward its target each day. Not multiplied by k." },
-		"mood_weight_sleep": { "value": 1.0, "placeholder": true },
-		"mood_weight_activity": { "value": 1.0, "placeholder": true },
-		"mood_weight_screens": { "value": 1.0, "placeholder": true, "comment": "Too much screen time lowers the screens score and so the mood. Enjoyment and food join later." },
-		"usual_habit_speed": { "value": 0.05, "placeholder": true, "comment": "Share of the way each usual habit level moves toward the day's habit score, before k." }
-	},
-
-	"difficulties": {
-		"_comment": "Starting values per difficulty (all placeholders). physical, mental and sleep are the starting measures; starting health is calculated from them with health_formula, never typed in. weight_z is the WHO BMI-for-age z-score and stays fixed until food exists. habit_change_cost multiplies how much changing habits fast lowers mental health (1 = normal, lower = cheaper). The body states are chosen so that on day 1 they give the starting measures: (fitness + muscle + weight score) / 3 = physical, mood = mental, sleep_debt = 0. usual_habits are habit scores (0 to 1): sleep = starting sleep measure, activity = fitness, strength = muscle, screens = starting mental measure, so the body states do not drift on their own.",
-		"easy": { "physical": 0.75, "mental": 0.75, "sleep": 0.75, "weight_z": 0.0, "habit_change_cost": 1.0,
-			"fitness": 0.625, "muscle": 0.625, "mood": 0.75, "sleep_debt": 0.0,
-			"usual_habits": { "sleep": 0.75, "activity": 0.625, "strength": 0.625, "screens": 0.75 },
-			"placeholder": true, "comment": "Health about 4." },
-		"normal": { "physical": 0.5, "mental": 0.5, "sleep": 0.5, "weight_z": 1.0, "habit_change_cost": 1.0,
-			"fitness": 0.25, "muscle": 0.25, "mood": 0.5, "sleep_debt": 0.0,
-			"usual_habits": { "sleep": 0.5, "activity": 0.25, "strength": 0.25, "screens": 0.5 },
-			"placeholder": true, "comment": "Health 3." },
-		"hard": { "physical": 0.15, "mental": 0.3, "sleep": 0.3, "weight_z": 2.2, "habit_change_cost": 0.5,
-			"fitness": 0.145, "muscle": 0.145, "mood": 0.3, "sleep_debt": 0.0,
-			"usual_habits": { "sleep": 0.3, "activity": 0.145, "strength": 0.145, "screens": 0.3 },
-			"placeholder": true, "comment": "Health about 2. Habit changes are cheap." },
-		"very_hard": { "physical": 0.05, "mental": 0.05, "sleep": 0.1, "weight_z": 3.2, "habit_change_cost": 2.0,
-			"fitness": 0.075, "muscle": 0.075, "mood": 0.05, "sleep_debt": 0.0,
-			"usual_habits": { "sleep": 0.1, "activity": 0.075, "strength": 0.075, "screens": 0.05 },
-			"placeholder": true, "comment": "Health about 1.3, shown as level 1. Changing habits fast is expensive." }
+	"health": {
+		"_comment": "Every value of the health calculation (CLAUDE.md, Health calculation; MILESTONE_4.md has the key names). Each value has a status (placeholder, team decision or from source) and an owner (Pessoa 1 to 4, as in the research plan). Changing a value here changes the game without any code change; in debug builds press F6 to reload this file while the game runs. Keys marked \"Milestone 3 rule\" are still used by the old formulas and are removed when Milestone 4 replaces those formulas.",
+		"k": {"value": 5, "status": "team decision", "owner": "team", "comment": "Body speed multiplier: how much faster health and the body change than the real-life average. Same k for habits."},
+		"death_enabled": {"value": false, "status": "team decision", "owner": "team", "comment": "There is no death, only failure."},
+		"habit_days_to_95": {"value": 66, "status": "team decision", "owner": "team", "comment": "Real days for a habit to reach 95% of its usual level (Lally and colleagues 2010, median)."},
+		"habit_share_reached": {"value": 0.95, "status": "team decision", "owner": "team", "comment": "The share of a new habit that is reached after habit_days_to_95 real days."},
+		"habit_cost": {
+			"_comment": "Team model for the cost of changing habits (built in Milestone 4 Task 5). D = max(0, |A - H| - T); P = min(P_max, alpha * R^gamma * D^gamma).",
+			"T": {"value": 0.1, "status": "team decision", "owner": "team", "comment": "Tolerance: changes smaller than this cost nothing."},
+			"alpha": {"value": 10, "status": "team decision", "owner": "team", "comment": "Penalty intensity. Not the same as alpha_bar."},
+			"gamma": {"value": 1.5, "status": "team decision", "owner": "team", "comment": "Sensitivity to the deviation."},
+			"P_max": {"value": 10, "status": "team decision", "owner": "team", "comment": "Maximum mental penalty per avatar day, in points of the 0 to 100 mood scale."},
+			"lambda": {"value": 0.04, "status": "team decision", "owner": "team", "comment": "Speed at which rootedness R grows, per real day."}
+		},
+		"score_window": {"value": "wake_to_wake", "status": "placeholder", "owner": "Pessoa 4", "comment": "One scoring day = from one wake-up to the next. Open team decision."},
+		"k_applies_to_sleep_debt": {"value": false, "status": "placeholder", "owner": "Pessoa 4", "comment": "Open team decision. False: sleep debt changes once per avatar day."},
+		"sleep_range": {
+			"child": {"value": [9, 12], "status": "from source", "owner": "Pessoa 2", "comment": "CDC / AASM, 6 to 12 years. Hours per 24 h."},
+			"teenager": {"value": [8, 10], "status": "from source", "owner": "Pessoa 2", "comment": "CDC / AASM, 13 to 18 years. MILESTONE_4.md calls it teen; the game saves the age group as teenager."}
+		},
+		"sleep_recommended": {
+			"child": {"value": 10.5, "status": "placeholder", "owner": "Pessoa 2", "comment": "Midpoint of the range: one number for the sleep debt formula."},
+			"teenager": {"value": 9, "status": "placeholder", "owner": "Pessoa 2", "comment": "Midpoint of the range."}
+		},
+		"sleep_zero_at": {"value": 4, "status": "placeholder", "owner": "Pessoa 2", "comment": "Sleep score 0 at this many hours or less, linear up to the lower limit of the range."},
+		"sleep_over_penalty_per_h": {"value": 0.1, "status": "placeholder", "owner": "Pessoa 2", "comment": "Sleep score lost per hour above the upper limit."},
+		"r": {"value": 0.8, "status": "placeholder", "owner": "Pessoa 2", "comment": "Share of the sleep debt kept each day: it halves in about 3 days without new debt (0.8^3 = 0.51)."},
+		"debt_max": {"value": 10, "status": "placeholder", "owner": "Pessoa 2", "comment": "Sleep measure = sleep score x (1 - debt / debt_max), never below 0. Hours."},
+		"activity_target_min": {"value": 60, "status": "from source", "owner": "Pessoa 3", "comment": "CDC: 60 min/day of moderate-to-vigorous activity."},
+		"strength_days_target": {"value": 3, "status": "from source", "owner": "Pessoa 3", "comment": "CDC: 3 days per week."},
+		"screens_full_until_h": {"value": 2, "status": "placeholder", "owner": "Pessoa 3", "comment": "Australian guidelines: 2 h of recreational screens per day. Screen score is 1 up to this."},
+		"screens_zero_at_h": {"value": 6, "status": "placeholder", "owner": "Pessoa 3", "comment": "Screen score falls in a straight line to 0 here. A game choice."},
+		"enjoyment_full_at_h": {"value": 1, "status": "placeholder", "owner": "Pessoa 3", "comment": "Enjoyment score e = entertainment hours / this, at most 1."},
+		"mood_speed": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 3", "comment": "Mood moves this share of the way to its target per avatar day. Not multiplied by k."},
+		"fitness_k_down": {"value": 0.0056, "status": "placeholder", "owner": "Pessoa 1", "comment": "Per real day. 21% VO2max loss after 6 weeks without training (young footballers)."},
+		"fitness_k_up": {"value": 0.0056, "status": "placeholder", "owner": "Pessoa 1", "comment": "Per real day. Same as k_down until a source is found."},
+		"muscle_k_up": {"value": 0.0056, "status": "placeholder", "owner": "Pessoa 1", "comment": "Per real day. Same as fitness until a source is found."},
+		"muscle_k_down": {"value": 0.0056, "status": "placeholder", "owner": "Pessoa 1", "comment": "Per real day. Same as fitness until a source is found."},
+		"weight_score": {
+			"_comment": "1 while the WHO BMI-for-age z-score is between -full_within_z and +full_within_z, and falls to 0 at +-zero_at_z along t^curve_power, where t goes in a straight line from 1 to 0. MILESTONE_4.md says linear (curve_power 1); the user chose to keep the t^2 curve so the starting fitness stays in order from Easy to Very hard.",
+			"full_within_z": {"value": 1, "status": "from source", "owner": "Pessoa 1", "comment": "WHO cut-off."},
+			"zero_at_z": {"value": 3, "status": "from source", "owner": "Pessoa 1", "comment": "WHO cut-off."},
+			"curve_power": {"value": 2, "status": "placeholder", "owner": "Pessoa 1", "comment": "1 = straight line. Kept at 2 by the user."}
+		},
+		"physical_mix": {
+			"fitness": {"value": 0.3333333333333333, "status": "placeholder", "owner": "Pessoa 1", "comment": "Equal thirds."},
+			"muscle": {"value": 0.3333333333333333, "status": "placeholder", "owner": "Pessoa 1"},
+			"weight": {"value": 0.3333333333333333, "status": "placeholder", "owner": "Pessoa 1"}
+		},
+		"combine": {
+			"_comment": "C = (w_P*P^p + w_M*M^p + w_S*S^p)^(1/p), weights divided by their sum. Target health = health_min + (health_max - health_min) x C = 1 + 4C.",
+			"p": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 2", "comment": "Calibration. Between the ordinary (1) and the geometric (0) mean."},
+			"weights": {
+				"physical": {"value": 0.3333333333333333, "status": "placeholder", "owner": "Pessoa 2", "comment": "Equal."},
+				"mental": {"value": 0.3333333333333333, "status": "placeholder", "owner": "Pessoa 2"},
+				"sleep": {"value": 0.3333333333333333, "status": "placeholder", "owner": "Pessoa 2"}
+			}
+		},
+		"alpha_bar": {"value": 0.37, "status": "placeholder", "owner": "Pessoa 4", "comment": "Health bar speed: 90% of the way to the target in 5 avatar days ((1 - 0.37)^5 = 0.1). Not the same as habit_cost.alpha."},
+		"log": {
+			"_comment": "Action log. The types are the activity option ids in data/activities.json.",
+			"avatar_day_hours": 24,
+			"log_days": 7,
+			"activity_types": ["cardio", "strength"],
+			"strength_types": ["strength"],
+			"screen_types": {"value": ["entertainment"], "status": "placeholder", "owner": "Pessoa 3", "comment": "All entertainment counts as recreational screen time until sedentary and active entertainment exist."}
+		},
+		"milestone3_rules": {
+			"_comment": "Milestone 3 rules still in use. Milestone 4 Task 5 replaces them with habit_cost and the enjoyment score, and then they are deleted.",
+			"mood_weight_sleep": {"value": 1.0, "status": "placeholder", "owner": "Pessoa 3"},
+			"mood_weight_activity": {"value": 1.0, "status": "placeholder", "owner": "Pessoa 3"},
+			"mood_weight_screens": {"value": 1.0, "status": "placeholder", "owner": "Pessoa 3"},
+			"habit_change_free_step": {"value": 0.1, "status": "placeholder", "owner": "Pessoa 4"},
+			"habit_change_penalty": {"value": 0.1, "status": "placeholder", "owner": "Pessoa 4"}
+		},
+		"difficulties": {
+			"_comment": "Starting values per difficulty. physical, mental and sleep are the starting measures; starting health is calculated from them, never typed in. weight_z is the WHO BMI-for-age z-score and stays fixed until food exists. The body states are chosen so that on day 1 they give the starting measures: (fitness + muscle + weight score) / 3 = physical, mood = mental, sleep_debt = 0. start_R is the starting rootedness of the habits (low on Hard = cheap habit changes, high on Very hard). habit_change_cost and usual_habits (as habit scores) are Milestone 3 rules, replaced in Milestone 4 Tasks 4 and 5.",
+			"easy": {"physical": 0.75, "mental": 0.75, "sleep": 0.75, "weight_z": 0.0, "fitness": 0.625, "muscle": 0.625, "mood": 0.75, "sleep_debt": 0.0, "usual_habits": {"sleep": 0.75, "activity": 0.625, "strength": 0.625, "screens": 0.75}, "start_R": 0.5, "habit_change_cost": 1.0, "status": "placeholder", "owner": "Pessoa 4", "comment": "Health about 4."},
+			"normal": {"physical": 0.5, "mental": 0.5, "sleep": 0.5, "weight_z": 1.0, "fitness": 0.25, "muscle": 0.25, "mood": 0.5, "sleep_debt": 0.0, "usual_habits": {"sleep": 0.5, "activity": 0.25, "strength": 0.25, "screens": 0.5}, "start_R": 0.5, "habit_change_cost": 1.0, "status": "placeholder", "owner": "Pessoa 4", "comment": "Health 3."},
+			"hard": {"physical": 0.15, "mental": 0.3, "sleep": 0.3, "weight_z": 2.2, "fitness": 0.145, "muscle": 0.145, "mood": 0.3, "sleep_debt": 0.0, "usual_habits": {"sleep": 0.3, "activity": 0.145, "strength": 0.145, "screens": 0.3}, "start_R": 0.2, "habit_change_cost": 0.5, "status": "placeholder", "owner": "Pessoa 4", "comment": "Health about 2. Habit changes are cheap."},
+			"very_hard": {"physical": 0.05, "mental": 0.05, "sleep": 0.1, "weight_z": 3.2, "fitness": 0.075, "muscle": 0.075, "mood": 0.05, "sleep_debt": 0.0, "usual_habits": {"sleep": 0.1, "activity": 0.075, "strength": 0.075, "screens": 0.05}, "start_R": 0.8, "habit_change_cost": 2.0, "status": "placeholder", "owner": "Pessoa 4", "comment": "Health about 1.3, shown as level 1. Changing habits fast is expensive."}
+		}
 	},
 
 	"xp": {

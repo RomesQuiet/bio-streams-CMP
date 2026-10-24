@@ -26,7 +26,7 @@ func _process(_delta: float) -> bool:
 	print("difficulty  physical mental sleep  weight_z  physical from body  health  level")
 	for id in EXPECTED_HEALTH:
 		gs.start_new_avatar("Test", "child", "female", id)
-		var path: String = "difficulties." + id
+		var path: String = "health.difficulties." + id
 		var body_physical: float = gs.physical_from_body(config.get_float(path + ".fitness"),
 				config.get_float(path + ".muscle"), config.get_float(path + ".weight_z"))
 		print("%-10s  %.2f     %.2f   %.2f   %+.1f      %.3f               %.2f    %d" % [
@@ -41,14 +41,12 @@ func _process(_delta: float) -> bool:
 	_check("Very hard is shown as level 1", gs.health_level == 1)
 	var previous_fitness := INF
 	for id in EXPECTED_HEALTH:
-		var fitness: float = config.get_float("difficulties." + id + ".fitness")
+		var fitness: float = config.get_float("health.difficulties." + id + ".fitness")
 		_check("%s: starting fitness is not higher than the easier difficulty" % id, fitness <= previous_fitness)
 		previous_fitness = fitness
 
-	_check("child sleep range 9 to 12 h", config.get_float("recommended_sleep.child.min_hours") == 9.0
-			and config.get_float("recommended_sleep.child.max_hours") == 12.0)
-	_check("teenager sleep range 8 to 10 h", config.get_float("recommended_sleep.teenager.min_hours") == 8.0
-			and config.get_float("recommended_sleep.teenager.max_hours") == 10.0)
+	_check("child sleep range 9 to 12 h", gs.sleep_range("child") == Vector2(9.0, 12.0))
+	_check("teenager sleep range 8 to 10 h", gs.sleep_range("teenager") == Vector2(8.0, 10.0))
 	# CLAUDE.md rounds this example to 2.9; the exact value is 2.85.
 	_check("example from CLAUDE.md: 0.9, 0.6, 0.1 gives health 2.85",
 			absf(gs.health_from_measures(0.9, 0.6, 0.1) - 2.85) < 0.01)

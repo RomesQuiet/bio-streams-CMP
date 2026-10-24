@@ -76,7 +76,7 @@ func _scenario_no_activity(age_group: String) -> void:
 func _scenario_habit_change() -> void:
 	var age_group := "child"
 	var sleep_hours := _recommended_sleep(age_group)
-	var start_mental: float = root.get_node("Config").get_float("difficulties.very_hard.mental")
+	var start_mental: float = root.get_node("Config").get_float("health.difficulties.very_hard.mental")
 	var start_sleep := 4.0  # Very hard sleeps very little at first.
 	var at_once := _simulate("very_hard", age_group, func(day: int) -> Dictionary:
 		var exercise := STRENGTH if day % 7 in STRENGTH_WEEKDAYS else CARDIO

@@ -63,7 +63,7 @@ func _test_fitness(gs: Node) -> void:
 
 ## k makes the body change faster: one day with k = 4 changes more than with k = 1.
 func _test_k(gs: Node, config: Node) -> void:
-	var k_entry: Dictionary = config._data["body_states"]["k"]
+	var k_entry: Dictionary = config._data["health"]["k"]
 	var k_saved: float = k_entry["value"]
 	gs.start_new_avatar("Test", "child", "female", "normal")
 	k_entry["value"] = 1.0
@@ -82,24 +82,25 @@ func _test_k(gs: Node, config: Node) -> void:
 
 func _test_sleep_debt(gs: Node, config: Node) -> void:
 	gs.start_new_avatar("Test", "teenager", "male", "normal")
-	var r: float = config.get_float("body_states.sleep_debt_r")
+	var r: float = config.get_float("health.r")
+	var short: float = gs.recommended_sleep("teenager") - 5.0
 	_check("no sleep debt at the start", is_zero_approx(gs.sleep_debt))
 	var values := [gs.sleep_debt]
 	for day in 5:
-		gs.update_body_states(ACTIVE_DAY, 5.0)  # Teenager minimum is 8 h: 3 h short.
+		gs.update_body_states(ACTIVE_DAY, 5.0)  # Below the teenager's recommended sleep.
 		values.append(gs.sleep_debt)
 	print("sleep debt after 5 nights of 5 h: %.2f h" % gs.sleep_debt)
-	_check("first short night: debt = 3 h", absf(values[1] - 3.0) < TOLERANCE)
-	_check("second short night: debt = 3 * r + 3", absf(values[2] - (3.0 * r + 3.0)) < TOLERANCE)
+	_check("first short night: debt = recommended - 5 h", absf(values[1] - short) < TOLERANCE)
+	_check("second short night: debt = debt * r + (recommended - 5 h)", absf(values[2] - (short * r + short)) < TOLERANCE)
 	_check("sleep debt grows with short sleep", _rising(values))
 	values = [gs.sleep_debt]
 	for day in 5:
-		gs.update_body_states(ACTIVE_DAY, 9.0)  # 1 h above the minimum.
+		gs.update_body_states(ACTIVE_DAY, 10.0)  # 1 h above the recommended sleep.
 		values.append(gs.sleep_debt)
-	print("sleep debt after 5 more nights of 9 h: %.2f h" % gs.sleep_debt)
+	print("sleep debt after 5 more nights of 10 h: %.2f h" % gs.sleep_debt)
 	_check("sleep debt shrinks with enough sleep", _falling(values) or is_zero_approx(values[-1]))
 	for day in 10:
-		gs.update_body_states(ACTIVE_DAY, 9.0)
+		gs.update_body_states(ACTIVE_DAY, 10.0)
 	_check("sleep debt never goes below 0", is_zero_approx(gs.sleep_debt))
 
 

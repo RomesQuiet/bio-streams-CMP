@@ -50,8 +50,8 @@ func _test_sleep_activity(activities: Node, game_state: Node, clock: Node) -> vo
 	_check("stop reports the hours done", absf(_ended_hours - slept) < TOLERANCE)
 	_check("sleep has no per-hour effect", activities.get_option("sleep", "sleep")["effects_per_hour"].is_empty())
 	_check("the sleep measure comes from the hours slept", is_equal_approx(game_state.sleep,
-			root.get_node("Habits").sleep_score(slept, game_state.age_group)
-			* (1.0 - root.get_node("Config").get_float("measures_from_body.sleep_debt_penalty_per_hour") * game_state.sleep_debt)))
+			maxf(0.0, root.get_node("Habits").sleep_score(slept, game_state.age_group)
+			* (1.0 - game_state.sleep_debt / root.get_node("Config").get_float("health.debt_max")))))
 	_check("clock waits for the wake button", clock.phase == clock.Phase.SLEEP_OVER)
 	clock.wake_up()
 
@@ -99,13 +99,17 @@ func _test_exercise(activities: Node, game_state: Node, clock: Node) -> void:
 	_check("exercise is defined with cardio and strength", activities.get_option("exercise", "cardio").size() > 0 and activities.get_option("exercise", "strength").size() > 0)
 	var cardio: Dictionary = activities.get_option("exercise", "cardio")["effects_per_hour"]
 	var strength: Dictionary = activities.get_option("exercise", "strength")["effects_per_hour"]
-	_check("cardio spends more calories than strength", cardio["calories_spent"] > strength["calories_spent"])
+	var cardio_kcal: float = activities.option_value(activities.get_option("exercise", "cardio"), "kcal_per_hour")
+	var strength_kcal: float = activities.option_value(activities.get_option("exercise", "strength"), "kcal_per_hour")
+	_check("cardio spends more calories than strength", cardio_kcal > strength_kcal)
+	_check("both are moderate-to-vigorous", activities.option_value(activities.get_option("exercise", "cardio"), "activity_intensity") == "moderate_vigorous"
+			and activities.option_value(activities.get_option("exercise", "strength"), "activity_intensity") == "moderate_vigorous")
 	_check("there is no fatigue effect", not cardio.has("fatigue") and not strength.has("fatigue"))
 	_check("no per-hour muscle or physical effects", not cardio.has("muscle") and not strength.has("muscle")
 			and not cardio.has("physical") and not strength.has("physical"))
 
 	for option_id in ["cardio", "strength"]:
-		var effects: Dictionary = activities.get_option("exercise", option_id)["effects_per_hour"]
+		var kcal: float = activities.option_value(activities.get_option("exercise", option_id), "kcal_per_hour")
 		var hours: float = float(activities.get_option("exercise", option_id)["duration_hours"])
 		_check("%s lasts 1 avatar hour" % option_id, is_equal_approx(hours, 1.0))
 		clock.debug_speed = 600.0
@@ -114,7 +118,7 @@ func _test_exercise(activities: Node, game_state: Node, clock: Node) -> void:
 		_check("sleep is locked during %s" % option_id, not activities.can_start("sleep"))
 		while activities.is_running():
 			clock._process(STEP_SECONDS)
-		_check("%s: calories spent change by the config value" % option_id, absf(game_state.calories_spent - (before["calories_spent"] + effects["calories_spent"] * hours)) < TOLERANCE)
+		_check("%s: calories spent change by the config value" % option_id, absf(game_state.calories_spent - (before["calories_spent"] + kcal * hours)) < TOLERANCE)
 		_check("%s: muscle and physical do not change during the day" % option_id,
 				is_equal_approx(game_state.muscle, before["muscle"]) and is_equal_approx(game_state.physical, before["physical"]))
 
@@ -127,7 +131,7 @@ func _test_exercise(activities: Node, game_state: Node, clock: Node) -> void:
 		var done: float = activities.elapsed_hours
 		activities.stop()
 		_check("%s stopped halfway: about 0.5 h done" % option_id, absf(done - 0.5) < 0.05)
-		_check("%s stopped halfway: calories spent are in proportion" % option_id, absf(game_state.calories_spent - (before["calories_spent"] + effects["calories_spent"] * done)) < TOLERANCE)
+		_check("%s stopped halfway: calories spent are in proportion" % option_id, absf(game_state.calories_spent - (before["calories_spent"] + kcal * done)) < TOLERANCE)
 	clock.debug_speed = 600.0
 
 

@@ -63,7 +63,10 @@ func _test_full_cycle(clock: Node) -> void:
 	root.get_node("Activities").start("sleep", "sleep", 8.0)
 	_run_until(clock, clock.Phase.SLEEP_OVER)
 	_check("8 h sleep ends at 05:00", clock.clock_text() == "05:00")
-	_check("sleep measure rises during sleep", game_state.sleep > sleep_at_bedtime)
+	# The sleep measure is worked out when the sleep ends: sleep score x (1 - debt / debt_max), never below 0.
+	var expected_sleep := maxf(0.0, root.get_node("Habits").sleep_score(8.0, game_state.age_group)
+			* (1.0 - game_state.sleep_debt / root.get_node("Config").get_float("health.debt_max")))
+	_check("sleep measure is recalculated when the sleep ends", absf(game_state.sleep - expected_sleep) < 0.0001)
 	_check("avatar is not tired after sleep", not game_state.tired)
 	clock._process(STEP_SECONDS)
 	_check("time waits for the wake button", clock.clock_text() == "05:00")
