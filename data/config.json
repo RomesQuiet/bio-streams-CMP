@@ -58,12 +58,19 @@
 			"screens_full_h": {"value": 6, "status": "placeholder", "owner": "Pessoa 4"}
 		},
 		"habit_cost": {
-			"_comment": "Team model for the cost of changing habits (built in Milestone 4 Task 5). D = max(0, |A - H| - T); P = min(P_max, alpha * R^gamma * D^gamma).",
+			"_comment": "Team model for the cost of changing habits (Milestone 4 Task 5), with the solution of the gradual-vs-sudden review (Google Doc \"Habit-change cost: gradual vs sudden change\"). For each habit: D = max(0, |A - H| - T); P = min(P_max, alpha x alpha_factor x R^gamma x D^gamma). The day's total is the sum over the habits, with no cap, and it is taken off mood (which stays between 0 and 100). Rootedness R grows only on real days when the habit is stable (|A - H| at most T).",
 			"T": {"value": 0.1, "status": "team decision", "owner": "team", "comment": "Tolerance: changes smaller than this cost nothing."},
-			"alpha": {"value": 10, "status": "team decision", "owner": "team", "comment": "Penalty intensity. Not the same as alpha_bar."},
-			"gamma": {"value": 1.5, "status": "team decision", "owner": "team", "comment": "Sensitivity to the deviation."},
-			"P_max": {"value": 10, "status": "team decision", "owner": "team", "comment": "Maximum mental penalty per avatar day, in points of the 0 to 100 mood scale."},
-			"lambda": {"value": 0.04, "status": "team decision", "owner": "team", "comment": "Speed at which rootedness R grows, per real day."}
+			"alpha": {"value": 200, "status": "team decision", "owner": "team", "comment": "Penalty intensity. Not the same as alpha_bar. 10 before the gradual-vs-sudden solution; raised to 200 with gamma 2 so a sudden change makes mental fall on Normal and empties mood on Very hard, while a 10-day change never falls."},
+			"gamma": {"value": 2, "status": "team decision", "owner": "team", "comment": "Sensitivity to the deviation. 2 (1.5 before): two small steps cost less than one big one (0.2^2 + 0.2^2 < 0.4^2)."},
+			"P_max": {"value": 100, "status": "team decision", "owner": "team", "comment": "Maximum cost of one habit on one avatar day, in mood points (100 = the whole mood scale). There is no cap on the day's total (10 on the total before)."},
+			"alpha_factor": {
+				"_comment": "Factor on alpha for each habit. Sleep is free: moving to the recommended sleep has no mental cost.",
+				"sleep": {"value": 0, "status": "team decision", "owner": "team"},
+				"activity": {"value": 1, "status": "team decision", "owner": "team"},
+				"strength": {"value": 1, "status": "team decision", "owner": "team"},
+				"screens": {"value": 1, "status": "team decision", "owner": "team"}
+			},
+			"lambda": {"value": 0.04, "status": "team decision", "owner": "team", "comment": "Speed at which rootedness R grows, per real day, while the habit is stable."}
 		},
 		"score_window": {"value": "wake_to_wake", "status": "placeholder", "owner": "Pessoa 4", "comment": "One scoring day = from one wake-up to the next. Open team decision."},
 		"k_applies_to_sleep_debt": {"value": false, "status": "placeholder", "owner": "Pessoa 4", "comment": "Open team decision. False: sleep debt changes once per avatar day."},

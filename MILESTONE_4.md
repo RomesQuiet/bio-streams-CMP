@@ -30,10 +30,11 @@ Read `CLAUDE.md` first. After each task, say how to run it and what to check. Ke
 | `death_enabled` | false | There is no death, only failure. |
 | `habit_days_to_95` | 66 | Real days for a habit to reach 95% of its usual level (Lally and colleagues 2010, median; a reference with a lot of variation). |
 | `habit_cost.T` | 0.10 | Tolerance: changes smaller than this cost nothing. |
-| `habit_cost.alpha` | 10 | Penalty intensity. |
-| `habit_cost.gamma` | 1.5 | Sensitivity to the deviation. |
-| `habit_cost.P_max` | 10 | Maximum mental penalty per avatar day (points on the 0 to 100 mood scale). |
-| `habit_cost.lambda` | 0.04 | Speed at which rootedness R grows (per real day). |
+| `habit_cost.alpha` | 200 | Penalty intensity (10 before the gradual-vs-sudden solution, see Task 7). |
+| `habit_cost.gamma` | 2 | Sensitivity to the deviation (1.5 before): two small steps cost less than one big one. |
+| `habit_cost.P_max` | 100 | Maximum penalty of one habit per avatar day (points on the 0 to 100 mood scale); no cap on the day's total (10 on the total before). |
+| `habit_cost.alpha_factor` | sleep 0, activity 1, strength 1, screens 1 | Factor on alpha per habit: moving to the recommended sleep has no mental cost. |
+| `habit_cost.lambda` | 0.04 | Speed at which rootedness R grows (per real day, only while the habit is stable). |
 
 **Averages until the research is finished**
 
@@ -100,14 +101,14 @@ Slow states that use k are updated by running the **real-day update k times** pe
 - **Muscle:** the same formula with w instead of a. Run k times.
 - **Weight z-score:** stays at the difficulty's starting value (no food yet).
 - **Usual level H of each habit** (sleep, activity, strength, screens): per real day it moves toward today's intensity A by the rate that reaches 95% in `habit_days_to_95` days (rate = 1 − 0.05^(1/66), about 0.044). Run k times. Intensity A (0 to 1): sleep hours ÷ 12; activity minutes ÷ 60; strength days in the last 7 ÷ 7; screen hours ÷ 6 (each at most 1).
-- **Rootedness R of each habit:** per real day R += lambda × (1 − R). Run k times. Starts at `start_R` of the difficulty.
+- **Rootedness R of each habit:** per real day R += lambda × (1 − R), only on days when the habit is stable (|A − H| at most T). Run k times. Starts at `start_R` of the difficulty.
 - Done when: tests show fitness rising with daily activity and falling slowly without it, debt growing with short sleep and halving in about 3 avatar days with enough sleep, and H reaching 95% of a new habit after about 66 ÷ 5 ≈ 13 avatar days.
 
 ## Task 5 — Habit change cost and mood (team model)
 - Mood is kept on a 0 to 100 scale.
-- For each habit: D = max(0, |A − H| − T), and P = min(P_max, alpha × R^gamma × D^gamma). The day's total cost is the sum over the habits, at most P_max (placeholder rule for the total; flag it in your reply).
+- For each habit: D = max(0, |A − H| − T), and P = min(P_max, alpha × alpha_factor × R^gamma × D^gamma). The day's total cost is the sum over the habits, with no cap (changed after Task 7; the total was capped at P_max before).
 - Mood target = 100 × average of s, a, c and e. Then: mood = mood + mood_speed × (target − mood) − total cost, kept between 0 and 100.
-- Done when: a test on Very hard shows that changing activity from 0 to 1 in one day costs about 6 points (R 0.8, D 0.9), and changing by 0.2 per day costs almost nothing.
+- Done when: a test on Very hard shows that changing activity from 0 to 1 in one day costs about 104 points, capped at P_max 100 (R 0.8, D 0.9; about 6 with the first values), and changing by 0.2 per day costs little (about 1.3).
 
 ## Task 6 — Measures and health
 - Physical = physical_mix of fitness, muscle and the weight score.
@@ -128,7 +129,7 @@ Update the calibration tests from Milestone 3 so they match the scenarios below,
 | Athlete who sleeps 5 h a night | Health never goes above 3 |
 | Sedentary player who sleeps well | Health stays below the perfect player but does not reach the minimum |
 | Perfect player | Reaches 5, but slowly (not in the first avatar days) |
-| Gradual vs sudden change | The gradual change gives better mental health |
+| Gradual vs sudden change | The gradual change gives better mental health. Read as in the concept (after Task 7): a 10-day change never lets mental fall below its start; on Normal and Very hard the sudden change makes it fall; a 40-day change is not the best plan |
 | Player who ignores everything | Reaches the minimum, but not at once |
 | Very hard difficulty | Recovery is possible |
 

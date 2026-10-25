@@ -40,8 +40,8 @@ var habit_cost_total := 0.0
 ## Usual level H of each habit, as an intensity (0 to 1, see health.habit_intensity):
 ## sleep, activity, strength, screens.
 var usual_habits: Dictionary
-## Rootedness R of each habit (0 to 1): how deeply the habit is rooted. It grows every
-## real day and makes changing that habit cost more (Milestone 4 Task 5).
+## Rootedness R of each habit (0 to 1): how deeply the habit is rooted. It grows on every
+## real day the habit is stable and makes changing that habit cost more (Milestone 4 Task 5).
 var rootedness: Dictionary
 ## Tired means sleepy. Placeholder rule: the Clock sets this to true when the day ends.
 var tired: bool
@@ -240,13 +240,19 @@ func update_body_states(scores: Dictionary, sleep_hours: float, intensities: Dic
 	var habit_rate := 1.0 - pow(1.0 - Config.get_float("health.habit_share_reached"),
 			1.0 / Config.get_float("health.habit_days_to_95"))
 	var lambda := Config.get_float("health.habit_cost.lambda")
+	var tolerance := Config.get_float("health.habit_cost.T")
 	for i in real_days:
 		fitness = _train(fitness, activity, Config.get_float("health.fitness_k_up"), Config.get_float("health.fitness_k_down"))
 		muscle = _train(muscle, strength, Config.get_float("health.muscle_k_up"), Config.get_float("health.muscle_k_down"))
 		for habit in usual_habits:
+			# Rootedness grows only while the habit is stable (|A - H| at most T), so a
+			# change in progress does not become more expensive every day.
+			var stable := true
 			if intensities.has(habit):
+				stable = absf(float(intensities[habit]) - usual_habits[habit]) <= tolerance
 				usual_habits[habit] = clampf(usual_habits[habit] + habit_rate * (float(intensities[habit]) - usual_habits[habit]), 0.0, 1.0)
-			rootedness[habit] = clampf(rootedness[habit] + lambda * (1.0 - rootedness[habit]), 0.0, 1.0)
+			if stable:
+				rootedness[habit] = clampf(rootedness[habit] + lambda * (1.0 - rootedness[habit]), 0.0, 1.0)
 	# weight_z stays the same: no food yet, so no automatic eating.
 	mood = clampf(mood + Config.get_float("health.mood_speed") * (mood_target(scores) - mood) - habit_cost_total,
 			0.0, Config.get_float("health.mood_max"))
@@ -262,8 +268,9 @@ func real_days_per_avatar_day() -> int:
 
 ## Team model for the cost of changing habits (health.habit_cost), in mood points.
 ## For each habit, with A = today's intensity, H = usual level, R = rootedness:
-## D = max(0, |A - H| - T), P = min(P_max, alpha x R^gamma x D^gamma).
-## Small changes (up to T) cost nothing; a big jump in a well-rooted habit costs most.
+## D = max(0, |A - H| - T), P = min(P_max, alpha x alpha_factor x R^gamma x D^gamma).
+## Small changes (up to T) cost nothing; with gamma 2 two small steps cost less than one
+## big one, and a big jump in a well-rooted habit costs most. Sleep has factor 0.
 func habit_change_costs(intensities: Dictionary) -> Dictionary:
 	var path := "health.habit_cost."
 	var tolerance := Config.get_float(path + "T")
@@ -275,16 +282,17 @@ func habit_change_costs(intensities: Dictionary) -> Dictionary:
 		if not intensities.has(habit):
 			continue
 		var deviation := maxf(0.0, absf(float(intensities[habit]) - usual_habits[habit]) - tolerance)
-		costs[habit] = minf(p_max, alpha * pow(rootedness[habit], gamma) * pow(deviation, gamma))
+		var factor := Config.get_float(path + "alpha_factor." + habit)
+		costs[habit] = minf(p_max, alpha * factor * pow(rootedness[habit], gamma) * pow(deviation, gamma))
 	return costs
 
 
-## The day's total cost: the sum over the habits, at most P_max (a placeholder rule).
+## The day's total cost: the sum over the habits, with no cap (P_max limits each habit).
 func total_habit_cost(costs: Dictionary) -> float:
 	var total := 0.0
 	for habit in costs:
 		total += costs[habit]
-	return minf(total, Config.get_float("health.habit_cost.P_max"))
+	return total
 
 
 ## The three measures from the body states (CLAUDE.md, Health calculation, step 4).

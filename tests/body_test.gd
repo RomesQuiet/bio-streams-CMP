@@ -136,21 +136,23 @@ func _test_sleep_debt(gs: Node, config: Node) -> void:
 
 
 func _test_mood_and_habits(gs: Node) -> void:
+	# The habits stay at their usual levels here (no change cost), so only the mood target acts.
 	gs.start_new_avatar("Test", "child", "female", "very_hard")
 	var mood_start: float = gs.mood
-	var usual_start: float = gs.usual_habits["activity"]
-	gs.update_body_states(ACTIVE_DAY, 10.0, ACTIVE_INTENSITY)
+	gs.update_body_states(ACTIVE_DAY, 10.0, gs.usual_habits.duplicate())
 	_check("mood moves toward the day's scores", gs.mood > mood_start and gs.mood < 100.0)
-	_check("usual activity level moves toward the day's intensity", gs.usual_habits["activity"] > usual_start
-			and gs.usual_habits["activity"] < 1.0)
 	var bad_day := {"sleep": 0.0, "activity": 0.0, "strength": 0.0, "screens": 0.0}
 	var mood_before: float = gs.mood
-	gs.update_body_states(bad_day, 4.0)
+	gs.update_body_states(bad_day, 4.0, gs.usual_habits.duplicate())
 	_check("a bad day lowers mood", gs.mood < mood_before)
+	var usual_start: float = gs.usual_habits["activity"]
+	gs.update_body_states(ACTIVE_DAY, 10.0, ACTIVE_INTENSITY)
+	_check("usual activity level moves toward the day's intensity", gs.usual_habits["activity"] > usual_start
+			and gs.usual_habits["activity"] < 1.0)
 
 
 ## Usual level H reaches 95% of a new habit after habit_days_to_95 / k (about 13) avatar
-## days, and rootedness R grows every day toward 1.
+## days. Rootedness R grows toward 1, but only on real days when the habit is stable.
 func _test_habit_levels(gs: Node, config: Node) -> void:
 	gs.start_new_avatar("Test", "child", "female", "normal")
 	gs.usual_habits["activity"] = 0.0
@@ -165,10 +167,16 @@ func _test_habit_levels(gs: Node, config: Node) -> void:
 	_check("H is below 95% after 12 avatar days", levels[11] < 0.95)
 	_check("H reaches about 95% after 13 avatar days (over 94%)", levels[12] > 0.94)
 	_check("H is over 95% after 14 avatar days", levels[13] > 0.95)
-	_check("rootedness R grows toward 1", gs.rootedness["activity"] > root_start and gs.rootedness["activity"] < 1.0)
+	_check("rootedness R grows once the new habit is stable", gs.rootedness["activity"] > root_start and gs.rootedness["activity"] < 1.0)
+	# Sleep was not in the intensities, so it counts as stable every day.
 	var lambda: float = config.get_float("health.habit_cost.lambda")
 	var expected_R: float = 1.0 - (1.0 - root_start) * pow(1.0 - lambda, 15 * gs.real_days_per_avatar_day())
-	_check("R follows R += lambda x (1 - R), k times per avatar day", absf(gs.rootedness["activity"] - expected_R) < TOLERANCE)
+	_check("a stable habit's R follows R += lambda x (1 - R), k times per avatar day", absf(gs.rootedness["sleep"] - expected_R) < TOLERANCE)
+	gs.start_new_avatar("Test", "child", "female", "normal")
+	gs.usual_habits["activity"] = 0.0
+	var root_before: float = gs.rootedness["activity"]
+	gs.update_body_states(ACTIVE_DAY, 10.5, {"activity": 1.0})
+	_check("R does not grow while the habit is changing (|A - H| above T)", is_equal_approx(gs.rootedness["activity"], root_before))
 	gs.start_new_avatar("Test", "child", "female", "hard")
 	_check("R starts at the difficulty's start_R (Hard 0.2)", is_equal_approx(gs.rootedness["sleep"], 0.2))
 	_check("H starts at the difficulty's start_H", is_equal_approx(gs.usual_habits["screens"],
@@ -184,14 +192,23 @@ func _test_habit_cost(gs: Node, config: Node) -> void:
 	var jump: Dictionary = same.duplicate()
 	jump["activity"] = 1.0
 	var costs: Dictionary = gs.habit_change_costs(jump)
-	print("activity 0 -> 1 in one day (R 0.8, D 0.9): cost %.2f mood points" % costs["activity"])
-	_check("changing activity from 0 to 1 in one day costs about 6 points", absf(costs["activity"] - 6.0) < 0.25)
+	var p_max: float = config.get_float("health.habit_cost.P_max")
+	var formula: float = config.get_float("health.habit_cost.alpha") * pow(0.8, 2.0) * pow(0.9, 2.0)
+	print("activity 0 -> 1 in one day (R 0.8, D 0.9): 200 x 0.8^2 x 0.9^2 = %.1f, cost %.2f mood points (P_max %.0f per habit)" % [
+			formula, costs["activity"], p_max])
+	_check("changing activity from 0 to 1 in one day costs about 104 points, at most P_max per habit",
+			absf(costs["activity"] - minf(formula, p_max)) < TOLERANCE and formula > 100.0)
 	_check("habits that did not change cost nothing", is_zero_approx(costs["sleep"]) and is_zero_approx(costs["screens"]))
 	var step: Dictionary = same.duplicate()
 	step["activity"] = 0.2
 	var step_cost: float = gs.habit_change_costs(step)["activity"]
 	print("activity 0 -> 0.2 in one day: cost %.2f mood points" % step_cost)
-	_check("changing by 0.2 per day costs almost nothing (under 0.5 points)", step_cost < 0.5)
+	_check("changing by 0.2 per day costs little (about 1.3 points)", absf(step_cost - 1.28) < 0.01)
+	_check("two steps of 0.2 cost less than one of 0.4 (gamma 2)", 2.0 * step_cost < gs.habit_change_costs(
+			{"sleep": same["sleep"], "activity": 0.4, "strength": same["strength"], "screens": same["screens"]})["activity"])
+	var more_sleep: Dictionary = same.duplicate()
+	more_sleep["sleep"] = 1.0
+	_check("changing sleep costs nothing (alpha_factor 0)", is_zero_approx(gs.habit_change_costs(more_sleep)["sleep"]))
 	var small: Dictionary = same.duplicate()
 	small["activity"] = 0.1
 	_check("a change up to T (0.10) costs nothing", is_zero_approx(gs.habit_change_costs(small)["activity"]))
@@ -199,8 +216,12 @@ func _test_habit_cost(gs: Node, config: Node) -> void:
 	down["screens"] = 0.0
 	_check("cutting a habit costs too (|A - H|)", gs.habit_change_costs(down)["screens"] > 0.0)
 	var all_jump := {"sleep": 1.0, "activity": 1.0, "strength": 1.0, "screens": 0.0}
-	_check("the day's total is at most P_max (10)", is_equal_approx(gs.total_habit_cost(gs.habit_change_costs(all_jump)),
-			config.get_float("health.habit_cost.P_max")))
+	var all_costs: Dictionary = gs.habit_change_costs(all_jump)
+	var summed := 0.0
+	for habit in all_costs:
+		summed += all_costs[habit]
+	_check("the day's total is the sum over the habits, with no cap", is_equal_approx(gs.total_habit_cost(all_costs), summed)
+			and summed > p_max)
 	gs.start_new_avatar("Test", "child", "female", "hard")
 	var hard_jump: Dictionary = gs.usual_habits.duplicate()
 	hard_jump["activity"] = 1.0

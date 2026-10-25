@@ -25,14 +25,24 @@ const SHOWN_DAYS := [0, 1, 3, 5, 10, 20, 30, 45, 60]
 ## "the minimum" = the failure threshold (health.failure_at_health);
 ## "not at once" = not before day NOT_AT_ONCE_DAYS;
 ## "recovery is possible" = Very hard reaches health RECOVERED_HEALTH;
-## "better mental health" = higher average mental over the first COMPARE_MENTAL_DAYS days;
-## the gradual change takes GRADUAL_DAYS days.
+## "the gradual change gives better mental health" = the concept's "a gradual transition
+## keeps mental health stable; without one mental health falls": a change in GRADUAL_DAYS
+## days never lets mental fall below its starting value; on the difficulties where changing
+## is costly (COSTLY_CHANGE) the sudden change does fall in the first TRANSITION_DAYS days
+## and the gradual change keeps a higher lowest mental there; and a change in
+## SLOW_CHANGE_DAYS days has a lower average mental over the first AVERAGE_DAYS days than
+## the gradual one (changing too slowly is not the best plan).
 const LEVEL_5_HEALTH := 4.5
 const SLOW_DAYS := 10
 const NOT_AT_ONCE_DAYS := 3
 const RECOVERED_HEALTH := 3.0
-const COMPARE_MENTAL_DAYS := 15
-const GRADUAL_DAYS := 10.0
+const GRADUAL_DAYS := 10
+const SLOW_CHANGE_DAYS := 40
+const TRANSITION_DAYS := 10
+const AVERAGE_DAYS := 30
+const COSTLY_CHANGE := ["normal", "very_hard"]
+## Mental below its starting value by more than this counts as a fall.
+const FALL_TOLERANCE := 0.0001
 ## The habit types, as in data/activities.json.
 const CARDIO := "cardio"
 const STRENGTH := "strength"
@@ -81,7 +91,8 @@ func _run_all(counts: bool) -> void:
 		var athlete := _simulate(difficulty, _athlete_plan)
 		var sedentary := _simulate(difficulty, _sedentary_plan)
 		var ignores := _simulate(difficulty, _ignore_plan)
-		var gradual := _simulate(difficulty, _gradual_plan.bind(difficulty))
+		var gradual := _simulate(difficulty, _gradual_plan.bind(difficulty, GRADUAL_DAYS))
+		var slow := _simulate(difficulty, _gradual_plan.bind(difficulty, SLOW_CHANGE_DAYS))
 		print("\n   -- %s (start health %.2f)" % [difficulty, perfect["health"][0]])
 
 		_row("athlete, sleeps 5 h", difficulty, athlete)
@@ -101,10 +112,20 @@ func _run_all(counts: bool) -> void:
 
 		_row("sudden change (perfect at once)", difficulty, perfect, "mental")
 		_row("gradual change (%d days)" % GRADUAL_DAYS, difficulty, gradual, "mental")
-		var mental_sudden := _average(perfect["mental"], COMPARE_MENTAL_DAYS)
-		var mental_gradual := _average(gradual["mental"], COMPARE_MENTAL_DAYS)
-		print("      average mental, days 1 to %d: sudden %.3f, gradual %.3f" % [COMPARE_MENTAL_DAYS, mental_sudden, mental_gradual])
-		_verdict("gradual change gives better mental health than sudden", difficulty, mental_gradual > mental_sudden, counts)
+		_row("slow change (%d days)" % SLOW_CHANGE_DAYS, difficulty, slow, "mental")
+		var start_mental: float = perfect["mental"][0]
+		var gradual_lowest: float = (gradual["mental"] as Array).slice(1).min()
+		var sudden_low: float = (perfect["mental"] as Array).slice(1, TRANSITION_DAYS + 1).min()
+		var gradual_low: float = (gradual["mental"] as Array).slice(1, TRANSITION_DAYS + 1).min()
+		var gradual_average := _average(gradual["mental"], AVERAGE_DAYS)
+		var slow_average := _average(slow["mental"], AVERAGE_DAYS)
+		print("      start mental %.3f; lowest in days 1 to %d: sudden %.3f, gradual %.3f; gradual lowest ever %.3f; average days 1 to %d: gradual %.3f, slow %.3f" % [
+				start_mental, TRANSITION_DAYS, sudden_low, gradual_low, gradual_lowest, AVERAGE_DAYS, gradual_average, slow_average])
+		var stable := gradual_lowest >= start_mental - FALL_TOLERANCE
+		var sudden_falls := sudden_low < start_mental - FALL_TOLERANCE and gradual_low > sudden_low
+		var gradual_ok: bool = stable and (sudden_falls or not difficulty in COSTLY_CHANGE) and slow_average < gradual_average
+		_verdict("gradual change keeps mental stable%s; changing too slowly is not best" % (
+				", sudden change makes it fall" if difficulty in COSTLY_CHANGE else ""), difficulty, gradual_ok, counts)
 
 		_row("ignores everything", difficulty, ignores)
 		var minimum_day := _first_day_at_most(ignores, _config.get_float("health.failure_at_health"))
@@ -143,9 +164,9 @@ func _ignore_plan(_day: int) -> Dictionary:
 	return {"sleep": 0.0, "log": [[SCREENS, 6.0]]}
 
 
-## From the difficulty's usual habits (start_H) to the perfect plan in GRADUAL_DAYS days.
-func _gradual_plan(day: int, difficulty: String) -> Dictionary:
-	var t := minf(1.0, (day + 1) / GRADUAL_DAYS)
+## From the difficulty's usual habits (start_H) to the perfect plan in change_days days.
+func _gradual_plan(day: int, difficulty: String, change_days: int) -> Dictionary:
+	var t := minf(1.0, (day + 1) / float(change_days))
 	var path := "health.difficulties.%s.start_H." % difficulty
 	var intensity := "health.habit_intensity."
 	var start_sleep: float = _config.get_float(path + "sleep") * _config.get_float(intensity + "sleep_full_h")
