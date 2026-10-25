@@ -181,6 +181,8 @@ func _test_real_play(h: Node, gs: Node, clock: Node, activities: Node, save_game
 	_check("two entries logged", h.entries.size() == 2)
 
 	# A normal sleep of 9 h (teenager range 8 to 10 h).
+	# The avatar can sleep only when sleepy (v1 can-sleep rule): make it sleepy.
+	gs.hours_awake = root.get_node("Config").get_float("sleep.can_sleep_awake_h")
 	_check("sleep starts", activities.start("sleep", "sleep", 9.0))
 	while clock.phase == clock.Phase.SLEEPING:
 		clock._process(STEP_SECONDS)
@@ -207,6 +209,8 @@ func _test_real_play(h: Node, gs: Node, clock: Node, activities: Node, save_game
 
 	# A nap of 1 h gives a low sleep score (any sleep counts).
 	clock.wake_up()
+	# The avatar can sleep only when sleepy (v1 can-sleep rule): make it sleepy.
+	gs.hours_awake = root.get_node("Config").get_float("sleep.can_sleep_awake_h")
 	_check("nap starts", activities.start("sleep", "sleep", 1.0))
 	while clock.phase == clock.Phase.SLEEPING:
 		clock._process(STEP_SECONDS)

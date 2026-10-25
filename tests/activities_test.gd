@@ -36,7 +36,11 @@ func _process(_delta: float) -> bool:
 
 func _test_sleep_activity(activities: Node, game_state: Node, clock: Node) -> void:
 	_check("sleep is defined in activities.json", activities.definitions.has("sleep"))
-	_check("sleep can start during the day (nap)", activities.can_start("sleep"))
+	# v1 can-sleep rule: a new avatar (no sleep debt on the Milestone 4 values, 0 h awake)
+	# is not sleepy; after sleep.can_sleep_awake_h awake it can nap.
+	_check("not sleepy at the start of the first day", not activities.can_start("sleep"))
+	game_state.hours_awake = root.get_node("Config").get_float("sleep.can_sleep_awake_h")
+	_check("sleep can start during the day (nap) once sleepy", activities.can_start("sleep"))
 	_run_until_new_day(clock)
 	_check("sleep starts when the avatar is tired", activities.start("sleep", "sleep", 10.0))
 	_check("sleep runs through the activity system", activities.is_running() and activities.current_activity == "sleep")
@@ -122,8 +126,9 @@ func _test_exercise(activities: Node, game_state: Node, clock: Node) -> void:
 		_check("%s: muscle and physical do not change during the day" % option_id,
 				is_equal_approx(game_state.muscle, before["muscle"]) and is_equal_approx(game_state.physical, before["physical"]))
 
-		# Stop halfway: calories count only for the time done.
-		clock.debug_speed = 60.0
+		# Stop halfway: calories count only for the time done. Small steps, so the stop
+		# lands close to 0.5 h.
+		clock.debug_speed = 30.0
 		before = _snapshot(game_state)
 		activities.start("exercise", option_id)
 		while activities.elapsed_hours < 0.5:

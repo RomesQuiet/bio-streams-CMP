@@ -115,7 +115,12 @@ func _toggle_values_panel() -> void:
 
 
 func _on_leveled_up(new_level: int) -> void:
-	_flash_text = "Level up! Level %d" % new_level
+	_flash("Level up! Level %d" % new_level)
+
+
+## Shows a short message in the speech bubble for level_up_message_seconds.
+func _flash(text: String) -> void:
+	_flash_text = text
 	speech_label.text = _flash_text
 	get_tree().create_timer(level_up_message_seconds).timeout.connect(_end_flash)
 
@@ -131,7 +136,13 @@ func _set_speech(text: String) -> void:
 		speech_label.text = text
 
 
+## The avatar can sleep only when it is sleepy (Clock.is_sleepy()); otherwise it says so.
+## The slider stops at the longest sleep allowed now.
 func _on_sleep_button_pressed() -> void:
+	if not Clock.is_sleepy():
+		_flash("I'm not sleepy.")
+		return
+	sleep_slider.max_value = Clock.max_sleep_hours()
 	_refresh_sleep_info()
 	sleep_panel.show()
 
@@ -234,7 +245,8 @@ func _refresh_phase() -> void:
 	stop_button.visible = running
 	for button in action_buttons:
 		button.disabled = running
-	sleep_button.disabled = not Activities.can_start("sleep")
+	# Enabled while awake even when the avatar is not sleepy, so it can say so.
+	sleep_button.disabled = running or phase != Clock.Phase.DAY
 	exercise_button.disabled = not Activities.can_start("exercise")
 	entertainment_button.disabled = not Activities.can_start("entertainment")
 	if running:
@@ -266,5 +278,6 @@ func _refresh_sleep_info() -> void:
 		day_hours,
 		Clock.avatar_hours_to_real_seconds(day_hours, false) / 60.0,
 	]
+	sleep_info_label.text += "\nAt most %.1f h now." % Clock.max_sleep_hours()
 	if Clock.phase == Clock.Phase.DAY:
 		sleep_info_label.text += "\nSleeping now ends the current day."

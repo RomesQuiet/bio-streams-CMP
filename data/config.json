@@ -5,7 +5,7 @@
 		"day_baseline_hours": 14,
 		"sleep_baseline_hours": 10,
 		"first_day_hours": 14,
-		"day_avatar_minutes_per_real_minute": 28,
+		"day_avatar_minutes_per_real_minute": 42,
 		"sleep_avatar_minutes_per_real_minute": 5,
 		"first_day_start_hour": { "value": 7.0, "placeholder": true, "comment": "Clock time (24 h) when the first day starts." },
 		"max_sleep_hours": { "value": 12, "placeholder": true, "comment": "Maximum hours on the sleep slider." },

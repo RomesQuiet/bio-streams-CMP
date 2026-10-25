@@ -45,6 +45,8 @@ var usual_habits: Dictionary
 var rootedness: Dictionary
 ## Tired means sleepy. Placeholder rule: the Clock sets this to true when the day ends.
 var tired: bool
+## Avatar hours awake since the last sleep ended (Milestone 10). Simulation adds to it.
+var hours_awake: float
 var xp: float
 ## Avatar hours spent at high health without a break (for the XP bonus).
 var high_health_hours: float
@@ -91,6 +93,7 @@ func reset() -> void:
 	hunger = Config.get_float("measures.hunger_start")
 	calories_spent = Config.get_float("measures.calories_spent_start")
 	tired = false
+	hours_awake = 0.0
 	health = calculate_health()
 	xp = Config.get_float("xp.start")
 	high_health_hours = 0.0
@@ -121,6 +124,7 @@ func to_dict() -> Dictionary:
 		"usual_habits": usual_habits.duplicate(),
 		"rootedness": rootedness.duplicate(),
 		"tired": tired,
+		"hours_awake": hours_awake,
 		"xp": xp,
 		"high_health_hours": high_health_hours,
 		"avatar_name": avatar_name,
@@ -157,6 +161,7 @@ func from_dict(data: Dictionary) -> void:
 		_apply_habit_start(Config.get_string("defaults.difficulty"))
 		mood *= Config.get_float("health_m4.mood_max")
 	tired = bool(data.get("tired", tired))
+	hours_awake = float(data.get("hours_awake", 0.0))
 	xp = float(data.get("xp", xp))
 	high_health_hours = float(data.get("high_health_hours", high_health_hours))
 	avatar_name = str(data.get("avatar_name", avatar_name))

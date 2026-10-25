@@ -3,7 +3,8 @@ extends Node
 ## It never reads the device clock. All numbers come from Config.
 ##
 ## Cycle: DAY -> SLEEPING -> SLEEP_OVER (paused, waits for the wake button) -> DAY
-## Sleep can start at any time during the DAY (a nap or a night). Any sleep, short or
+## Sleep can start at any time during the DAY (a nap or a night) when the avatar is sleepy
+## (is_sleepy(): enough sleep debt or enough hours awake). Any sleep, short or
 ## long, ends the current day: after it, a new day starts with length 14 + (10 - hours slept).
 ## If the awake period runs out and the player has not slept, it counts as 0 hours
 ## slept: a new day of 14 + (10 - 0) = 24 hours starts at once, the avatar stays tired
@@ -46,7 +47,7 @@ var _phase_start_minute: float
 
 func _ready() -> void:
 	reset()
-	avatar_time_passed.connect(GameState.apply_avatar_hours)
+	# GameState is updated by Simulation, in fixed steps of avatar time (Milestone 10).
 	if _debug_allowed():
 		print_conversion_table()
 
@@ -175,11 +176,12 @@ func toggle_pause() -> void:
 	set_paused(not paused)
 
 
-## Starts sleep at any time during the day (a nap or a night).
+## Starts sleep at any time during the day (a nap or a night), if the avatar is sleepy.
+## It never sleeps longer than max_sleep_hours().
 func start_sleep(hours: float) -> void:
 	if not can_start_sleep():
 		return
-	sleep_target_hours = clampf(hours, 0.0, Config.get_float("time.max_sleep_hours"))
+	sleep_target_hours = clampf(hours, 0.0, max_sleep_hours())
 	sleep_elapsed_hours = 0.0
 	GameState.tired = false
 	GameState.changed.emit()
@@ -189,7 +191,30 @@ func start_sleep(hours: float) -> void:
 
 
 func can_start_sleep() -> bool:
-	return phase == Phase.DAY
+	return phase == Phase.DAY and is_sleepy()
+
+
+## v1 Step 9: the avatar can sleep only when its sleep debt is at least
+## sleep.can_sleep_debt_h or it has been awake at least sleep.can_sleep_awake_h.
+## Otherwise it says it is not sleepy.
+func is_sleepy() -> bool:
+	return _at_least(GameState.sleep_debt, Config.get_float("sleep.can_sleep_debt_h")) \
+			or _at_least(GameState.hours_awake, Config.get_float("sleep.can_sleep_awake_h"))
+
+
+## value >= limit, also when value is a sum of steps that lands a tiny bit below it.
+func _at_least(value: float, limit: float) -> bool:
+	return value >= limit or is_equal_approx(value, limit)
+
+
+## The longest sleep now: the top of the recommended range for the age group, plus the
+## smaller of the sleep debt and sleep.wake_extra_max_h (v1 Step 9). Never more than
+## time.max_sleep_hours (the end of the slider).
+func max_sleep_hours() -> float:
+	var group := GameState.age_group if not GameState.age_group.is_empty() else Config.get_string("defaults.age_group")
+	var longest := Config.get_float("sleep.%s_max_h" % group) \
+			+ minf(GameState.sleep_debt, Config.get_float("sleep.wake_extra_max_h"))
+	return minf(longest, Config.get_float("time.max_sleep_hours"))
 
 
 ## Ends sleep early. The hours actually slept are used for the next day.

@@ -83,6 +83,7 @@ func save_game() -> void:
 		"clock": Clock.to_dict(),
 		"activities": Activities.to_dict(),
 		"habits": Habits.to_dict(),
+		"simulation": Simulation.to_dict(),
 	}
 	var text := JSON.stringify(data, "\t")
 	var file := FileAccess.open(save_path, FileAccess.WRITE)
@@ -110,6 +111,7 @@ func load_game() -> bool:
 	Clock.from_dict(best.get("clock", {}))
 	Activities.from_dict(best.get("activities", {}))
 	Habits.from_dict(best.get("habits", {}))
+	Simulation.from_dict(best.get("simulation", {}))
 	return true
 
 
@@ -122,6 +124,7 @@ func delete_save() -> void:
 	_save_count = 0
 	Activities.reset()
 	Habits.reset()
+	Simulation.reset()
 	GameState.reset()
 	Clock.reset()
 

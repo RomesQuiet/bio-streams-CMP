@@ -50,6 +50,8 @@ func _test_days(gs: Node, clock: Node, activities: Node, main: Node) -> void:
 		while activities.is_running():
 			clock._process(STEP_SECONDS)
 		var health_before: float = gs.health
+		# The avatar can sleep only when sleepy (v1 can-sleep rule): make it sleepy.
+		gs.hours_awake = root.get_node("Config").get_float("sleep.can_sleep_awake_h")
 		activities.start("sleep", "sleep", 10.0)
 		while clock.phase == clock.Phase.SLEEPING:
 			clock._process(STEP_SECONDS)

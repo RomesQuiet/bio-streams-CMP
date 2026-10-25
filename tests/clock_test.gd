@@ -25,6 +25,7 @@ func _process(_delta: float) -> bool:
 	_test_nap(clock)
 	_test_daylight(clock)
 	_test_ignoring_the_recommendation(clock)
+	_test_can_sleep(clock)
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
 	DirAccess.remove_absolute(save_game.save_path)
 	quit(1 if _failures > 0 else 0)
@@ -36,9 +37,10 @@ func _test_conversion(clock: Node) -> void:
 	for pair in [[0.0, 24.0], [5.0, 19.0], [8.0, 16.0], [10.0, 14.0], [12.0, 12.0]]:
 		_check("sleep %s h gives a %s h day" % pair, is_equal_approx(clock.day_hours_after_sleep(pair[0]), pair[1]))
 	# Real minutes for avatar hours.
-	_check("14 h day = 30 real min", is_equal_approx(clock.avatar_hours_to_real_seconds(14.0, false), 30.0 * 60.0))
-	_check("16 h day = 34.29 real min", absf(clock.avatar_hours_to_real_seconds(16.0, false) / 60.0 - 34.2857) < 0.001)
-	_check("19 h day = 40.71 real min", absf(clock.avatar_hours_to_real_seconds(19.0, false) / 60.0 - 40.7143) < 0.001)
+	# Milestone 10 (v1): day = 20 real minutes = 14 avatar hours (42 avatar min per real min).
+	_check("14 h day = 20 real min", is_equal_approx(clock.avatar_hours_to_real_seconds(14.0, false), 20.0 * 60.0))
+	_check("16 h day = 22.86 real min", absf(clock.avatar_hours_to_real_seconds(16.0, false) / 60.0 - 22.8571) < 0.001)
+	_check("19 h day = 27.14 real min", absf(clock.avatar_hours_to_real_seconds(19.0, false) / 60.0 - 27.1429) < 0.001)
 	_check("10 h sleep = 120 real min", is_equal_approx(clock.avatar_hours_to_real_seconds(10.0, true), 120.0 * 60.0))
 	_check("8 h sleep = 96 real min", is_equal_approx(clock.avatar_hours_to_real_seconds(8.0, true), 96.0 * 60.0))
 	_check("back conversion", is_equal_approx(clock.real_seconds_to_avatar_hours(96.0 * 60.0, true), 8.0))
@@ -124,17 +126,17 @@ func _test_nap(clock: Node) -> void:
 func _test_daylight(clock: Node) -> void:
 	for pair in [[12.0, 1.0], [0.0, 0.0], [3.0, 0.0], [6.0, 0.0], [7.0, 0.5], [8.0, 1.0], [18.0, 1.0], [19.0, 0.5], [20.0, 0.0]]:
 		_check("sky at %02d:00 is %.1f light" % pair, is_equal_approx(clock.daylight_amount(pair[0] * 60.0), pair[1]))
-	# A nap at noon still shows a day sky.
+	# A nap at 13:00 (6 h awake, so the avatar is sleepy) still shows a day sky.
 	var activities: Node = root.get_node("Activities")
 	root.get_node("GameState").reset()
 	clock.reset()
 	clock.debug_speed = clock.avatar_hours_to_real_seconds(1.0, false) / 0.5
-	for i in 5:
+	for i in 6:
 		clock._process(0.5)
 	activities.start("sleep", "sleep", 1.0)
 	clock.debug_speed = 60.0
 	clock._process(0.1)
-	_check("napping at noon: avatar asleep, sky still day", clock.phase == clock.Phase.SLEEPING and clock.daylight_amount() == 1.0)
+	_check("napping at 13:00: avatar asleep, sky still day", clock.phase == clock.Phase.SLEEPING and clock.daylight_amount() == 1.0)
 	activities.stop()
 
 
@@ -169,6 +171,45 @@ func _test_ignoring_the_recommendation(clock: Node) -> void:
 	clock.wake_up()
 	_check("after sleeping the normal rule applies (16 h day)", is_equal_approx(clock.day_length_hours, 16.0))
 	_check("waking is reported as slept", new_days == [false, false, true])
+
+
+## Milestone 10 Task 2 (v1 Step 9): the avatar can sleep only with at least 1 h of sleep
+## debt or after 6 h awake, and never sleeps longer than the top of its range plus
+## min(debt, 2 h).
+func _test_can_sleep(clock: Node) -> void:
+	var activities: Node = root.get_node("Activities")
+	var game_state: Node = root.get_node("GameState")
+	game_state.start_new_avatar("Test", "child", "female", "normal")
+	clock.reset()
+	game_state.sleep_debt = 0.0
+	game_state.hours_awake = 0.0
+	_check("no debt, 0 h awake: not sleepy", not clock.is_sleepy() and not activities.can_start("sleep"))
+	_check("sleep does not start when not sleepy", not activities.start("sleep", "sleep", 8.0) and clock.phase == clock.Phase.DAY)
+	# Run the clock to 5 h and then 6 h awake (hours awake come from Simulation).
+	clock.debug_speed = clock.avatar_hours_to_real_seconds(1.0, false) / 0.5
+	for i in 5:
+		clock._process(0.5)
+	_check("5 h awake: still not sleepy", absf(game_state.hours_awake - 5.0) < 0.001 and not clock.is_sleepy())
+	clock._process(0.5)
+	_check("6 h awake: sleepy", clock.is_sleepy() and activities.can_start("sleep"))
+	game_state.hours_awake = 0.0
+	game_state.sleep_debt = 1.0
+	_check("1 h of sleep debt: sleepy", clock.is_sleepy())
+	game_state.sleep_debt = 0.0
+	_check("child, no debt: at most 12 h", is_equal_approx(clock.max_sleep_hours(), 12.0))
+	game_state.age_group = "teenager"
+	_check("teenager, no debt: at most 10 h", is_equal_approx(clock.max_sleep_hours(), 10.0))
+	game_state.sleep_debt = 1.0
+	_check("teenager, 1 h debt: at most 11 h", is_equal_approx(clock.max_sleep_hours(), 11.0))
+	game_state.sleep_debt = 5.0
+	_check("teenager, 5 h debt: at most 12 h (10 + 2)", is_equal_approx(clock.max_sleep_hours(), 12.0))
+	game_state.sleep_debt = 1.0
+	activities.start("sleep", "sleep", 12.0)
+	_check("a 12 h sleep is cut to 11 h", is_equal_approx(clock.sleep_target_hours, 11.0))
+	clock.debug_speed = 600.0
+	_run_until(clock, clock.Phase.SLEEP_OVER)
+	_check("after a sleep, the hours awake start again from 0", game_state.hours_awake == 0.0)
+	clock.wake_up()
 
 
 func _near_minute(clock: Node, minute: float) -> bool:

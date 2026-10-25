@@ -7,7 +7,8 @@ extends SceneTree
 
 const TEST_CONFIG := "user://test_config.json"
 ## The health scripts that must not hold any game number (and every script in HEALTH_FOLDER).
-const HEALTH_SCRIPTS := ["res://scripts/autoload/game_state.gd", "res://scripts/autoload/habits.gd"]
+const HEALTH_SCRIPTS := ["res://scripts/autoload/game_state.gd", "res://scripts/autoload/habits.gd",
+		"res://scripts/autoload/simulation.gd"]
 const HEALTH_FOLDER := "res://scripts/health/"
 ## The Milestone 10 (v1) groups: every value in them needs value, status and owner.
 const V1_GROUPS := ["body", "energy", "appetite", "meals", "deficit", "train", "minigame", "diet", "sleep",

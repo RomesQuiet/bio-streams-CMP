@@ -47,10 +47,10 @@ translations/  strings.csv
 assets/        art/, audio/
 documentation/ milestone notes
 docs/          web export (GitHub Pages)
-tests/         headless test scripts (one per area: clock, save, activities, health and XP, creation, difficulty, habits, body, calibration, config, measures, health_log)
+tests/         headless test scripts (one per area: clock, save, activities, health and XP, creation, difficulty, habits, body, calibration, config, measures, health_log, who, simulation)
 ```
 
-Autoloads: `Config`, `GameState`, `Clock`, `Activities` (the general activity system for sleep, exercise and entertainment, reading `data/activities.json`), `Habits` (the action log and daily habit scores), `HealthLog` (the debug CSV log) and `SaveGame`. The Clock never reads the device clock for game time; it advances only with the game open (delta time).
+Autoloads: `Config`, `GameState`, `Clock`, `Activities`, `Simulation` (Milestone 10: runs the health system in fixed steps of `time.step_avatar_min` = 5 avatar minutes in the v1 update order, so results do not depend on the frame rate; a phase change runs the leftover minutes as one shorter step; it also counts `GameState.hours_awake`) (the general activity system for sleep, exercise and entertainment, reading `data/activities.json`), `Habits` (the action log and daily habit scores), `HealthLog` (the debug CSV log) and `SaveGame`. The Clock never reads the device clock for game time; it advances only with the game open (delta time).
 
 ## Game rules (confirmed)
 
@@ -73,7 +73,7 @@ Autoloads: `Config`, `GameState`, `Clock`, `Activities` (the general activity sy
 - **Exercise limits (v1 Step 6).** Daily capacity = (60 + 90 × fitness) × (1 − 0.3 × d) minutes; minutes beyond it give no benefit, cost a little happiness and build an overreaching load O. Strength started before 60% recovery (24 h time constant) counts as too soon. "Tired" (tiredness) comes from sleep debt and hours awake, not from exercise.
 
 **Time**
-- Day = **20 real minutes** = 14 avatar hours (1 real minute = 42 avatar minutes; v1, `time.awake_avatar_min_per_real_min`). The code still uses 30 real minutes (28).
+- Day = **20 real minutes** = 14 avatar hours (1 real minute = 42 avatar minutes; v1; `time.day_avatar_minutes_per_real_minute` in config, built in Milestone 10 Task 2).
 - Night = 2 real hours = 10 avatar hours of sleep (1 real minute = 5 avatar minutes). Sleeping less is proportional (8 h of sleep = 96 real minutes).
 - **Sleep-to-day conversion (confirmed).** The baseline is 10 hours of sleep and a 14-hour day (24 hours in total). Hours slept below 10 are **added to the next day** and hours slept above 10 are **taken from it**: `day_hours = 14 + (10 - sleep_hours)`. Example: 5 hours of sleep give a 19-hour day, and 12 hours of sleep give a 12-hour day. The day's real length uses the same scale: `day_real_minutes = day_hours * 60 / 42` (19 h is about 27.1 real minutes, 14 h is 20 real minutes). The 10 h only sets the scale; recommended sleep comes from the age (child target 10.5 h, teenager 9 h). The first day is 14 hours.
 - Implement this as one small, well-tested conversion function in `Clock` (avatar hours to real seconds, and back), with the numbers read from `Config`. Put the maximum sleep on the slider in config (placeholder, for example 12 hours).
@@ -81,7 +81,7 @@ Autoloads: `Config`, `GameState`, `Clock`, `Activities` (the general activity sy
 - Game time only advances while the game is open. Closing the tab pauses time.
 - A pause button stops the day. The night starts when the day ends, but sleep is **not automatic**: the avatar gets tired, shows a recommendation to sleep, and the player decides. When sleep ends, the game pauses and a **wake button** starts a new day.
 - Sleep is optional and variable (a slider chooses the hours). Not sleeping lowers health significantly.
-- **When the avatar can sleep (v1 Step 9).** Only when its sleep debt is at least 1 h or it has been awake at least 6 avatar hours; otherwise it says it is not sleepy. It wakes after the chosen hours, never later than the maximum plus min(debt, 2 h). Within that rule the sleep button works at any moment of the day, not only at bedtime. A nap is simply a short sleep and follows the same rule: when any sleep ends, a new day starts whose length is `14 + (10 - hours slept)`, so one sleep plus the awake period after it always adds up to 24 hours.
+- **When the avatar can sleep (v1 Step 9).** Only when its sleep debt is at least 1 h or it has been awake at least 6 avatar hours; otherwise it says it is not sleepy. It wakes after the chosen hours, never later than the maximum plus min(debt, 2 h). Within that rule the sleep button works at any moment of the day, not only at bedtime. Built in Milestone 10 Task 2 (`Clock.is_sleepy()`, `Clock.max_sleep_hours()`; until Task 6 the debt is the Milestone 4 `sleep_debt`); pressing Sleep when not sleepy shows "I'm not sleepy." and the slider stops at the longest sleep allowed. A nap is simply a short sleep and follows the same rule: when any sleep ends, a new day starts whose length is `14 + (10 - hours slept)`, so one sleep plus the awake period after it always adds up to 24 hours.
 - **Ignoring the sleep recommendation (confirmed).** If the awake period runs out and the player has not slept, it counts as **0 hours slept**: a new 24-hour day starts at once, the avatar stays tired and the sleep measure keeps falling. The recommendation stays visible, and the player can still sleep at any time.
 
 **Food and mood** (build later)
