@@ -58,7 +58,7 @@ func _test_days(gs: Node, clock: Node, activities: Node, main: Node) -> void:
 		print("%3d  %.3f    %.3f  %.3f  %.3f   %.3f (%.3f)" % [day + 1, gs.physical, gs.mental, gs.sleep,
 				gs.target_health, gs.health, main.health_bar.value])
 		_check("day %d: physical = mix of fitness, muscle and weight score" % (day + 1),
-				absf(gs.physical - gs.physical_from_body(gs.fitness, gs.muscle, gs.weight_z)) < TOLERANCE)
+				absf(gs.physical - gs.physical_from_body(gs.fitness, gs.strength, gs.weight_z)) < TOLERANCE)
 		var expected_sleep: float = maxf(0.0, habits.scores["sleep"] * (1.0 - gs.sleep_debt / config.get_float("health_m4.debt_max")))
 		_check("day %d: sleep = s x (1 - debt / debt_max)" % (day + 1), absf(gs.sleep - expected_sleep) < TOLERANCE)
 		_check("day %d: mental = mood / 100" % (day + 1), absf(gs.mental - gs.mood / 100.0) < TOLERANCE)

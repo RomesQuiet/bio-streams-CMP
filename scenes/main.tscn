@@ -330,7 +330,7 @@ text = "Physical"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
-tooltip_text = "Click to show calories and muscle"
+tooltip_text = "Click to show calories, strength and fitness"
 
 [node name="PhysicalBar" type="ProgressBar" parent="HealthPanel/Margin/Measures/PhysicalButton"]
 unique_name_in_owner = true
@@ -406,7 +406,7 @@ text = "Calories spent
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Muscle
+text = "Strength
 0.50"
 
 [node name="FitnessLabel" type="Label" parent="ValuesPanel/Margin/Values"]

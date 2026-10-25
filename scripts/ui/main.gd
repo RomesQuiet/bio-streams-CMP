@@ -112,7 +112,7 @@ func _toggle_health_panel() -> void:
 		values_panel.visible = false
 
 
-## Clicking the physical bar shows or hides its values (calories, muscle and fitness).
+## Clicking the physical bar shows or hides its values (calories, strength and fitness).
 func _toggle_values_panel() -> void:
 	values_panel.visible = not values_panel.visible
 
@@ -227,7 +227,7 @@ func _refresh() -> void:
 	mental_bar.value = GameState.mental
 	sleep_bar.value = GameState.sleep
 	calories_label.text = "Calories spent\n%d kcal" % roundi(GameState.calories_spent)
-	muscle_label.text = "Muscle\n%.2f" % GameState.muscle
+	muscle_label.text = "Strength\n%.2f" % GameState.strength
 	fitness_label.text = "Fitness\n%.2f" % GameState.fitness
 	level_label.text = "Lv %d" % GameState.level
 	xp_bar.value = GameState.level_progress

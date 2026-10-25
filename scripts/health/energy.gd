@@ -7,6 +7,7 @@ extends RefCounted
 ## eaten and spent in the last deficit.window_h avatar hours. All numbers come from Config.
 
 const WhoTables := preload("res://scripts/health/who_tables.gd")
+const HourWindow := preload("res://scripts/health/hour_window.gd")
 
 
 ## Basal metabolic rate in kcal per day.
@@ -80,24 +81,14 @@ static func deficit_penalty(eaten: float, spent: float) -> float:
 
 ## Sum of kcal "eaten" or "spent" in the window.
 static func window_total(kind: String) -> float:
-	var total := 0.0
-	for kcal in GameState.energy_window[kind]:
-		total += float(kcal)
-	return total
+	return HourWindow.total(GameState.energy_window, GameState.sim_hours, kind)
 
 
 ## A window as if the avatar had eaten what it spent, at the reference appetite, so a new
 ## avatar does not start with a deficit.
 static func balanced_window(sex: String, age_months: float) -> Dictionary:
-	var slots := Config.get_int("deficit.window_h")
 	var per_hour := reference_kcal_per_day(sex, age_months) / Config.get_float("units.hours_per_day")
-	var eaten := []
-	var spent := []
-	for i in slots:
-		eaten.append(per_hour)
-		spent.append(per_hour)
-	# "hour" -1: the first step clears the slot of hour 0, so it is not counted twice.
-	return {"eaten": eaten, "spent": spent, "hour": -1}
+	return HourWindow.create(Config.get_int("deficit.window_h"), {"eaten": per_hour, "spent": per_hour}, ["eaten", "spent"])
 
 
 ## Weight change: body.k x kcal / body.kcal_per_kg (k is body time).
@@ -105,15 +96,6 @@ static func _change_weight(kcal: float) -> void:
 	GameState.weight_kg += Config.get_float("body.k") * kcal / Config.get_float("body.kcal_per_kg")
 
 
-## Adds kcal to the slot of the current avatar hour; slots of hours that passed are cleared.
+## Adds kcal to the slot of the current avatar hour.
 static func _add_to_window(kind: String, kcal: float) -> void:
-	var window: Dictionary = GameState.energy_window
-	var slots: int = window["eaten"].size()
-	var hour := floori(GameState.sim_hours)
-	var newest := int(window["hour"])
-	if hour > newest:
-		for h in range(maxi(newest + 1, hour - slots + 1), hour + 1):
-			window["eaten"][h % slots] = 0.0
-			window["spent"][h % slots] = 0.0
-		window["hour"] = hour
-	window[kind][hour % slots] += kcal
+	HourWindow.add(GameState.energy_window, GameState.sim_hours, kind, kcal)

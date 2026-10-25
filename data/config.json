@@ -116,6 +116,8 @@
 
 	"train": {
 		"_comment": "v1 Step 6. Daily capacity = (capacity_base_min + capacity_fit_min x fitness) x (1 - capacity_sleep_cut x d) minutes of moderate-to-vigorous activity per avatar day. Target = target_floor + target_range x (1 - e^(-target_rate x minutes / ref_min)).",
+		"cardio_types": {"value": ["cardio", "football"], "status": "placeholder", "owner": "Pessoa 3", "comment": "Activity options that count as cardio for training (v1 Step 6: cardio and football give A_cardio). Their minutes, and those of strength_types, use up the daily capacity."},
+		"strength_types": {"value": ["strength"], "status": "placeholder", "owner": "Pessoa 3", "comment": "Activity options that count as strength training."},
 		"capacity_base_min": {"value": 60, "status": "from source", "owner": "Pessoa 3", "comment": "WHO 2020: 60 min a day. Clock time."},
 		"capacity_fit_min": {"value": 90, "status": "placeholder", "owner": "Pessoa 3", "comment": "A very fit avatar tolerates 60 + 90 = 150 minutes."},
 		"capacity_sleep_cut": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 3"},
@@ -138,7 +140,7 @@
 		"cardio_recovery_h": {"value": 6, "status": "placeholder", "owner": "Pessoa 3", "comment": "Recovery time constant, clock time."},
 		"strength_tire_min": {"value": 45, "status": "placeholder", "owner": "Pessoa 3"},
 		"strength_recovery_h": {"value": 24, "status": "from source", "owner": "Pessoa 3", "comment": "Clock time; 86% recovered after 48 h (AAP 2020: non-consecutive days)."},
-		"strength_ready": {"value": 0.6, "status": "placeholder", "owner": "Pessoa 3", "comment": "A strength session that starts below this recovery counts as too soon."}
+		"strength_ready": {"value": 0.6, "status": "placeholder", "owner": "Pessoa 3", "comment": "A strength session that starts below this recovery counts as too soon: it gives no effective minutes, and all its minutes build overreaching (user decision, 25 Oct 2026)."}
 	},
 
 	"minigame": {

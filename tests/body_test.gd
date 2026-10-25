@@ -27,7 +27,7 @@ func _process(_delta: float) -> bool:
 	gs.reset()
 	root.get_node("Clock").reset()
 
-	_test_fitness(gs)
+	# Fitness and strength: tests/training_test.gd (Milestone 10, trained every step).
 	_test_k(gs, config)
 	_test_sleep_debt(gs, config)
 	_test_mood_and_habits(gs)
@@ -40,30 +40,6 @@ func _process(_delta: float) -> bool:
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
 	quit(1 if _failures > 0 else 0)
 	return true
-
-
-func _test_fitness(gs: Node) -> void:
-	gs.start_new_avatar("Test", "child", "female", "normal")
-	var z_start: float = gs.weight_z
-	print("day  fitness  muscle   (7 active days, then 7 resting days)")
-	var values := [gs.fitness]
-	for day in 7:
-		gs.update_body_states(ACTIVE_DAY, 10.0)
-		values.append(gs.fitness)
-		print("%3d  %.3f    %.3f" % [day + 1, gs.fitness, gs.muscle])
-	_check("fitness rises every active day", _rising(values))
-	_check("muscle rises with strength", gs.muscle > 0.25)
-	var after_active: float = gs.fitness
-	var rise: float = after_active - values[0]
-	values = [gs.fitness]
-	for day in 7:
-		gs.update_body_states(RESTING_DAY, 10.0)
-		values.append(gs.fitness)
-		print("%3d  %.3f    %.3f" % [day + 8, gs.fitness, gs.muscle])
-	_check("fitness falls every day without activity", _falling(values))
-	_check("it falls slowly: less lost in 7 days than gained in 7 days", after_active - gs.fitness < rise)
-	_check("fitness stays between 0 and 1", gs.fitness >= 0.0 and gs.fitness <= 1.0)
-	_check("weight z-score stays at the difficulty's value", is_equal_approx(gs.weight_z, z_start))
 
 
 ## k makes the body change faster: one avatar day runs the real-day update k times,
@@ -278,13 +254,12 @@ func _test_in_play(gs: Node, save_game: Node) -> void:
 	activities.start("exercise", "cardio")
 	while activities.is_running():
 		clock._process(STEP_SECONDS)
-	_check("fitness does not change during the day", is_equal_approx(gs.fitness, fitness_start))
+	_check("fitness rises during the cardio (Milestone 10: trained every step)", gs.fitness > fitness_start)
 	# The avatar can sleep only when sleepy (v1 can-sleep rule): make it sleepy.
 	gs.hours_awake = root.get_node("Config").get_float("sleep.can_sleep_awake_h")
 	activities.start("sleep", "sleep", 10.0)
 	while clock.phase == clock.Phase.SLEEPING:
 		clock._process(STEP_SECONDS)
-	_check("fitness rises when the sleep ends (after 1 h of cardio)", gs.fitness > fitness_start)
 	var saved: Dictionary = gs.to_dict()
 	save_game.save_game()
 	gs.reset()

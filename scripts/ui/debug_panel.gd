@@ -49,7 +49,7 @@ func _refresh() -> void:
 			gs.weight_z, BodySize.weight_score(gs.weight_z), gs.deficit_u])
 	lines.append("  last 24 h: eaten %.0f kcal, spent %.0f kcal" % [Energy.window_total("eaten"), Energy.window_total("spent")])
 	lines.append("Body states")
-	lines.append("  fitness %.3f  muscle %.3f" % [gs.fitness, gs.muscle])
+	lines.append("  fitness %.3f  strength %.3f" % [gs.fitness, gs.strength])
 	lines.append("  sleep debt %.2f h  mood %.1f / %d" % [gs.sleep_debt, gs.mood, Config.get_int("health_m4.mood_max")])
 	lines.append("  habit cost %.2f mood points %s" % [gs.habit_cost_total,
 			", ".join(gs.habit_costs.keys().map(func(h): return "%s %.2f" % [h, gs.habit_costs[h]]))])

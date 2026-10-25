@@ -129,8 +129,8 @@ func _test_exercise(activities: Node, game_state: Node, clock: Node) -> void:
 		root.get_node("Simulation").flush()
 		# Weight changes a little during the hour (k = 10), so BMR does too: within 1 kcal.
 		_check("%s: calories spent change by BMR / 24 x METy" % option_id, absf(game_state.calories_spent - (before["calories_spent"] + kcal * hours)) < 1.0)
-		_check("%s: muscle and physical do not change during the day" % option_id,
-				is_equal_approx(game_state.muscle, before["muscle"]) and is_equal_approx(game_state.physical, before["physical"]))
+		_check("%s: the physical measure does not change during the day" % option_id,
+				is_equal_approx(game_state.physical, before["physical"]))
 
 		# Stop halfway: calories count only for the time done. Small steps, so the stop
 		# lands close to 0.5 h.
@@ -172,7 +172,7 @@ func _test_entertainment(activities: Node, game_state: Node, clock: Node, _save_
 
 
 func _snapshot(game_state: Node) -> Dictionary:
-	return {"calories_spent": game_state.calories_spent, "muscle": game_state.muscle, "physical": game_state.physical}
+	return {"calories_spent": game_state.calories_spent, "strength": game_state.strength, "physical": game_state.physical}
 
 
 ## Runs until the awake period runs out and a new day starts without sleep.

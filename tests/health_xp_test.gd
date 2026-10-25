@@ -56,7 +56,7 @@ func _test_health_follows_measures(gs: Node) -> void:
 		values.append(gs.health)
 	print("health on 11 good days: %s" % ", ".join(values.map(func(v): return "%.2f" % v)))
 	_check("health rises gradually, day by day", values[2] > values[1] and values[-1] > values[2] and values[-1] <= 5.0)
-	_check("the measures come from the body states", is_equal_approx(gs.physical, gs.physical_from_body(gs.fitness, gs.muscle, gs.weight_z)))
+	_check("the measures come from the body states", is_equal_approx(gs.physical, gs.physical_from_body(gs.fitness, gs.strength, gs.weight_z)))
 
 
 func _test_xp_from_health_changes(gs: Node, config: Node) -> void:

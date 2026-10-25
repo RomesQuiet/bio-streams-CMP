@@ -160,13 +160,14 @@ func _test_no_numbers_in_scripts() -> void:
 
 ## Changing k in the file and reloading changes the next day's calculation.
 func _test_reload(config: Node, gs: Node) -> void:
+	var body_size: GDScript = load("res://scripts/health/body_size.gd")
 	gs.start_new_avatar("Test", "child", "female", "normal")
-	var start: float = gs.fitness
-	gs.update_body_states(ACTIVE_DAY, 10.0)
-	var gain_k5: float = gs.fitness - start
+	var start: float = gs.body_age_months
+	body_size.step(24.0, false)
+	var growth_k10: float = gs.body_age_months - start
 
 	var data: Dictionary = config._data.duplicate(true)
-	data["health_m4"]["k"]["value"] = 1
+	data["body"]["k"]["value"] = 1
 	var file := FileAccess.open(TEST_CONFIG, FileAccess.WRITE)
 	file.store_string(JSON.stringify(data, "\t"))
 	file.close()
@@ -174,17 +175,17 @@ func _test_reload(config: Node, gs: Node) -> void:
 	config.reloaded.connect(func() -> void: reloaded[0] = true)
 	config.config_path = TEST_CONFIG
 	config.reload()
-	_check("reload reads the changed file", reloaded[0] and config.get_float("health_m4.k") == 1.0)
+	_check("reload reads the changed file", reloaded[0] and config.get_float("body.k") == 1.0)
 	gs.start_new_avatar("Test", "child", "female", "normal")
-	gs.update_body_states(ACTIVE_DAY, 10.0)
-	var gain_k1: float = gs.fitness - start
-	print("  fitness gain in one day: k = 5 -> %.4f, k = 1 -> %.4f" % [gain_k5, gain_k1])
-	_check("with k = 1 after reload, the next day changes less", gain_k1 < gain_k5 and gain_k1 > 0.0)
+	body_size.step(24.0, false)
+	var growth_k1: float = gs.body_age_months - start
+	print("  body age growth in one avatar day: k = 10 -> %.4f months, k = 1 -> %.4f months" % [growth_k10, growth_k1])
+	_check("with k = 1 after reload, the body changes 10 times less", is_equal_approx(growth_k1 * 10.0, growth_k10))
 
 	config.config_path = config.CONFIG_PATH
 	config.reload()
 	DirAccess.remove_absolute(TEST_CONFIG)
-	_check("the real config is back (k = 5)", config.get_float("health_m4.k") == 5.0)
+	_check("the real config is back (k = 10)", config.get_float("body.k") == 10.0)
 
 
 ## The entry at a dotted path inside a dictionary, or null.

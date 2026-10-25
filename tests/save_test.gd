@@ -33,7 +33,7 @@ func _process(_delta: float) -> bool:
 	_check("avatar counts as created", game_state.is_created())
 	game_state.xp = 157.5
 	game_state.physical = 0.8
-	game_state.muscle = 0.7
+	game_state.strength = 0.7
 	game_state.calories_spent = 1234.0
 	clock.debug_speed = 600.0
 	var day: int = clock.day_number

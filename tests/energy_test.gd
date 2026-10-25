@@ -154,8 +154,9 @@ func _test_deficit() -> void:
 		clock._process(0.1)
 	print("  no food: U %.2f after 6 h, %.2f after 24 h (eaten %.0f, spent %.0f kcal in 24 h)" % [u_after_6h, gs.deficit_u,
 			energy.window_total("eaten"), energy.window_total("spent")])
+	# The day ends a moment before 24 h, so a sliver of the first hour is still in the window.
 	_check("after a whole avatar day without food U is 1", is_equal_approx(gs.deficit_u, 1.0)
-			and energy.window_total("eaten") == 0.0)
+			and energy.window_total("eaten") < 0.01 * energy.window_total("spent"))
 	clock.wake_up()
 
 

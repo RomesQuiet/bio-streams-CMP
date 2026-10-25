@@ -30,7 +30,7 @@ func header() -> PackedStringArray:
 		columns.append("H_" + habit)
 	for habit in GameState.usual_habits:
 		columns.append("R_" + habit)
-	columns.append_array(["habit_cost", "sleep_debt", "fitness", "muscle", "weight_z", "mood",
+	columns.append_array(["habit_cost", "sleep_debt", "fitness", "strength", "weight_z", "mood",
 			"physical", "mental", "sleep", "target_health", "health", "health_level", "xp"])
 	return columns
 
@@ -51,7 +51,7 @@ func row() -> PackedStringArray:
 		values.append(_number(gs.usual_habits[habit]))
 	for habit in gs.usual_habits:
 		values.append(_number(gs.rootedness.get(habit, 0.0)))
-	for value in [gs.habit_cost_total, gs.sleep_debt, gs.fitness, gs.muscle, gs.weight_z, gs.mood,
+	for value in [gs.habit_cost_total, gs.sleep_debt, gs.fitness, gs.strength, gs.weight_z, gs.mood,
 			gs.physical, gs.mental, gs.sleep, gs.target_health, gs.health]:
 		values.append(_number(value))
 	values.append_array([str(gs.health_level), _number(gs.xp)])

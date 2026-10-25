@@ -7,12 +7,13 @@ signal changed
 signal leveled_up(new_level: int)
 
 ## Values that always stay between 0 and 1.
-const MEASURES_0_TO_1 := ["physical", "mental", "sleep", "muscle", "fitness"]
+const MEASURES_0_TO_1 := ["physical", "mental", "sleep", "strength", "fitness"]
 ## The player's choices on the avatar creation screen. Empty means not chosen yet.
 const CHOICE_KEYS := ["avatar_name", "age_group", "sex", "difficulty"]
 
 const WhoTables := preload("res://scripts/health/who_tables.gd")
 const Energy := preload("res://scripts/health/energy.gd")
+const Training := preload("res://scripts/health/training.gd")
 
 # Measures: physical, mental and sleep go from 0 to 1. They are worked out from the
 # body states once per avatar day. Health (1 to 5) is the displayed health: it starts at
@@ -39,14 +40,30 @@ var deficit_u: float
 var energy_window: Dictionary
 ## Avatar hours run by Simulation since the avatar was created.
 var sim_hours: float
+## Training (Milestone 10, v1 Step 6). Recovery of cardio and of strength, 0 to 1 (1 = rested).
+var cardio_recovery: float
+var strength_recovery: float
+## Whether the strength session running now started too soon (below train.strength_ready).
+var strength_too_soon: bool
+## Minutes of exercise done in this avatar day (they use up the daily capacity).
+var exercise_minutes_today: float
+## Excess minutes per day, averaged over train.overreach_tau_h, and the overreaching load O (0 to 1).
+var overreach_minutes: float
+var overreach: float
+## Effective cardio and strength minutes in each of the last 24 avatar hours.
+var training_window: Dictionary
+## Minutes beyond the daily capacity in the last step (not saved; for happiness in Task 7).
+var beyond_capacity_minutes_step := 0.0
 ## kcal spent in the last 5-minute step (not saved; worked out again every step).
 var energy_spent_step := 0.0
-## Muscle strength, 0 to 1. A slow body state, trained by muscle strength (strength score).
-var muscle: float
+## Muscle strength, 0 to 1 (v1 Step 6; called muscle before Milestone 10). Trained every step
+## by Training from strength sessions (and a little from cardio).
+var strength: float
 ## Total kcal spent by exercise so far (not limited to 1). A record only.
 var calories_spent: float
 ## Slow body states (Milestone 3, Task 4). Updated once per avatar day by update_body_states().
-## Fitness, 0 to 1. Trained by cardio and muscle strength (activity score).
+## Aerobic fitness, 0 to 1 (v1 Step 6). Trained every step by Training from cardio and football
+## (and a little from strength).
 var fitness: float
 ## Hours of sleep owed. Never below 0.
 var sleep_debt: float
@@ -142,7 +159,14 @@ func to_dict() -> Dictionary:
 		"deficit_u": deficit_u,
 		"energy_window": energy_window.duplicate(true),
 		"sim_hours": sim_hours,
-		"muscle": muscle,
+		"cardio_recovery": cardio_recovery,
+		"strength_recovery": strength_recovery,
+		"strength_too_soon": strength_too_soon,
+		"exercise_minutes_today": exercise_minutes_today,
+		"overreach_minutes": overreach_minutes,
+		"overreach": overreach,
+		"training_window": training_window.duplicate(true),
+		"strength": strength,
 		"calories_spent": calories_spent,
 		"fitness": fitness,
 		"sleep_debt": sleep_debt,
@@ -181,7 +205,16 @@ func from_dict(data: Dictionary) -> void:
 		# JSON reads every number as a decimal; the hour is a whole number.
 		energy_window["hour"] = int(energy_window.get("hour", -1))
 	sim_hours = float(data.get("sim_hours", sim_hours))
-	muscle = float(data.get("muscle", muscle))
+	cardio_recovery = float(data.get("cardio_recovery", cardio_recovery))
+	strength_recovery = float(data.get("strength_recovery", strength_recovery))
+	strength_too_soon = bool(data.get("strength_too_soon", strength_too_soon))
+	exercise_minutes_today = float(data.get("exercise_minutes_today", exercise_minutes_today))
+	overreach_minutes = float(data.get("overreach_minutes", overreach_minutes))
+	overreach = float(data.get("overreach", overreach))
+	if data.get("training_window") is Dictionary:
+		training_window = data["training_window"].duplicate(true)
+		training_window["hour"] = int(training_window.get("hour", -1))
+	strength = float(data.get("strength", data.get("muscle", strength)))
 	calories_spent = float(data.get("calories_spent", calories_spent))
 	fitness = float(data.get("fitness", fitness))
 	sleep_debt = float(data.get("sleep_debt", sleep_debt))
@@ -230,7 +263,7 @@ func _apply_difficulty_start(difficulty_id: String) -> void:
 	physical = Config.get_float(path + ".physical")
 	mental = Config.get_float(path + ".mental")
 	sleep = Config.get_float(path + ".sleep")
-	muscle = Config.get_float(path + ".muscle")
+	strength = Config.get_float(path + ".muscle")
 	fitness = Config.get_float(path + ".fitness")
 	sleep_debt = Config.get_float(path + ".sleep_debt")
 	weight_z = Config.get_float(path + ".weight_z")
@@ -250,6 +283,16 @@ func _apply_body_start() -> void:
 	sim_hours = 0.0
 	energy_window = Energy.balanced_window(sex_or_default(), body_age_months)
 	deficit_u = 0.0
+	# Training starts rested, from the v1 starting fitness and strength of the difficulty.
+	fitness = Config.get_float("health.difficulties.%s.fitness" % difficulty_id)
+	strength = Config.get_float("health.difficulties.%s.strength" % difficulty_id)
+	training_window = Training.starting_window(fitness, strength)
+	cardio_recovery = 1.0
+	strength_recovery = 1.0
+	strength_too_soon = false
+	exercise_minutes_today = 0.0
+	overreach_minutes = 0.0
+	overreach = 0.0
 	hunger = Config.get_float("meals.start_hunger_meals") * Energy.healthy_portion_kcal(sex_or_default(), body_age_months)
 	hours_since_meal = Config.get_float("meals.min_gap_h")
 
@@ -299,8 +342,6 @@ func update_body_states(scores: Dictionary, sleep_hours: float, intensities: Dic
 	# The cost of changing habits uses H and R from before this day.
 	habit_costs = habit_change_costs(intensities)
 	habit_cost_total = total_habit_cost(habit_costs)
-	var activity := float(scores.get("activity", 0.0))
-	var strength := float(scores.get("strength", 0.0))
 	# Per real day, a habit moves the share that reaches habit_share_reached (95%) of a
 	# new habit in habit_days_to_95 days.
 	var habit_rate := 1.0 - pow(1.0 - Config.get_float("health_m4.habit_share_reached"),
@@ -308,8 +349,6 @@ func update_body_states(scores: Dictionary, sleep_hours: float, intensities: Dic
 	var lambda := Config.get_float("health_m4.habit_cost.lambda")
 	var tolerance := Config.get_float("health_m4.habit_cost.T")
 	for i in real_days:
-		fitness = _train(fitness, activity, Config.get_float("health_m4.fitness_k_up"), Config.get_float("health_m4.fitness_k_down"))
-		muscle = _train(muscle, strength, Config.get_float("health_m4.muscle_k_up"), Config.get_float("health_m4.muscle_k_down"))
 		for habit in usual_habits:
 			# Rootedness grows only while the habit is stable (|A - H| at most T), so a
 			# change in progress does not become more expensive every day.
@@ -319,7 +358,8 @@ func update_body_states(scores: Dictionary, sleep_hours: float, intensities: Dic
 				usual_habits[habit] = clampf(usual_habits[habit] + habit_rate * (float(intensities[habit]) - usual_habits[habit]), 0.0, 1.0)
 			if stable:
 				rootedness[habit] = clampf(rootedness[habit] + lambda * (1.0 - rootedness[habit]), 0.0, 1.0)
-	# weight_z stays the same: no food yet, so no automatic eating.
+	# Fitness and strength are trained every step by Training (Milestone 10, Task 5), and
+	# weight and z change every step (Task 4).
 	mood = clampf(mood + Config.get_float("health_m4.mood_speed") * (mood_target(scores) - mood) - habit_cost_total,
 			0.0, Config.get_float("health_m4.mood_max"))
 	_update_measures(float(scores.get("sleep", 0.0)))
@@ -363,7 +403,7 @@ func total_habit_cost(costs: Dictionary) -> float:
 
 ## The three measures from the body states (CLAUDE.md, Health calculation, step 4).
 func _update_measures(sleep_score: float) -> void:
-	physical = physical_from_body(fitness, muscle, weight_z)
+	physical = physical_from_body(fitness, strength, weight_z)
 	var debt_factor := 1.0 - sleep_debt / Config.get_float("health_m4.debt_max")
 	sleep = clampf(sleep_score * debt_factor, 0.0, 1.0)
 	mental = clampf(mood / Config.get_float("health_m4.mood_max"), 0.0, 1.0)
@@ -387,12 +427,6 @@ func mood_target(scores: Dictionary) -> float:
 	for key in MOOD_SCORES:
 		total += float(scores.get(key, 0.0))
 	return Config.get_float("health_m4.mood_max") * total / MOOD_SCORES.size()
-
-
-## Fitness or muscle after one real day: rises with the score toward 1 and falls
-## without it toward 0 (k_up and k_down are per real day).
-func _train(value: float, score: float, k_up: float, k_down: float) -> float:
-	return clampf(value + k_up * score * (1.0 - value) - k_down * (1.0 - score) * value, 0.0, 1.0)
 
 
 ## Failure (there is no death): the displayed health has reached the minimum
@@ -520,7 +554,7 @@ func print_state() -> void:
 	print("avatar_name='%s' age_group=%s sex=%s difficulty=%s language=%s" % [
 			avatar_name, age_group, sex, difficulty, language])
 	print("physical=%.2f mental=%.2f sleep=%.2f" % [physical, mental, sleep])
-	print("muscle=%.2f calories_spent=%.0f" % [muscle, calories_spent])
+	print("strength=%.2f calories_spent=%.0f" % [strength, calories_spent])
 	print("fitness=%.3f sleep_debt=%.2f h weight_z=%+.1f mood=%.1f habit cost=%.2f" % [fitness, sleep_debt, weight_z, mood, habit_cost_total])
 	print("usual_habits=%s" % usual_habits)
 	print("rootedness=%s" % rootedness)

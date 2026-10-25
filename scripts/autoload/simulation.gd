@@ -16,6 +16,7 @@ extends Node
 const Energy := preload("res://scripts/health/energy.gd")
 const Hunger := preload("res://scripts/health/hunger.gd")
 const BodySize := preload("res://scripts/health/body_size.gd")
+const Training := preload("res://scripts/health/training.gd")
 
 ## Emitted after each step, with the avatar hours of that step and whether the avatar slept.
 signal stepped(hours: float, asleep: bool)
@@ -32,6 +33,8 @@ func _ready() -> void:
 	Clock.avatar_time_passed.connect(_on_avatar_time_passed)
 	Clock.phase_changed.connect(_on_phase_changed)
 	Activities.changing.connect(flush)
+	Activities.started.connect(_on_activity_started)
+	Clock.day_started.connect(_on_day_started)
 	Activities.ended.connect(_on_activity_ended)
 
 
@@ -88,9 +91,21 @@ func _add(hours: float, asleep: bool) -> void:
 
 func _on_phase_changed(phase: Clock.Phase) -> void:
 	flush()
-	# Any sleep that ends (a night or a nap) resets the hours awake.
+	# Any sleep that ends (a night or a nap) resets the hours awake and starts a new avatar day.
 	if phase == Clock.Phase.SLEEP_OVER:
 		GameState.hours_awake = 0.0
+		Training.new_day()
+
+
+## The 0-hour rule (the awake period ran out without sleep) also starts a new avatar day.
+func _on_day_started(slept: bool) -> void:
+	if not slept:
+		flush()
+		Training.new_day()
+
+
+func _on_activity_started(_activity_id: String, option_id: String) -> void:
+	Training.on_activity_started(option_id)
 
 
 ## A meal counts when it ends, in proportion to the time eaten (Stop = part of a meal).
@@ -120,7 +135,9 @@ func _step(hours: float, asleep: bool) -> void:
 	BodySize.step(hours, asleep)
 	# 5. Energy deficit penalty U.
 	Energy.update_deficit()
-	# 6. Training (Task 5). 7. Physical (Task 8).
+	# 6. Training: capacity, recovery, overreaching, fitness and strength.
+	Training.step(hours, asleep)
+	# 7. Physical (Task 8).
 	# 8. Happiness (Task 7).
 	# 9. Health, failure timers, risk and XP. Until Task 8: the Milestone 4 XP over time.
 	GameState.apply_avatar_hours(hours, asleep)
