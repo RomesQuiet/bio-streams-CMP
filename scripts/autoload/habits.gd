@@ -112,12 +112,12 @@ func add_entry(type: String, hours: float, start: Dictionary = {}) -> void:
 func day_totals(day: int) -> Dictionary:
 	var totals := {"scoring_day": day, "sleep_hours": 0.0, "activity_minutes": 0.0, "strength_days": 0,
 			"entertainment_hours": 0.0, "screen_hours": 0.0, "kcal": 0.0}
-	var sleep_types: Array = Config.get_value("health.log.sleep_types")
-	var activity_intensities: Array = Config.get_value("health.log.activity_intensities")
-	var strength_types: Array = Config.get_value("health.log.strength_types")
-	var entertainment_types: Array = Config.get_value("health.log.entertainment_types")
-	var screen_types: Array = Config.get_value("health.log.screen_types")
-	var oldest_day := day - Config.get_int("health.log.log_days") + 1
+	var sleep_types: Array = Config.get_value("health_m4.log.sleep_types")
+	var activity_intensities: Array = Config.get_value("health_m4.log.activity_intensities")
+	var strength_types: Array = Config.get_value("health_m4.log.strength_types")
+	var entertainment_types: Array = Config.get_value("health_m4.log.entertainment_types")
+	var screen_types: Array = Config.get_value("health_m4.log.screen_types")
+	var oldest_day := day - Config.get_int("health_m4.log.log_days") + 1
 	var strength_days := {}
 	for entry in entries:
 		var entry_day: int = entry["scoring_day"]
@@ -155,7 +155,7 @@ func calculate_scores(totals: Dictionary, age_group: String) -> Dictionary:
 ## Today's intensity A of each habit (0 to 1), from a scoring day's totals
 ## (health.habit_intensity): sleep, activity, strength, screens.
 func intensities(totals: Dictionary) -> Dictionary:
-	var path := "health.habit_intensity."
+	var path := "health_m4.habit_intensity."
 	return {
 		"sleep": clampf(totals["sleep_hours"] / Config.get_float(path + "sleep_full_h"), 0.0, 1.0),
 		"activity": clampf(totals["activity_minutes"] / Config.get_float(path + "activity_full_min"), 0.0, 1.0),
@@ -166,27 +166,27 @@ func intensities(totals: Dictionary) -> Dictionary:
 
 ## Moderate-to-vigorous minutes ÷ activity_target_min, at most 1.
 func activity_score(minutes: float) -> float:
-	return clampf(minutes / Config.get_float("health.activity_target_min"), 0.0, 1.0)
+	return clampf(minutes / Config.get_float("health_m4.activity_target_min"), 0.0, 1.0)
 
 
 ## Strength days in the last 7 scoring days ÷ strength_days_target, at most 1.
 func strength_score(strength_days: int) -> float:
-	return clampf(strength_days / Config.get_float("health.strength_days_target"), 0.0, 1.0)
+	return clampf(strength_days / Config.get_float("health_m4.strength_days_target"), 0.0, 1.0)
 
 
 ## Entertainment hours ÷ enjoyment_full_at_h, at most 1.
 func enjoyment_score(hours: float) -> float:
-	return clampf(hours / Config.get_float("health.enjoyment_full_at_h"), 0.0, 1.0)
+	return clampf(hours / Config.get_float("health_m4.enjoyment_full_at_h"), 0.0, 1.0)
 
 
 ## Closes the current scoring day after a sleep of this many hours (0 for the 0-hour
 ## rule): logs the sleep, works out the scores, updates the body states and starts the
 ## next scoring day. start: where the sleep started (empty = now).
 func end_scoring_day(sleep_hours: float, start: Dictionary = {}) -> void:
-	if Config.get_string("health.score_window") != WAKE_TO_WAKE:
-		push_error("Habits: score_window '%s' is not built; using %s" % [Config.get_string("health.score_window"), WAKE_TO_WAKE])
+	if Config.get_string("health_m4.score_window") != WAKE_TO_WAKE:
+		push_error("Habits: score_window '%s' is not built; using %s" % [Config.get_string("health_m4.score_window"), WAKE_TO_WAKE])
 	if sleep_hours > 0.0:
-		add_entry(Config.get_value("health.log.sleep_types")[0], sleep_hours, start)
+		add_entry(Config.get_value("health_m4.log.sleep_types")[0], sleep_hours, start)
 	var totals := day_totals(current_day)
 	days.append(totals)
 	last_sleep_hours = sleep_hours
@@ -204,18 +204,18 @@ func sleep_score(hours: float, age_group: String) -> float:
 	var sleep_range := GameState.sleep_range(age_group)
 	var low := sleep_range.x
 	var high := sleep_range.y
-	var zero_at := Config.get_float("health.sleep_zero_at")
+	var zero_at := Config.get_float("health_m4.sleep_zero_at")
 	if hours < low:
 		return clampf((hours - zero_at) / (low - zero_at), 0.0, 1.0)
 	if hours > high:
-		return clampf(1.0 - (hours - high) * Config.get_float("health.sleep_over_penalty_per_h"), 0.0, 1.0)
+		return clampf(1.0 - (hours - high) * Config.get_float("health_m4.sleep_over_penalty_per_h"), 0.0, 1.0)
 	return 1.0
 
 
 ## 1 up to screens_full_until_h; falls in a straight line to 0 at screens_zero_at_h.
 func screen_score(hours: float) -> float:
-	var full := Config.get_float("health.screens_full_until_h")
-	var zero := Config.get_float("health.screens_zero_at_h")
+	var full := Config.get_float("health_m4.screens_full_until_h")
+	var zero := Config.get_float("health_m4.screens_zero_at_h")
 	return clampf((zero - hours) / (zero - full), 0.0, 1.0)
 
 
@@ -249,7 +249,7 @@ func _on_day_started(slept: bool) -> void:
 
 ## Keeps only the last log_days scoring days (entries and totals).
 func _prune() -> void:
-	var oldest_day := current_day - Config.get_int("health.log.log_days") + 1
+	var oldest_day := current_day - Config.get_int("health_m4.log.log_days") + 1
 	entries = entries.filter(func(entry: Dictionary) -> bool: return entry["scoring_day"] >= oldest_day)
 	days = days.filter(func(day: Dictionary) -> bool: return day["scoring_day"] >= oldest_day - 1)
 

@@ -98,8 +98,8 @@ func _process(_delta: float) -> bool:
 	var config: Node = root.get_node("Config")
 	_check("its mood is scaled to 0 to 100", is_equal_approx(game_state.mood, 40.0))
 	_check("rootedness and usual levels use the Normal starting values",
-			is_equal_approx(game_state.rootedness["sleep"], config.get_float("health.difficulties.normal.start_R"))
-			and is_equal_approx(game_state.usual_habits["screens"], config.get_float("health.difficulties.normal.start_H.screens")))
+			is_equal_approx(game_state.rootedness["sleep"], config.get_float("health_m4.difficulties.normal.start_R"))
+			and is_equal_approx(game_state.usual_habits["screens"], config.get_float("health_m4.difficulties.normal.start_H.screens")))
 	var entry: Dictionary = root.get_node("Habits").entries[0]
 	_check("its log entries count in the current scoring day, with intensity and calories",
 			entry["scoring_day"] == 0 and entry["intensity"] == "moderate_vigorous" and entry["kcal"] > 0.0)

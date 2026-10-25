@@ -69,7 +69,7 @@ func _test_fitness(gs: Node) -> void:
 ## k makes the body change faster: one avatar day runs the real-day update k times,
 ## so it gives exactly the same as k avatar days with k = 1.
 func _test_k(gs: Node, config: Node) -> void:
-	var k_entry: Dictionary = config._data["health"]["k"]
+	var k_entry: Dictionary = config._data["health_m4"]["k"]
 	var k_saved: float = k_entry["value"]
 	var k: int = roundi(k_saved)
 	gs.start_new_avatar("Test", "child", "female", "normal")
@@ -100,7 +100,7 @@ func _test_k(gs: Node, config: Node) -> void:
 
 func _test_sleep_debt(gs: Node, config: Node) -> void:
 	gs.start_new_avatar("Test", "teenager", "male", "normal")
-	var r: float = config.get_float("health.r")
+	var r: float = config.get_float("health_m4.r")
 	var short: float = gs.recommended_sleep("teenager") - 5.0
 	_check("no sleep debt at the start", is_zero_approx(gs.sleep_debt))
 	var values := [gs.sleep_debt]
@@ -157,7 +157,7 @@ func _test_habit_levels(gs: Node, config: Node) -> void:
 	gs.start_new_avatar("Test", "child", "female", "normal")
 	gs.usual_habits["activity"] = 0.0
 	var root_start: float = gs.rootedness["activity"]
-	var days_to_95: float = config.get_float("health.habit_days_to_95") / gs.real_days_per_avatar_day()
+	var days_to_95: float = config.get_float("health_m4.habit_days_to_95") / gs.real_days_per_avatar_day()
 	var levels := []
 	for day in 15:
 		gs.update_body_states(ACTIVE_DAY, 10.5, {"activity": 1.0})
@@ -169,7 +169,7 @@ func _test_habit_levels(gs: Node, config: Node) -> void:
 	_check("H is over 95% after 14 avatar days", levels[13] > 0.95)
 	_check("rootedness R grows once the new habit is stable", gs.rootedness["activity"] > root_start and gs.rootedness["activity"] < 1.0)
 	# Sleep was not in the intensities, so it counts as stable every day.
-	var lambda: float = config.get_float("health.habit_cost.lambda")
+	var lambda: float = config.get_float("health_m4.habit_cost.lambda")
 	var expected_R: float = 1.0 - (1.0 - root_start) * pow(1.0 - lambda, 15 * gs.real_days_per_avatar_day())
 	_check("a stable habit's R follows R += lambda x (1 - R), k times per avatar day", absf(gs.rootedness["sleep"] - expected_R) < TOLERANCE)
 	gs.start_new_avatar("Test", "child", "female", "normal")
@@ -180,7 +180,7 @@ func _test_habit_levels(gs: Node, config: Node) -> void:
 	gs.start_new_avatar("Test", "child", "female", "hard")
 	_check("R starts at the difficulty's start_R (Hard 0.2)", is_equal_approx(gs.rootedness["sleep"], 0.2))
 	_check("H starts at the difficulty's start_H", is_equal_approx(gs.usual_habits["screens"],
-			config.get_float("health.difficulties.hard.start_H.screens")))
+			config.get_float("health_m4.difficulties.hard.start_H.screens")))
 
 
 ## Milestone 4 Task 5: the team model for the cost of changing habits, on Very hard.
@@ -192,8 +192,8 @@ func _test_habit_cost(gs: Node, config: Node) -> void:
 	var jump: Dictionary = same.duplicate()
 	jump["activity"] = 1.0
 	var costs: Dictionary = gs.habit_change_costs(jump)
-	var p_max: float = config.get_float("health.habit_cost.P_max")
-	var formula: float = config.get_float("health.habit_cost.alpha") * pow(0.8, 2.0) * pow(0.9, 2.0)
+	var p_max: float = config.get_float("health_m4.habit_cost.P_max")
+	var formula: float = config.get_float("health_m4.habit_cost.alpha") * pow(0.8, 2.0) * pow(0.9, 2.0)
 	print("activity 0 -> 1 in one day (R 0.8, D 0.9): 200 x 0.8^2 x 0.9^2 = %.1f, cost %.2f mood points (P_max %.0f per habit)" % [
 			formula, costs["activity"], p_max])
 	_check("changing activity from 0 to 1 in one day costs about 104 points, at most P_max per habit",
@@ -236,7 +236,7 @@ func _test_habit_cost(gs: Node, config: Node) -> void:
 	var scores := {"sleep": 1.0, "activity": 1.0, "strength": 1.0, "screens": 1.0, "enjoyment": 1.0}
 	var mood_start: float = gs.mood
 	var expected_cost: float = gs.total_habit_cost(gs.habit_change_costs(all_jump))
-	var expected: float = clampf(mood_start + config.get_float("health.mood_speed") * (gs.mood_target(scores) - mood_start)
+	var expected: float = clampf(mood_start + config.get_float("health_m4.mood_speed") * (gs.mood_target(scores) - mood_start)
 			- expected_cost, 0.0, 100.0)
 	gs.update_body_states(scores, 10.5, all_jump)
 	_check("mood = mood + mood_speed x (target - mood) - cost", absf(gs.mood - expected) < TOLERANCE
@@ -254,9 +254,9 @@ func _test_milestone3_save(gs: Node, config: Node) -> void:
 	old["usual_habits"] = {"sleep": 0.1, "activity": 0.075, "strength": 0.075, "screens": 0.05}
 	gs.from_dict(old)
 	_check("a Milestone 3 save gets the Normal start_R", is_equal_approx(gs.rootedness["activity"],
-			config.get_float("health.difficulties.normal.start_R")))
+			config.get_float("health_m4.difficulties.normal.start_R")))
 	_check("and the Normal start_H", is_equal_approx(gs.usual_habits["screens"],
-			config.get_float("health.difficulties.normal.start_H.screens")))
+			config.get_float("health_m4.difficulties.normal.start_H.screens")))
 	_check("the rest of the save still loads", gs.difficulty == "very_hard")
 	old = gs.to_dict()
 	old.erase("rootedness")

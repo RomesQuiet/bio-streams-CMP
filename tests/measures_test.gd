@@ -57,13 +57,13 @@ func _test_days(gs: Node, clock: Node, activities: Node, main: Node) -> void:
 				gs.target_health, gs.health, main.health_bar.value])
 		_check("day %d: physical = mix of fitness, muscle and weight score" % (day + 1),
 				absf(gs.physical - gs.physical_from_body(gs.fitness, gs.muscle, gs.weight_z)) < TOLERANCE)
-		var expected_sleep: float = maxf(0.0, habits.scores["sleep"] * (1.0 - gs.sleep_debt / config.get_float("health.debt_max")))
+		var expected_sleep: float = maxf(0.0, habits.scores["sleep"] * (1.0 - gs.sleep_debt / config.get_float("health_m4.debt_max")))
 		_check("day %d: sleep = s x (1 - debt / debt_max)" % (day + 1), absf(gs.sleep - expected_sleep) < TOLERANCE)
 		_check("day %d: mental = mood / 100" % (day + 1), absf(gs.mental - gs.mood / 100.0) < TOLERANCE)
 		var c: float = (gs.target_health - 1.0) / 4.0
 		_check("day %d: target = 1 + 4 x C (power mean)" % (day + 1), absf(gs.target_health - gs.health_from_measures(gs.physical, gs.mental, gs.sleep)) < TOLERANCE
 				and c >= 0.0 and c <= 1.0)
-		var expected_health: float = health_before + config.get_float("health.alpha_bar") * (gs.target_health - health_before)
+		var expected_health: float = health_before + config.get_float("health_m4.alpha_bar") * (gs.target_health - health_before)
 		_check("day %d: health += alpha_bar x (target - health)" % (day + 1), absf(gs.health - expected_health) < TOLERANCE)
 		_check("day %d: health moves gradually (not straight to the target)" % (day + 1),
 				absf(gs.health - gs.target_health) > TOLERANCE or is_equal_approx(health_before, gs.target_health))
@@ -77,8 +77,8 @@ func _test_days(gs: Node, clock: Node, activities: Node, main: Node) -> void:
 ## Failure at minimum health shows a placeholder message. There is no death.
 func _test_failure(gs: Node, main: Node) -> void:
 	var config: Node = root.get_node("Config")
-	_check("there is no death", config.get_value("health.death_enabled") == false)
-	gs.health = config.get_float("health.failure_at_health") + 0.1
+	_check("there is no death", config.get_value("health_m4.death_enabled") == false)
+	gs.health = config.get_float("health_m4.failure_at_health") + 0.1
 	gs.changed.emit()
 	_check("health just above the failure line is not failure", not gs.is_at_failure() and main.speech_label.text != main.FAILURE_TEXT)
 	gs.health = config.get_float("measures.health_min")

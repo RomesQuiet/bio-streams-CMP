@@ -65,7 +65,7 @@ func _process(_delta: float) -> bool:
 	root.get_node("Activities").reset()
 	root.get_node("Clock").reset()
 
-	var p_entry: Dictionary = _config._data["health"]["combine"]["p"]
+	var p_entry: Dictionary = _config._data["health_m4"]["combine"]["p"]
 	var p_config: float = p_entry["value"]
 	# First the p in config, which decides PASS/FAIL; then the comparison values.
 	var runs := [p_config]
@@ -101,7 +101,7 @@ func _run_all(counts: bool) -> void:
 
 		_row("sedentary, sleeps well", difficulty, sedentary)
 		var sedentary_ok: bool = sedentary["health"][-1] < perfect["health"][-1] \
-				and (sedentary["health"] as Array).min() > _config.get_float("health.failure_at_health")
+				and (sedentary["health"] as Array).min() > _config.get_float("health_m4.failure_at_health")
 		_verdict("sedentary who sleeps well: below perfect, never at the minimum", difficulty, sedentary_ok, counts)
 
 		_row("perfect player", difficulty, perfect)
@@ -128,9 +128,9 @@ func _run_all(counts: bool) -> void:
 				", sudden change makes it fall" if difficulty in COSTLY_CHANGE else ""), difficulty, gradual_ok, counts)
 
 		_row("ignores everything", difficulty, ignores)
-		var minimum_day := _first_day_at_most(ignores, _config.get_float("health.failure_at_health"))
+		var minimum_day := _first_day_at_most(ignores, _config.get_float("health_m4.failure_at_health"))
 		var ignore_ok := minimum_day >= NOT_AT_ONCE_DAYS
-		print("      reaches the minimum (health %.2f) on day %s" % [_config.get_float("health.failure_at_health"),
+		print("      reaches the minimum (health %.2f) on day %s" % [_config.get_float("health_m4.failure_at_health"),
 				str(minimum_day) if minimum_day >= 0 else "never"])
 		_verdict("ignores everything: reaches the minimum, but not at once", difficulty, ignore_ok, counts)
 
@@ -167,8 +167,8 @@ func _ignore_plan(_day: int) -> Dictionary:
 ## From the difficulty's usual habits (start_H) to the perfect plan in change_days days.
 func _gradual_plan(day: int, difficulty: String, change_days: int) -> Dictionary:
 	var t := minf(1.0, (day + 1) / float(change_days))
-	var path := "health.difficulties.%s.start_H." % difficulty
-	var intensity := "health.habit_intensity."
+	var path := "health_m4.difficulties.%s.start_H." % difficulty
+	var intensity := "health_m4.habit_intensity."
 	var start_sleep: float = _config.get_float(path + "sleep") * _config.get_float(intensity + "sleep_full_h")
 	var start_activity: float = _config.get_float(path + "activity") * _config.get_float(intensity + "activity_full_min") / 60.0
 	var start_screens: float = _config.get_float(path + "screens") * _config.get_float(intensity + "screens_full_h")

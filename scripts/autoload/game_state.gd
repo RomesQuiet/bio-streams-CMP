@@ -155,7 +155,7 @@ func from_dict(data: Dictionary) -> void:
 		# A Milestone 3 save: no rootedness, its usual levels were habit scores and its
 		# mood was 0 to 1. H and R start again from the Normal starting values; mood is scaled.
 		_apply_habit_start(Config.get_string("defaults.difficulty"))
-		mood *= Config.get_float("health.mood_max")
+		mood *= Config.get_float("health_m4.mood_max")
 	tired = bool(data.get("tired", tired))
 	xp = float(data.get("xp", xp))
 	high_health_hours = float(data.get("high_health_hours", high_health_hours))
@@ -181,7 +181,7 @@ func start_new_avatar(new_name: String, new_age_group: String, new_sex: String, 
 
 ## Starting measures and body states of a difficulty (health.difficulties in config).
 func _apply_difficulty_start(difficulty_id: String) -> void:
-	var path := "health.difficulties." + difficulty_id
+	var path := "health_m4.difficulties." + difficulty_id
 	physical = Config.get_float(path + ".physical")
 	mental = Config.get_float(path + ".mental")
 	sleep = Config.get_float(path + ".sleep")
@@ -195,7 +195,7 @@ func _apply_difficulty_start(difficulty_id: String) -> void:
 
 ## Starting usual level H and rootedness R of each habit for a difficulty.
 func _apply_habit_start(difficulty_id: String) -> void:
-	var path := "health.difficulties." + difficulty_id
+	var path := "health_m4.difficulties." + difficulty_id
 	usual_habits = Config.get_value(path + ".start_H").duplicate()
 	rootedness = {}
 	for habit in usual_habits:
@@ -205,13 +205,13 @@ func _apply_habit_start(difficulty_id: String) -> void:
 ## Recommended sleep range for an age group, in hours: x = minimum, y = maximum.
 ## An empty age group uses the default one.
 func sleep_range(group: String) -> Vector2:
-	var hours: Array = Config.get_value("health.sleep_range." + _age_group_or_default(group))
+	var hours: Array = Config.get_value("health_m4.sleep_range." + _age_group_or_default(group))
 	return Vector2(float(hours[0]), float(hours[1]))
 
 
 ## The one number of recommended sleep used by the sleep debt formula (hours).
 func recommended_sleep(group: String) -> float:
-	return Config.get_float("health.sleep_recommended." + _age_group_or_default(group))
+	return Config.get_float("health_m4.sleep_recommended." + _age_group_or_default(group))
 
 
 func _age_group_or_default(group: String) -> String:
@@ -226,8 +226,8 @@ func _age_group_or_default(group: String) -> String:
 ## one avatar day counts as k real days for the body and never overshoots.
 func update_body_states(scores: Dictionary, sleep_hours: float, intensities: Dictionary = {}) -> void:
 	var real_days := real_days_per_avatar_day()
-	var r := Config.get_float("health.r")
-	var debt_updates := real_days if Config.get_value("health.k_applies_to_sleep_debt") else 1
+	var r := Config.get_float("health_m4.r")
+	var debt_updates := real_days if Config.get_value("health_m4.k_applies_to_sleep_debt") else 1
 	for i in debt_updates:
 		sleep_debt = maxf(0.0, sleep_debt * r + (recommended_sleep(age_group) - sleep_hours))
 	# The cost of changing habits uses H and R from before this day.
@@ -237,13 +237,13 @@ func update_body_states(scores: Dictionary, sleep_hours: float, intensities: Dic
 	var strength := float(scores.get("strength", 0.0))
 	# Per real day, a habit moves the share that reaches habit_share_reached (95%) of a
 	# new habit in habit_days_to_95 days.
-	var habit_rate := 1.0 - pow(1.0 - Config.get_float("health.habit_share_reached"),
-			1.0 / Config.get_float("health.habit_days_to_95"))
-	var lambda := Config.get_float("health.habit_cost.lambda")
-	var tolerance := Config.get_float("health.habit_cost.T")
+	var habit_rate := 1.0 - pow(1.0 - Config.get_float("health_m4.habit_share_reached"),
+			1.0 / Config.get_float("health_m4.habit_days_to_95"))
+	var lambda := Config.get_float("health_m4.habit_cost.lambda")
+	var tolerance := Config.get_float("health_m4.habit_cost.T")
 	for i in real_days:
-		fitness = _train(fitness, activity, Config.get_float("health.fitness_k_up"), Config.get_float("health.fitness_k_down"))
-		muscle = _train(muscle, strength, Config.get_float("health.muscle_k_up"), Config.get_float("health.muscle_k_down"))
+		fitness = _train(fitness, activity, Config.get_float("health_m4.fitness_k_up"), Config.get_float("health_m4.fitness_k_down"))
+		muscle = _train(muscle, strength, Config.get_float("health_m4.muscle_k_up"), Config.get_float("health_m4.muscle_k_down"))
 		for habit in usual_habits:
 			# Rootedness grows only while the habit is stable (|A - H| at most T), so a
 			# change in progress does not become more expensive every day.
@@ -254,8 +254,8 @@ func update_body_states(scores: Dictionary, sleep_hours: float, intensities: Dic
 			if stable:
 				rootedness[habit] = clampf(rootedness[habit] + lambda * (1.0 - rootedness[habit]), 0.0, 1.0)
 	# weight_z stays the same: no food yet, so no automatic eating.
-	mood = clampf(mood + Config.get_float("health.mood_speed") * (mood_target(scores) - mood) - habit_cost_total,
-			0.0, Config.get_float("health.mood_max"))
+	mood = clampf(mood + Config.get_float("health_m4.mood_speed") * (mood_target(scores) - mood) - habit_cost_total,
+			0.0, Config.get_float("health_m4.mood_max"))
 	_update_measures(float(scores.get("sleep", 0.0)))
 	_step_health()
 	changed.emit()
@@ -263,7 +263,7 @@ func update_body_states(scores: Dictionary, sleep_hours: float, intensities: Dic
 
 ## How many real days one avatar day counts for the body: k, rounded to a whole number.
 func real_days_per_avatar_day() -> int:
-	return maxi(1, roundi(Config.get_float("health.k")))
+	return maxi(1, roundi(Config.get_float("health_m4.k")))
 
 
 ## Team model for the cost of changing habits (health.habit_cost), in mood points.
@@ -272,7 +272,7 @@ func real_days_per_avatar_day() -> int:
 ## Small changes (up to T) cost nothing; with gamma 2 two small steps cost less than one
 ## big one, and a big jump in a well-rooted habit costs most. Sleep has factor 0.
 func habit_change_costs(intensities: Dictionary) -> Dictionary:
-	var path := "health.habit_cost."
+	var path := "health_m4.habit_cost."
 	var tolerance := Config.get_float(path + "T")
 	var alpha := Config.get_float(path + "alpha")
 	var gamma := Config.get_float(path + "gamma")
@@ -298,15 +298,15 @@ func total_habit_cost(costs: Dictionary) -> float:
 ## The three measures from the body states (CLAUDE.md, Health calculation, step 4).
 func _update_measures(sleep_score: float) -> void:
 	physical = physical_from_body(fitness, muscle, weight_z)
-	var debt_factor := 1.0 - sleep_debt / Config.get_float("health.debt_max")
+	var debt_factor := 1.0 - sleep_debt / Config.get_float("health_m4.debt_max")
 	sleep = clampf(sleep_score * debt_factor, 0.0, 1.0)
-	mental = clampf(mood / Config.get_float("health.mood_max"), 0.0, 1.0)
+	mental = clampf(mood / Config.get_float("health_m4.mood_max"), 0.0, 1.0)
 
 
 ## The displayed health moves daily_alpha of the way toward the target health.
 ## A health gain gives XP and a health loss takes XP away (xp.per_health_point per point).
 func _step_health() -> void:
-	var new_health := health + Config.get_float("health.alpha_bar") * (target_health - health)
+	var new_health := health + Config.get_float("health_m4.alpha_bar") * (target_health - health)
 	var change := new_health - health
 	health = new_health
 	if change != 0.0:
@@ -320,7 +320,7 @@ func mood_target(scores: Dictionary) -> float:
 	var total := 0.0
 	for key in MOOD_SCORES:
 		total += float(scores.get(key, 0.0))
-	return Config.get_float("health.mood_max") * total / MOOD_SCORES.size()
+	return Config.get_float("health_m4.mood_max") * total / MOOD_SCORES.size()
 
 
 ## Fitness or muscle after one real day: rises with the score toward 1 and falls
@@ -332,7 +332,7 @@ func _train(value: float, score: float, k_up: float, k_down: float) -> float:
 ## Failure (there is no death): the displayed health has reached the minimum
 ## (health.failure_at_health). The effect is not decided; the main screen shows a message.
 func is_at_failure() -> bool:
-	return health <= Config.get_float("health.failure_at_health")
+	return health <= Config.get_float("health_m4.failure_at_health")
 
 
 ## True once the avatar has been created (name, age group, sex and difficulty chosen).
@@ -358,15 +358,15 @@ func calculate_health() -> float:
 ## mapped from 0..1 to health_min..health_max.
 func health_from_measures(p_physical: float, p_mental: float, p_sleep: float) -> float:
 	var values := [clampf(p_physical, 0.0, 1.0), clampf(p_mental, 0.0, 1.0), clampf(p_sleep, 0.0, 1.0)]
-	var weights := [Config.get_float("health.combine.weights.physical"),
-			Config.get_float("health.combine.weights.mental"), Config.get_float("health.combine.weights.sleep")]
+	var weights := [Config.get_float("health_m4.combine.weights.physical"),
+			Config.get_float("health_m4.combine.weights.mental"), Config.get_float("health_m4.combine.weights.sleep")]
 	var total_weight := 0.0
 	for weight in weights:
 		total_weight += weight
 	if total_weight <= 0.0:
 		push_error("GameState: health weights must add up to more than 0")
 		return health
-	var p := Config.get_float("health.combine.p")
+	var p := Config.get_float("health_m4.combine.p")
 	var combined := 0.0
 	if is_zero_approx(p):
 		# p = 0 is the geometric mean.
@@ -385,17 +385,17 @@ func health_from_measures(p_physical: float, p_mental: float, p_sleep: float) ->
 ## Weight score (0 to 1) from the WHO BMI-for-age z-score: 1 near the median,
 ## falling to 0 along a curve (health.weight_score in config).
 func weight_score(weight_z: float) -> float:
-	var full := Config.get_float("health.weight_score.full_within_z")
-	var zero := Config.get_float("health.weight_score.zero_at_z")
-	var power := Config.get_float("health.weight_score.curve_power")
+	var full := Config.get_float("health_m4.weight_score.full_within_z")
+	var zero := Config.get_float("health_m4.weight_score.zero_at_z")
+	var power := Config.get_float("health_m4.weight_score.curve_power")
 	return pow(clampf((zero - absf(weight_z)) / (zero - full), 0.0, 1.0), power)
 
 
 ## Physical measure from the body states: weighted mix of fitness, muscle and weight score.
 func physical_from_body(fitness: float, muscle_value: float, weight_z: float) -> float:
-	var w_fitness := Config.get_float("health.physical_mix.fitness")
-	var w_muscle := Config.get_float("health.physical_mix.muscle")
-	var w_weight := Config.get_float("health.physical_mix.weight")
+	var w_fitness := Config.get_float("health_m4.physical_mix.fitness")
+	var w_muscle := Config.get_float("health_m4.physical_mix.muscle")
+	var w_weight := Config.get_float("health_m4.physical_mix.weight")
 	return (w_fitness * fitness + w_muscle * muscle_value + w_weight * weight_score(weight_z)) \
 			/ (w_fitness + w_muscle + w_weight)
 

@@ -9,7 +9,8 @@
 		"sleep_avatar_minutes_per_real_minute": 5,
 		"first_day_start_hour": { "value": 7.0, "placeholder": true, "comment": "Clock time (24 h) when the first day starts." },
 		"max_sleep_hours": { "value": 12, "placeholder": true, "comment": "Maximum hours on the sleep slider." },
-		"max_frame_seconds": { "value": 0.5, "placeholder": true, "comment": "Longest real time counted in one frame, so a frozen or hidden tab cannot jump game time forward." }
+		"max_frame_seconds": { "value": 0.5, "placeholder": true, "comment": "Longest real time counted in one frame, so a frozen or hidden tab cannot jump game time forward." },
+		"step_avatar_min": {"value": 5, "status": "placeholder", "owner": "Pessoa 4", "comment": "Milestone 10: the health system updates in fixed steps of this many avatar minutes (v1, Update order)."}
 	},
 
 	"daylight": {
@@ -43,8 +44,250 @@
 		"slider_default_hours": { "value": 10, "placeholder": true, "comment": "Where the slider starts. 10 h is the baseline sleep." }
 	},
 
+	"_comment_v1": "Milestone 10: the groups units, body, energy, appetite, meals, deficit, train, minigame, diet, sleep, mood, health, fail, risk, progress and avatar_states hold every value of Health Calculation Architecture v1 (documentation/health_calculation_architecture_v1.md, section Parameters and Steps 1 to 12). Each value has a status (placeholder, team decision or from source) and an owner (Pessoa 1 to 4, or team). Time constants say in their name or comment whether they are body time (multiplied by body.k) or clock time. Food values are in data/foods.json, METy of each activity in data/activities.json, and the WHO tables in data/who_bmi_for_age.json and data/who_height_for_age.json. Until each Milestone 10 task replaces the Milestone 4 code, that code still reads health_m4 (deleted at the end of Milestone 10).",
+
+	"units": {
+		"_comment": "Fixed unit conversions, kept here so the health scripts hold no numbers.",
+		"hours_per_day": 24,
+		"hours_per_year": 8760,
+		"months_per_year": 12,
+		"minutes_per_hour": 60,
+		"cm_per_m": 100
+	},
+
+	"who": {
+		"_comment": "WHO growth reference 5 to 19 years (2007). Tables in data/who_bmi_for_age.json and data/who_height_for_age.json. Ages between two months are interpolated in a straight line; ages outside the tables use the first or last month.",
+		"extension_from_z": {"value": 3, "status": "from source", "owner": "Pessoa 1", "comment": "WHO computation of z-scores: above +3 (and below -3) z = 3 + (BMI - SD3) / (SD3 - SD2), because the LMS curve is not used there."}
+	},
+
+	"body": {
+		"k": {"value": 10, "status": "team decision", "owner": "team", "comment": "Body speed (v1 Step 1; team, 25 Oct 2026): body hours = k x avatar hours. Applies to weight, body age, fitness and strength levels, diet quality, craving, sleep-debt recovery and disease damage. Not to the clock, hours slept, minutes per day, sessions per week, recovery between sessions, meal timing, habituation or happiness."},
+		"kcal_per_kg": {"value": 7700, "status": "from source", "owner": "Pessoa 1", "comment": "Energy per kg of body weight change. Used with a BMR that depends on weight, so weight settles (Hall 2011)."},
+		"start_age_months": {
+			"child": {"value": 120, "status": "team decision", "owner": "team", "comment": "Reference age of the child group: 10 years."},
+			"teenager": {"value": 168, "status": "team decision", "owner": "team", "comment": "Reference age of the teenager group: 14 years."}
+		},
+		"max_age_months": {
+			"child": {"value": 155, "status": "placeholder", "owner": "Pessoa 4", "comment": "Decision 8 (user, 25 Oct 2026): the body grows only inside its age group. A child stops at 12 years 11 months."},
+			"teenager": {"value": 227, "status": "placeholder", "owner": "Pessoa 4", "comment": "A teenager stops at 18 years 11 months (the WHO table ends at 19 years)."}
+		}
+	},
+
+	"energy": {
+		"bmr": {
+			"_comment": "Basal metabolic rate in kcal per day = per_kg x weight + base (Schofield 1985, used by FAO/WHO/UNU 1985). below_10: 3 to 10 years; from_10: 10 to 18 years.",
+			"male": {
+				"below_10": {"per_kg": 22.706, "base": 504.3, "status": "from source", "owner": "Pessoa 1"},
+				"from_10": {"per_kg": 17.686, "base": 658.2, "status": "from source", "owner": "Pessoa 1"}
+			},
+			"female": {
+				"below_10": {"per_kg": 20.315, "base": 485.9, "status": "from source", "owner": "Pessoa 1"},
+				"from_10": {"per_kg": 13.384, "base": 692.6, "status": "from source", "owner": "Pessoa 1"}
+			}
+		},
+		"bmr_band_from_months": {"value": 120, "status": "from source", "owner": "Pessoa 1", "comment": "Body age (months) from which the 10 to 18 years equation is used."},
+		"pal_ref": {"value": 1.6, "status": "placeholder", "owner": "Pessoa 1", "comment": "Reference appetite = BMR at the healthy weight for the current age and height x this: the energy needs of an active child of healthy weight (IOM activity levels); calibrated in the v1 simulation."},
+		"mety_idle": {"value": 1.7, "status": "placeholder", "owner": "Pessoa 1", "comment": "METy of a normal school-day hour when no activity runs. Calibrated. The METy of sleep and of each activity is in data/activities.json."}
+	},
+
+	"appetite": {
+		"_comment": "v1 Step 4. Every avatar hour: hunger += (habit_share x reference / 24 + (1 - habit_share) x energy spent this hour) x (1 + sleep_debt_boost x d) x (1 + thin_boost_per_sd x max(0, -z)). Hunger is in kcal and grows during sleep too.",
+		"habit_share": {"value": 0.7, "status": "placeholder", "owner": "Pessoa 1", "comment": "Partial compensation (Mayer 1956; Blundell 2015); calibrated."},
+		"sleep_debt_boost": {"value": 0.2, "status": "from source", "owner": "Pessoa 2", "comment": "Up to 20% more appetite with sleep debt (Al Khatib 2017: about +385 kcal a day)."},
+		"thin_boost_per_sd": {"value": 0.15, "status": "placeholder", "owner": "Pessoa 1", "comment": "The body defends against weight loss below the median."}
+	},
+
+	"meals": {
+		"_comment": "v1 Step 4. Healthy portion = reference / per_day_ref kcal. The food options (portion factor, satiety, healthy or not) are in data/foods.json; the meal's duration is in data/activities.json.",
+		"per_day_ref": {"value": 4, "status": "placeholder", "owner": "Pessoa 1", "comment": "School routine."},
+		"hungry_trigger": {"value": 0.8, "status": "placeholder", "owner": "Pessoa 4", "comment": "\"I'm hungry!\" when hunger is at least this many healthy meals (clock time)."},
+		"min_gap_h": {"value": 2, "status": "placeholder", "owner": "Pessoa 4", "comment": "...and at least this many avatar hours have passed since the last meal or skip (clock time)."},
+		"start_hunger_meals": {"value": 0.8, "status": "placeholder", "owner": "Pessoa 4", "comment": "Hunger of a new avatar, in healthy meals: ready for breakfast (v1: the avatar wakes up ready for breakfast). Not in v1."}
+	},
+
+	"deficit": {
+		"_comment": "Energy deficit penalty U (v1 Step 5; IOC 2023 REDs idea): deficit = 1 - kcal eaten / kcal spent in the last window_h avatar hours. U = 0 below start, rising in a straight line to 1 at full.",
+		"window_h": {"value": 24, "status": "placeholder", "owner": "Pessoa 1", "comment": "Clock time."},
+		"start": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 1"},
+		"full": {"value": 0.6, "status": "placeholder", "owner": "Pessoa 1"},
+		"physical_cut": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 1", "comment": "Physical x (1 - physical_cut x U)."},
+		"train_cut": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 1", "comment": "Fitness and strength targets and gains x (1 - train_cut x U)."}
+	},
+
+	"train": {
+		"_comment": "v1 Step 6. Daily capacity = (capacity_base_min + capacity_fit_min x fitness) x (1 - capacity_sleep_cut x d) minutes of moderate-to-vigorous activity per avatar day. Target = target_floor + target_range x (1 - e^(-target_rate x minutes / ref_min)).",
+		"capacity_base_min": {"value": 60, "status": "from source", "owner": "Pessoa 3", "comment": "WHO 2020: 60 min a day. Clock time."},
+		"capacity_fit_min": {"value": 90, "status": "placeholder", "owner": "Pessoa 3", "comment": "A very fit avatar tolerates 60 + 90 = 150 minutes."},
+		"capacity_sleep_cut": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 3"},
+		"average_window_h": {"value": 24, "status": "placeholder", "owner": "Pessoa 3", "comment": "Effective minutes are averaged over this many avatar hours (clock time) to give A_cardio and A_strength."},
+		"fitness_ref_min": {"value": 60, "status": "from source", "owner": "Pessoa 3", "comment": "WHO 2020. Clock time."},
+		"strength_ref_min": {"value": 20, "status": "from source", "owner": "Pessoa 3", "comment": "About three 45-minute sessions a week (AAP 2020). Clock time."},
+		"fitness_strength_share": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 3", "comment": "Share of strength minutes that count for fitness."},
+		"strength_cardio_share": {"value": 0.1, "status": "placeholder", "owner": "Pessoa 3", "comment": "Share of cardio minutes that count for strength."},
+		"target_floor": {"value": 0.1, "status": "placeholder", "owner": "Pessoa 3", "comment": "Lowest fitness and strength."},
+		"target_range": {"value": 0.9, "status": "placeholder", "owner": "Pessoa 3"},
+		"target_rate": {"value": 2, "status": "placeholder", "owner": "Pessoa 3", "comment": "60 effective minutes a day give a fitness target of 0.88."},
+		"fitness_tau_days": {"value": 30, "status": "placeholder", "owner": "Pessoa 1", "comment": "Body time: real days (3.0 avatar days with k = 10)."},
+		"strength_tau_days": {"value": 42, "status": "placeholder", "owner": "Pessoa 1", "comment": "Body time: real days (4.2 avatar days with k = 10)."},
+		"sleep_gain_cut": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 2", "comment": "Fitness and strength gains x (1 - sleep_gain_cut x d)."},
+		"overreach_gain_cut": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 3", "comment": "Training gains x (1 - overreach_gain_cut x O)."},
+		"overreach_physical_cut": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 3", "comment": "Physical x (1 - overreach_physical_cut x O)."},
+		"overreach_tau_h": {"value": 72, "status": "placeholder", "owner": "Pessoa 3", "comment": "O is the average of the excess minutes per day over about this many avatar hours (clock time)."},
+		"overreach_ref_min": {"value": 120, "status": "placeholder", "owner": "Pessoa 3", "comment": "O = average excess minutes per day / this, from 0 to 1."},
+		"cardio_tire_min": {"value": 120, "status": "placeholder", "owner": "Pessoa 3", "comment": "Cardio and football fully tire the body after this many continuous minutes."},
+		"cardio_recovery_h": {"value": 6, "status": "placeholder", "owner": "Pessoa 3", "comment": "Recovery time constant, clock time."},
+		"strength_tire_min": {"value": 45, "status": "placeholder", "owner": "Pessoa 3"},
+		"strength_recovery_h": {"value": 24, "status": "from source", "owner": "Pessoa 3", "comment": "Clock time; 86% recovered after 48 h (AAP 2020: non-consecutive days)."},
+		"strength_ready": {"value": 0.6, "status": "placeholder", "owner": "Pessoa 3", "comment": "A strength session that starts below this recovery counts as too soon."}
+	},
+
+	"minigame": {
+		"_comment": "Performance = min_performance + (1 - min_performance) x score x (1 - tired_cut x tiredness).",
+		"min_performance": {"value": 0.7, "status": "placeholder", "owner": "Pessoa 4", "comment": "Decisions matter more than skill."},
+		"tired_cut": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 4"},
+		"default_score": {"value": 1, "status": "placeholder", "owner": "Pessoa 4", "comment": "Decision 5: used until minigames exist."}
+	},
+
+	"diet": {
+		"_comment": "v1 Step 7. At each meal (x = 1 healthy, 0 fast food) Q, C and A move toward their target by 1 / (time constant in avatar days x meals.per_day_ref). Q and C use body time (divided by body.k), A clock time.",
+		"quality_tau_days": {"value": 21, "status": "placeholder", "owner": "Pessoa 3", "comment": "Diet quality Q. Body time: real days (2.1 avatar days, about 8 meals)."},
+		"craving_tau_days": {"value": 30, "status": "placeholder", "owner": "Pessoa 3", "comment": "Fast-food craving C. Body time (3 avatar days, about 12 meals); children need about 8 to 15 tries to accept a new food."},
+		"habituation_tau_days": {"value": 5, "status": "placeholder", "owner": "Pessoa 3", "comment": "Habituation A to fast-food pleasure. Clock time: avatar days (about 20 meals)."}
+	},
+
+	"sleep": {
+		"_comment": "v1 Step 9. Recommended sleep per 24 h by age group (AASM 2016). At each new day: debt = debt x e^(-(slept / target) x 24 / (debt_recovery_tau_days x 24 / body.k)) + max(0, minimum - slept); Sleep = (1 - min(1, debt / debt_ref_h)) x (1 - min(oversleep_cut_max, oversleep_cut_per_h x oversleep)); d = min(1, debt / debt_ref_h).",
+		"child_min_h": {"value": 9, "status": "from source", "owner": "Pessoa 2", "comment": "AASM 2016, 6 to 12 years."},
+		"child_max_h": {"value": 12, "status": "from source", "owner": "Pessoa 2"},
+		"child_target_h": {"value": 10.5, "status": "placeholder", "owner": "Pessoa 2", "comment": "Middle of the range."},
+		"teenager_min_h": {"value": 8, "status": "from source", "owner": "Pessoa 2", "comment": "AASM 2016, 13 to 18 years."},
+		"teenager_max_h": {"value": 10, "status": "from source", "owner": "Pessoa 2"},
+		"teenager_target_h": {"value": 9, "status": "placeholder", "owner": "Pessoa 2", "comment": "Middle of the range."},
+		"debt_recovery_tau_days": {"value": 5, "status": "from source", "owner": "Pessoa 2", "comment": "Body time (Kitamura 2016, adults: 1 h of chronic debt took 4 days to recover). With k = 10, a full night repays 86% of the debt."},
+		"debt_ref_h": {"value": 8, "status": "placeholder", "owner": "Pessoa 2", "comment": "Sleep measure is 0 at this much debt or more."},
+		"oversleep_cut_per_h": {"value": 0.1, "status": "placeholder", "owner": "Pessoa 2", "comment": "AASM 2016: long sleep is also linked to worse health."},
+		"oversleep_cut_max": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 2"},
+		"can_sleep_debt_h": {"value": 1, "status": "placeholder", "owner": "Pessoa 2", "comment": "The avatar can sleep only with at least this much debt, or after can_sleep_awake_h awake (clock time)."},
+		"can_sleep_awake_h": {"value": 6, "status": "placeholder", "owner": "Pessoa 2"},
+		"wake_extra_max_h": {"value": 2, "status": "placeholder", "owner": "Pessoa 2", "comment": "The avatar wakes never later than the maximum of the range + min(debt, this)."},
+		"tired_awake_from_h": {"value": 15, "status": "placeholder", "owner": "Pessoa 2", "comment": "Tiredness = max(d, (hours awake - tired_awake_from_h) / tired_awake_range_h), at most 1."},
+		"tired_awake_range_h": {"value": 4, "status": "placeholder", "owner": "Pessoa 2"},
+		"night_quality_power": {"value": 2, "status": "placeholder", "owner": "Pessoa 2", "comment": "Night quality = (slept / minimum)^power when short, 1 in the range, 1 - oversleep_cut_per_h per hour of oversleep (at least 1 - oversleep_cut_max)."}
+	},
+
+	"mood": {
+		"_comment": "Happiness (0 to 1), v1 Step 10. Moves toward the baseline with tau_h (clock time; k does not apply) and jumps with events. Baseline = base + physical x Physical + sleep x Sleep + diet x Q + fun x Fun - deficit x U - screen_excess x screen excess - overreach x O.",
+		"tau_h": {"value": 12, "status": "placeholder", "owner": "Pessoa 3", "comment": "Clock time."},
+		"baseline": {
+			"base": {"value": 0.15, "status": "placeholder", "owner": "Pessoa 3"},
+			"physical": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 3"},
+			"sleep": {"value": 0.25, "status": "placeholder", "owner": "Pessoa 3"},
+			"diet": {"value": 0.1, "status": "placeholder", "owner": "Pessoa 3"},
+			"fun": {"value": 0.2, "status": "placeholder", "owner": "Pessoa 3"},
+			"deficit": {"value": 0.2, "status": "placeholder", "owner": "Pessoa 3"},
+			"screen_excess": {"value": 0.1, "status": "placeholder", "owner": "Pessoa 3", "comment": "Orben and Przybylski 2019: small negative link."},
+			"overreach": {"value": 0.1, "status": "placeholder", "owner": "Pessoa 3"}
+		},
+		"fun": {
+			"_comment": "Fun = average over window_h of (football minutes x football + screen minutes x screens (only the first screen_max_min of the day) + exercise minutes x exercise) / full_at_min, at most 1.",
+			"football": {"value": 1.0, "status": "placeholder", "owner": "Pessoa 3"},
+			"screens": {"value": 0.6, "status": "placeholder", "owner": "Pessoa 3"},
+			"exercise": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 3"},
+			"screen_max_min": {"value": 120, "status": "from source", "owner": "Pessoa 3", "comment": "Canadian 24-Hour Movement Guidelines (2016): 2 h of recreational screens a day."},
+			"full_at_min": {"value": 90, "status": "placeholder", "owner": "Pessoa 3"},
+			"window_h": {"value": 24, "status": "placeholder", "owner": "Pessoa 3"}
+		},
+		"screen_excess_from_min": {"value": 120, "status": "from source", "owner": "Pessoa 3", "comment": "Screen excess = (average daily screen minutes - this) / screen_excess_range_min, from 0 to 1."},
+		"screen_excess_range_min": {"value": 120, "status": "placeholder", "owner": "Pessoa 3"},
+		"events": {
+			"_comment": "Changes in happiness (v1 Step 10 table).",
+			"meal": {"value": 0.01, "status": "placeholder", "owner": "Pessoa 3", "comment": "Healthy meal: meal - meal_craving x C. Fast-food meal: meal + meal_craving x C x (1 - A)."},
+			"meal_craving": {"value": 0.06, "status": "placeholder", "owner": "Pessoa 3"},
+			"start_exercise": {"value": -0.03, "status": "placeholder", "owner": "Pessoa 3", "comment": "Starting cardio or strength: start_exercise x (1 - fitness) (it does not want to exercise)."},
+			"exercise_per_h": {"value": 0.07, "status": "placeholder", "owner": "Pessoa 3", "comment": "Cardio or strength within capacity, x (1 - exercise_tired_cut x tiredness)."},
+			"exercise_tired_cut": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 3"},
+			"beyond_capacity_per_h": {"value": -0.02, "status": "placeholder", "owner": "Pessoa 3"},
+			"football_per_h": {"value": 0.1, "status": "placeholder", "owner": "Pessoa 3"},
+			"screens_per_h": {"value": 0.05, "status": "placeholder", "owner": "Pessoa 3", "comment": "Only the first mood.fun.screen_max_min minutes of the day."},
+			"no_screens_after_h": {"value": 4, "status": "placeholder", "owner": "Pessoa 3", "comment": "Wish refused: this many awake hours without screens."},
+			"no_screens": {"value": -0.02, "status": "placeholder", "owner": "Pessoa 3"},
+			"hungry_per_h": {"value": -0.05, "status": "placeholder", "owner": "Pessoa 3", "comment": "While awake and hunger is above hungry_at_meals healthy meals."},
+			"hungry_at_meals": {"value": 1.2, "status": "placeholder", "owner": "Pessoa 3"},
+			"wake": {"value": 0.08, "status": "placeholder", "owner": "Pessoa 2", "comment": "Waking up: wake x (night quality - wake_mid)."},
+			"wake_mid": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 2"},
+			"kept_awake_per_h": {"value": -0.02, "status": "placeholder", "owner": "Pessoa 2", "comment": "Kept awake while very tired (tiredness 1). Not simulated in v1 yet."}
+		}
+	},
+
 	"health": {
-		"_comment": "Every value of the health calculation (CLAUDE.md, Health calculation; MILESTONE_4.md has the key names). Each value has a status (placeholder, team decision or from source) and an owner (Pessoa 1 to 4, as in the research plan). Changing a value here changes the game without any code change; in debug builds press F6 to reload this file while the game runs. ",
+		"_comment": "v1 Steps 8 and 11. Physical = (w_weight x w^m + w_fitness x fitness^m + w_strength x strength^m)^(1/m) x (diet_floor + (1 - diet_floor) x Q) x (1 - deficit.physical_cut x U) x (1 - train.overreach_physical_cut x O), m = physical_mix.p. Target health = 1 + 4 x the weighted power mean (combine) of Physical, Happiness and Sleep. Decision 1 (user, 25 Oct 2026): the displayed health bar moves alpha_bar of the way to the target once per avatar day when a sleep ends.",
+		"death_enabled": {"value": false, "status": "team decision", "owner": "team", "comment": "There is no death, only failure."},
+		"physical_mix": {
+			"p": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 1"},
+			"weight": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 1", "comment": "Weight status weighs most because the project is about childhood obesity."},
+			"fitness": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 1"},
+			"strength": {"value": 0.2, "status": "placeholder", "owner": "Pessoa 1"}
+		},
+		"diet_floor": {"value": 0.4, "status": "placeholder", "owner": "Pessoa 1", "comment": "With fast food at every meal (Q = 0), Physical reaches at most this share of what the body alone gives."},
+		"weight_score_points": {"value": [[-4, 0], [-3, 0.3], [-2, 1], [1, 1], [2, 0.5], [3, 0.1], [4, 0]], "status": "placeholder", "owner": "Pessoa 1", "comment": "Weight score w(z), straight lines between [z, score] points; 0 outside. 1 in the WHO normal range (-2 to +1), 0.5 at the obesity cut-off (+2), 0.3 at severe thinness (-3)."},
+		"combine": {
+			"p": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 2", "comment": "v1 Step 11 (0.2 in Milestone 4). The concept's starting values were built on it; a bad measure pulls health down, and a single zero does not end the game on its own."},
+			"weights": {
+				"physical": {"value": 0.3333333333333333, "status": "placeholder", "owner": "Pessoa 2", "comment": "Equal."},
+				"happiness": {"value": 0.3333333333333333, "status": "placeholder", "owner": "Pessoa 2"},
+				"sleep": {"value": 0.3333333333333333, "status": "placeholder", "owner": "Pessoa 2"}
+			}
+		},
+		"alpha_bar": {"value": 0.37, "status": "placeholder", "owner": "Pessoa 4", "comment": "Decision 1: health bar speed, 90% of the way to the target in 5 avatar days ((1 - 0.37)^5 = 0.1)."},
+		"difficulties": {
+			"_comment": "v1 'Difficulty starts'. z = WHO BMI-for-age z-score (the starting weight is calculated from it, the sex and the body age), fitness, strength, Q = diet quality, C = fast-food craving, A = habituation to fast food, happiness, sleep debt (h). Starting Physical, Sleep and health are calculated, never typed in. Easy, Normal and Hard as in v1. Very hard happiness is 0.30, not 0.15 (decision 7, user, 25 Oct 2026: higher, so it is playable). start_A is not in v1: placeholder = share of fast-food meals, 1 - Q.",
+			"easy": {"z": 0.0, "fitness": 0.65, "strength": 0.6, "Q": 0.8, "C": 0.35, "A": 0.2, "happiness": 0.75, "sleep_debt": 2.0, "status": "placeholder", "owner": "Pessoa 4", "comment": "Health about 3.94."},
+			"normal": {"z": 1.2, "fitness": 0.4, "strength": 0.4, "Q": 0.5, "C": 0.6, "A": 0.5, "happiness": 0.5, "sleep_debt": 4.0, "status": "placeholder", "owner": "Pessoa 4", "comment": "Health about 2.91."},
+			"hard": {"z": 2.4, "fitness": 0.15, "strength": 0.2, "Q": 0.25, "C": 0.4, "A": 0.75, "happiness": 0.3, "sleep_debt": 5.6, "status": "placeholder", "owner": "Pessoa 4", "comment": "Obesity, habits cheap to change. Health about 1.95."},
+			"very_hard": {"z": 3.2, "fitness": 0.05, "strength": 0.1, "Q": 0.1, "C": 0.95, "A": 0.9, "happiness": 0.3, "sleep_debt": 7.2, "status": "placeholder", "owner": "Pessoa 4", "comment": "Severe obesity, very bad habits. Health about 1.48 (1.35 in v1 with happiness 0.15)."}
+		}
+	},
+
+	"fail": {
+		"_comment": "v1 Step 12. Failure (no death): displayed health below health_line for health_hours avatar hours, or happiness below happiness_line for happiness_hours (clock time). The effect is not decided.",
+		"health_line": {"value": 1.3, "status": "placeholder", "owner": "Pessoa 4"},
+		"health_hours": {"value": 24, "status": "placeholder", "owner": "Pessoa 4"},
+		"happiness_line": {"value": 0.1, "status": "placeholder", "owner": "Pessoa 4"},
+		"happiness_hours": {"value": 12, "status": "placeholder", "owner": "Pessoa 4"}
+	},
+
+	"risk": {
+		"_comment": "v1 Step 12, framework only (decision 9: debug panel only, no disease stages). R = z_weight x clamp((z - z_from) / z_range) + fitness_weight x (1 - fitness) + diet_weight x (1 - Q) + sleep_weight x d. Hidden damage grows at body.k x (R - safe_level) / damage_tau_days while R is above safe_level and falls below it. safe_level and damage_tau_days are not in v1: set them with a health professional.",
+		"z_weight": {"value": 0.4, "status": "placeholder", "owner": "Pessoa 1"},
+		"fitness_weight": {"value": 0.2, "status": "placeholder", "owner": "Pessoa 1"},
+		"diet_weight": {"value": 0.25, "status": "placeholder", "owner": "Pessoa 1"},
+		"sleep_weight": {"value": 0.15, "status": "placeholder", "owner": "Pessoa 1"},
+		"z_from": {"value": 1, "status": "placeholder", "owner": "Pessoa 1"},
+		"z_range": {"value": 2, "status": "placeholder", "owner": "Pessoa 1"},
+		"safe_level": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 1", "comment": "Not in v1."},
+		"damage_tau_days": {"value": 365, "status": "placeholder", "owner": "Pessoa 1", "comment": "Not in v1. Body time: real days."}
+	},
+
+	"progress": {
+		"_comment": "v1 XP (Step 12). XP += per_health_point x change in displayed health, plus gain_per_avatar_hour per avatar hour while displayed health is at least high_health_min, x (1 + hours at that level / bonus_hours), at most max_multiplier. XP never goes below 0. The level size is xp.per_level.",
+		"per_health_point": {"value": 100, "status": "placeholder", "owner": "Pessoa 4"},
+		"gain_per_avatar_hour": {"value": 10, "status": "placeholder", "owner": "Pessoa 4"},
+		"high_health_min": {"value": 4.5, "status": "placeholder", "owner": "Pessoa 4"},
+		"bonus_hours": {"value": 48, "status": "placeholder", "owner": "Pessoa 4"},
+		"max_multiplier": {"value": 3, "status": "placeholder", "owner": "Pessoa 4"}
+	},
+
+	"avatar_states": {
+		"_comment": "v1 avatar images. Hungry and tired use meals.hungry_trigger and tiredness.",
+		"tired_at": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 4", "comment": "Tiredness at least this."},
+		"sad_below": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 4", "comment": "Happiness below this."},
+		"thin_below_z": {"value": -2, "status": "from source", "owner": "Pessoa 1", "comment": "WHO thinness cut-off."},
+		"overweight_above_z": {"value": 1, "status": "from source", "owner": "Pessoa 1", "comment": "WHO overweight cut-off."},
+		"muscular_strength": {"value": 0.7, "status": "placeholder", "owner": "Pessoa 4"}
+	},
+
+	"health_m4": {
+		"_comment": "Milestone 4 health system, still used by the old code until Milestone 10 replaces it; deleted at the end of Milestone 10. Every value of the health calculation (CLAUDE.md, Health calculation; MILESTONE_4.md has the key names). Each value has a status (placeholder, team decision or from source) and an owner (Pessoa 1 to 4, as in the research plan). Changing a value here changes the game without any code change; in debug builds press F6 to reload this file while the game runs. ",
 		"k": {"value": 5, "status": "team decision", "owner": "team", "comment": "Body speed multiplier: how much faster health and the body change than the real-life average. Same k for habits."},
 		"death_enabled": {"value": false, "status": "team decision", "owner": "team", "comment": "There is no death, only failure."},
 		"failure_at_health": {"value": 1.2, "status": "placeholder", "owner": "Pessoa 4", "comment": "Failure happens when the displayed health is at or below this (minimum health is 1; the bar only comes close to it). Set to 1.2 by the user after the Task 7 simulation (1.05 before), so a player who ignores everything reaches it with p = 0.2. For now only a placeholder message is shown; the failure effect is not decided."},

@@ -26,7 +26,7 @@ func _process(_delta: float) -> bool:
 	print("difficulty  physical mental sleep  weight_z  physical from body  health  level")
 	for id in EXPECTED_HEALTH:
 		gs.start_new_avatar("Test", "child", "female", id)
-		var path: String = "health.difficulties." + id
+		var path: String = "health_m4.difficulties." + id
 		var body_physical: float = gs.physical_from_body(config.get_float(path + ".fitness"),
 				config.get_float(path + ".muscle"), config.get_float(path + ".weight_z"))
 		print("%-10s  %.2f     %.2f   %.2f   %+.1f      %.3f               %.2f    %d" % [
@@ -36,12 +36,12 @@ func _process(_delta: float) -> bool:
 				absf(gs.health - EXPECTED_HEALTH[id]) <= HEALTH_TOLERANCE)
 		_check("%s: body states give the starting physical measure" % id, absf(body_physical - gs.physical) < TOLERANCE)
 		_check("%s: mood / mood_max equals the starting mental measure" % id,
-				is_equal_approx(config.get_float(path + ".mood") / config.get_float("health.mood_max"), gs.mental))
+				is_equal_approx(config.get_float(path + ".mood") / config.get_float("health_m4.mood_max"), gs.mental))
 		_check("%s: no sleep debt at the start" % id, is_zero_approx(config.get_float(path + ".sleep_debt")))
 	_check("Very hard is shown as level 1", gs.health_level == 1)
 	var previous_fitness := INF
 	for id in EXPECTED_HEALTH:
-		var fitness: float = config.get_float("health.difficulties." + id + ".fitness")
+		var fitness: float = config.get_float("health_m4.difficulties." + id + ".fitness")
 		_check("%s: starting fitness is not higher than the easier difficulty" % id, fitness <= previous_fitness)
 		previous_fitness = fitness
 
@@ -49,7 +49,7 @@ func _process(_delta: float) -> bool:
 	_check("teenager sleep range 8 to 10 h", gs.sleep_range("teenager") == Vector2(8.0, 10.0))
 	# The CLAUDE.md example is worked out with p = 0.5 (it rounds 2.85 to 2.9), so p is set
 	# to 0.5 just for this check.
-	var p_entry: Dictionary = config._data["health"]["combine"]["p"]
+	var p_entry: Dictionary = config._data["health_m4"]["combine"]["p"]
 	var p_config: float = p_entry["value"]
 	p_entry["value"] = 0.5
 	_check("example from CLAUDE.md with p = 0.5: 0.9, 0.6, 0.1 gives health 2.85",

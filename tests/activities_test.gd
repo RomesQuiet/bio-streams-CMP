@@ -51,7 +51,7 @@ func _test_sleep_activity(activities: Node, game_state: Node, clock: Node) -> vo
 	_check("sleep has no per-hour effect", activities.get_option("sleep", "sleep")["effects_per_hour"].is_empty())
 	_check("the sleep measure comes from the hours slept", is_equal_approx(game_state.sleep,
 			maxf(0.0, root.get_node("Habits").sleep_score(slept, game_state.age_group)
-			* (1.0 - game_state.sleep_debt / root.get_node("Config").get_float("health.debt_max")))))
+			* (1.0 - game_state.sleep_debt / root.get_node("Config").get_float("health_m4.debt_max")))))
 	_check("clock waits for the wake button", clock.phase == clock.Phase.SLEEP_OVER)
 	clock.wake_up()
 

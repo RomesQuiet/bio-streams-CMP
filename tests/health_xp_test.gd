@@ -38,7 +38,7 @@ const BAD_DAY := {"sleep": 0.0, "activity": 0.0, "strength": 0.0, "screens": 0.0
 func _test_health_follows_measures(gs: Node) -> void:
 	gs.start_new_avatar("Test", "child", "female", "normal")
 	var config: Node = root.get_node("Config")
-	var alpha: float = config.get_float("health.alpha_bar")
+	var alpha: float = config.get_float("health_m4.alpha_bar")
 	_check("health equals the target at the start", is_equal_approx(gs.health, gs.target_health))
 	_check("health level is health rounded", gs.health_level == roundi(gs.health))
 	var start: float = gs.health
