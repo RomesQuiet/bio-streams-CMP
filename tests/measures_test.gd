@@ -46,7 +46,7 @@ func _test_days(gs: Node, clock: Node, activities: Node, main: Node) -> void:
 		activities.start("exercise", "cardio")
 		while activities.is_running():
 			clock._process(STEP_SECONDS)
-		activities.start("entertainment", "entertainment")
+		activities.start("entertainment", "screens")
 		while activities.is_running():
 			clock._process(STEP_SECONDS)
 		var health_before: float = gs.health

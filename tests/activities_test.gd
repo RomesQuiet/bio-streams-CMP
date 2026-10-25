@@ -5,11 +5,14 @@ extends SceneTree
 const STEP_SECONDS := 0.1
 const TOLERANCE := 0.0001
 
+## Loaded at run time (it uses the autoloads).
+var energy: GDScript
 var _failures := 0
 var _ended_hours := -1.0
 
 
 func _process(_delta: float) -> bool:
+	energy = load("res://scripts/health/energy.gd")
 	var save_game: Node = root.get_node("SaveGame")
 	save_game.save_path = "user://test_save.json"
 	save_game.use_web_storage = false
@@ -97,15 +100,15 @@ func _test_day_activity(activities: Node, game_state: Node, clock: Node) -> void
 
 
 ## Cardio and muscle strength add calories spent (a record only) by the values in
-## data/activities.json. Since Milestone 3 they no longer change muscle or the physical
-## measure per hour: fitness and muscle change once per avatar day. Stop halfway counts half.
+## data/activities.json. Milestone 10: the calories-spent record is the energy spent while
+## exercising (BMR / 24 x mety, every 5-minute step). Stop halfway counts half.
 func _test_exercise(activities: Node, game_state: Node, clock: Node) -> void:
 	_check("exercise is defined with cardio and strength", activities.get_option("exercise", "cardio").size() > 0 and activities.get_option("exercise", "strength").size() > 0)
 	var cardio: Dictionary = activities.get_option("exercise", "cardio")["effects_per_hour"]
 	var strength: Dictionary = activities.get_option("exercise", "strength")["effects_per_hour"]
-	var cardio_kcal: float = activities.option_value(activities.get_option("exercise", "cardio"), "kcal_per_hour")
-	var strength_kcal: float = activities.option_value(activities.get_option("exercise", "strength"), "kcal_per_hour")
-	_check("cardio spends more calories than strength", cardio_kcal > strength_kcal)
+	var cardio_mety: float = activities.option_value(activities.get_option("exercise", "cardio"), "mety")
+	var strength_mety: float = activities.option_value(activities.get_option("exercise", "strength"), "mety")
+	_check("cardio spends more calories than strength (METy 7.0 and 5.0)", cardio_mety == 7.0 and strength_mety == 5.0)
 	_check("both are moderate-to-vigorous", activities.option_value(activities.get_option("exercise", "cardio"), "activity_intensity") == "moderate_vigorous"
 			and activities.option_value(activities.get_option("exercise", "strength"), "activity_intensity") == "moderate_vigorous")
 	_check("there is no fatigue effect", not cardio.has("fatigue") and not strength.has("fatigue"))
@@ -113,7 +116,8 @@ func _test_exercise(activities: Node, game_state: Node, clock: Node) -> void:
 			and not cardio.has("physical") and not strength.has("physical"))
 
 	for option_id in ["cardio", "strength"]:
-		var kcal: float = activities.option_value(activities.get_option("exercise", option_id), "kcal_per_hour")
+		var mety: float = activities.option_value(activities.get_option("exercise", option_id), "mety")
+		var kcal: float = energy.kcal_per_hour(game_state.sex_or_default(), game_state.body_age_months, game_state.weight_kg, mety)
 		var hours: float = float(activities.get_option("exercise", option_id)["duration_hours"])
 		_check("%s lasts 1 avatar hour" % option_id, is_equal_approx(hours, 1.0))
 		clock.debug_speed = 600.0
@@ -122,13 +126,17 @@ func _test_exercise(activities: Node, game_state: Node, clock: Node) -> void:
 		_check("sleep is locked during %s" % option_id, not activities.can_start("sleep"))
 		while activities.is_running():
 			clock._process(STEP_SECONDS)
-		_check("%s: calories spent change by the config value" % option_id, absf(game_state.calories_spent - (before["calories_spent"] + kcal * hours)) < TOLERANCE)
+		root.get_node("Simulation").flush()
+		# Weight changes a little during the hour (k = 10), so BMR does too: within 1 kcal.
+		_check("%s: calories spent change by BMR / 24 x METy" % option_id, absf(game_state.calories_spent - (before["calories_spent"] + kcal * hours)) < 1.0)
 		_check("%s: muscle and physical do not change during the day" % option_id,
 				is_equal_approx(game_state.muscle, before["muscle"]) and is_equal_approx(game_state.physical, before["physical"]))
 
 		# Stop halfway: calories count only for the time done. Small steps, so the stop
 		# lands close to 0.5 h.
 		clock.debug_speed = 30.0
+		# BMR now: the weight changed during the first hour.
+		kcal = energy.kcal_per_hour(game_state.sex_or_default(), game_state.body_age_months, game_state.weight_kg, mety)
 		before = _snapshot(game_state)
 		activities.start("exercise", option_id)
 		while activities.elapsed_hours < 0.5:
@@ -136,27 +144,31 @@ func _test_exercise(activities: Node, game_state: Node, clock: Node) -> void:
 		var done: float = activities.elapsed_hours
 		activities.stop()
 		_check("%s stopped halfway: about 0.5 h done" % option_id, absf(done - 0.5) < 0.05)
-		_check("%s stopped halfway: calories spent are in proportion" % option_id, absf(game_state.calories_spent - (before["calories_spent"] + kcal * done)) < TOLERANCE)
+		print("  %s stopped at %.2f h: +%.1f kcal (expected %.1f)" % [option_id, done, game_state.calories_spent - before["calories_spent"], kcal * done])
+		_check("%s stopped halfway: calories spent are in proportion" % option_id, absf(game_state.calories_spent - (before["calories_spent"] + kcal * done)) < 1.0)
 	clock.debug_speed = 600.0
 
 
-## Entertainment lasts one hour. Since Milestone 3 it has no per-hour effect on the
-## mental measure: it is logged as screen time, and mood changes once per avatar day.
+## Entertainment has Screens and Football (decision 4), one hour each, with no per-hour effect
+## on the mental measure: screens are logged as screen time, and mood changes once per avatar day.
 func _test_entertainment(activities: Node, game_state: Node, clock: Node, _save_game: Node) -> void:
-	var option: Dictionary = activities.get_option("entertainment", "entertainment")
-	_check("entertainment has one option", activities.definitions.get("entertainment", {}).get("options", {}).size() == 1)
-	_check("entertainment lasts 1 avatar hour", is_equal_approx(float(option.get("duration_hours", 0)), 1.0))
+	var option: Dictionary = activities.get_option("entertainment", "screens")
+	var football: Dictionary = activities.get_option("entertainment", "football")
+	_check("entertainment has Screens and Football", activities.definitions.get("entertainment", {}).get("options", {}).keys() == ["screens", "football"])
+	_check("both last 1 avatar hour", is_equal_approx(float(option.get("duration_hours", 0)), 1.0) and is_equal_approx(float(football.get("duration_hours", 0)), 1.0))
+	_check("screens METy 1.3, football 7.5 and moderate-to-vigorous", activities.option_value(option, "mety") == 1.3
+			and activities.option_value(football, "mety") == 7.5 and activities.option_value(football, "activity_intensity") == "moderate_vigorous")
 	_check("entertainment has no per-hour effects", option.get("effects_per_hour", {}).is_empty())
 	game_state.reset()
 	var habits: Node = root.get_node("Habits")
 	var logged_before: int = habits.entries.size()
 	var mental_before: float = game_state.mental
 	clock.debug_speed = 600.0
-	_check("entertainment starts", activities.start("entertainment", "entertainment"))
+	_check("screens start", activities.start("entertainment", "screens"))
 	while activities.is_running():
 		clock._process(STEP_SECONDS)
 	_check("mental does not change during entertainment", is_equal_approx(game_state.mental, mental_before))
-	_check("entertainment is logged", habits.entries.size() == logged_before + 1 and habits.entries[-1]["type"] == "entertainment")
+	_check("screens are logged", habits.entries.size() == logged_before + 1 and habits.entries[-1]["type"] == "screens")
 
 
 func _snapshot(game_state: Node) -> Dictionary:

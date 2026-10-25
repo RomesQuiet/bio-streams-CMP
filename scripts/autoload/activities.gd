@@ -152,8 +152,7 @@ func _on_avatar_time_passed(hours: float, asleep: bool) -> void:
 		elapsed_hours += done
 		var option := current_option_data()
 		GameState.apply_effects(option.get("effects_per_hour", {}), done)
-		# Calories spent: a record only.
-		GameState.apply_effects({"calories_spent": float(option_value(option, "kcal_per_hour", 0.0))}, done)
+		# The calories-spent record comes from the energy spent in each step (Simulation).
 	progressed.emit()
 	if not uses_sleep_time(current_activity) and elapsed_hours >= target_hours:
 		_end()

@@ -26,10 +26,19 @@ var health: float
 var hunger: float
 ## Avatar hours since the last meal or skipped meal.
 var hours_since_meal: float
-## Body weight in kg and body age in months (Milestone 10). Set at the start from the
-## starting z, the sex and the age group; they start changing in Task 4.
+## Body weight in kg, body age in months and height in metres (Milestone 10, v1 Step 2).
+## Weight changes with energy eaten minus energy spent; the body ages with body time
+## (body.k) up to the end of its age group; height is the WHO median for the body age.
 var weight_kg: float
 var body_age_months: float
+var height_m: float
+## Energy deficit penalty U, 0 to 1 (v1 Step 5), from the last deficit.window_h avatar hours.
+var deficit_u: float
+## kcal eaten and spent in each of the last deficit.window_h avatar hours (one slot per hour,
+## oldest overwritten), and the avatar hour of the newest slot.
+var energy_window: Dictionary
+## Avatar hours run by Simulation since the avatar was created.
+var sim_hours: float
 ## kcal spent in the last 5-minute step (not saved; worked out again every step).
 var energy_spent_step := 0.0
 ## Muscle strength, 0 to 1. A slow body state, trained by muscle strength (strength score).
@@ -41,7 +50,7 @@ var calories_spent: float
 var fitness: float
 ## Hours of sleep owed. Never below 0.
 var sleep_debt: float
-## WHO BMI-for-age z-score. Stays at the difficulty's value until food exists.
+## WHO BMI-for-age z-score (Milestone 10: worked out every step from weight, height and body age).
 var weight_z: float
 ## Mood, 0 to health.mood_max (100). Mental = mood / mood_max.
 var mood: float
@@ -129,6 +138,10 @@ func to_dict() -> Dictionary:
 		"hours_since_meal": hours_since_meal,
 		"weight_kg": weight_kg,
 		"body_age_months": body_age_months,
+		"height_m": height_m,
+		"deficit_u": deficit_u,
+		"energy_window": energy_window.duplicate(true),
+		"sim_hours": sim_hours,
 		"muscle": muscle,
 		"calories_spent": calories_spent,
 		"fitness": fitness,
@@ -161,6 +174,13 @@ func from_dict(data: Dictionary) -> void:
 	hours_since_meal = float(data.get("hours_since_meal", hours_since_meal))
 	weight_kg = float(data.get("weight_kg", weight_kg))
 	body_age_months = float(data.get("body_age_months", body_age_months))
+	height_m = float(data.get("height_m", height_m))
+	deficit_u = float(data.get("deficit_u", deficit_u))
+	if data.get("energy_window") is Dictionary:
+		energy_window = data["energy_window"].duplicate(true)
+		# JSON reads every number as a decimal; the hour is a whole number.
+		energy_window["hour"] = int(energy_window.get("hour", -1))
+	sim_hours = float(data.get("sim_hours", sim_hours))
 	muscle = float(data.get("muscle", muscle))
 	calories_spent = float(data.get("calories_spent", calories_spent))
 	fitness = float(data.get("fitness", fitness))
@@ -218,12 +238,18 @@ func _apply_difficulty_start(difficulty_id: String) -> void:
 	_apply_habit_start(difficulty_id)
 
 
-## Starting body (Milestone 10): body age from the age group, weight from the starting z
-## at the median height for that age (WHO), and hunger of a new avatar (ready for breakfast).
-## Until Task 4 the starting z is the Milestone 4 weight_z.
+## Starting body (Milestone 10): body age from the age group, the starting z of the
+## difficulty (health.difficulties), weight from that z at the WHO median height for the age,
+## an energy window in balance, and hunger of a new avatar (ready for breakfast).
 func _apply_body_start() -> void:
+	var difficulty_id := difficulty if not difficulty.is_empty() else Config.get_string("defaults.difficulty")
 	body_age_months = Config.get_float("body.start_age_months." + _age_group_or_default(age_group))
+	weight_z = Config.get_float("health.difficulties.%s.z" % difficulty_id)
+	height_m = WhoTables.median_height_m(sex_or_default(), body_age_months)
 	weight_kg = WhoTables.weight_from_z(sex_or_default(), body_age_months, weight_z)
+	sim_hours = 0.0
+	energy_window = Energy.balanced_window(sex_or_default(), body_age_months)
+	deficit_u = 0.0
 	hunger = Config.get_float("meals.start_hunger_meals") * Energy.healthy_portion_kcal(sex_or_default(), body_age_months)
 	hours_since_meal = Config.get_float("meals.min_gap_h")
 

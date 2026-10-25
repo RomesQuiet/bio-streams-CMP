@@ -6,10 +6,13 @@ extends SceneTree
 const TOLERANCE := 0.0001
 const STEP_SECONDS := 0.1
 
+## Loaded at run time (it uses the autoloads).
+var energy: GDScript
 var _failures := 0
 
 
 func _process(_delta: float) -> bool:
+	energy = load("res://scripts/health/energy.gd")
 	var save_game: Node = root.get_node("SaveGame")
 	save_game.save_path = "user://test_save.json"
 	save_game.use_web_storage = false
@@ -49,10 +52,10 @@ func _test_known_log(h: Node) -> void:
 	h.add_entry("strength", 0.5)
 	h.add_entry("strength", 0.5)
 	h.end_scoring_day(7.0)
-	# Scoring day 3 (not closed yet): 0.5 h cardio, 0.25 h strength, 3 h entertainment.
+	# Scoring day 3 (not closed yet): 0.5 h cardio, 0.25 h strength, 3 h of screens.
 	h.add_entry("cardio", 0.5)
 	h.add_entry("strength", 0.25)
-	h.add_entry("entertainment", 3.0)
+	h.add_entry("screens", 3.0)
 	_check("three scoring days were closed", h.days.size() == 3 and h.current_day == 3)
 	_check("day 0: 9 h sleep, 60 activity min, 1 strength day", _totals_are(h.days[0], 9.0, 60.0, 1, 0.0))
 	_check("day 1: 0 h sleep, nothing done, strength day 0 still counts", _totals_are(h.days[1], 0.0, 0.0, 1, 0.0))
@@ -60,14 +63,18 @@ func _test_known_log(h: Node) -> void:
 	h.end_scoring_day(9.0)
 	var day3: Dictionary = h.days[-1]
 	_check("day 3: 9 h sleep, 45 min, 3 strength days in the last 7, 3 h entertainment", _totals_are(day3, 9.0, 45.0, 3, 3.0))
-	_check("day 3: calories = 0.5 h x 300 + 0.25 h x 200 = 200 kcal", is_equal_approx(day3["kcal"], 200.0))
+	var per_hour := func(mety: float) -> float:
+		var gs: Node = root.get_node("GameState")
+		return energy.kcal_per_hour(gs.sex_or_default(), gs.body_age_months, gs.weight_kg, mety)
+	var expected_kcal: float = 0.5 * per_hour.call(7.0) + 0.25 * per_hour.call(5.0) + 3.0 * per_hour.call(1.3) + 9.0 * per_hour.call(0.95)
+	_check("day 3: calories = BMR / 24 x METy x hours (0.5 h cardio, 0.25 h strength, 3 h screens, 9 h sleep)", absf(day3["kcal"] - expected_kcal) < TOLERANCE)
 	var s: Dictionary = h.scores
 	_check("sleep: 9 h is inside the child range", is_equal_approx(s["sleep"], 1.0))
 	_check("activity: 45 min / 60 = 0.75", absf(s["activity"] - 0.75) < TOLERANCE)
 	_check("strength: 3 strength days / 3 = 1", absf(s["strength"] - 1.0) < TOLERANCE)
-	_check("screens: 3 h of entertainment = 0.75", absf(s["screens"] - 0.75) < TOLERANCE)
+	_check("screens: 3 h of screens = 0.75", absf(s["screens"] - 0.75) < TOLERANCE)
 	var entry: Dictionary = h.entries.filter(func(e: Dictionary) -> bool: return e["type"] == "cardio")[0]
-	_check("an entry has its intensity and calories", entry["intensity"] == "moderate_vigorous" and is_equal_approx(entry["kcal"], 150.0))
+	_check("an entry has its intensity and calories", entry["intensity"] == "moderate_vigorous" and absf(entry["kcal"] - 0.5 * per_hour.call(7.0)) < TOLERANCE)
 	h.reset()
 	h.end_scoring_day(9.0)
 	_check("empty day: activity 0, strength 0, screens 1", h.scores["activity"] == 0.0
@@ -115,9 +122,9 @@ func _test_score_limits(h: Node) -> void:
 	_check("enjoyment 3 h still gives 1", is_equal_approx(h.enjoyment_score(3.0), 1.0))
 	# All five scores come out of a closed scoring day.
 	h.reset()
-	h.add_entry("entertainment", 0.5)
+	h.add_entry("screens", 0.5)
 	h.end_scoring_day(9.0)
-	_check("a scoring day gives five scores, with enjoyment 0.5 for 30 min of entertainment",
+	_check("a scoring day gives five scores, with enjoyment 0.5 for 30 min of screens",
 			h.scores.size() == 5 and absf(h.scores["enjoyment"] - 0.5) < TOLERANCE)
 
 
@@ -175,7 +182,7 @@ func _test_real_play(h: Node, gs: Node, clock: Node, activities: Node, save_game
 	_check("start time is logged", h.entries[0].has("start_minute") and h.entries[0]["day"] == clock.day_number)
 	var cardio_hours: float = h.entries[0]["hours"]
 
-	_check("entertainment starts", activities.start("entertainment", "entertainment"))
+	_check("entertainment starts", activities.start("entertainment", "screens"))
 	while activities.is_running():
 		clock._process(STEP_SECONDS)
 	_check("two entries logged", h.entries.size() == 2)

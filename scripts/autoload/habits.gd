@@ -12,6 +12,7 @@ extends Node
 signal scores_updated
 
 const Hunger := preload("res://scripts/health/hunger.gd")
+const Energy := preload("res://scripts/health/energy.gd")
 
 ## The only scoring window built so far.
 const WAKE_TO_WAKE := "wake_to_wake"
@@ -22,7 +23,7 @@ var avatar_hours_total := 0.0
 var current_day := 0
 ## Log entries: {"type": option id, "scoring_day": number, "start_total": avatar hours,
 ## "day": clock day number, "start_minute": time of day in minutes, "hours": avatar hours done,
-## "intensity": activity_intensity from activities.json ("" if none), "kcal": calories spent,
+## "intensity": activity_intensity from activities.json ("" if none), "kcal": calories spent (BMR / 24 x mety x hours),
 ## "kcal_eaten": kcal of a meal (Milestone 10; 0 for other activities)}.
 var entries: Array[Dictionary] = []
 ## Totals of the closed scoring days (see day_totals()), oldest first. The last log_days are kept.
@@ -79,7 +80,7 @@ func from_dict(data: Dictionary) -> void:
 			restored["scoring_day"] = int(restored.get("scoring_day", current_day))
 			var option := Activities.find_option(str(restored.get("type", "")))
 			restored["intensity"] = str(restored.get("intensity", Activities.option_value(option, "activity_intensity", "")))
-			restored["kcal"] = float(restored.get("kcal", float(Activities.option_value(option, "kcal_per_hour", 0.0)) * float(restored.get("hours", 0.0))))
+			restored["kcal"] = float(restored.get("kcal", _kcal_spent(option, float(restored.get("hours", 0.0)))))
 			entries.append(restored)
 	for day in data.get("days", []):
 		if day is Dictionary:
@@ -105,9 +106,16 @@ func add_entry(type: String, hours: float, start: Dictionary = {}) -> void:
 		"start_minute": float(start.get("start_minute", Clock.minute_of_day)),
 		"hours": hours,
 		"intensity": str(Activities.option_value(option, "activity_intensity", "")),
-		"kcal": float(Activities.option_value(option, "kcal_per_hour", 0.0)) * hours,
+		"kcal": _kcal_spent(option, hours),
 		"kcal_eaten": _meal_kcal(type, hours, option),
 	})
+
+
+## kcal spent in an activity of this many hours: BMR / 24 x its mety (Milestone 10).
+func _kcal_spent(option: Dictionary, hours: float) -> float:
+	var gs := GameState
+	var mety := float(Activities.option_value(option, "mety", 0.0))
+	return Energy.kcal_per_hour(gs.sex_or_default(), gs.body_age_months, gs.weight_kg, mety) * hours
 
 
 ## kcal of a meal entry: the share of the meal eaten in these hours (0 if not a meal).

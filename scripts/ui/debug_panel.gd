@@ -6,6 +6,7 @@ extends PanelContainer
 
 const Hunger := preload("res://scripts/health/hunger.gd")
 const Energy := preload("res://scripts/health/energy.gd")
+const BodySize := preload("res://scripts/health/body_size.gd")
 
 @onready var info: Label = $Margin/Info
 
@@ -44,6 +45,9 @@ func _refresh() -> void:
 			"HUNGRY" if Hunger.is_hungry() else "not hungry"])
 	lines.append("  %.1f h since the last meal  weight %.1f kg  body age %.1f y  METy %.2f" % [gs.hours_since_meal,
 			gs.weight_kg, gs.body_age_months / Config.get_float("units.months_per_year"), Energy.mety_now()])
+	lines.append("  height %.1f cm  BMI-for-age z %+.2f (weight score %.2f)  energy deficit U %.2f" % [gs.height_m * 100.0,
+			gs.weight_z, BodySize.weight_score(gs.weight_z), gs.deficit_u])
+	lines.append("  last 24 h: eaten %.0f kcal, spent %.0f kcal" % [Energy.window_total("eaten"), Energy.window_total("spent")])
 	lines.append("Body states")
 	lines.append("  fitness %.3f  muscle %.3f" % [gs.fitness, gs.muscle])
 	lines.append("  sleep debt %.2f h  mood %.1f / %d" % [gs.sleep_debt, gs.mood, Config.get_int("health_m4.mood_max")])

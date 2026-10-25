@@ -81,8 +81,8 @@ func _test_health_block(config: Node) -> void:
 	var activities: Node = root.get_node("Activities")
 	var cardio: Dictionary = activities.get_option("exercise", "cardio")
 	var strength: Dictionary = activities.get_option("exercise", "strength")
-	_check("kcal_per_hour: cardio 300, muscle strength 200", activities.option_value(cardio, "kcal_per_hour") == 300.0
-			and activities.option_value(strength, "kcal_per_hour") == 200.0)
+	_check("METy: cardio 7.0, muscle strength 5.0 (Milestone 10, replaces kcal_per_hour)", activities.option_value(cardio, "mety") == 7.0
+			and activities.option_value(strength, "mety") == 5.0 and not cardio.has("kcal_per_hour"))
 
 
 ## Milestone 10 Task 1: the v1 groups. Every value has value, status and owner (the

@@ -121,6 +121,11 @@ func _same(a: Dictionary, b: Dictionary) -> bool:
 		if a[key] is Dictionary and b[key] is Dictionary:
 			if not _same(a[key], b[key]):
 				return false
+		elif a[key] is Array and b[key] is Array:
+			if a[key].size() != b[key].size() or not range(a[key].size()).all(
+					func(i: int) -> bool: return is_equal_approx(float(a[key][i]), float(b[key][i]))):
+				print("  differs: %s %s != %s" % [key, a[key], b[key]])
+				return false
 		elif a[key] is float or b[key] is float:
 			if not is_equal_approx(float(a[key]), float(b[key])):
 				print("  differs: %s %s != %s" % [key, a[key], b[key]])

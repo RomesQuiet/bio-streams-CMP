@@ -29,7 +29,7 @@ func _process(_delta: float) -> bool:
 	log.enabled = true
 	DirAccess.remove_absolute(TEST_LOG)
 	habits.add_entry("cardio", 1.0)
-	habits.add_entry("entertainment", 2.0)
+	habits.add_entry("screens", 2.0)
 	habits.end_scoring_day(8.5)
 	habits.add_entry("strength", 0.5)
 	habits.end_scoring_day(0.0)

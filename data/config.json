@@ -86,7 +86,8 @@
 		},
 		"bmr_band_from_months": {"value": 120, "status": "from source", "owner": "Pessoa 1", "comment": "Body age (months) from which the 10 to 18 years equation is used."},
 		"pal_ref": {"value": 1.6, "status": "placeholder", "owner": "Pessoa 1", "comment": "Reference appetite = BMR at the healthy weight for the current age and height x this: the energy needs of an active child of healthy weight (IOM activity levels); calibrated in the v1 simulation."},
-		"mety_idle": {"value": 1.7, "status": "placeholder", "owner": "Pessoa 1", "comment": "METy of a normal school-day hour when no activity runs. Calibrated. The METy of sleep and of each activity is in data/activities.json."}
+		"mety_idle": {"value": 1.7, "status": "placeholder", "owner": "Pessoa 1", "comment": "METy of a normal school-day hour when no activity runs. Calibrated. The METy of sleep and of each activity is in data/activities.json."},
+		"record_intensities": {"value": ["moderate_vigorous"], "status": "placeholder", "owner": "Pessoa 3", "comment": "The kcal spent during activities with one of these activity_intensity values add up in the calories-spent record shown in the physical box (a record only)."}
 	},
 
 	"appetite": {
@@ -366,8 +367,8 @@
 			"sleep_types": ["sleep"],
 			"activity_intensities": {"value": ["moderate_vigorous"], "status": "from source", "owner": "Pessoa 3", "comment": "Entries with one of these activity_intensity values count as moderate-to-vigorous minutes (CDC)."},
 			"strength_types": ["strength"],
-			"entertainment_types": ["entertainment"],
-			"screen_types": {"value": ["entertainment"], "status": "placeholder", "owner": "Pessoa 3", "comment": "All entertainment counts as recreational screen time until sedentary and active entertainment exist."}
+			"entertainment_types": ["screens", "football"],
+			"screen_types": {"value": ["screens"], "status": "placeholder", "owner": "Pessoa 3", "comment": "Milestone 10 Task 4: only Screens counts as recreational screen time; Football is active entertainment."}
 		},
 		"difficulties": {
 			"_comment": "Starting values per difficulty. physical, mental and sleep are the starting measures; starting health is calculated from them, never typed in. weight_z is the WHO BMI-for-age z-score and stays fixed until food exists. The body states are chosen so that on day 1 they give the starting measures: (fitness + muscle + weight score) / 3 = physical, mood = mental x mood_max (0 to 100), sleep_debt = 0. start_R is the starting rootedness of the habits (low on Hard = cheap habit changes, high on Very hard). start_H is the usual level H of each habit at the start, as an intensity (health.habit_intensity), derived from the difficulty's starting habits for a child (the default age group): sleep from the starting sleep score (4 h + score x 5 h, then / 12), activity = starting fitness, strength = starting muscle x 3 days / 7, screens from the starting mental score (6 h - 4 h x score, then / 6). All placeholders.",

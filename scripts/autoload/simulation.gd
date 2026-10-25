@@ -15,6 +15,7 @@ extends Node
 
 const Energy := preload("res://scripts/health/energy.gd")
 const Hunger := preload("res://scripts/health/hunger.gd")
+const BodySize := preload("res://scripts/health/body_size.gd")
 
 ## Emitted after each step, with the avatar hours of that step and whether the avatar slept.
 signal stepped(hours: float, asleep: bool)
@@ -97,7 +98,7 @@ func _on_phase_changed(phase: Clock.Phase) -> void:
 func _on_activity_ended(_activity_id: String, option_id: String, hours_done: float) -> void:
 	if Hunger.is_food(option_id):
 		var duration := float(Activities.find_option(option_id).get("duration_hours", 0.0))
-		Hunger.eat(option_id, hours_done / duration if duration > 0.0 else 1.0)
+		Energy.add_eaten(Hunger.eat(option_id, hours_done / duration if duration > 0.0 else 1.0))
 	# The rest of the frame, after the activity.
 	if _after_activity_hours > 0.0:
 		var hours := _after_activity_hours
@@ -108,14 +109,18 @@ func _on_activity_ended(_activity_id: String, option_id: String, hours_done: flo
 ## One step of the v1 update order. Each module joins here in its own Milestone 10 task.
 func _step(hours: float, asleep: bool) -> void:
 	# 1. Clock: awake or asleep (the Clock already moved the time).
+	GameState.sim_hours += hours
 	if not asleep:
 		GameState.hours_awake += hours
 	# 2. Energy spent.
 	Energy.step(hours, asleep)
 	# 3. Hunger.
 	Hunger.step(hours, asleep)
-	# 4. Weight, body age, height and z (Task 4).
-	# 5. Energy deficit penalty U (Task 4). 6. Training (Task 5). 7. Physical (Task 8).
+	# 4. Body age, height and z (weight changed in step 2 and at meals).
+	BodySize.step(hours, asleep)
+	# 5. Energy deficit penalty U.
+	Energy.update_deficit()
+	# 6. Training (Task 5). 7. Physical (Task 8).
 	# 8. Happiness (Task 7).
 	# 9. Health, failure timers, risk and XP. Until Task 8: the Milestone 4 XP over time.
 	GameState.apply_avatar_hours(hours, asleep)

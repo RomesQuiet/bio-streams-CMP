@@ -1,5 +1,5 @@
 {
-	"_comment": "Activities the avatar can do. Each activity has options; each option has a duration in avatar hours (or \"slider\" for sleep), mety (youth MET: energy per avatar hour = BMR / 24 x mety, Milestone 10), effects per avatar hour on GameState values (none for now), kcal_per_hour (calories spent, a record only), activity_intensity (\"moderate_vigorous\" counts toward the 60 minutes), a background colour and an animation name. Effects and calories only count for the time actually done. Options marked \"placeholder\": true use temporary numbers; kcal_per_hour and activity_intensity have their own status and owner (MILESTONE_4.md).",
+	"_comment": "Activities the avatar can do. Each activity has options; each option has a duration in avatar hours (or \"slider\" for sleep), mety (youth MET: energy per avatar hour = BMR / 24 x mety, Milestone 10), effects per avatar hour on GameState values (none for now), activity_intensity (\"moderate_vigorous\" counts toward the 60 minutes), a background colour and an animation name. Effects only count for the time actually done; energy is counted every 5-minute step (Simulation). Options marked \"placeholder\": true use temporary numbers; mety and activity_intensity have their own status and owner.",
 
 	"sleep": {
 		"name": "Sleep",
@@ -26,7 +26,6 @@
 				"duration_hours": 1,
 				"effects_per_hour": {},
 				"mety": { "value": 7.0, "status": "from source", "owner": "Pessoa 3", "comment": "Youth Compendium (v1 Step 3)." },
-				"kcal_per_hour": { "value": 300, "status": "placeholder", "owner": "Pessoa 3", "comment": "Record only (no food yet)." },
 				"activity_intensity": { "value": "moderate_vigorous", "status": "placeholder", "owner": "Pessoa 3", "comment": "Until the MET values from the Youth Compendium are in." },
 				"background_color": "#2d5a3d",
 				"animation": "cardio",
@@ -38,7 +37,6 @@
 				"duration_hours": 1,
 				"effects_per_hour": {},
 				"mety": { "value": 5.0, "status": "from source", "owner": "Pessoa 3", "comment": "Strength or calisthenics, Youth Compendium (v1 Step 3)." },
-				"kcal_per_hour": { "value": 200, "status": "placeholder", "owner": "Pessoa 3", "comment": "Record only (no food yet)." },
 				"activity_intensity": { "value": "moderate_vigorous", "status": "placeholder", "owner": "Pessoa 3", "comment": "Until the MET values from the Youth Compendium are in." },
 				"background_color": "#5a3d2d",
 				"animation": "strength",
@@ -75,16 +73,27 @@
 
 	"entertainment": {
 		"name": "Entertainment",
+		"_comment": "Decision 4 (user, 25 Oct 2026): Screens and Football (v1 uses both). Football is active play: it counts as moderate-to-vigorous activity and, in v1, with cardio for fitness.",
 		"options": {
-			"entertainment": {
-				"name": "Entertainment",
+			"screens": {
+				"name": "Screens",
 				"duration_hours": 1,
 				"effects_per_hour": {},
-				"mety": { "value": 1.3, "status": "from source", "owner": "Pessoa 3", "comment": "Screens (watching TV 1.3, Youth Compendium; v1 Step 3). Screens and football replace this option in Task 4." },
+				"mety": { "value": 1.3, "status": "from source", "owner": "Pessoa 3", "comment": "Watching TV 1.3, Youth Compendium (v1 Step 3)." },
 				"background_color": "#4a3a6a",
 				"animation": "entertainment",
 				"placeholder": true,
-				"comment": "One option until the real entertainment menu is decided. It is logged as screen time and counts in the screens habit score; mood changes once per avatar day."
+				"comment": "Recreational screen time."
+			},
+			"football": {
+				"name": "Football",
+				"duration_hours": 1,
+				"effects_per_hour": {},
+				"mety": { "value": 7.5, "status": "from source", "owner": "Pessoa 3", "comment": "Youth Compendium: soccer 8.1 at 10 to 12 years; play with friends set lower (v1 Step 3)." },
+				"activity_intensity": { "value": "moderate_vigorous", "status": "placeholder", "owner": "Pessoa 3", "comment": "Whether active entertainment counts toward the 60 minutes is still open (CLAUDE.md); v1 counts football with cardio." },
+				"background_color": "#3a6a3a",
+				"animation": "cardio",
+				"placeholder": true
 			}
 		}
 	}

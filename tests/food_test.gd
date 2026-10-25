@@ -6,6 +6,8 @@ extends SceneTree
 ## rules, Skip, the meal log and saving. Uses a test save path; the real save is never touched.
 
 const TOLERANCE := 0.01
+## Weight changes every step (k = 10), so BMR drifts a little within an hour: within 1 kcal.
+const GROWTH_TOLERANCE := 1.0
 
 ## Loaded at run time: the scripts use the autoloads, which do not exist yet when this
 ## test script is compiled.
@@ -62,19 +64,24 @@ func _test_hunger_growth() -> void:
 	_play_hours(clock, 1.0)
 	var expected := 0.7 * reference / 24.0 + 0.3 * idle_kcal
 	print("  1 h awake, idle: hunger +%.1f kcal (expected %.1f)" % [gs.hunger - start, expected])
-	_check("1 h awake with no activity: hunger grows by the v1 formula", absf(gs.hunger - start - expected) < TOLERANCE)
+	_check("1 h awake with no activity: hunger grows by the v1 formula", absf(gs.hunger - start - expected) < GROWTH_TOLERANCE)
 
 	gs.sleep_debt = 8.0  # d = 1: appetite x 1.2
 	start = gs.hunger
 	_play_hours(clock, 1.0)
-	_check("with full sleep debt hunger grows 20% faster", absf(gs.hunger - start - expected * 1.2) < TOLERANCE)
+	_check("with full sleep debt hunger grows 20% faster", absf(gs.hunger - start - expected * 1.2) < GROWTH_TOLERANCE)
 
 	gs.sleep_debt = 0.0
-	gs.weight_z = -2.0  # Below the median: x (1 + 0.15 x 2)
+	# Below the median: x (1 + 0.15 x 2). z comes from the weight, so set the weight.
+	gs.weight_kg = load("res://scripts/health/who_tables.gd").weight_from_z("male", gs.body_age_months, -2.0)
+	gs.weight_z = -2.0
+	var expected_thin: float = 0.7 * reference / 24.0 + 0.3 * energy.kcal_per_hour("male", gs.body_age_months, gs.weight_kg, 1.7)
 	start = gs.hunger
 	_play_hours(clock, 1.0)
-	_check("2 SD below the median, hunger grows 30% faster", absf(gs.hunger - start - expected * 1.3) < TOLERANCE)
+	_check("2 SD below the median, hunger grows 30% faster", absf(gs.hunger - start - expected_thin * 1.3) < GROWTH_TOLERANCE)
+	gs.weight_kg = load("res://scripts/health/who_tables.gd").weight_from_z("male", gs.body_age_months, 1.0)
 	gs.weight_z = 1.0
+	expected = 0.7 * reference / 24.0 + 0.3 * energy.kcal_per_hour("male", gs.body_age_months, gs.weight_kg, 1.7)
 
 	# Cardio spends more, so hunger grows faster (only 30% follows the spending).
 	var activities: Node = root.get_node("Activities")
@@ -90,7 +97,7 @@ func _test_hunger_growth() -> void:
 	var cardio_kcal: float = energy.kcal_per_hour("male", gs.body_age_months, gs.weight_kg, 7.0)
 	var expected_cardio := 0.7 * reference / 24.0 + 0.3 * cardio_kcal + idle_after * expected
 	print("  1 h cardio: hunger +%.1f kcal (expected %.1f)" % [gs.hunger - start, expected_cardio])
-	_check("1 h of cardio: hunger grows with the extra energy spent", absf(gs.hunger - start - expected_cardio) < TOLERANCE)
+	_check("1 h of cardio: hunger grows with the extra energy spent", absf(gs.hunger - start - expected_cardio) < GROWTH_TOLERANCE)
 
 	# Hunger grows during sleep too.
 	gs.hours_awake = 6.0
@@ -116,7 +123,7 @@ func _test_meals() -> void:
 		var growth_during_meal: float = _hunger_after_meal(activities, clock, food[0], gs) - 2.0 * portion
 		var taken: float = food[1] * food[2] * portion
 		_check("%s takes %.2f portions off hunger" % [food[0], food[1] * food[2]],
-				absf(gs.hunger - (2.0 * portion + growth_during_meal - taken)) < TOLERANCE)
+				absf(gs.hunger - (2.0 * portion + growth_during_meal - taken)) < GROWTH_TOLERANCE)
 	_check("a meal lasts 0.5 avatar hours", is_equal_approx(float(activities.get_option("eat", "healthy_meal")["duration_hours"]), 0.5))
 	_check("fast food fills less per kcal than healthy food", 1.3 * 0.83 < 1.3)
 

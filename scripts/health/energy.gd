@@ -1,8 +1,10 @@
 extends RefCounted
-## Energy spent (v1 Step 3, Milestone 10). Energy per avatar hour = BMR / 24 x METy of what
-## the avatar is doing. BMR is the Schofield equation for the sex and the body age band
-## (energy.bmr in config). Sleep never changes the metabolic rate. All numbers come from Config.
-## Task 3 uses it for hunger; Task 4 adds weight change and the energy deficit.
+## Energy and weight (v1 Steps 3 and 5, Milestone 10). Energy per avatar hour = BMR / 24 x METy
+## of what the avatar is doing. BMR is the Schofield equation for the sex and the body age band
+## (energy.bmr in config). Sleep never changes the metabolic rate. Weight changes by
+## body.k x (kcal eaten - kcal spent) / body.kcal_per_kg; because BMR depends on weight, weight
+## settles where intake and spending meet. The energy deficit penalty U comes from the kcal
+## eaten and spent in the last deficit.window_h avatar hours. All numbers come from Config.
 
 const WhoTables := preload("res://scripts/health/who_tables.gd")
 
@@ -43,7 +45,75 @@ static func kcal_per_hour(sex: String, age_months: float, weight_kg: float, mety
 	return bmr(sex, age_months, weight_kg) / Config.get_float("units.hours_per_day") * mety
 
 
-## Step 2 of the update order: the kcal spent in this step.
+## Step 2 of the update order: the kcal spent in this step. They go into the energy window,
+## take weight off, and (during exercise) add to the calories-spent record.
 static func step(hours: float, _asleep: bool) -> void:
 	var gs := GameState
 	gs.energy_spent_step = kcal_per_hour(gs.sex_or_default(), gs.body_age_months, gs.weight_kg, mety_now()) * hours
+	_add_to_window("spent", gs.energy_spent_step)
+	_change_weight(-gs.energy_spent_step)
+	if Activities.is_running():
+		var intensity := str(Activities.option_value(Activities.current_option_data(), "activity_intensity", ""))
+		if intensity in Config.get_value("energy.record_intensities"):
+			gs.calories_spent += gs.energy_spent_step
+
+
+## A meal's kcal: into the energy window, and onto the weight.
+static func add_eaten(kcal: float) -> void:
+	_add_to_window("eaten", kcal)
+	_change_weight(kcal)
+
+
+## Step 5 of the update order: U = 0 below a deficit of deficit.start, rising in a straight
+## line to 1 at deficit.full. deficit = 1 - kcal eaten / kcal spent in the window.
+static func update_deficit() -> void:
+	GameState.deficit_u = deficit_penalty(window_total("eaten"), window_total("spent"))
+
+
+static func deficit_penalty(eaten: float, spent: float) -> float:
+	if spent <= 0.0:
+		return 0.0
+	var deficit := 1.0 - eaten / spent
+	var start := Config.get_float("deficit.start")
+	return clampf((deficit - start) / (Config.get_float("deficit.full") - start), 0.0, 1.0)
+
+
+## Sum of kcal "eaten" or "spent" in the window.
+static func window_total(kind: String) -> float:
+	var total := 0.0
+	for kcal in GameState.energy_window[kind]:
+		total += float(kcal)
+	return total
+
+
+## A window as if the avatar had eaten what it spent, at the reference appetite, so a new
+## avatar does not start with a deficit.
+static func balanced_window(sex: String, age_months: float) -> Dictionary:
+	var slots := Config.get_int("deficit.window_h")
+	var per_hour := reference_kcal_per_day(sex, age_months) / Config.get_float("units.hours_per_day")
+	var eaten := []
+	var spent := []
+	for i in slots:
+		eaten.append(per_hour)
+		spent.append(per_hour)
+	# "hour" -1: the first step clears the slot of hour 0, so it is not counted twice.
+	return {"eaten": eaten, "spent": spent, "hour": -1}
+
+
+## Weight change: body.k x kcal / body.kcal_per_kg (k is body time).
+static func _change_weight(kcal: float) -> void:
+	GameState.weight_kg += Config.get_float("body.k") * kcal / Config.get_float("body.kcal_per_kg")
+
+
+## Adds kcal to the slot of the current avatar hour; slots of hours that passed are cleared.
+static func _add_to_window(kind: String, kcal: float) -> void:
+	var window: Dictionary = GameState.energy_window
+	var slots: int = window["eaten"].size()
+	var hour := floori(GameState.sim_hours)
+	var newest := int(window["hour"])
+	if hour > newest:
+		for h in range(maxi(newest + 1, hour - slots + 1), hour + 1):
+			window["eaten"][h % slots] = 0.0
+			window["spent"][h % slots] = 0.0
+		window["hour"] = hour
+	window[kind][hour % slots] += kcal

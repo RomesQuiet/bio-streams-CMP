@@ -46,7 +46,7 @@ const FALL_TOLERANCE := 0.0001
 ## The habit types, as in data/activities.json.
 const CARDIO := "cardio"
 const STRENGTH := "strength"
-const SCREENS := "entertainment"
+const SCREENS := "screens"
 
 var _failures := 0
 var _gs: Node
