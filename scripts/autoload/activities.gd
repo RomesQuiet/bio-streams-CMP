@@ -8,6 +8,9 @@ const ACTIVITIES_PATH := "res://data/activities.json"
 
 signal started(activity_id: String, option_id: String)
 signal ended(activity_id: String, option_id: String, hours_done: float)
+## Emitted just before an activity starts or ends, while the old one (or none) still counts,
+## so Simulation can first run the minutes that belong to it.
+signal changing
 ## Emitted while an activity runs, after its effects for that frame are applied.
 signal progressed
 
@@ -78,6 +81,7 @@ func start(activity_id: String, option_id: String, hours := -1.0) -> bool:
 	var duration: Variant = option.get("duration_hours")
 	target_hours = hours if duration is String else float(duration)
 	elapsed_hours = 0.0
+	changing.emit()
 	current_activity = activity_id
 	current_option = option_id
 	started.emit(activity_id, option_id)
@@ -167,6 +171,7 @@ func _end() -> void:
 	var activity_id := current_activity
 	var option_id := current_option
 	var hours_done := elapsed_hours
+	changing.emit()
 	reset()
 	ended.emit(activity_id, option_id, hours_done)
 

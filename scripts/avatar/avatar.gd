@@ -19,6 +19,9 @@ extends Control
 @export var cardio_height := 36.0
 @export var strength_seconds := 1.4
 @export var strength_squash := Vector2(1.08, 0.88)
+## Eating: a quick, small squash (chewing).
+@export var eat_seconds := 0.5
+@export var eat_squash := Vector2(1.03, 0.97)
 
 var eyes_closed := false:
 	set(value):
@@ -62,6 +65,9 @@ func play_animation(animation_name: String) -> void:
 		"strength":
 			_animation.tween_property(self, "scale", strength_squash, strength_seconds * 0.5)
 			_animation.tween_property(self, "scale", Vector2.ONE, strength_seconds * 0.5)
+		"eat":
+			_animation.tween_property(self, "scale", eat_squash, eat_seconds * 0.5)
+			_animation.tween_property(self, "scale", Vector2.ONE, eat_seconds * 0.5)
 		_:
 			_animation.tween_property(self, "hop_offset", hop_height, hop_seconds * 0.5)
 			_animation.tween_property(self, "hop_offset", 0.0, hop_seconds * 0.5)

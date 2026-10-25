@@ -6,7 +6,15 @@ extends Node
 ## steps). When the Clock changes phase (sleep starts, sleep ends), the part of a step
 ## not yet run is run at once as a shorter step, so time asleep and time awake stay exact.
 ## Nothing runs while the game is paused or closed, because the Clock does not move then.
+## Simulation is listed before Activities in the autoloads, so it hears each frame's time
+## while the activity of that frame still runs; and just before an activity starts or ends
+## (Activities.changing) the minutes not yet run are run, so each step uses the right METy.
+## A frame that goes past the end of a day activity is split: the part after the end is
+## counted when the activity has ended.
 ## All numbers come from Config.
+
+const Energy := preload("res://scripts/health/energy.gd")
+const Hunger := preload("res://scripts/health/hunger.gd")
 
 ## Emitted after each step, with the avatar hours of that step and whether the avatar slept.
 signal stepped(hours: float, asleep: bool)
@@ -15,11 +23,15 @@ signal stepped(hours: float, asleep: bool)
 var pending_minutes := 0.0
 ## Whether those minutes were asleep.
 var pending_asleep := false
+## Avatar hours of the current frame that come after the running day activity ends.
+var _after_activity_hours := 0.0
 
 
 func _ready() -> void:
 	Clock.avatar_time_passed.connect(_on_avatar_time_passed)
 	Clock.phase_changed.connect(_on_phase_changed)
+	Activities.changing.connect(flush)
+	Activities.ended.connect(_on_activity_ended)
 
 
 ## Length of one step, in avatar minutes.
@@ -31,6 +43,7 @@ func step_minutes() -> float:
 func reset() -> void:
 	pending_minutes = 0.0
 	pending_asleep = false
+	_after_activity_hours = 0.0
 
 
 func to_dict() -> Dictionary:
@@ -51,6 +64,17 @@ func flush() -> void:
 
 
 func _on_avatar_time_passed(hours: float, asleep: bool) -> void:
+	var now := hours
+	if Activities.is_running() and not Activities.uses_sleep_time(Activities.current_activity):
+		var left := maxf(0.0, Activities.target_hours - Activities.elapsed_hours)
+		if hours > left:
+			now = left
+			_after_activity_hours = hours - left
+	_add(now, asleep)
+
+
+## Adds avatar hours and runs every whole step in them.
+func _add(hours: float, asleep: bool) -> void:
 	if asleep != pending_asleep:
 		flush()
 	pending_asleep = asleep
@@ -68,12 +92,29 @@ func _on_phase_changed(phase: Clock.Phase) -> void:
 		GameState.hours_awake = 0.0
 
 
+## A meal counts when it ends, in proportion to the time eaten (Stop = part of a meal).
+## Its minutes were already run (Activities.changing), so hunger is up to date.
+func _on_activity_ended(_activity_id: String, option_id: String, hours_done: float) -> void:
+	if Hunger.is_food(option_id):
+		var duration := float(Activities.find_option(option_id).get("duration_hours", 0.0))
+		Hunger.eat(option_id, hours_done / duration if duration > 0.0 else 1.0)
+	# The rest of the frame, after the activity.
+	if _after_activity_hours > 0.0:
+		var hours := _after_activity_hours
+		_after_activity_hours = 0.0
+		_add(hours, false)
+
+
 ## One step of the v1 update order. Each module joins here in its own Milestone 10 task.
 func _step(hours: float, asleep: bool) -> void:
 	# 1. Clock: awake or asleep (the Clock already moved the time).
 	if not asleep:
 		GameState.hours_awake += hours
-	# 2. Energy spent (Task 4). 3. Hunger (Task 3). 4. Weight, body age, height and z (Task 4).
+	# 2. Energy spent.
+	Energy.step(hours, asleep)
+	# 3. Hunger.
+	Hunger.step(hours, asleep)
+	# 4. Weight, body age, height and z (Task 4).
 	# 5. Energy deficit penalty U (Task 4). 6. Training (Task 5). 7. Physical (Task 8).
 	# 8. Happiness (Task 7).
 	# 9. Health, failure timers, risk and XP. Until Task 8: the Milestone 4 XP over time.

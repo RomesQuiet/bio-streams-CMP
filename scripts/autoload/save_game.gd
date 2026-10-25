@@ -107,6 +107,8 @@ func load_game() -> bool:
 	if best.is_empty():
 		return false
 	_save_count = int(best["save_count"])
+	# Nothing pending while the Clock is restored (its phase change would run it).
+	Simulation.reset()
 	GameState.from_dict(best.get("game_state", {}))
 	Clock.from_dict(best.get("clock", {}))
 	Activities.from_dict(best.get("activities", {}))

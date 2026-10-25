@@ -7,9 +7,12 @@ signal changed
 signal leveled_up(new_level: int)
 
 ## Values that always stay between 0 and 1.
-const MEASURES_0_TO_1 := ["physical", "mental", "sleep", "hunger", "muscle", "fitness"]
+const MEASURES_0_TO_1 := ["physical", "mental", "sleep", "muscle", "fitness"]
 ## The player's choices on the avatar creation screen. Empty means not chosen yet.
 const CHOICE_KEYS := ["avatar_name", "age_group", "sex", "difficulty"]
+
+const WhoTables := preload("res://scripts/health/who_tables.gd")
+const Energy := preload("res://scripts/health/energy.gd")
 
 # Measures: physical, mental and sleep go from 0 to 1. They are worked out from the
 # body states once per avatar day. Health (1 to 5) is the displayed health: it starts at
@@ -18,7 +21,17 @@ var physical: float
 var mental: float
 var sleep: float
 var health: float
+## Energy the avatar wants to eat now, in kcal (Milestone 10, v1 Step 4). Grows every step
+## (also asleep); a meal takes off kcal x satiety. It can go below 0 after eating a lot.
 var hunger: float
+## Avatar hours since the last meal or skipped meal.
+var hours_since_meal: float
+## Body weight in kg and body age in months (Milestone 10). Set at the start from the
+## starting z, the sex and the age group; they start changing in Task 4.
+var weight_kg: float
+var body_age_months: float
+## kcal spent in the last 5-minute step (not saved; worked out again every step).
+var energy_spent_step := 0.0
 ## Muscle strength, 0 to 1. A slow body state, trained by muscle strength (strength score).
 var muscle: float
 ## Total kcal spent by exercise so far (not limited to 1). A record only.
@@ -90,7 +103,6 @@ func _ready() -> void:
 ## chooses a difficulty, the default difficulty's starting values are used.
 func reset() -> void:
 	_apply_difficulty_start(Config.get_string("defaults.difficulty"))
-	hunger = Config.get_float("measures.hunger_start")
 	calories_spent = Config.get_float("measures.calories_spent_start")
 	tired = false
 	hours_awake = 0.0
@@ -102,6 +114,7 @@ func reset() -> void:
 	sex = ""
 	difficulty = ""
 	language = Config.get_string("defaults.language")
+	_apply_body_start()
 	changed.emit()
 
 
@@ -113,6 +126,9 @@ func to_dict() -> Dictionary:
 		"sleep": sleep,
 		"health": health,
 		"hunger": hunger,
+		"hours_since_meal": hours_since_meal,
+		"weight_kg": weight_kg,
+		"body_age_months": body_age_months,
 		"muscle": muscle,
 		"calories_spent": calories_spent,
 		"fitness": fitness,
@@ -142,6 +158,9 @@ func from_dict(data: Dictionary) -> void:
 	sleep = float(data.get("sleep", sleep))
 	health = float(data.get("health", health))
 	hunger = float(data.get("hunger", hunger))
+	hours_since_meal = float(data.get("hours_since_meal", hours_since_meal))
+	weight_kg = float(data.get("weight_kg", weight_kg))
+	body_age_months = float(data.get("body_age_months", body_age_months))
 	muscle = float(data.get("muscle", muscle))
 	calories_spent = float(data.get("calories_spent", calories_spent))
 	fitness = float(data.get("fitness", fitness))
@@ -180,6 +199,7 @@ func start_new_avatar(new_name: String, new_age_group: String, new_sex: String, 
 	sex = new_sex
 	difficulty = new_difficulty
 	_apply_difficulty_start(difficulty)
+	_apply_body_start()
 	health = calculate_health()
 	changed.emit()
 
@@ -196,6 +216,21 @@ func _apply_difficulty_start(difficulty_id: String) -> void:
 	weight_z = Config.get_float(path + ".weight_z")
 	mood = Config.get_float(path + ".mood")
 	_apply_habit_start(difficulty_id)
+
+
+## Starting body (Milestone 10): body age from the age group, weight from the starting z
+## at the median height for that age (WHO), and hunger of a new avatar (ready for breakfast).
+## Until Task 4 the starting z is the Milestone 4 weight_z.
+func _apply_body_start() -> void:
+	body_age_months = Config.get_float("body.start_age_months." + _age_group_or_default(age_group))
+	weight_kg = WhoTables.weight_from_z(sex_or_default(), body_age_months, weight_z)
+	hunger = Config.get_float("meals.start_hunger_meals") * Energy.healthy_portion_kcal(sex_or_default(), body_age_months)
+	hours_since_meal = Config.get_float("meals.min_gap_h")
+
+
+## The chosen sex, or the default one before the player chooses.
+func sex_or_default() -> String:
+	return sex if not sex.is_empty() else Config.get_string("defaults.sex")
 
 
 ## Starting usual level H and rootedness R of each habit for a difficulty.
@@ -463,6 +498,6 @@ func print_state() -> void:
 	print("fitness=%.3f sleep_debt=%.2f h weight_z=%+.1f mood=%.1f habit cost=%.2f" % [fitness, sleep_debt, weight_z, mood, habit_cost_total])
 	print("usual_habits=%s" % usual_habits)
 	print("rootedness=%s" % rootedness)
-	print("hunger=%.2f tired=%s" % [hunger, tired])
+	print("hunger=%.0f kcal weight=%.1f kg tired=%s" % [hunger, weight_kg, tired])
 	print("health=%.2f (level %d) target=%.2f" % [health, health_level, target_health])
 	print("xp=%.1f level=%d progress=%.2f" % [xp, level, level_progress])

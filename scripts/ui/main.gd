@@ -1,8 +1,9 @@
 extends Control
 ## Main game screen. Shows GameState, Clock and Activities on screen and handles the buttons.
-## Eat is a placeholder until its task.
+## Eat opens the meals (Milestone 10, Task 3) and, when the avatar is hungry, Skip meal.
 
 const CREATION_SCENE := "res://scenes/ui/creation.tscn"
+const Hunger := preload("res://scripts/health/hunger.gd")
 ## Placeholder message at minimum health (the failure effect is not decided yet).
 const FAILURE_TEXT := "Failure: my health has reached the minimum."
 
@@ -44,6 +45,7 @@ const FAILURE_TEXT := "Failure: my health has reached the minimum."
 @onready var sleep_button: Button = %SleepButton
 @onready var exercise_button: Button = %ExerciseButton
 @onready var entertainment_button: Button = %EntertainmentButton
+@onready var eat_button: Button = %EatButton
 @onready var options_panel: PanelContainer = %OptionsPanel
 @onready var options_title: Label = %OptionsTitle
 @onready var option_buttons: VBoxContainer = %OptionButtons
@@ -80,6 +82,7 @@ func _ready() -> void:
 	sleep_button.pressed.connect(_on_sleep_button_pressed)
 	exercise_button.pressed.connect(_open_options.bind("exercise"))
 	entertainment_button.pressed.connect(_open_options.bind("entertainment"))
+	eat_button.pressed.connect(_open_options.bind("eat"))
 	%OptionsCancelButton.pressed.connect(options_panel.hide)
 	stop_button.pressed.connect(Activities.stop)
 	sleep_slider.value_changed.connect(_refresh_sleep_info.unbind(1))
@@ -164,7 +167,19 @@ func _open_options(activity_id: String) -> void:
 		button.custom_minimum_size = Vector2(0, 72)
 		button.pressed.connect(_on_option_chosen.bind(activity_id, option_id))
 		option_buttons.add_child(button)
+	# A hungry avatar can also skip the meal: hunger stays, the 2-hour gap starts again.
+	if activity_id == "eat" and Hunger.is_hungry():
+		var skip := Button.new()
+		skip.text = "Skip meal"
+		skip.custom_minimum_size = Vector2(0, 72)
+		skip.pressed.connect(_on_skip_meal)
+		option_buttons.add_child(skip)
 	options_panel.show()
+
+
+func _on_skip_meal() -> void:
+	options_panel.hide()
+	Hunger.skip()
 
 
 func _on_option_chosen(activity_id: String, option_id: String) -> void:
@@ -249,6 +264,7 @@ func _refresh_phase() -> void:
 	sleep_button.disabled = running or phase != Clock.Phase.DAY
 	exercise_button.disabled = not Activities.can_start("exercise")
 	entertainment_button.disabled = not Activities.can_start("entertainment")
+	eat_button.disabled = not Activities.can_start("eat")
 	if running:
 		_refresh_activity_speech()
 		return
@@ -259,6 +275,8 @@ func _refresh_phase() -> void:
 			elif GameState.tired:
 				# Stays visible until the avatar sleeps.
 				_set_speech("I'm tired. Sleep is recommended.")
+			elif Hunger.is_hungry():
+				_set_speech("I'm hungry!")
 			else:
 				_set_speech("Paused" if Clock.paused else "Hello!")
 		Clock.Phase.SLEEP_OVER:

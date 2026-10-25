@@ -1,5 +1,5 @@
 {
-	"_comment": "Activities the avatar can do. Each activity has options; each option has a duration in avatar hours (or \"slider\" for sleep), effects per avatar hour on GameState values (none for now), kcal_per_hour (calories spent, a record only), activity_intensity (\"moderate_vigorous\" counts toward the 60 minutes), a background colour and an animation name. Effects and calories only count for the time actually done. Options marked \"placeholder\": true use temporary numbers; kcal_per_hour and activity_intensity have their own status and owner (MILESTONE_4.md).",
+	"_comment": "Activities the avatar can do. Each activity has options; each option has a duration in avatar hours (or \"slider\" for sleep), mety (youth MET: energy per avatar hour = BMR / 24 x mety, Milestone 10), effects per avatar hour on GameState values (none for now), kcal_per_hour (calories spent, a record only), activity_intensity (\"moderate_vigorous\" counts toward the 60 minutes), a background colour and an animation name. Effects and calories only count for the time actually done. Options marked \"placeholder\": true use temporary numbers; kcal_per_hour and activity_intensity have their own status and owner (MILESTONE_4.md).",
 
 	"sleep": {
 		"name": "Sleep",
@@ -9,6 +9,7 @@
 				"name": "Sleep",
 				"duration_hours": "slider",
 				"effects_per_hour": {},
+				"mety": { "value": 0.95, "status": "from source", "owner": "Pessoa 3", "comment": "Youth MET while asleep (v1 Step 3). Energy per avatar hour = BMR / 24 x METy." },
 				"background_color": "#0f1224",
 				"animation": "sleep",
 				"placeholder": true,
@@ -24,6 +25,7 @@
 				"name": "Cardio",
 				"duration_hours": 1,
 				"effects_per_hour": {},
+				"mety": { "value": 7.0, "status": "from source", "owner": "Pessoa 3", "comment": "Youth Compendium (v1 Step 3)." },
 				"kcal_per_hour": { "value": 300, "status": "placeholder", "owner": "Pessoa 3", "comment": "Record only (no food yet)." },
 				"activity_intensity": { "value": "moderate_vigorous", "status": "placeholder", "owner": "Pessoa 3", "comment": "Until the MET values from the Youth Compendium are in." },
 				"background_color": "#2d5a3d",
@@ -35,12 +37,38 @@
 				"name": "Muscle strength",
 				"duration_hours": 1,
 				"effects_per_hour": {},
+				"mety": { "value": 5.0, "status": "from source", "owner": "Pessoa 3", "comment": "Strength or calisthenics, Youth Compendium (v1 Step 3)." },
 				"kcal_per_hour": { "value": 200, "status": "placeholder", "owner": "Pessoa 3", "comment": "Record only (no food yet)." },
 				"activity_intensity": { "value": "moderate_vigorous", "status": "placeholder", "owner": "Pessoa 3", "comment": "Until the MET values from the Youth Compendium are in." },
 				"background_color": "#5a3d2d",
 				"animation": "strength",
 				"placeholder": true,
 				"comment": "Muscle changes once per avatar day from the strength score (config.json: health). There is no fatigue system."
+			}
+		}
+	},
+
+	"eat": {
+		"name": "Eat",
+		"_comment": "Milestone 10, Task 3. The food values of each option are in data/foods.json (same id). A meal takes avatar time (decision 2, user, 25 Oct 2026; the duration is a placeholder); its kcal and its effect on hunger count when it ends, in proportion to the time eaten (Stop = part of a meal).",
+		"options": {
+			"healthy_meal": {
+				"name": "Healthy meal",
+				"duration_hours": 0.5,
+				"effects_per_hour": {},
+				"mety": { "value": 1.5, "status": "placeholder", "owner": "Pessoa 3", "comment": "Eating while sitting. Not in v1." },
+				"background_color": "#3d6a3a",
+				"animation": "eat",
+				"placeholder": true
+			},
+			"fast_food_meal": {
+				"name": "Fast-food meal",
+				"duration_hours": 0.5,
+				"effects_per_hour": {},
+				"mety": { "value": 1.5, "status": "placeholder", "owner": "Pessoa 3", "comment": "Eating while sitting. Not in v1." },
+				"background_color": "#7a4a2a",
+				"animation": "eat",
+				"placeholder": true
 			}
 		}
 	},
@@ -52,6 +80,7 @@
 				"name": "Entertainment",
 				"duration_hours": 1,
 				"effects_per_hour": {},
+				"mety": { "value": 1.3, "status": "from source", "owner": "Pessoa 3", "comment": "Screens (watching TV 1.3, Youth Compendium; v1 Step 3). Screens and football replace this option in Task 4." },
 				"background_color": "#4a3a6a",
 				"animation": "entertainment",
 				"placeholder": true,

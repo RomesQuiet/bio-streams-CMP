@@ -34,8 +34,7 @@
 		"_comment": "The starting physical, mental and sleep measures and the body states come from the chosen difficulty (health.difficulties).",
 		"health_min": 1,
 		"health_max": 5,
-		"calories_spent_start": { "value": 0, "placeholder": true, "comment": "Total kcal spent by exercise so far. Whether it resets each day is not decided." },
-		"hunger_start": { "value": 0.0, "placeholder": true, "comment": "0 = full, 1 = starving." }
+		"calories_spent_start": { "value": 0, "placeholder": true, "comment": "Total kcal spent by exercise so far. Whether it resets each day is not decided." }
 	},
 
 	"sleep_activity": {
@@ -402,6 +401,7 @@
 		"language": { "value": "pt", "placeholder": true, "comment": "Starting language until settings exist. pt or en." },
 		"avatar_name": { "value": "", "placeholder": true, "comment": "Set on the avatar creation screen." },
 		"age_group": { "value": "child", "placeholder": true, "comment": "Used for the recommended sleep before the player chooses an age group." },
+		"sex": { "value": "female", "placeholder": true, "comment": "Used for the WHO tables and the BMR before the player chooses a sex." },
 		"difficulty": { "value": "normal", "placeholder": true, "comment": "Starting values used before the player chooses a difficulty." }
 	},
 

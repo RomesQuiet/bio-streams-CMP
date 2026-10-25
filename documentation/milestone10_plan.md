@@ -86,7 +86,7 @@ All new: `who_tables.gd`, `body_size.gd`, `energy.gd`, `training.gd`, `sleep_mod
 
 ## Small choices made in this plan (tell me if you disagree)
 
-1. **A meal counts while it is eaten.** Its kcal and its effect on hunger are spread over its 0.5 h; Stop gives a partial meal. Q, C, A and the happiness jump of the meal are applied when the meal ends, in proportion to the part eaten.
+1. **A meal counts when it ends.** (Changed in Task 3: first planned as spread over its 0.5 h.) Its kcal and its effect on hunger are applied when the meal ends, in proportion to the part eaten, so Stop gives a partial meal. The difference is at most half an hour of hunger growth, and it keeps the code simple and exact. Q, C, A and the happiness jump of the meal are applied at the same moment.
 2. **Starting body age** = the reference age of the group (child 10 years, teenager 14 years, as in CLAUDE.md).
 3. **Starting weight** = the weight that gives the difficulty's z at the starting height (WHO tables), so it depends on sex and age.
 4. **Schofield band:** 3 to 10 years up to 9 years 11 months, then 10 to 18 years up to the cap (18 years 11 months for teenagers).

@@ -11,6 +11,8 @@ extends Node
 ## Emitted when new habit scores were calculated (a scoring day closed).
 signal scores_updated
 
+const Hunger := preload("res://scripts/health/hunger.gd")
+
 ## The only scoring window built so far.
 const WAKE_TO_WAKE := "wake_to_wake"
 
@@ -20,7 +22,8 @@ var avatar_hours_total := 0.0
 var current_day := 0
 ## Log entries: {"type": option id, "scoring_day": number, "start_total": avatar hours,
 ## "day": clock day number, "start_minute": time of day in minutes, "hours": avatar hours done,
-## "intensity": activity_intensity from activities.json ("" if none), "kcal": calories spent}.
+## "intensity": activity_intensity from activities.json ("" if none), "kcal": calories spent,
+## "kcal_eaten": kcal of a meal (Milestone 10; 0 for other activities)}.
 var entries: Array[Dictionary] = []
 ## Totals of the closed scoring days (see day_totals()), oldest first. The last log_days are kept.
 var days: Array[Dictionary] = []
@@ -103,7 +106,16 @@ func add_entry(type: String, hours: float, start: Dictionary = {}) -> void:
 		"hours": hours,
 		"intensity": str(Activities.option_value(option, "activity_intensity", "")),
 		"kcal": float(Activities.option_value(option, "kcal_per_hour", 0.0)) * hours,
+		"kcal_eaten": _meal_kcal(type, hours, option),
 	})
+
+
+## kcal of a meal entry: the share of the meal eaten in these hours (0 if not a meal).
+func _meal_kcal(type: String, hours: float, option: Dictionary) -> float:
+	var duration := float(option.get("duration_hours", 0.0))
+	if not Hunger.is_food(type) or duration <= 0.0:
+		return 0.0
+	return Hunger.meal_kcal(type, hours / duration)
 
 
 ## Totals of one scoring day: sleep hours, moderate-to-vigorous activity minutes,

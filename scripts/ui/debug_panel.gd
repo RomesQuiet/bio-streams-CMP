@@ -4,6 +4,9 @@ extends PanelContainer
 ## Shows the habit scores, body states, measures, target and displayed health.
 ## F7 shows or hides it.
 
+const Hunger := preload("res://scripts/health/hunger.gd")
+const Energy := preload("res://scripts/health/energy.gd")
+
 @onready var info: Label = $Margin/Info
 
 
@@ -36,6 +39,11 @@ func _refresh() -> void:
 		lines.append("  sleep %.2f  activity %.2f" % [Habits.scores["sleep"], Habits.scores["activity"]])
 		lines.append("  strength %.2f  screens %.2f  enjoyment %.2f" % [Habits.scores["strength"],
 				Habits.scores["screens"], Habits.scores.get("enjoyment", 0.0)])
+	var portion: float = Hunger.healthy_portion_kcal()
+	lines.append("Food  hunger %.0f kcal (%.2f healthy meals of %.0f)  %s" % [gs.hunger, gs.hunger / portion, portion,
+			"HUNGRY" if Hunger.is_hungry() else "not hungry"])
+	lines.append("  %.1f h since the last meal  weight %.1f kg  body age %.1f y  METy %.2f" % [gs.hours_since_meal,
+			gs.weight_kg, gs.body_age_months / Config.get_float("units.months_per_year"), Energy.mety_now()])
 	lines.append("Body states")
 	lines.append("  fitness %.3f  muscle %.3f" % [gs.fitness, gs.muscle])
 	lines.append("  sleep debt %.2f h  mood %.1f / %d" % [gs.sleep_debt, gs.mood, Config.get_int("health_m4.mood_max")])
