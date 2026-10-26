@@ -7,6 +7,12 @@ Instructions for Claude Code when working in this repository. Read this file ful
 A web game for the Bio-Streams (EU) science competition. The topic is **childhood obesity**. The player cares for an avatar who is a school student and tries to raise its health (1 to 5) through **sport, sleep and food** (food is secondary only in the order of development).
 The author is a 9th-grade student competing in the national phase. Goal: win and present in Athens. The game must be scientifically sound, and everything in this repository is **public and free for anyone to use**.
 
+## Current status (read first; update it at the end of every milestone)
+
+- **26 October 2026: Milestone 10 is complete and pushed** (`origin/main` = `e3e6a89`; published on GitHub Pages). Food is an activity and the whole health system follows Health Calculation Architecture v1. All 18 tests pass.
+- **Read `documentation/handoff.md` next**: commit history, every decision the user took (decisions 1 to 9, A, B, the too-soon strength rule), what is open for the team, likely next milestones, how to work with the user, and technical lessons (test time limits, `load()` in tests, autoload order, loading saves, JSON numbers).
+- **Open:** ask the user whether their check in the Godot editor found anything; the team still has to answer the six differences from v1 in `documentation/milestone10_calibration.md`. No next milestone is planned yet: ask the user what comes next (for example translations pt/en, settings, failure effect, minigames, menus).
+
 ## How to work with the user
 
 - Always answer and think in **English**. Keep files in the language they already have (the game text is Portuguese and English).
@@ -22,6 +28,7 @@ The author is a 9th-grade student competing in the national phase. Goal: win and
 - Development plan (Portuguese): https://docs.google.com/document/d/1fdYX6jyFzwiqxBsbWS87-_f4zdx2h0r5TUSW9UQCXoM/edit
 - **Health Calculation Architecture v1** (25 Oct 2026): `documentation/health_calculation_architecture_v1.md` (copy of the Google Doc). **This is the design of the health system, built in Milestone 10** (`MILESTONE_10.md`, with the user's decisions). "Bases fundamental" wins over v1.
 - Older health system plan (Milestone 4, replaced by v1; the research and test documents still apply to the values): "Architecture Decisions: Health System" (English) and "Decisões de Arquitetura: Sistema de Saúde" (Portuguese), plus "Por Definir: Sistema de Saúde" (what is still undefined) and "Plano de Investigação e Testes: Sistema de Saúde" (who researches each value, team decisions and test scenarios). If you cannot open them, ask the user to paste them.
+- Project documents in `documentation/`: `handoff.md` (state and lessons, read at the start), `health_calculation_architecture_v1.md`, `milestone10_plan.md`, `milestone10_calibration.md`, and older ones from Milestone 4. Milestone task lists are in the repository root (`MILESTONE_4.md`, `MILESTONE_10.md`).
 - The summary below is the minimum. If this file and the documents disagree, tell the user and ask.
 
 ## Technical decisions (fixed)

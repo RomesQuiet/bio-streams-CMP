@@ -1,5 +1,7 @@
 # Milestone 10 — Food and the new health system (Architecture v1)
 
+**Status: complete (26 October 2026), pushed (`e3e6a89`).** Every task is done: Task 0 plan `d68119c`; Task 1 `e356e50`; Task 2 `480c0ce`; Task 3 `d35e37a`; Task 4 `a9e96d9`; Task 5 `c8dd219`; Task 6 `bb22f0f`; Task 7 `882518a`; Task 8 `44fdb90`; Task 9 `2aebbe3`; Task 10 `71c3530`; Task 11 `e3e6a89`. All tests pass. Results for the team: `documentation/milestone10_calibration.md`. State, decisions and lessons: `documentation/handoff.md`. Changes made while building (beyond this list) are recorded there and in `documentation/milestone10_plan.md`.
+
 Goal: make **food a real activity** (the Eat button works: healthy food or fast food, hunger, meals) and then **rebuild the whole health calculation** following `documentation/health_calculation_architecture_v1.md` ("v1"). The number 10 (not 5) shows how big the change is: this milestone replaces the Milestone 4 health system instead of adjusting it.
 
 Read `CLAUDE.md` and the v1 document first. After each task, say how to run it and what to check. Keep it simple: only what is listed here. "Bases fundamental" has priority over v1; if they seem to disagree, stop and ask the user.
