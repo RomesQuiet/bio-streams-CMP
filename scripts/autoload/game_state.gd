@@ -14,6 +14,7 @@ const CHOICE_KEYS := ["avatar_name", "age_group", "sex", "difficulty"]
 const WhoTables := preload("res://scripts/health/who_tables.gd")
 const Energy := preload("res://scripts/health/energy.gd")
 const Training := preload("res://scripts/health/training.gd")
+const SleepModel := preload("res://scripts/health/sleep_model.gd")
 
 # Measures: physical, mental and sleep go from 0 to 1. They are worked out from the
 # body states once per avatar day. Health (1 to 5) is the displayed health: it starts at
@@ -52,6 +53,10 @@ var overreach_minutes: float
 var overreach: float
 ## Effective cardio and strength minutes in each of the last 24 avatar hours.
 var training_window: Dictionary
+## Night quality of the last sleep, 0 to 1 (v1 Step 9; for happiness on waking in Task 7),
+## and the hours of that sleep.
+var night_quality: float
+var last_sleep_hours: float
 ## Minutes beyond the daily capacity in the last step (not saved; for happiness in Task 7).
 var beyond_capacity_minutes_step := 0.0
 ## kcal spent in the last 5-minute step (not saved; worked out again every step).
@@ -65,7 +70,7 @@ var calories_spent: float
 ## Aerobic fitness, 0 to 1 (v1 Step 6). Trained every step by Training from cardio and football
 ## (and a little from strength).
 var fitness: float
-## Hours of sleep owed. Never below 0.
+## Hours of sleep owed (v1 Step 9, Milestone 10 Task 6). Changes at each new avatar day.
 var sleep_debt: float
 ## WHO BMI-for-age z-score (Milestone 10: worked out every step from weight, height and body age).
 var weight_z: float
@@ -170,6 +175,8 @@ func to_dict() -> Dictionary:
 		"calories_spent": calories_spent,
 		"fitness": fitness,
 		"sleep_debt": sleep_debt,
+		"night_quality": night_quality,
+		"last_sleep_hours": last_sleep_hours,
 		"weight_z": weight_z,
 		"mood": mood,
 		"habit_costs": habit_costs.duplicate(),
@@ -218,6 +225,8 @@ func from_dict(data: Dictionary) -> void:
 	calories_spent = float(data.get("calories_spent", calories_spent))
 	fitness = float(data.get("fitness", fitness))
 	sleep_debt = float(data.get("sleep_debt", sleep_debt))
+	night_quality = float(data.get("night_quality", night_quality))
+	last_sleep_hours = float(data.get("last_sleep_hours", last_sleep_hours))
 	weight_z = float(data.get("weight_z", weight_z))
 	mood = float(data.get("mood", mood))
 	habit_costs = data.get("habit_costs", {}).duplicate() if data.get("habit_costs") is Dictionary else {}
@@ -288,6 +297,12 @@ func _apply_body_start() -> void:
 	strength = Config.get_float("health.difficulties.%s.strength" % difficulty_id)
 	training_window = Training.starting_window(fitness, strength)
 	cardio_recovery = 1.0
+	# Sleep (v1 Step 9): the starting debt of the difficulty gives the starting Sleep measure.
+	sleep_debt = Config.get_float("health.difficulties.%s.sleep_debt" % difficulty_id)
+	sleep = SleepModel.sleep_measure(sleep_debt, 0.0)
+	night_quality = 1.0
+	last_sleep_hours = 0.0
+	SleepModel.update_tired()
 	strength_recovery = 1.0
 	strength_too_soon = false
 	exercise_minutes_today = 0.0
@@ -335,10 +350,7 @@ func _age_group_or_default(group: String) -> String:
 ## one avatar day counts as k real days for the body and never overshoots.
 func update_body_states(scores: Dictionary, sleep_hours: float, intensities: Dictionary = {}) -> void:
 	var real_days := real_days_per_avatar_day()
-	var r := Config.get_float("health_m4.r")
-	var debt_updates := real_days if Config.get_value("health_m4.k_applies_to_sleep_debt") else 1
-	for i in debt_updates:
-		sleep_debt = maxf(0.0, sleep_debt * r + (recommended_sleep(age_group) - sleep_hours))
+	# Sleep debt and the Sleep measure: SleepModel.new_day() (Milestone 10, Task 6).
 	# The cost of changing habits uses H and R from before this day.
 	habit_costs = habit_change_costs(intensities)
 	habit_cost_total = total_habit_cost(habit_costs)
@@ -402,10 +414,9 @@ func total_habit_cost(costs: Dictionary) -> float:
 
 
 ## The three measures from the body states (CLAUDE.md, Health calculation, step 4).
-func _update_measures(sleep_score: float) -> void:
+func _update_measures(_sleep_score: float) -> void:
 	physical = physical_from_body(fitness, strength, weight_z)
-	var debt_factor := 1.0 - sleep_debt / Config.get_float("health_m4.debt_max")
-	sleep = clampf(sleep_score * debt_factor, 0.0, 1.0)
+	# sleep: worked out by SleepModel.new_day() (Milestone 10, Task 6).
 	mental = clampf(mood / Config.get_float("health_m4.mood_max"), 0.0, 1.0)
 
 

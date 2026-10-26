@@ -107,13 +107,16 @@ func load_game() -> bool:
 	if best.is_empty():
 		return false
 	_save_count = int(best["save_count"])
-	# Nothing pending while the Clock is restored (its phase change would run it).
+	# Nothing pending while the Clock is restored (its phase change would run it), and no
+	# new day or activity start is run again while the save is restored.
 	Simulation.reset()
+	Simulation.loading = true
 	GameState.from_dict(best.get("game_state", {}))
 	Clock.from_dict(best.get("clock", {}))
 	Activities.from_dict(best.get("activities", {}))
 	Habits.from_dict(best.get("habits", {}))
 	Simulation.from_dict(best.get("simulation", {}))
+	Simulation.loading = false
 	return true
 
 

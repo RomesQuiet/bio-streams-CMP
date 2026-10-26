@@ -183,7 +183,6 @@ func start_sleep(hours: float) -> void:
 		return
 	sleep_target_hours = clampf(hours, 0.0, max_sleep_hours())
 	sleep_elapsed_hours = 0.0
-	GameState.tired = false
 	GameState.changed.emit()
 	_set_phase(Phase.SLEEPING)
 	if sleep_target_hours <= 0.0:
@@ -282,7 +281,6 @@ func _end_day() -> void:
 ## Counts as 0 hours slept: a new day of 14 + (10 - 0) = 24 hours starts at once.
 ## The avatar stays tired (until it sleeps) and time keeps running.
 func _start_day_without_sleep() -> void:
-	GameState.tired = true
 	GameState.changed.emit()
 	day_number += 1
 	day_length_hours = day_hours_after_sleep(0.0)

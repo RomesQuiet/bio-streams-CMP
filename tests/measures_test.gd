@@ -59,8 +59,9 @@ func _test_days(gs: Node, clock: Node, activities: Node, main: Node) -> void:
 				gs.target_health, gs.health, main.health_bar.value])
 		_check("day %d: physical = mix of fitness, muscle and weight score" % (day + 1),
 				absf(gs.physical - gs.physical_from_body(gs.fitness, gs.strength, gs.weight_z)) < TOLERANCE)
-		var expected_sleep: float = maxf(0.0, habits.scores["sleep"] * (1.0 - gs.sleep_debt / config.get_float("health_m4.debt_max")))
-		_check("day %d: sleep = s x (1 - debt / debt_max)" % (day + 1), absf(gs.sleep - expected_sleep) < TOLERANCE)
+		var sleep_model: GDScript = load("res://scripts/health/sleep_model.gd")
+		var expected_sleep: float = sleep_model.sleep_measure(gs.sleep_debt, sleep_model.oversleep(10.0, gs.age_group))
+		_check("day %d: sleep = (1 - debt / 8) x oversleep cut (v1 Step 9)" % (day + 1), absf(gs.sleep - expected_sleep) < TOLERANCE)
 		_check("day %d: mental = mood / 100" % (day + 1), absf(gs.mental - gs.mood / 100.0) < TOLERANCE)
 		var c: float = (gs.target_health - 1.0) / 4.0
 		_check("day %d: target = 1 + 4 x C (power mean)" % (day + 1), absf(gs.target_health - gs.health_from_measures(gs.physical, gs.mental, gs.sleep)) < TOLERANCE

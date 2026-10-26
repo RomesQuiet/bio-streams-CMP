@@ -17,6 +17,7 @@ const Energy := preload("res://scripts/health/energy.gd")
 const Hunger := preload("res://scripts/health/hunger.gd")
 const BodySize := preload("res://scripts/health/body_size.gd")
 const Training := preload("res://scripts/health/training.gd")
+const SleepModel := preload("res://scripts/health/sleep_model.gd")
 
 ## Emitted after each step, with the avatar hours of that step and whether the avatar slept.
 signal stepped(hours: float, asleep: bool)
@@ -27,6 +28,9 @@ var pending_minutes := 0.0
 var pending_asleep := false
 ## Avatar hours of the current frame that come after the running day activity ends.
 var _after_activity_hours := 0.0
+## True while SaveGame restores a save: the Clock and Activities then repeat their events
+## (phase change, activity start), which must not run a new day or change the state again.
+var loading := false
 
 
 func _ready() -> void:
@@ -90,22 +94,27 @@ func _add(hours: float, asleep: bool) -> void:
 
 
 func _on_phase_changed(phase: Clock.Phase) -> void:
+	if loading:
+		return
 	flush()
 	# Any sleep that ends (a night or a nap) resets the hours awake and starts a new avatar day.
 	if phase == Clock.Phase.SLEEP_OVER:
 		GameState.hours_awake = 0.0
+		SleepModel.new_day(Clock.sleep_elapsed_hours)
 		Training.new_day()
 
 
 ## The 0-hour rule (the awake period ran out without sleep) also starts a new avatar day.
 func _on_day_started(slept: bool) -> void:
-	if not slept:
+	if not slept and not loading:
 		flush()
+		SleepModel.new_day(0.0)
 		Training.new_day()
 
 
 func _on_activity_started(_activity_id: String, option_id: String) -> void:
-	Training.on_activity_started(option_id)
+	if not loading:
+		Training.on_activity_started(option_id)
 
 
 ## A meal counts when it ends, in proportion to the time eaten (Stop = part of a meal).
@@ -137,6 +146,8 @@ func _step(hours: float, asleep: bool) -> void:
 	Energy.update_deficit()
 	# 6. Training: capacity, recovery, overreaching, fitness and strength.
 	Training.step(hours, asleep)
+	# Tiredness for "I'm tired" (sleep debt and hours awake; the debt changes at each new day).
+	SleepModel.update_tired()
 	# 7. Physical (Task 8).
 	# 8. Happiness (Task 7).
 	# 9. Health, failure timers, risk and XP. Until Task 8: the Milestone 4 XP over time.

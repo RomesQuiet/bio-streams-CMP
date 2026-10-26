@@ -65,9 +65,8 @@ func _test_full_cycle(clock: Node) -> void:
 	root.get_node("Activities").start("sleep", "sleep", 8.0)
 	_run_until(clock, clock.Phase.SLEEP_OVER)
 	_check("8 h sleep ends at 05:00", clock.clock_text() == "05:00")
-	# The sleep measure is worked out when the sleep ends: sleep score x (1 - debt / debt_max), never below 0.
-	var expected_sleep := maxf(0.0, root.get_node("Habits").sleep_score(8.0, game_state.age_group)
-			* (1.0 - game_state.sleep_debt / root.get_node("Config").get_float("health_m4.debt_max")))
+	# The sleep measure is worked out when the sleep ends, from the new sleep debt (v1 Step 9).
+	var expected_sleep: float = load("res://scripts/health/sleep_model.gd").sleep_measure(game_state.sleep_debt, load("res://scripts/health/sleep_model.gd").oversleep(8.0, game_state.age_group))
 	_check("sleep measure is recalculated when the sleep ends", absf(game_state.sleep - expected_sleep) < 0.0001)
 	_check("avatar is not tired after sleep", not game_state.tired)
 	clock._process(STEP_SECONDS)
@@ -166,7 +165,8 @@ func _test_ignoring_the_recommendation(clock: Node) -> void:
 	_check("the avatar is still tired", game_state.tired)
 	_check("the sleep measure keeps falling", game_state.sleep < sleep_after_day_1 or game_state.sleep == 0.0)
 	_check("the player can still sleep", activities.start("sleep", "sleep", 8.0))
-	_check("sleeping removes the tired state", not game_state.tired)
+	# v1: one night does not repay two nights without sleep, so the avatar may stay tired.
+	_check("asleep, the tired message is not shown (the bubble shows Zzz)", clock.phase == clock.Phase.SLEEPING)
 	_run_until(clock, clock.Phase.SLEEP_OVER)
 	clock.wake_up()
 	_check("after sleeping the normal rule applies (16 h day)", is_equal_approx(clock.day_length_hours, 16.0))

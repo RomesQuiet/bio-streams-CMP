@@ -39,9 +39,10 @@ func _process(_delta: float) -> bool:
 
 func _test_sleep_activity(activities: Node, game_state: Node, clock: Node) -> void:
 	_check("sleep is defined in activities.json", activities.definitions.has("sleep"))
-	# v1 can-sleep rule: a new avatar (no sleep debt on the Milestone 4 values, 0 h awake)
-	# is not sleepy; after sleep.can_sleep_awake_h awake it can nap.
-	_check("not sleepy at the start of the first day", not activities.can_start("sleep"))
+	# v1 can-sleep rule: with no sleep debt and 0 h awake the avatar is not sleepy; after
+	# sleep.can_sleep_awake_h awake it can nap.
+	game_state.sleep_debt = 0.0
+	_check("no debt, 0 h awake: not sleepy", not activities.can_start("sleep"))
 	game_state.hours_awake = root.get_node("Config").get_float("sleep.can_sleep_awake_h")
 	_check("sleep can start during the day (nap) once sleepy", activities.can_start("sleep"))
 	_run_until_new_day(clock)
@@ -56,9 +57,8 @@ func _test_sleep_activity(activities: Node, game_state: Node, clock: Node) -> vo
 	_check("stop ends the activity", not activities.is_running())
 	_check("stop reports the hours done", absf(_ended_hours - slept) < TOLERANCE)
 	_check("sleep has no per-hour effect", activities.get_option("sleep", "sleep")["effects_per_hour"].is_empty())
-	_check("the sleep measure comes from the hours slept", is_equal_approx(game_state.sleep,
-			maxf(0.0, root.get_node("Habits").sleep_score(slept, game_state.age_group)
-			* (1.0 - game_state.sleep_debt / root.get_node("Config").get_float("health_m4.debt_max")))))
+	_check("the sleep measure comes from the debt after the hours slept (v1 Step 9)", is_equal_approx(game_state.sleep,
+			load("res://scripts/health/sleep_model.gd").sleep_measure(game_state.sleep_debt, load("res://scripts/health/sleep_model.gd").oversleep(slept, game_state.age_group))))
 	_check("clock waits for the wake button", clock.phase == clock.Phase.SLEEP_OVER)
 	clock.wake_up()
 

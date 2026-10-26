@@ -29,7 +29,7 @@ func _process(_delta: float) -> bool:
 
 	# Fitness and strength: tests/training_test.gd (Milestone 10, trained every step).
 	_test_k(gs, config)
-	_test_sleep_debt(gs, config)
+	# Sleep debt: tests/sleep_test.gd (Milestone 10, v1 Step 9).
 	_test_mood_and_habits(gs)
 	_test_habit_levels(gs, config)
 	_test_milestone3_save(gs, config)
@@ -72,43 +72,6 @@ func _test_k(gs: Node, config: Node) -> void:
 	_check("k does not change mood", is_equal_approx(gs.mood, mood_k1))
 	_check("k does not change sleep debt (k_applies_to_sleep_debt is false)", is_equal_approx(gs.sleep_debt, debt_k1))
 	k_entry["value"] = k_saved
-
-
-func _test_sleep_debt(gs: Node, config: Node) -> void:
-	gs.start_new_avatar("Test", "teenager", "male", "normal")
-	var r: float = config.get_float("health_m4.r")
-	var short: float = gs.recommended_sleep("teenager") - 5.0
-	_check("no sleep debt at the start", is_zero_approx(gs.sleep_debt))
-	var values := [gs.sleep_debt]
-	for day in 5:
-		gs.update_body_states(ACTIVE_DAY, 5.0)  # Below the teenager's recommended sleep.
-		values.append(gs.sleep_debt)
-	print("sleep debt after 5 nights of 5 h: %.2f h" % gs.sleep_debt)
-	_check("first short night: debt = recommended - 5 h", absf(values[1] - short) < TOLERANCE)
-	_check("second short night: debt = debt * r + (recommended - 5 h)", absf(values[2] - (short * r + short)) < TOLERANCE)
-	_check("sleep debt grows with short sleep", _rising(values))
-	values = [gs.sleep_debt]
-	for day in 5:
-		gs.update_body_states(ACTIVE_DAY, 10.0)  # 1 h above the recommended sleep.
-		values.append(gs.sleep_debt)
-	print("sleep debt after 5 more nights of 10 h: %.2f h" % gs.sleep_debt)
-	# With enough sleep (exactly the recommended hours) the debt only shrinks by r each day:
-	# it halves in about 3 avatar days (0.8^3 = 0.51).
-	gs.start_new_avatar("Test", "teenager", "male", "normal")
-	for day in 3:
-		gs.update_body_states(ACTIVE_DAY, 5.0)
-	var debt: float = gs.sleep_debt
-	var halving := [debt]
-	for day in 4:
-		gs.update_body_states(ACTIVE_DAY, gs.recommended_sleep("teenager"))
-		halving.append(gs.sleep_debt)
-	print("debt with enough sleep: %s" % ", ".join(halving.map(func(v): return "%.2f" % v)))
-	_check("debt halves in about 3 avatar days with enough sleep", halving[3] / debt > 0.45 and halving[3] / debt < 0.55
-			and halving[2] / debt > 0.55)
-	_check("sleep debt shrinks with enough sleep", _falling(values) or is_zero_approx(values[-1]))
-	for day in 10:
-		gs.update_body_states(ACTIVE_DAY, 10.0)
-	_check("sleep debt never goes below 0", is_zero_approx(gs.sleep_debt))
 
 
 func _test_mood_and_habits(gs: Node) -> void:

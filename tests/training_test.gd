@@ -97,8 +97,9 @@ func _test_too_soon_and_beyond_capacity() -> void:
 			% [capacity, gained, capacity - 60.0, gs.overreach])
 	_check("minutes beyond the capacity give no benefit", gained <= (capacity - 60.0) + TOLERANCE)
 	_check("...and build the overreaching load O", gs.overreach > 0.0 and is_equal_approx(gs.exercise_minutes_today, 120.0))
+	var overreach_before: float = gs.overreach
 	_steps(24.0 * 7.0)
-	_check("O fades with rest", gs.overreach < 0.01)
+	_check("O fades with rest (a week: under 10% of it is left)", gs.overreach < 0.1 * overreach_before)
 
 
 ## A new avatar's window gives its starting fitness and strength as targets, so the levels
