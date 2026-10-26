@@ -13,7 +13,7 @@
 				"background_color": "#0f1224",
 				"animation": "sleep",
 				"placeholder": true,
-				"comment": "Duration comes from the sleep slider (config.json: sleep_activity, time.max_sleep_hours). No per-hour effect: when the sleep ends, its hours give the sleep score, and the sleep measure is worked out from it (config.json: health.debt_max)."
+				"comment": "Duration comes from the sleep slider (config.json: sleep_activity), at most Clock.max_sleep_hours(). When any sleep ends a new avatar day starts: its hours change the sleep debt and the Sleep measure (config.json: sleep; v1 Step 9)."
 			}
 		}
 	},
@@ -30,7 +30,7 @@
 				"background_color": "#2d5a3d",
 				"animation": "cardio",
 				"placeholder": true,
-				"comment": "Cardio spends more calories than muscle strength. Fitness changes once per avatar day from the activity score (config.json: health)."
+				"comment": "Cardio spends more energy than muscle strength. Fitness and strength are trained every step (config.json: train; v1 Step 6)."
 			},
 			"strength": {
 				"name": "Muscle strength",
@@ -41,7 +41,7 @@
 				"background_color": "#5a3d2d",
 				"animation": "strength",
 				"placeholder": true,
-				"comment": "Muscle changes once per avatar day from the strength score (config.json: health). There is no fatigue system."
+				"comment": "Strength is trained every step; a session that starts below 60% recovery is too soon (config.json: train; v1 Step 6)."
 			}
 		}
 	},

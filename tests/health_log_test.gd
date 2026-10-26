@@ -1,7 +1,8 @@
 extends SceneTree
-## Tests for the debug CSV log (Milestone 4, Task 8). Run from the project folder:
+## Tests for the debug CSV log (Milestone 4 Task 8; Milestone 10 Task 11). Run from the project folder:
 ##   Godot --headless --path . -s res://tests/health_log_test.gd
-## Writes to a test file, so the real user://health_log.csv is never touched.
+## Plays 5 avatar hours (with a meal and cardio) and checks one line per avatar hour with every
+## v1 state. Writes to a test file, so the real user://health_log.csv is never touched.
 
 const TEST_LOG := "user://test_health_log.csv"
 
@@ -14,48 +15,75 @@ func _process(_delta: float) -> bool:
 	save_game.use_web_storage = false
 	save_game.auto_save_enabled = false
 	var log: Node = root.get_node("HealthLog")
-	var habits: Node = root.get_node("Habits")
 	var gs: Node = root.get_node("GameState")
+	var clock: Node = root.get_node("Clock")
+	var activities: Node = root.get_node("Activities")
 	_check("the log is off while a test script runs", not log.enabled)
-	root.get_node("Activities").reset()
-	habits.reset()
+	activities.reset()
+	root.get_node("Habits").reset()
+	root.get_node("Simulation").reset()
+	gs.reset()
+	clock.reset()
 	gs.start_new_avatar("Test", "teenager", "male", "hard")
 
 	var real_before := _file_size(log.LOG_PATH)
-	habits.end_scoring_day(9.0)
+	_play_hours(clock, 1.0)
 	_check("nothing is written to the real log while it is off", _file_size(log.LOG_PATH) == real_before)
 
+	# An old log with another header is started again.
+	var old := FileAccess.open(TEST_LOG, FileAccess.WRITE)
+	old.store_line("scoring_day,clock_day,difficulty")
+	old.store_line("1,1,hard")
+	old.close()
 	log.log_path = TEST_LOG
 	log.enabled = true
-	DirAccess.remove_absolute(TEST_LOG)
-	habits.add_entry("cardio", 1.0)
-	habits.add_entry("screens", 2.0)
-	habits.end_scoring_day(8.5)
-	habits.add_entry("strength", 0.5)
-	habits.end_scoring_day(0.0)
+	activities.start("eat", "healthy_meal")
+	while activities.is_running():
+		clock._process(0.05)
+	activities.start("exercise", "cardio")
+	while activities.is_running():
+		clock._process(0.05)
+	_play_hours(clock, 5.0 - clock.day_elapsed_hours + 1.0)
 	log.enabled = false
 
 	var lines := FileAccess.get_file_as_string(TEST_LOG).strip_edges().split("\n")
 	print(lines[0])
-	print(lines[1])
-	_check("one header line and one line per scoring day", lines.size() == 3)
+	print(lines[-1])
 	var header := lines[0].split(",")
-	var first := lines[1].split(",")
-	var second := lines[2].split(",")
-	_check("every line has the same number of columns", first.size() == header.size() and second.size() == header.size())
-	var col := func(row: PackedStringArray, name: String) -> String: return row[header.find(name)]
-	_check("the scoring day and difficulty are written", col.call(first, "scoring_day") == "1" and col.call(first, "difficulty") == "hard")
-	_check("the day's totals are written (8.5 h sleep, 60 min, 2 h screens)", float(col.call(first, "sleep_hours")) == 8.5
-			and float(col.call(first, "activity_minutes")) == 60.0 and float(col.call(first, "screen_hours")) == 2.0)
-	_check("the second line is the 0-hour day with the last values", float(col.call(second, "sleep_hours")) == 0.0
-			and absf(float(col.call(second, "health")) - gs.health) < 0.0001 and absf(float(col.call(second, "happiness")) - gs.happiness) < 0.0001)
-	_check("diet (Q, C, A), happiness and its baseline are written", header.has("diet_quality") and header.has("craving")
-			and header.has("habituation") and header.has("happiness") and header.has("happiness_baseline"))
+	_check("an old log with another header is started again", header[0] == "avatar_hour")
+	var hours: Array = []
+	for i in range(1, lines.size()):
+		hours.append(int(lines[i].split(",")[0]))
+	print("  avatar hours written: %s" % str(hours))
+	_check("one line per avatar hour, in order, none twice", hours == range(hours[0], hours[0] + hours.size()))
+	_check("every line has the same number of columns", range(1, lines.size()).all(
+			func(i: int) -> bool: return lines[i].split(",").size() == header.size()))
+	var needed := ["weight_kg", "z", "hunger_kcal", "deficit_u", "fitness", "strength", "overreach", "sleep_debt", "tiredness",
+			"diet_quality", "craving", "habituation", "fun", "happiness", "physical", "sleep", "target_health", "health", "xp",
+			"health_low_hours", "risk_index", "disease_damage", "kcal_eaten_24h", "capacity_min"]
+	var missing := needed.filter(func(column: String) -> bool: return not header.has(column))
+	if not missing.is_empty():
+		print("  missing columns: %s" % str(missing))
+	_check("every v1 state is a column", missing.is_empty())
+	var last := lines[-1].split(",")
+	var col := func(name: String) -> float: return float(last[header.find(name)])
+	_check("the last line holds the current values", absf(col.call("weight_kg") - gs.weight_kg) < 0.01
+			and absf(col.call("happiness") - gs.happiness) < 0.01 and absf(col.call("fitness") - gs.fitness) < 0.001)
+	var meal_line := lines[2].split(",")
+	_check("the meal shows in the kcal eaten in the last 24 h", float(meal_line[header.find("kcal_eaten_24h")]) > 0.0)
 	DirAccess.remove_absolute(TEST_LOG)
 
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
 	quit(1 if _failures > 0 else 0)
 	return true
+
+
+func _play_hours(clock: Node, hours: float) -> void:
+	var end: float = clock.day_elapsed_hours + hours
+	clock.debug_speed = 600.0
+	while clock.day_elapsed_hours < end:
+		clock._process(minf(0.1, clock.avatar_hours_to_real_seconds(end - clock.day_elapsed_hours, false) / 600.0 + 1e-6))
+	root.get_node("Simulation").flush()
 
 
 ## Size of a file in bytes, or -1 if it does not exist.

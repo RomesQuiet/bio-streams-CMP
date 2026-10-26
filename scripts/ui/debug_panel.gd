@@ -1,5 +1,5 @@
 extends PanelContainer
-## Debug panel (Milestone 3, Task 7). Only exists in debug builds (the Godot editor and
+## Debug panel (Milestone 3 Task 7; Milestone 10 Task 11: every v1 state). Only exists in debug builds (the Godot editor and
 ## debug exports); it removes itself from the published (release) game.
 ## Shows food, body, training, sleep, diet, happiness, measures, target and displayed health.
 ## F7 shows or hides it.
@@ -49,8 +49,10 @@ func _refresh() -> void:
 	lines.append("  fitness %.3f  strength %.3f  overreaching O %.2f  capacity %.0f min (%.0f used today)" % [gs.fitness,
 			gs.strength, gs.overreach, Training.capacity_min(), gs.exercise_minutes_today])
 	lines.append("  recovery: cardio %.2f  strength %.2f" % [gs.cardio_recovery, gs.strength_recovery])
-	lines.append("  sleep debt %.2f h  tiredness %.2f  last sleep %.1f h (night quality %.2f)" % [gs.sleep_debt,
-			SleepModel.tiredness(), gs.last_sleep_hours, gs.night_quality])
+	lines.append("  sleep debt %.2f h  tiredness %.2f  %.1f h awake  last sleep %.1f h (night quality %.2f)" % [gs.sleep_debt,
+			SleepModel.tiredness(), gs.hours_awake, gs.last_sleep_hours, gs.night_quality])
+	lines.append("  calories spent while exercising (record) %.0f kcal%s" % [gs.calories_spent,
+			"  strength session started too soon" if gs.strength_too_soon and Activities.is_running() else ""])
 	lines.append("Diet  quality Q %.2f  craving C %.2f  habituation A %.2f" % [gs.diet_quality, gs.craving, gs.habituation])
 	lines.append("Happiness %.3f -> baseline %.3f  fun %.2f  screen excess %.2f" % [gs.happiness, gs.happiness_baseline,
 			Happiness.fun(), Happiness.screen_excess()])
