@@ -242,7 +242,7 @@ func from_dict(data: Dictionary) -> void:
 	if data.get("training_window") is Dictionary:
 		training_window = data["training_window"].duplicate(true)
 		training_window["hour"] = int(training_window.get("hour", -1))
-	strength = float(data.get("strength", data.get("muscle", strength)))
+	strength = float(data.get("strength", strength))
 	calories_spent = float(data.get("calories_spent", calories_spent))
 	fitness = float(data.get("fitness", fitness))
 	sleep_debt = float(data.get("sleep_debt", sleep_debt))

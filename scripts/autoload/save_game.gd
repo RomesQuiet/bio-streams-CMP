@@ -9,7 +9,10 @@ extends Node
 
 const SAVE_PATH := "user://save.json"
 const WEB_STORAGE_KEY := "plasticine_tamagotchi_save"
-const SAVE_VERSION := 1
+## Version of the save format. A save with another version is ignored and the creation
+## screen opens. 2 = Milestone 10 (Health Calculation Architecture v1): saves from Milestone 4
+## or earlier (version 1) do not load (decision 6, user, 25 Oct 2026).
+const SAVE_VERSION := 2
 
 ## Where the file is saved. Tests change this so they never touch the real save.
 var save_path := SAVE_PATH
@@ -159,7 +162,7 @@ func _parse(text: String) -> Dictionary:
 		push_warning("SaveGame: ignoring a save that is not valid JSON")
 		return {}
 	if int(parsed.get("version", 0)) != SAVE_VERSION:
-		push_warning("SaveGame: ignoring a save with an unknown version")
+		push_warning("SaveGame: ignoring a save from another version of the game (an old save from Milestone 4 or earlier, or a newer one)")
 		return {}
 	var state: Variant = parsed.get("game_state", {})
 	if not state is Dictionary or not GameState.has_all_choices(state):

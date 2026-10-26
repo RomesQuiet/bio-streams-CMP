@@ -57,7 +57,6 @@ func to_dict() -> Dictionary:
 
 
 ## Restores values from to_dict(). Call after Activities.from_dict().
-## Entries from a Milestone 3 save have no scoring day: they count in the current one.
 func from_dict(data: Dictionary) -> void:
 	reset()
 	avatar_hours_total = float(data.get("avatar_hours_total", 0.0))
@@ -65,10 +64,9 @@ func from_dict(data: Dictionary) -> void:
 	for entry in data.get("entries", []):
 		if entry is Dictionary:
 			var restored: Dictionary = entry.duplicate()
+			# JSON reads every number as a decimal; the scoring day and the clock day are whole numbers.
 			restored["scoring_day"] = int(restored.get("scoring_day", current_day))
-			var option := Activities.find_option(str(restored.get("type", "")))
-			restored["intensity"] = str(restored.get("intensity", Activities.option_value(option, "activity_intensity", "")))
-			restored["kcal"] = float(restored.get("kcal", _kcal_spent(option, float(restored.get("hours", 0.0)))))
+			restored["day"] = int(restored.get("day", 0))
 			entries.append(restored)
 	for day in data.get("days", []):
 		if day is Dictionary:

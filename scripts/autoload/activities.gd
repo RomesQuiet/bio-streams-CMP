@@ -125,14 +125,6 @@ func to_dict() -> Dictionary:
 ## Restores values from to_dict(). Call after Clock.from_dict().
 func from_dict(data: Dictionary) -> void:
 	reset()
-	if data.is_empty() and Clock.phase == Clock.Phase.SLEEPING:
-		# Save from Milestone 1 (before activities existed): the avatar was asleep.
-		data = {
-			"activity": "sleep",
-			"option": "sleep",
-			"target_hours": Clock.sleep_target_hours,
-			"elapsed_hours": Clock.sleep_elapsed_hours,
-		}
 	var activity_id := str(data.get("activity", ""))
 	var option_id := str(data.get("option", ""))
 	if get_option(activity_id, option_id).is_empty():
