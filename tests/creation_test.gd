@@ -45,7 +45,7 @@ func _process(_delta: float) -> bool:
 	_check("sex stored", game_state.sex == "female")
 	_check("difficulty stored", game_state.difficulty == "very_hard")
 	_check("the avatar is created", game_state.is_created())
-	_check("Very hard starting measures are used (happiness 0.30, decision 7)", is_equal_approx(game_state.physical, 0.05)
+	_check("Very hard starting measures are used (v1; happiness 0.30, decision 7)", absf(game_state.physical - 0.03) < 0.01
 			and is_equal_approx(game_state.happiness, 0.3) and is_equal_approx(game_state.sleep, 0.1))
 	_check("game time runs again after Start", not clock.paused)
 

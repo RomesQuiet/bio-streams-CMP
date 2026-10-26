@@ -16,10 +16,11 @@ const Energy := preload("res://scripts/health/energy.gd")
 const Training := preload("res://scripts/health/training.gd")
 const SleepModel := preload("res://scripts/health/sleep_model.gd")
 const Happiness := preload("res://scripts/health/happiness.gd")
+const HealthModel := preload("res://scripts/health/health_model.gd")
 
-# Measures: physical, happiness and sleep go from 0 to 1. Health (1 to 5) is the displayed
-# health: it starts at the target health and moves part of the way toward it once per avatar
-# day. Until Task 8 Physical is the Milestone 4 mix, worked out when a sleep ends.
+# Measures: physical, happiness and sleep go from 0 to 1 (v1). Health (1 to 5) is the
+# displayed health: it starts at the target health and moves part of the way toward it once
+# per avatar day (decision 1). Physical is worked out every step (scripts/health/health_model.gd).
 var physical: float
 ## Happiness, 0 to 1 (v1 Step 10, Milestone 10 Task 7; called mental before). It moves every
 ## step toward happiness_baseline and jumps with events (scripts/health/happiness.gd).
@@ -90,6 +91,13 @@ var weight_z: float
 var tired: bool
 ## Avatar hours awake since the last sleep ended (Milestone 10). Simulation adds to it.
 var hours_awake: float
+## Failure timers (v1 Step 12): avatar hours that displayed health and happiness have stayed
+## below their failure lines.
+var health_low_hours: float
+var happiness_low_hours: float
+## Disease risk index R and hidden damage (v1 Step 12; debug only, decision 9).
+var risk_index: float
+var disease_damage: float
 var xp: float
 ## Avatar hours spent at high health without a break (for the XP bonus).
 var high_health_hours: float
@@ -132,7 +140,6 @@ func _ready() -> void:
 ## Sets every value to its start value from Config (new avatar). Until the player
 ## chooses a difficulty, the default difficulty's starting values are used.
 func reset() -> void:
-	_apply_difficulty_start(Config.get_string("defaults.difficulty"))
 	calories_spent = Config.get_float("measures.calories_spent_start")
 	tired = false
 	hours_awake = 0.0
@@ -186,6 +193,10 @@ func to_dict() -> Dictionary:
 		"weight_z": weight_z,
 		"tired": tired,
 		"hours_awake": hours_awake,
+		"health_low_hours": health_low_hours,
+		"happiness_low_hours": happiness_low_hours,
+		"risk_index": risk_index,
+		"disease_damage": disease_damage,
 		"xp": xp,
 		"high_health_hours": high_health_hours,
 		"avatar_name": avatar_name,
@@ -240,6 +251,10 @@ func from_dict(data: Dictionary) -> void:
 	weight_z = float(data.get("weight_z", weight_z))
 	tired = bool(data.get("tired", tired))
 	hours_awake = float(data.get("hours_awake", 0.0))
+	health_low_hours = float(data.get("health_low_hours", 0.0))
+	happiness_low_hours = float(data.get("happiness_low_hours", 0.0))
+	risk_index = float(data.get("risk_index", 0.0))
+	disease_damage = float(data.get("disease_damage", 0.0))
 	xp = float(data.get("xp", xp))
 	high_health_hours = float(data.get("high_health_hours", high_health_hours))
 	avatar_name = str(data.get("avatar_name", avatar_name))
@@ -257,16 +272,9 @@ func start_new_avatar(new_name: String, new_age_group: String, new_sex: String, 
 	age_group = new_age_group
 	sex = new_sex
 	difficulty = new_difficulty
-	_apply_difficulty_start(difficulty)
 	_apply_body_start()
 	health = calculate_health()
 	changed.emit()
-
-
-## Starting Physical measure of the Milestone 4 code (until Task 8). Every other starting
-## value comes from the v1 difficulty table (_apply_body_start()).
-func _apply_difficulty_start(difficulty_id: String) -> void:
-	physical = Config.get_float("health_m4.difficulties.%s.physical" % difficulty_id)
 
 
 ## Starting body (Milestone 10): body age from the age group, the starting z of the
@@ -308,6 +316,12 @@ func _apply_body_start() -> void:
 	fun_window = Happiness.starting_window()
 	screen_minutes_today = 0.0
 	hours_without_screens = 0.0
+	# The measures and failure from those starting states (v1 Steps 8 and 12).
+	physical = HealthModel.physical()
+	health_low_hours = 0.0
+	happiness_low_hours = 0.0
+	risk_index = 0.0
+	disease_damage = 0.0
 	happiness_baseline = Happiness.baseline()
 
 
@@ -320,30 +334,18 @@ func _age_group_or_default(group: String) -> String:
 	return group if not group.is_empty() else Config.get_string("defaults.age_group")
 
 
-## Once per avatar day, when a sleep ends (Habits calls this): the Milestone 4 Physical
-## measure and the displayed health step (until Task 8). Sleep debt and Sleep, happiness, diet,
-## fitness, strength and weight change in Simulation's steps and events.
+## Once per avatar day, when a sleep ends (Habits calls this): the displayed health moves
+## part of the way to the target (decision 1). Everything else changes in Simulation's steps
+## and events.
 func daily_update() -> void:
-	physical = physical_from_body(fitness, strength, weight_z)
-	_step_health()
+	HealthModel.daily_step()
 	changed.emit()
 
 
-## The displayed health moves daily_alpha of the way toward the target health.
-## A health gain gives XP and a health loss takes XP away (xp.per_health_point per point).
-func _step_health() -> void:
-	var new_health := health + Config.get_float("health_m4.alpha_bar") * (target_health - health)
-	var change := new_health - health
-	health = new_health
-	if change != 0.0:
-		add_xp(change * Config.get_float("xp.per_health_point"))
-
-
-
-## Failure (there is no death): the displayed health has reached the minimum
-## (health.failure_at_health). The effect is not decided; the main screen shows a message.
+## Failure (there is no death): displayed health or happiness has stayed below its failure line
+## for long enough (fail group in config). The effect is not decided; the main screen shows a message.
 func is_at_failure() -> bool:
-	return health <= Config.get_float("health_m4.failure_at_health")
+	return HealthModel.is_at_failure()
 
 
 ## True once the avatar has been created (name, age group, sex and difficulty chosen).
@@ -360,62 +362,9 @@ func has_all_choices(data: Dictionary) -> bool:
 	return true
 
 
-## Target health from the current measures.
+## Target health from the current measures (v1 Step 11).
 func calculate_health() -> float:
-	return health_from_measures(physical, happiness, sleep)
-
-
-## Weighted power mean of the three measures (health.combine in config),
-## mapped from 0..1 to health_min..health_max.
-func health_from_measures(p_physical: float, p_happiness: float, p_sleep: float) -> float:
-	var values := [clampf(p_physical, 0.0, 1.0), clampf(p_happiness, 0.0, 1.0), clampf(p_sleep, 0.0, 1.0)]
-	var weights := [Config.get_float("health_m4.combine.weights.physical"),
-			Config.get_float("health_m4.combine.weights.happiness"), Config.get_float("health_m4.combine.weights.sleep")]
-	var total_weight := 0.0
-	for weight in weights:
-		total_weight += weight
-	if total_weight <= 0.0:
-		push_error("GameState: health weights must add up to more than 0")
-		return health
-	var p := Config.get_float("health_m4.combine.p")
-	var combined := 0.0
-	if is_zero_approx(p):
-		# p = 0 is the geometric mean.
-		for i in values.size():
-			combined += weights[i] / total_weight * log(values[i])
-		combined = exp(combined)
-	else:
-		for i in values.size():
-			combined += weights[i] / total_weight * pow(values[i], p)
-		combined = pow(combined, 1.0 / p)
-	var health_min := Config.get_float("measures.health_min")
-	var health_max := Config.get_float("measures.health_max")
-	return lerpf(health_min, health_max, clampf(combined, 0.0, 1.0))
-
-
-## Weight score (0 to 1) from the WHO BMI-for-age z-score: 1 near the median,
-## falling to 0 along a curve (health.weight_score in config).
-func weight_score(weight_z: float) -> float:
-	var full := Config.get_float("health_m4.weight_score.full_within_z")
-	var zero := Config.get_float("health_m4.weight_score.zero_at_z")
-	var power := Config.get_float("health_m4.weight_score.curve_power")
-	return pow(clampf((zero - absf(weight_z)) / (zero - full), 0.0, 1.0), power)
-
-
-## Physical measure from the body states: weighted mix of fitness, muscle and weight score.
-func physical_from_body(fitness: float, muscle_value: float, weight_z: float) -> float:
-	var w_fitness := Config.get_float("health_m4.physical_mix.fitness")
-	var w_muscle := Config.get_float("health_m4.physical_mix.muscle")
-	var w_weight := Config.get_float("health_m4.physical_mix.weight")
-	return (w_fitness * fitness + w_muscle * muscle_value + w_weight * weight_score(weight_z)) \
-			/ (w_fitness + w_muscle + w_weight)
-
-
-## Called by the Clock as avatar time passes. Measures and health change only once per
-## avatar day (daily_update()); here only the XP over time.
-func apply_avatar_hours(hours: float, _asleep: bool) -> void:
-	_apply_time_xp(hours)
-	changed.emit()
+	return HealthModel.target_health(physical, happiness, sleep)
 
 
 ## Adds activity effects: {"value name": change per avatar hour} for this many hours.
@@ -431,20 +380,6 @@ func apply_effects(effects_per_hour: Dictionary, hours: float) -> void:
 			value = clampf(value, 0.0, 1.0)
 		set(key, value)
 	changed.emit()
-
-
-## Placeholder XP over time: at high health XP grows, and faster the longer health
-## stays high; at low health XP falls.
-func _apply_time_xp(hours: float) -> void:
-	if health_level >= Config.get_int("xp.high_health_min"):
-		high_health_hours += hours
-		var multiplier := minf(1.0 + Config.get_float("xp.high_health_bonus_per_hour") * high_health_hours,
-				Config.get_float("xp.high_health_max_multiplier"))
-		add_xp(Config.get_float("xp.gain_per_avatar_hour") * multiplier * hours)
-	else:
-		high_health_hours = 0.0
-		if health_level <= Config.get_int("xp.low_health_max"):
-			add_xp(-Config.get_float("xp.loss_per_avatar_hour") * hours)
 
 
 ## Adds (or, if negative, removes) XP. XP never goes below 0.

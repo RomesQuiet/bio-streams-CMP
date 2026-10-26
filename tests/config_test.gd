@@ -23,11 +23,6 @@ const V1_KEYS := ["body.k", "body.kcal_per_kg", "body.max_age_months.child", "bo
 		"health.combine.p", "health.combine.weights.happiness", "health.physical_mix.weight", "health.alpha_bar",
 		"health.weight_score_points", "fail.health_line", "fail.happiness_hours", "risk.z_weight",
 		"progress.per_health_point", "avatar_states.sad_below", "who.extension_from_z", "time.step_avatar_min"]
-## What is left of the Milestone 4 health block (until Task 8).
-const REQUIRED_KEYS := ["death_enabled", "failure_at_health", "weight_score.full_within_z", "weight_score.zero_at_z",
-		"physical_mix.fitness", "physical_mix.muscle", "physical_mix.weight", "combine.p",
-		"combine.weights.physical", "combine.weights.happiness", "combine.weights.sleep", "alpha_bar"]
-
 var _failures := 0
 
 
@@ -39,7 +34,6 @@ func _process(_delta: float) -> bool:
 	var config: Node = root.get_node("Config")
 	var gs: Node = root.get_node("GameState")
 
-	_test_health_block(config)
 	_test_v1_groups(config)
 	_test_no_numbers_in_scripts()
 	_test_reload(config, gs)
@@ -47,26 +41,6 @@ func _process(_delta: float) -> bool:
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
 	quit(1 if _failures > 0 else 0)
 	return true
-
-
-func _test_health_block(config: Node) -> void:
-	var missing: Array = []
-	for key in REQUIRED_KEYS:
-		var entry: Variant = _entry(config._data["health_m4"], key)
-		if not entry is Dictionary or not entry.has("value") or not entry.has("status") or not entry.has("owner"):
-			missing.append(key)
-	if not missing.is_empty():
-		print("  missing or without status/owner: " + str(missing))
-	_check("every Milestone 4 key is in the health_m4 block with value, status and owner", missing.is_empty())
-	_check("there is no death", config.get_value("health_m4.death_enabled") == false)
-	_check("the Milestone 4 mood, habit cost and scores are gone (Task 7)", not config._data["health_m4"].has("habit_cost")
-			and not config._data["health_m4"].has("mood_speed") and not config._data["health_m4"].has("k"))
-	_check("a placeholder status counts as a placeholder", config.is_placeholder("sleep.debt_ref_h") and not config.is_placeholder("body.k"))
-	var activities: Node = root.get_node("Activities")
-	var cardio: Dictionary = activities.get_option("exercise", "cardio")
-	var strength: Dictionary = activities.get_option("exercise", "strength")
-	_check("METy: cardio 7.0, muscle strength 5.0 (Milestone 10, replaces kcal_per_hour)", activities.option_value(cardio, "mety") == 7.0
-			and activities.option_value(strength, "mety") == 5.0 and not cardio.has("kcal_per_hour"))
 
 
 ## Milestone 10 Task 1: the v1 groups. Every value has value, status and owner (the
@@ -88,6 +62,13 @@ func _test_v1_groups(config: Node) -> void:
 	_check("k is 10 (team decision, 25 Oct 2026)", config.get_float("body.k") == 10.0
 			and config.get_value("body.k") is float and not config.is_placeholder("body.k"))
 	_check("health p is 0.5 (v1 Step 11)", config.get_float("health.combine.p") == 0.5)
+	_check("the Milestone 4 health block and old XP rules are gone (Task 8)", not config._data.has("health_m4")
+			and not config._data.has("thresholds") and not config._data["xp"].has("gain_per_avatar_hour"))
+	_check("a placeholder status counts as a placeholder", config.is_placeholder("sleep.debt_ref_h") and not config.is_placeholder("body.k"))
+	var activities: Node = root.get_node("Activities")
+	_check("METy: cardio 7.0, muscle strength 5.0 (Milestone 10, replaces kcal_per_hour)",
+			activities.option_value(activities.get_option("exercise", "cardio"), "mety") == 7.0
+			and activities.option_value(activities.get_option("exercise", "strength"), "mety") == 5.0)
 	_check("alpha_bar is kept at 0.37 (decision 1)", is_equal_approx(config.get_float("health.alpha_bar"), 0.37))
 	_check("there is no death", config.get_value("health.death_enabled") == false)
 	_check("Very hard starting happiness is 0.30 (decision 7)",

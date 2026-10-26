@@ -330,7 +330,7 @@ text = "Physical"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
-tooltip_text = "Click to show calories, strength and fitness"
+tooltip_text = "Click to show the physical values"
 
 [node name="PhysicalBar" type="ProgressBar" parent="HealthPanel/Margin/Measures/PhysicalButton"]
 unique_name_in_owner = true
@@ -414,6 +414,34 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Fitness
+0.50"
+
+[node name="WeightLabel" type="Label" parent="ValuesPanel/Margin/Values"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Weight
+36.0 kg"
+
+[node name="HeightLabel" type="Label" parent="ValuesPanel/Margin/Values"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Height
+138 cm"
+
+[node name="BmiLabel" type="Label" parent="ValuesPanel/Margin/Values"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "BMI-for-age
+z +1.20"
+
+[node name="DietLabel" type="Label" parent="ValuesPanel/Margin/Values"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Diet quality
 0.50"
 
 [node name="OptionsPanel" type="PanelContainer" parent="."]

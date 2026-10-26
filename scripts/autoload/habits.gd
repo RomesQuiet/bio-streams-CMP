@@ -118,12 +118,12 @@ func _meal_kcal(type: String, hours: float, option: Dictionary) -> float:
 func day_totals(day: int) -> Dictionary:
 	var totals := {"scoring_day": day, "sleep_hours": 0.0, "activity_minutes": 0.0, "strength_days": 0,
 			"entertainment_hours": 0.0, "screen_hours": 0.0, "kcal": 0.0}
-	var sleep_types: Array = Config.get_value("health_m4.log.sleep_types")
-	var activity_intensities: Array = Config.get_value("health_m4.log.activity_intensities")
-	var strength_types: Array = Config.get_value("health_m4.log.strength_types")
-	var entertainment_types: Array = Config.get_value("health_m4.log.entertainment_types")
-	var screen_types: Array = Config.get_value("health_m4.log.screen_types")
-	var oldest_day := day - Config.get_int("health_m4.log.log_days") + 1
+	var sleep_types: Array = Config.get_value("log.sleep_types")
+	var activity_intensities: Array = Config.get_value("log.activity_intensities")
+	var strength_types: Array = Config.get_value("log.strength_types")
+	var entertainment_types: Array = Config.get_value("log.entertainment_types")
+	var screen_types: Array = Config.get_value("log.screen_types")
+	var oldest_day := day - Config.get_int("log.log_days") + 1
 	var strength_days := {}
 	for entry in entries:
 		var entry_day: int = entry["scoring_day"]
@@ -151,7 +151,7 @@ func day_totals(day: int) -> Dictionary:
 ## day. start: where the sleep started (empty = now).
 func end_scoring_day(sleep_hours: float, start: Dictionary = {}) -> void:
 	if sleep_hours > 0.0:
-		add_entry(Config.get_value("health_m4.log.sleep_types")[0], sleep_hours, start)
+		add_entry(Config.get_value("log.sleep_types")[0], sleep_hours, start)
 	days.append(day_totals(current_day))
 	GameState.daily_update()
 	current_day += 1
@@ -189,7 +189,7 @@ func _on_day_started(slept: bool) -> void:
 
 ## Keeps only the last log_days scoring days (entries and totals).
 func _prune() -> void:
-	var oldest_day := current_day - Config.get_int("health_m4.log.log_days") + 1
+	var oldest_day := current_day - Config.get_int("log.log_days") + 1
 	entries = entries.filter(func(entry: Dictionary) -> bool: return entry["scoring_day"] >= oldest_day)
 	days = days.filter(func(day: Dictionary) -> bool: return day["scoring_day"] >= oldest_day - 1)
 

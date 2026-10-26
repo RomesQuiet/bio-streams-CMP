@@ -4,8 +4,10 @@ extends Control
 
 const CREATION_SCENE := "res://scenes/ui/creation.tscn"
 const Hunger := preload("res://scripts/health/hunger.gd")
-## Placeholder message at minimum health (the failure effect is not decided yet).
-const FAILURE_TEXT := "Failure: my health has reached the minimum."
+const AvatarStates := preload("res://scripts/health/avatar_states.gd")
+## Placeholder failure message (the failure effect is not decided yet). Failure: displayed
+## health or happiness has stayed below its line for too long (fail group in config).
+const FAILURE_TEXT := "Failure: my health or happiness has stayed too low for too long."
 
 ## Sky colours. The sky follows the clock (daylight hours in config), not whether
 ## the avatar is awake or asleep.
@@ -31,6 +33,10 @@ const FAILURE_TEXT := "Failure: my health has reached the minimum."
 @onready var calories_label: Label = %CaloriesLabel
 @onready var muscle_label: Label = %MuscleLabel
 @onready var fitness_label: Label = %FitnessLabel
+@onready var weight_label: Label = %WeightLabel
+@onready var height_label: Label = %HeightLabel
+@onready var bmi_label: Label = %BmiLabel
+@onready var diet_label: Label = %DietLabel
 @onready var happiness_bar: ProgressBar = %HappinessBar
 @onready var sleep_bar: ProgressBar = %SleepBar
 @onready var level_label: Label = %LevelLabel
@@ -112,7 +118,8 @@ func _toggle_health_panel() -> void:
 		values_panel.visible = false
 
 
-## Clicking the physical bar shows or hides its values (calories, strength and fitness).
+## Clicking the physical bar shows or hides its values as numbers: calories spent, strength,
+## fitness, weight, height, BMI-for-age z and diet quality.
 func _toggle_values_panel() -> void:
 	values_panel.visible = not values_panel.visible
 
@@ -229,6 +236,11 @@ func _refresh() -> void:
 	calories_label.text = "Calories spent\n%d kcal" % roundi(GameState.calories_spent)
 	muscle_label.text = "Strength\n%.2f" % GameState.strength
 	fitness_label.text = "Fitness\n%.2f" % GameState.fitness
+	weight_label.text = "Weight\n%.1f kg" % GameState.weight_kg
+	height_label.text = "Height\n%.0f cm" % (GameState.height_m * Config.get_float("units.cm_per_m"))
+	bmi_label.text = "BMI-for-age\nz %+.2f" % GameState.weight_z
+	diet_label.text = "Diet quality\n%.2f" % GameState.diet_quality
+	avatar.states = AvatarStates.current()
 	level_label.text = "Lv %d" % GameState.level
 	xp_bar.value = GameState.level_progress
 	var per_level := Config.get_float("xp.per_level")
@@ -277,6 +289,8 @@ func _refresh_phase() -> void:
 				_set_speech("I'm tired. Sleep is recommended.")
 			elif Hunger.is_hungry():
 				_set_speech("I'm hungry!")
+			elif AvatarStates.current()["sad"]:
+				_set_speech("I'm sad.")
 			else:
 				_set_speech("Paused" if Clock.paused else "Hello!")
 		Clock.Phase.SLEEP_OVER:

@@ -20,6 +20,9 @@ const Training := preload("res://scripts/health/training.gd")
 const SleepModel := preload("res://scripts/health/sleep_model.gd")
 const Diet := preload("res://scripts/health/diet.gd")
 const Happiness := preload("res://scripts/health/happiness.gd")
+const HealthModel := preload("res://scripts/health/health_model.gd")
+const Risk := preload("res://scripts/health/risk.gd")
+const Progress := preload("res://scripts/health/progress.gd")
 
 ## Emitted after each step, with the avatar hours of that step and whether the avatar slept.
 signal stepped(hours: float, asleep: bool)
@@ -158,10 +161,15 @@ func _step(hours: float, asleep: bool) -> void:
 	Training.step(hours, asleep)
 	# Tiredness for "I'm tired" (sleep debt and hours awake; the debt changes at each new day).
 	SleepModel.update_tired()
-	# 7. Physical (Task 8).
+	# 7. Physical.
+	HealthModel.update_physical()
 	# 8. Happiness: fun, events and the move toward its baseline.
 	Happiness.step(hours, asleep)
-	# 9. Health, failure timers, risk and XP. Until Task 8: the Milestone 4 XP over time.
-	GameState.apply_avatar_hours(hours, asleep)
+	# 9. Health (its target follows the measures; the bar moves once per avatar day), failure
+	# timers, risk and XP.
+	HealthModel.step(hours, asleep)
+	Risk.step(hours, asleep)
+	Progress.step(hours, asleep)
+	GameState.changed.emit()
 	# 10. Avatar messages and images: the main screen listens to GameState.changed.
 	stepped.emit(hours, asleep)

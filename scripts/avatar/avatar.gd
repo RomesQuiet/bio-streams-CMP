@@ -22,6 +22,22 @@ extends Control
 ## Eating: a quick, small squash (chewing).
 @export var eat_seconds := 0.5
 @export var eat_squash := Vector2(1.03, 0.97)
+## Placeholder looks for the avatar states (Milestone 10 Task 8): body width when thin or
+## overweight, outline width when muscular, and the mouth.
+@export var thin_width := 0.85
+@export var overweight_width := 1.2
+@export var outline_width := 4.0
+@export var muscular_outline_width := 8.0
+@export var mouth_width := 0.16
+@export var mouth_curve := 0.03
+
+## Avatar states shown by the looks (AvatarStates.current()): "tired", "sad", "thin",
+## "overweight", "muscular" (true or false). Muscular with fat is muscular and overweight.
+var states: Dictionary = {}:
+	set(value):
+		if value != states:
+			states = value
+			queue_redraw()
 
 var eyes_closed := false:
 	set(value):
@@ -87,7 +103,8 @@ func _draw() -> void:
 	var points := _egg_points()
 	draw_colored_polygon(points, body_color)
 	points.append(points[0])
-	draw_polyline(points, outline_color, 4.0, true)
+	var line_width := muscular_outline_width if states.get("muscular", false) else outline_width
+	draw_polyline(points, outline_color, line_width, true)
 	var eye_y := size.y * 0.42
 	var eye_radius := size.x * 0.05
 	for eye_x in [size.x * 0.38, size.x * 0.62]:
@@ -95,6 +112,24 @@ func _draw() -> void:
 			draw_line(Vector2(eye_x - eye_radius, eye_y), Vector2(eye_x + eye_radius, eye_y), eye_color, 4.0, true)
 		else:
 			draw_circle(Vector2(eye_x, eye_y), eye_radius, eye_color)
+			if states.get("tired", false):
+				# Heavy eyelids: the top half of the eye is covered.
+				draw_rect(Rect2(eye_x - eye_radius, eye_y - eye_radius, eye_radius * 2.0, eye_radius), body_color)
+				draw_line(Vector2(eye_x - eye_radius, eye_y), Vector2(eye_x + eye_radius, eye_y), outline_color, 3.0, true)
+	if not eyes_closed:
+		_draw_mouth(states.get("sad", false))
+
+
+## A small smile, or a frown when sad.
+func _draw_mouth(sad: bool) -> void:
+	var center := Vector2(size.x * 0.5, size.y * 0.55)
+	var half := size.x * mouth_width * 0.5
+	var bend := size.y * mouth_curve * (-1.0 if sad else 1.0)
+	var mouth := PackedVector2Array()
+	for i in 9:
+		var t := i / 8.0 * 2.0 - 1.0
+		mouth.append(center + Vector2(t * half, bend * (1.0 - t * t)))
+	draw_polyline(mouth, outline_color, 3.0, true)
 
 
 ## Egg outline: an ellipse whose top half is taller and narrower than its bottom half.
@@ -103,6 +138,10 @@ func _egg_points() -> PackedVector2Array:
 	var top_height := size.y * 0.58
 	var bottom_height := size.y * 0.42
 	var half_width := size.x * 0.5
+	if states.get("thin", false):
+		half_width *= thin_width
+	elif states.get("overweight", false):
+		half_width *= overweight_width
 	var points := PackedVector2Array()
 	for i in point_count:
 		var angle := TAU * i / point_count
