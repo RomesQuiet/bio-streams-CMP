@@ -1,5 +1,5 @@
 extends SceneTree
-## Tests for the action log and habit scores (Milestone 3, Task 3). Run from the project folder:
+## Tests for the action log and avatar days (Milestone 3, Task 3; the habit scores were removed in Milestone 10). Run from the project folder:
 ##   Godot --headless --path . -s res://tests/habits_test.gd
 ## Uses a test save path, so the real save is never touched.
 
@@ -27,9 +27,6 @@ func _process(_delta: float) -> bool:
 	clock.reset()
 
 	_test_known_log(h)
-	_test_score_limits(h)
-	_test_sleep_score(h)
-	_test_screen_score(h)
 	_test_old_entries_dropped(h)
 	_test_real_play(h, gs, clock, activities, save_game)
 
@@ -39,8 +36,7 @@ func _process(_delta: float) -> bool:
 	return true
 
 
-## A known log over several scoring days returns the right totals per scoring day,
-## and the right four scores.
+## A known log over several scoring days returns the right totals per scoring day.
 func _test_known_log(h: Node) -> void:
 	h.reset()
 	# Scoring day 0: strength 1 h, 9 h of sleep.
@@ -68,17 +64,8 @@ func _test_known_log(h: Node) -> void:
 		return energy.kcal_per_hour(gs.sex_or_default(), gs.body_age_months, gs.weight_kg, mety)
 	var expected_kcal: float = 0.5 * per_hour.call(7.0) + 0.25 * per_hour.call(5.0) + 3.0 * per_hour.call(1.3) + 9.0 * per_hour.call(0.95)
 	_check("day 3: calories = BMR / 24 x METy x hours (0.5 h cardio, 0.25 h strength, 3 h screens, 9 h sleep)", absf(day3["kcal"] - expected_kcal) < TOLERANCE)
-	var s: Dictionary = h.scores
-	_check("sleep: 9 h is inside the child range", is_equal_approx(s["sleep"], 1.0))
-	_check("activity: 45 min / 60 = 0.75", absf(s["activity"] - 0.75) < TOLERANCE)
-	_check("strength: 3 strength days / 3 = 1", absf(s["strength"] - 1.0) < TOLERANCE)
-	_check("screens: 3 h of screens = 0.75", absf(s["screens"] - 0.75) < TOLERANCE)
 	var entry: Dictionary = h.entries.filter(func(e: Dictionary) -> bool: return e["type"] == "cardio")[0]
 	_check("an entry has its intensity and calories", entry["intensity"] == "moderate_vigorous" and absf(entry["kcal"] - 0.5 * per_hour.call(7.0)) < TOLERANCE)
-	h.reset()
-	h.end_scoring_day(9.0)
-	_check("empty day: activity 0, strength 0, screens 1", h.scores["activity"] == 0.0
-			and h.scores["strength"] == 0.0 and h.scores["screens"] == 1.0)
 
 
 ## Totals of a closed scoring day, compared with expected values.
@@ -89,61 +76,6 @@ func _totals_are(totals: Dictionary, sleep_hours: float, activity_minutes: float
 	if not ok:
 		print("  totals: %s" % totals)
 	return ok
-
-
-## Milestone 4 Task 3: each score at its limits, with the config values.
-func _test_score_limits(h: Node) -> void:
-	# Sleep, teenager (range 8 to 10 h): 0 at 4 h, 1 at 8 h and 9 h, 0.8 at 12 h (2 h above x 0.1).
-	_check("teenager sleep 4 h gives 0", is_zero_approx(h.sleep_score(4.0, "teenager")))
-	_check("teenager sleep 8 h gives 1", is_equal_approx(h.sleep_score(8.0, "teenager"), 1.0))
-	_check("teenager sleep 9 h gives 1", is_equal_approx(h.sleep_score(9.0, "teenager"), 1.0))
-	_check("teenager sleep 12 h gives 0.8", absf(h.sleep_score(12.0, "teenager") - 0.8) < TOLERANCE)
-	_check("teenager sleep 10 h (upper limit) gives 1", is_equal_approx(h.sleep_score(10.0, "teenager"), 1.0))
-	_check("child sleep 12 h (upper limit) gives 1, 13 h gives 0.9", is_equal_approx(h.sleep_score(12.0, "child"), 1.0)
-			and absf(h.sleep_score(13.0, "child") - 0.9) < TOLERANCE)
-	# Activity: minutes / 60, at most 1.
-	_check("activity 0 min gives 0", is_zero_approx(h.activity_score(0.0)))
-	_check("activity 30 min gives 0.5", absf(h.activity_score(30.0) - 0.5) < TOLERANCE)
-	_check("activity 60 min gives 1", is_equal_approx(h.activity_score(60.0), 1.0))
-	_check("activity 120 min still gives 1", is_equal_approx(h.activity_score(120.0), 1.0))
-	# Strength: days in the last 7 / 3, at most 1.
-	_check("strength 0 days gives 0", is_zero_approx(h.strength_score(0)))
-	_check("strength 1 day gives 1/3", absf(h.strength_score(1) - 1.0 / 3.0) < TOLERANCE)
-	_check("strength 3 days gives 1", is_equal_approx(h.strength_score(3), 1.0))
-	_check("strength 7 days still gives 1", is_equal_approx(h.strength_score(7), 1.0))
-	# Screens: 1 up to 2 h, linear to 0 at 6 h.
-	_check("screens 0 h gives 1", is_equal_approx(h.screen_score(0.0), 1.0))
-	_check("screens 2 h gives 1", is_equal_approx(h.screen_score(2.0), 1.0))
-	_check("screens 6 h gives 0, 8 h gives 0", is_zero_approx(h.screen_score(6.0)) and is_zero_approx(h.screen_score(8.0)))
-	# Enjoyment: entertainment hours / 1, at most 1.
-	_check("enjoyment 0 h gives 0", is_zero_approx(h.enjoyment_score(0.0)))
-	_check("enjoyment 0.5 h gives 0.5", absf(h.enjoyment_score(0.5) - 0.5) < TOLERANCE)
-	_check("enjoyment 1 h gives 1", is_equal_approx(h.enjoyment_score(1.0), 1.0))
-	_check("enjoyment 3 h still gives 1", is_equal_approx(h.enjoyment_score(3.0), 1.0))
-	# All five scores come out of a closed scoring day.
-	h.reset()
-	h.add_entry("screens", 0.5)
-	h.end_scoring_day(9.0)
-	_check("a scoring day gives five scores, with enjoyment 0.5 for 30 min of screens",
-			h.scores.size() == 5 and absf(h.scores["enjoyment"] - 0.5) < TOLERANCE)
-
-
-func _test_sleep_score(h: Node) -> void:
-	_check("child 9 h gives 1", is_equal_approx(h.sleep_score(9.0, "child"), 1.0))
-	_check("child 12 h gives 1", is_equal_approx(h.sleep_score(12.0, "child"), 1.0))
-	_check("child 4 h gives 0", is_zero_approx(h.sleep_score(4.0, "child")))
-	_check("child 0 h gives 0", is_zero_approx(h.sleep_score(0.0, "child")))
-	_check("child 6.5 h is halfway between 4 h and 9 h (0.5)", absf(h.sleep_score(6.5, "child") - 0.5) < TOLERANCE)
-	_check("teenager 8 h gives 1", is_equal_approx(h.sleep_score(8.0, "teenager"), 1.0))
-	_check("teenager 6 h gives 0.5", absf(h.sleep_score(6.0, "teenager") - 0.5) < TOLERANCE)
-	var above: float = h.sleep_score(12.0, "teenager")
-	_check("above the range falls, but slowly", above < 1.0 and above > h.sleep_score(7.0, "teenager"))
-
-
-func _test_screen_score(h: Node) -> void:
-	_check("2 h of screens gives 1", is_equal_approx(h.screen_score(2.0), 1.0))
-	_check("4 h gives 0.5", absf(h.screen_score(4.0) - 0.5) < TOLERANCE)
-	_check("6 h or more gives 0", is_zero_approx(h.screen_score(6.0)) and is_zero_approx(h.screen_score(9.0)))
 
 
 func _test_old_entries_dropped(h: Node) -> void:
@@ -159,8 +91,8 @@ func _test_old_entries_dropped(h: Node) -> void:
 	_check("only the last 7 closed scoring days are kept", h.days.size() == 7)
 
 
-## Real play: exercise logs the hours done (Stop counts only the time done), and the
-## scores come when a sleep ends: a normal sleep, a nap, and the 0-hour rule.
+## Real play: exercise logs the hours done (Stop counts only the time done), and an avatar
+## day closes when a sleep ends: a normal sleep, a nap, and the 0-hour rule.
 func _test_real_play(h: Node, gs: Node, clock: Node, activities: Node, save_game: Node) -> void:
 	h.reset()
 	gs.reset()
@@ -168,7 +100,7 @@ func _test_real_play(h: Node, gs: Node, clock: Node, activities: Node, save_game
 	gs.start_new_avatar("Test", "teenager", "male", "normal")
 	clock.set_paused(false)
 	clock.debug_speed = 600.0
-	_check("no scores before the first sleep", h.scores.is_empty())
+	_check("no closed day before the first sleep", h.days.is_empty())
 
 	_check("cardio starts", activities.start("exercise", "cardio"))
 	while activities.elapsed_hours < 0.5:
@@ -193,16 +125,15 @@ func _test_real_play(h: Node, gs: Node, clock: Node, activities: Node, save_game
 	_check("sleep starts", activities.start("sleep", "sleep", 9.0))
 	while clock.phase == clock.Phase.SLEEPING:
 		clock._process(STEP_SECONDS)
-	_check("scores are calculated when the sleep ends", not h.scores.is_empty())
-	_check("sleep score is 1 for 9 h", is_equal_approx(h.scores["sleep"], 1.0))
-	_check("activity score matches the logged cardio", absf(h.scores["activity"] - cardio_hours * 60.0 / 60.0) < TOLERANCE)
-	_check("strength score is 0 (no strength)", is_zero_approx(h.scores["strength"]))
-	_check("screens score is 1 (1 h of entertainment)", is_equal_approx(h.scores["screens"], 1.0))
+	var totals: Dictionary = h.days[-1] if not h.days.is_empty() else {}
+	_check("the day closes when the sleep ends, with its totals", not totals.is_empty()
+			and absf(totals["sleep_hours"] - 9.0) < 0.1 and absf(totals["activity_minutes"] - cardio_hours * 60.0) < 0.01
+			and totals["strength_days"] == 0 and absf(totals["screen_hours"] - 1.0) < 0.01)
 	_check("the sleep is logged too", h.entries.size() == 3 and h.entries[-1]["type"] == "sleep"
 			and absf(h.entries[-1]["hours"] - 9.0) < 0.1)
 	_check("a new scoring day starts after the sleep", h.current_day == 1 and h.days.size() == 1)
 
-	# The log and scores are saved and loaded.
+	# The log and the days are saved and loaded.
 	var saved: Dictionary = h.to_dict()
 	var before_gs: Dictionary = gs.to_dict()
 	save_game.save_game()
@@ -210,29 +141,27 @@ func _test_real_play(h: Node, gs: Node, clock: Node, activities: Node, save_game
 	h.reset()
 	_check("log was cleared before loading", h.entries.is_empty())
 	_check("load finds the save", save_game.load_game())
-	_check("log and scores restored", h.entries.size() == 3 and h.current_day == 1 and h.days.size() == 1 and absf(h.avatar_hours_total - saved["avatar_hours_total"]) < TOLERANCE
-			and absf(h.scores["activity"] - saved["scores"]["activity"]) < TOLERANCE)
+	_check("log and days restored", h.entries.size() == 3 and h.current_day == 1 and h.days.size() == 1 and absf(h.avatar_hours_total - saved["avatar_hours_total"]) < TOLERANCE)
 	_check("game state still restored", before_gs["avatar_name"] == gs.avatar_name)
 
-	# A nap of 1 h gives a low sleep score (any sleep counts).
+	# A nap of 1 h closes a day too (any sleep counts).
 	clock.wake_up()
 	# The avatar can sleep only when sleepy (v1 can-sleep rule): make it sleepy.
 	gs.hours_awake = root.get_node("Config").get_float("sleep.can_sleep_awake_h")
 	_check("nap starts", activities.start("sleep", "sleep", 1.0))
 	while clock.phase == clock.Phase.SLEEPING:
 		clock._process(STEP_SECONDS)
-	_check("a 1 h nap gives a low sleep score", h.scores["sleep"] < 0.5)
-	_check("the nap hours are kept", absf(h.last_sleep_hours - 1.0) < 0.1)
+	_check("a 1 h nap closes a day with 1 h of sleep", h.days.size() == 2 and absf(h.days[-1]["sleep_hours"] - 1.0) < 0.1)
+	_check("the nap hours are kept", absf(gs.last_sleep_hours - 1.0) < 0.1)
 
 	# The 0-hour rule: the awake period runs out without sleep.
 	clock.wake_up()
-	h.scores = {}
+	var days_before: int = h.days.size()
 	var day: int = clock.day_number
 	while clock.day_number == day:
 		clock._process(STEP_SECONDS)
-	_check("scores are calculated when the day runs out without sleep", not h.scores.is_empty())
-	_check("the sleep score is 0 (0 h slept)", is_zero_approx(h.scores["sleep"]) and is_zero_approx(h.last_sleep_hours))
-	h.print_scores()
+	_check("a day closes when the awake period runs out without sleep", h.days.size() == days_before + 1)
+	_check("it counts as 0 h slept", is_zero_approx(h.days[-1]["sleep_hours"]) and is_zero_approx(gs.last_sleep_hours))
 
 
 func _check(name: String, ok: bool) -> void:

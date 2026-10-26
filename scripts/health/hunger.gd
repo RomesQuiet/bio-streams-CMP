@@ -47,14 +47,14 @@ static func is_hungry() -> bool:
 
 ## kcal of a meal (an eat option id from data/foods.json), for this share of it (0 to 1).
 static func meal_kcal(food_id: String, share: float) -> float:
-	return _food_value(food_id, "portion_factor") * healthy_portion_kcal() * clampf(share, 0.0, 1.0)
+	return food_value(food_id, "portion_factor") * healthy_portion_kcal() * clampf(share, 0.0, 1.0)
 
 
 ## Eats this share of a meal: takes kcal x satiety off hunger and starts the meal gap again.
 ## Returns the kcal eaten.
 static func eat(food_id: String, share: float) -> float:
 	var kcal := meal_kcal(food_id, share)
-	GameState.hunger -= kcal * _food_value(food_id, "satiety")
+	GameState.hunger -= kcal * food_value(food_id, "satiety")
 	GameState.hours_since_meal = 0.0
 	GameState.changed.emit()
 	return kcal
@@ -75,7 +75,7 @@ static func is_food(food_id: String) -> bool:
 	return _all_foods().has(food_id)
 
 
-static func _food_value(food_id: String, key: String) -> float:
+static func food_value(food_id: String, key: String) -> float:
 	var entry: Variant = _all_foods().get(food_id, {}).get(key)
 	if entry == null:
 		push_error("Hunger: food '%s' has no '%s'" % [food_id, key])

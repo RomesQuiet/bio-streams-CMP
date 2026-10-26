@@ -48,8 +48,9 @@ func _process(_delta: float) -> bool:
 	_check("the day's totals are written (8.5 h sleep, 60 min, 2 h screens)", float(col.call(first, "sleep_hours")) == 8.5
 			and float(col.call(first, "activity_minutes")) == 60.0 and float(col.call(first, "screen_hours")) == 2.0)
 	_check("the second line is the 0-hour day with the last values", float(col.call(second, "sleep_hours")) == 0.0
-			and absf(float(col.call(second, "health")) - gs.health) < 0.0001 and absf(float(col.call(second, "mood")) - gs.mood) < 0.0001)
-	_check("H and R of every habit are written", header.has("H_sleep") and header.has("R_screens") and header.has("A_activity"))
+			and absf(float(col.call(second, "health")) - gs.health) < 0.0001 and absf(float(col.call(second, "happiness")) - gs.happiness) < 0.0001)
+	_check("diet (Q, C, A), happiness and its baseline are written", header.has("diet_quality") and header.has("craving")
+			and header.has("habituation") and header.has("happiness") and header.has("happiness_baseline"))
 	DirAccess.remove_absolute(TEST_LOG)
 
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])

@@ -1,21 +1,18 @@
 extends Node
-## Action log, scoring days and daily habit scores (Milestone 3 Task 3, Milestone 4 Task 2).
+## Action log and avatar days (Milestone 3 Task 3, Milestone 4 Task 2, Milestone 10).
 ## Every activity (and every sleep) is logged with its type, the avatar time it started,
-## the avatar hours actually done (Stop counts only the time done), its intensity and its
-## calories. A scoring day follows health.score_window: "wake_to_wake" = from one wake-up
-## to the next, so it closes when any sleep ends (a night, a nap, or the 0-hour rule).
-## Then the totals of that scoring day give four habit scores (0 to 1), and GameState
-## updates the slow body states from them. The last log_days scoring days are kept.
-## All numbers come from Config (section health).
+## the avatar hours actually done (Stop counts only the time done), its intensity, its
+## calories and, for a meal, the kcal eaten. An avatar day runs from one wake-up to the
+## next, so it closes when any sleep ends (a night, a nap, or the 0-hour rule); then its
+## totals are kept and GameState.daily_update() runs. The last log_days days are kept.
+## The Milestone 4 habit scores were removed in Milestone 10 Task 7.
+## All numbers come from Config.
 
-## Emitted when new habit scores were calculated (a scoring day closed).
-signal scores_updated
+## Emitted when an avatar day closed (after any sleep, or the 0-hour rule).
+signal day_closed
 
 const Hunger := preload("res://scripts/health/hunger.gd")
 const Energy := preload("res://scripts/health/energy.gd")
-
-## The only scoring window built so far.
-const WAKE_TO_WAKE := "wake_to_wake"
 
 ## Avatar hours since the start of the game (awake and asleep). Start times use it.
 var avatar_hours_total := 0.0
@@ -28,11 +25,6 @@ var current_day := 0
 var entries: Array[Dictionary] = []
 ## Totals of the closed scoring days (see day_totals()), oldest first. The last log_days are kept.
 var days: Array[Dictionary] = []
-## Scores from the last closed scoring day: sleep, activity, strength, screens, enjoyment.
-## Empty before the first sleep.
-var scores: Dictionary = {}
-## Hours of the sleep that closed the last scoring day.
-var last_sleep_hours := 0.0
 
 ## The activity that is running now: type and where it started.
 var _pending: Dictionary = {}
@@ -45,14 +37,12 @@ func _ready() -> void:
 	Activities.ended.connect(_on_activity_ended)
 
 
-## New game: empty log, no scores.
+## New game: empty log.
 func reset() -> void:
 	avatar_hours_total = 0.0
 	current_day = 0
 	entries.clear()
 	days.clear()
-	scores = {}
-	last_sleep_hours = 0.0
 	_pending = {}
 
 
@@ -62,8 +52,6 @@ func to_dict() -> Dictionary:
 		"current_day": current_day,
 		"entries": entries.duplicate(true),
 		"days": days.duplicate(true),
-		"scores": scores.duplicate(),
-		"last_sleep_hours": last_sleep_hours,
 		"pending": _pending.duplicate(),
 	}
 
@@ -85,8 +73,6 @@ func from_dict(data: Dictionary) -> void:
 	for day in data.get("days", []):
 		if day is Dictionary:
 			days.append(day)
-	scores = data.get("scores", {}).duplicate()
-	last_sleep_hours = float(data.get("last_sleep_hours", 0.0))
 	var pending: Variant = data.get("pending", {})
 	if Activities.is_running():
 		# A save in the middle of an activity: keep where it started (if known).
@@ -160,83 +146,17 @@ func day_totals(day: int) -> Dictionary:
 	return totals
 
 
-## The habit scores of a scoring day's totals (Milestone 4 Task 3), each 0 to 1:
-## sleep s, activity a, strength w, screens c and enjoyment e.
-func calculate_scores(totals: Dictionary, age_group: String) -> Dictionary:
-	return {
-		"sleep": sleep_score(totals["sleep_hours"], age_group),
-		"activity": activity_score(totals["activity_minutes"]),
-		"strength": strength_score(totals["strength_days"]),
-		"screens": screen_score(totals["screen_hours"]),
-		"enjoyment": enjoyment_score(totals["entertainment_hours"]),
-	}
-
-
-## Today's intensity A of each habit (0 to 1), from a scoring day's totals
-## (health.habit_intensity): sleep, activity, strength, screens.
-func intensities(totals: Dictionary) -> Dictionary:
-	var path := "health_m4.habit_intensity."
-	return {
-		"sleep": clampf(totals["sleep_hours"] / Config.get_float(path + "sleep_full_h"), 0.0, 1.0),
-		"activity": clampf(totals["activity_minutes"] / Config.get_float(path + "activity_full_min"), 0.0, 1.0),
-		"strength": clampf(totals["strength_days"] / Config.get_float(path + "strength_full_days"), 0.0, 1.0),
-		"screens": clampf(totals["screen_hours"] / Config.get_float(path + "screens_full_h"), 0.0, 1.0),
-	}
-
-
-## Moderate-to-vigorous minutes ÷ activity_target_min, at most 1.
-func activity_score(minutes: float) -> float:
-	return clampf(minutes / Config.get_float("health_m4.activity_target_min"), 0.0, 1.0)
-
-
-## Strength days in the last 7 scoring days ÷ strength_days_target, at most 1.
-func strength_score(strength_days: int) -> float:
-	return clampf(strength_days / Config.get_float("health_m4.strength_days_target"), 0.0, 1.0)
-
-
-## Entertainment hours ÷ enjoyment_full_at_h, at most 1.
-func enjoyment_score(hours: float) -> float:
-	return clampf(hours / Config.get_float("health_m4.enjoyment_full_at_h"), 0.0, 1.0)
-
-
-## Closes the current scoring day after a sleep of this many hours (0 for the 0-hour
-## rule): logs the sleep, works out the scores, updates the body states and starts the
-## next scoring day. start: where the sleep started (empty = now).
+## Closes the current avatar day after a sleep of this many hours (0 for the 0-hour rule):
+## logs the sleep, keeps the day's totals, runs GameState.daily_update() and starts the next
+## day. start: where the sleep started (empty = now).
 func end_scoring_day(sleep_hours: float, start: Dictionary = {}) -> void:
-	if Config.get_string("health_m4.score_window") != WAKE_TO_WAKE:
-		push_error("Habits: score_window '%s' is not built; using %s" % [Config.get_string("health_m4.score_window"), WAKE_TO_WAKE])
 	if sleep_hours > 0.0:
 		add_entry(Config.get_value("health_m4.log.sleep_types")[0], sleep_hours, start)
-	var totals := day_totals(current_day)
-	days.append(totals)
-	last_sleep_hours = sleep_hours
-	scores = calculate_scores(totals, GameState.age_group)
-	# Then the slow body states change, once per scoring day.
-	GameState.update_body_states(scores, sleep_hours, intensities(totals))
+	days.append(day_totals(current_day))
+	GameState.daily_update()
 	current_day += 1
 	_prune()
-	scores_updated.emit()
-
-
-## 1 inside the recommended range for the age group; falls in a straight line to 0
-## at sleep_zero_at or less; above the range it falls by sleep_over_penalty_per_h per hour.
-func sleep_score(hours: float, age_group: String) -> float:
-	var sleep_range := GameState.sleep_range(age_group)
-	var low := sleep_range.x
-	var high := sleep_range.y
-	var zero_at := Config.get_float("health_m4.sleep_zero_at")
-	if hours < low:
-		return clampf((hours - zero_at) / (low - zero_at), 0.0, 1.0)
-	if hours > high:
-		return clampf(1.0 - (hours - high) * Config.get_float("health_m4.sleep_over_penalty_per_h"), 0.0, 1.0)
-	return 1.0
-
-
-## 1 up to screens_full_until_h; falls in a straight line to 0 at screens_zero_at_h.
-func screen_score(hours: float) -> float:
-	var full := Config.get_float("health_m4.screens_full_until_h")
-	var zero := Config.get_float("health_m4.screens_zero_at_h")
-	return clampf((zero - hours) / (zero - full), 0.0, 1.0)
+	day_closed.emit()
 
 
 func _on_avatar_time_passed(hours: float, _asleep: bool) -> void:
@@ -273,8 +193,3 @@ func _prune() -> void:
 	entries = entries.filter(func(entry: Dictionary) -> bool: return entry["scoring_day"] >= oldest_day)
 	days = days.filter(func(day: Dictionary) -> bool: return day["scoring_day"] >= oldest_day - 1)
 
-
-func print_scores() -> void:
-	print("--- Habit scores (sleep %.1f h) ---" % last_sleep_hours)
-	for key in scores:
-		print("%s = %.2f" % [key, scores[key]])

@@ -16,49 +16,34 @@ var enabled := OS.is_debug_build() and Engine.get_main_loop().get_script() == nu
 
 
 func _ready() -> void:
-	Habits.scores_updated.connect(_on_scores_updated)
+	Habits.day_closed.connect(_on_day_closed)
 
 
 ## The column names, in order.
 func header() -> PackedStringArray:
-	var columns := PackedStringArray(["scoring_day", "clock_day", "difficulty", "age_group",
+	return PackedStringArray(["scoring_day", "clock_day", "difficulty", "age_group",
 			"sleep_hours", "activity_minutes", "strength_days", "screen_hours", "entertainment_hours", "kcal",
-			"score_sleep", "score_activity", "score_strength", "score_screens", "score_enjoyment"])
-	for habit in GameState.usual_habits:
-		columns.append("A_" + habit)
-	for habit in GameState.usual_habits:
-		columns.append("H_" + habit)
-	for habit in GameState.usual_habits:
-		columns.append("R_" + habit)
-	columns.append_array(["habit_cost", "sleep_debt", "fitness", "strength", "weight_z", "mood",
-			"physical", "mental", "sleep", "target_health", "health", "health_level", "xp"])
-	return columns
+			"sleep_debt", "fitness", "strength", "overreach", "weight_kg", "weight_z", "deficit_u",
+			"diet_quality", "craving", "habituation", "happiness_baseline",
+			"physical", "happiness", "sleep", "target_health", "health", "health_level", "xp"])
 
 
-## The values of the scoring day that just closed, in the order of header().
+## The values of the avatar day that just closed, in the order of header().
 func row() -> PackedStringArray:
 	var gs := GameState
 	var totals: Dictionary = Habits.days[-1] if not Habits.days.is_empty() else Habits.day_totals(Habits.current_day)
-	var intensities: Dictionary = Habits.intensities(totals)
 	var values := PackedStringArray([str(totals["scoring_day"]), str(Clock.day_number), gs.difficulty, gs.age_group,
 			_number(totals["sleep_hours"]), _number(totals["activity_minutes"]), str(totals["strength_days"]),
 			_number(totals["screen_hours"]), _number(totals["entertainment_hours"]), _number(totals["kcal"])])
-	for key in ["sleep", "activity", "strength", "screens", "enjoyment"]:
-		values.append(_number(Habits.scores.get(key, 0.0)))
-	for habit in gs.usual_habits:
-		values.append(_number(intensities.get(habit, 0.0)))
-	for habit in gs.usual_habits:
-		values.append(_number(gs.usual_habits[habit]))
-	for habit in gs.usual_habits:
-		values.append(_number(gs.rootedness.get(habit, 0.0)))
-	for value in [gs.habit_cost_total, gs.sleep_debt, gs.fitness, gs.strength, gs.weight_z, gs.mood,
-			gs.physical, gs.mental, gs.sleep, gs.target_health, gs.health]:
+	for value in [gs.sleep_debt, gs.fitness, gs.strength, gs.overreach, gs.weight_kg, gs.weight_z, gs.deficit_u,
+			gs.diet_quality, gs.craving, gs.habituation, gs.happiness_baseline,
+			gs.physical, gs.happiness, gs.sleep, gs.target_health, gs.health]:
 		values.append(_number(value))
 	values.append_array([str(gs.health_level), _number(gs.xp)])
 	return values
 
 
-func _on_scores_updated() -> void:
+func _on_day_closed() -> void:
 	if not enabled:
 		return
 	var is_new := not FileAccess.file_exists(log_path)

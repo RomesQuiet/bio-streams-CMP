@@ -18,6 +18,8 @@ const Hunger := preload("res://scripts/health/hunger.gd")
 const BodySize := preload("res://scripts/health/body_size.gd")
 const Training := preload("res://scripts/health/training.gd")
 const SleepModel := preload("res://scripts/health/sleep_model.gd")
+const Diet := preload("res://scripts/health/diet.gd")
+const Happiness := preload("res://scripts/health/happiness.gd")
 
 ## Emitted after each step, with the avatar hours of that step and whether the avatar slept.
 signal stepped(hours: float, asleep: bool)
@@ -102,6 +104,8 @@ func _on_phase_changed(phase: Clock.Phase) -> void:
 		GameState.hours_awake = 0.0
 		SleepModel.new_day(Clock.sleep_elapsed_hours)
 		Training.new_day()
+		Happiness.new_day()
+		Happiness.on_wake()
 
 
 ## The 0-hour rule (the awake period ran out without sleep) also starts a new avatar day.
@@ -110,11 +114,13 @@ func _on_day_started(slept: bool) -> void:
 		flush()
 		SleepModel.new_day(0.0)
 		Training.new_day()
+		Happiness.new_day()
 
 
 func _on_activity_started(_activity_id: String, option_id: String) -> void:
 	if not loading:
 		Training.on_activity_started(option_id)
+		Happiness.on_activity_started(option_id)
 
 
 ## A meal counts when it ends, in proportion to the time eaten (Stop = part of a meal).
@@ -122,7 +128,11 @@ func _on_activity_started(_activity_id: String, option_id: String) -> void:
 func _on_activity_ended(_activity_id: String, option_id: String, hours_done: float) -> void:
 	if Hunger.is_food(option_id):
 		var duration := float(Activities.find_option(option_id).get("duration_hours", 0.0))
-		Energy.add_eaten(Hunger.eat(option_id, hours_done / duration if duration > 0.0 else 1.0))
+		var share := hours_done / duration if duration > 0.0 else 1.0
+		Energy.add_eaten(Hunger.eat(option_id, share))
+		# The meal's happiness uses C and A from before it; then Q, C and A move.
+		Happiness.on_meal(option_id, share)
+		Diet.on_meal(option_id, share)
 	# The rest of the frame, after the activity.
 	if _after_activity_hours > 0.0:
 		var hours := _after_activity_hours
@@ -149,7 +159,8 @@ func _step(hours: float, asleep: bool) -> void:
 	# Tiredness for "I'm tired" (sleep debt and hours awake; the debt changes at each new day).
 	SleepModel.update_tired()
 	# 7. Physical (Task 8).
-	# 8. Happiness (Task 7).
+	# 8. Happiness: fun, events and the move toward its baseline.
+	Happiness.step(hours, asleep)
 	# 9. Health, failure timers, risk and XP. Until Task 8: the Milestone 4 XP over time.
 	GameState.apply_avatar_hours(hours, asleep)
 	# 10. Avatar messages and images: the main screen listens to GameState.changed.

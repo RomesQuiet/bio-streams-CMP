@@ -41,7 +41,7 @@ func _test_days(gs: Node, clock: Node, activities: Node, main: Node) -> void:
 	var config: Node = root.get_node("Config")
 	var habits: Node = root.get_node("Habits")
 	clock.debug_speed = 600.0
-	print("day  physical mental sleep  target  health (bar)")
+	print("day  physical happiness sleep  target  health (bar)")
 	for day in DAYS:
 		activities.start("exercise", "cardio")
 		while activities.is_running():
@@ -55,16 +55,16 @@ func _test_days(gs: Node, clock: Node, activities: Node, main: Node) -> void:
 		activities.start("sleep", "sleep", 10.0)
 		while clock.phase == clock.Phase.SLEEPING:
 			clock._process(STEP_SECONDS)
-		print("%3d  %.3f    %.3f  %.3f  %.3f   %.3f (%.3f)" % [day + 1, gs.physical, gs.mental, gs.sleep,
+		print("%3d  %.3f    %.3f  %.3f  %.3f   %.3f (%.3f)" % [day + 1, gs.physical, gs.happiness, gs.sleep,
 				gs.target_health, gs.health, main.health_bar.value])
 		_check("day %d: physical = mix of fitness, muscle and weight score" % (day + 1),
 				absf(gs.physical - gs.physical_from_body(gs.fitness, gs.strength, gs.weight_z)) < TOLERANCE)
 		var sleep_model: GDScript = load("res://scripts/health/sleep_model.gd")
 		var expected_sleep: float = sleep_model.sleep_measure(gs.sleep_debt, sleep_model.oversleep(10.0, gs.age_group))
 		_check("day %d: sleep = (1 - debt / 8) x oversleep cut (v1 Step 9)" % (day + 1), absf(gs.sleep - expected_sleep) < TOLERANCE)
-		_check("day %d: mental = mood / 100" % (day + 1), absf(gs.mental - gs.mood / 100.0) < TOLERANCE)
+		_check("day %d: happiness is between 0 and 1" % (day + 1), gs.happiness >= 0.0 and gs.happiness <= 1.0)
 		var c: float = (gs.target_health - 1.0) / 4.0
-		_check("day %d: target = 1 + 4 x C (power mean)" % (day + 1), absf(gs.target_health - gs.health_from_measures(gs.physical, gs.mental, gs.sleep)) < TOLERANCE
+		_check("day %d: target = 1 + 4 x C (power mean)" % (day + 1), absf(gs.target_health - gs.health_from_measures(gs.physical, gs.happiness, gs.sleep)) < TOLERANCE
 				and c >= 0.0 and c <= 1.0)
 		var expected_health: float = health_before + config.get_float("health_m4.alpha_bar") * (gs.target_health - health_before)
 		_check("day %d: health += alpha_bar x (target - health)" % (day + 1), absf(gs.health - expected_health) < TOLERANCE)
@@ -73,7 +73,7 @@ func _test_days(gs: Node, clock: Node, activities: Node, main: Node) -> void:
 		_check("day %d: the health bar and level box show it" % (day + 1), is_equal_approx(main.health_bar.value, gs.health)
 				and main.health_level_button.text == str(gs.health_level))
 		_check("day %d: the measures panel shows the new values" % (day + 1), is_equal_approx(main.physical_bar.value, gs.physical)
-				and is_equal_approx(main.mental_bar.value, gs.mental) and is_equal_approx(main.sleep_bar.value, gs.sleep))
+				and is_equal_approx(main.happiness_bar.value, gs.happiness) and is_equal_approx(main.sleep_bar.value, gs.sleep))
 		clock.wake_up()
 
 

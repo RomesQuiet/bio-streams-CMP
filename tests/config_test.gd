@@ -23,16 +23,10 @@ const V1_KEYS := ["body.k", "body.kcal_per_kg", "body.max_age_months.child", "bo
 		"health.combine.p", "health.combine.weights.happiness", "health.physical_mix.weight", "health.alpha_bar",
 		"health.weight_score_points", "fail.health_line", "fail.happiness_hours", "risk.z_weight",
 		"progress.per_health_point", "avatar_states.sad_below", "who.extension_from_z", "time.step_avatar_min"]
-## Keys MILESTONE_4.md asks for in the health block.
-const REQUIRED_KEYS := ["k", "death_enabled", "habit_days_to_95", "habit_cost.T", "habit_cost.alpha",
-		"habit_cost.gamma", "habit_cost.P_max", "habit_cost.lambda", "score_window", "k_applies_to_sleep_debt",
-		"sleep_range.child", "sleep_range.teenager", "sleep_recommended.child", "sleep_recommended.teenager",
-		"sleep_zero_at", "sleep_over_penalty_per_h", "r", "debt_max", "activity_target_min", "strength_days_target",
-		"screens_full_until_h", "screens_zero_at_h", "enjoyment_full_at_h", "mood_speed", "fitness_k_down",
-		"fitness_k_up", "muscle_k_up", "muscle_k_down", "weight_score.full_within_z", "weight_score.zero_at_z",
+## What is left of the Milestone 4 health block (until Task 8).
+const REQUIRED_KEYS := ["death_enabled", "failure_at_health", "weight_score.full_within_z", "weight_score.zero_at_z",
 		"physical_mix.fitness", "physical_mix.muscle", "physical_mix.weight", "combine.p",
-		"combine.weights.physical", "combine.weights.mental", "combine.weights.sleep", "alpha_bar"]
-const ACTIVE_DAY := {"sleep": 1.0, "activity": 1.0, "strength": 1.0, "screens": 1.0}
+		"combine.weights.physical", "combine.weights.happiness", "combine.weights.sleep", "alpha_bar"]
 
 var _failures := 0
 
@@ -64,20 +58,10 @@ func _test_health_block(config: Node) -> void:
 	if not missing.is_empty():
 		print("  missing or without status/owner: " + str(missing))
 	_check("every Milestone 4 key is in the health_m4 block with value, status and owner", missing.is_empty())
-	_check("Milestone 4 k is still 5 until its code is replaced", config.get_float("health_m4.k") == 5.0)
-	_check("alpha_bar is 0.37", is_equal_approx(config.get_float("health_m4.alpha_bar"), 0.37))
 	_check("there is no death", config.get_value("health_m4.death_enabled") == false)
-	_check("habit_cost.alpha and alpha_bar are separate keys",
-			config.get_float("health_m4.habit_cost.alpha") != config.get_float("health_m4.alpha_bar"))
-	var statuses_ok := true
-	for difficulty in ["easy", "normal", "hard", "very_hard"]:
-		var block: Dictionary = config._data["health_m4"]["difficulties"][difficulty]
-		statuses_ok = statuses_ok and block.has("status") and block.has("owner") and block.has("start_R")
-	_check("each difficulty has start_R, status and owner", statuses_ok)
-	_check("start_R: Easy 0.5, Normal 0.5, Hard 0.2, Very hard 0.8",
-			config.get_float("health_m4.difficulties.easy.start_R") == 0.5 and config.get_float("health_m4.difficulties.normal.start_R") == 0.5
-			and config.get_float("health_m4.difficulties.hard.start_R") == 0.2 and config.get_float("health_m4.difficulties.very_hard.start_R") == 0.8)
-	_check("a placeholder status counts as a placeholder", config.is_placeholder("health_m4.r") and not config.is_placeholder("health_m4.k"))
+	_check("the Milestone 4 mood, habit cost and scores are gone (Task 7)", not config._data["health_m4"].has("habit_cost")
+			and not config._data["health_m4"].has("mood_speed") and not config._data["health_m4"].has("k"))
+	_check("a placeholder status counts as a placeholder", config.is_placeholder("sleep.debt_ref_h") and not config.is_placeholder("body.k"))
 	var activities: Node = root.get_node("Activities")
 	var cardio: Dictionary = activities.get_option("exercise", "cardio")
 	var strength: Dictionary = activities.get_option("exercise", "strength")

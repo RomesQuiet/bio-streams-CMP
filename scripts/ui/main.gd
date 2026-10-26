@@ -31,7 +31,7 @@ const FAILURE_TEXT := "Failure: my health has reached the minimum."
 @onready var calories_label: Label = %CaloriesLabel
 @onready var muscle_label: Label = %MuscleLabel
 @onready var fitness_label: Label = %FitnessLabel
-@onready var mental_bar: ProgressBar = %MentalBar
+@onready var happiness_bar: ProgressBar = %HappinessBar
 @onready var sleep_bar: ProgressBar = %SleepBar
 @onready var level_label: Label = %LevelLabel
 @onready var xp_bar: ProgressBar = %XPBar
@@ -224,7 +224,7 @@ func _refresh() -> void:
 	health_level_button.text = str(GameState.health_level)
 	health_bar.value = GameState.health
 	physical_bar.value = GameState.physical
-	mental_bar.value = GameState.mental
+	happiness_bar.value = GameState.happiness
 	sleep_bar.value = GameState.sleep
 	calories_label.text = "Calories spent\n%d kcal" % roundi(GameState.calories_spent)
 	muscle_label.text = "Strength\n%.2f" % GameState.strength

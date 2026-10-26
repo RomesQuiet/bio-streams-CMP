@@ -29,9 +29,9 @@ func _process(_delta: float) -> bool:
 	return true
 
 
-## Scores of a day with recommended habits, and of a day with none.
-const GOOD_DAY := {"sleep": 1.0, "activity": 1.0, "strength": 1.0, "screens": 1.0}
-const BAD_DAY := {"sleep": 0.0, "activity": 0.0, "strength": 0.0, "screens": 0.0}
+## Body states and measures of a day with recommended habits, and of a day with none.
+const GOOD_DAY := {"fitness": 0.9, "strength": 0.9, "happiness": 0.9, "sleep": 1.0}
+const BAD_DAY := {"fitness": 0.1, "strength": 0.1, "happiness": 0.1, "sleep": 0.0}
 
 
 ## Health starts at the target and then moves part of the way toward it once per avatar day.
@@ -46,17 +46,24 @@ func _test_health_follows_measures(gs: Node) -> void:
 	gs.apply_effects({"physical": 0.3}, 1.0)
 	_check("health does not change during the day", is_equal_approx(gs.health, start))
 	gs.start_new_avatar("Test", "child", "female", "normal")
-	gs.update_body_states(GOOD_DAY, 10.0)
+	_end_day(gs, GOOD_DAY)
 	var target: float = gs.target_health
 	_check("a good day raises the target health", target > start)
 	_check("health moves daily_alpha of the way to the target", absf(gs.health - (start + alpha * (target - start))) < TOLERANCE)
 	var values := [start, gs.health]
 	for day in 10:
-		gs.update_body_states(GOOD_DAY, 10.0)
+		_end_day(gs, GOOD_DAY)
 		values.append(gs.health)
 	print("health on 11 good days: %s" % ", ".join(values.map(func(v): return "%.2f" % v)))
 	_check("health rises gradually, day by day", values[2] > values[1] and values[-1] > values[2] and values[-1] <= 5.0)
 	_check("the measures come from the body states", is_equal_approx(gs.physical, gs.physical_from_body(gs.fitness, gs.strength, gs.weight_z)))
+
+
+## Sets the day's states, then the once-per-day update (as when a sleep ends).
+func _end_day(gs: Node, states: Dictionary) -> void:
+	for key in states:
+		gs.set(key, states[key])
+	gs.daily_update()
 
 
 func _test_xp_from_health_changes(gs: Node, config: Node) -> void:
@@ -64,12 +71,12 @@ func _test_xp_from_health_changes(gs: Node, config: Node) -> void:
 	gs.xp = 50.0
 	var per_point: float = config.get_float("xp.per_health_point")
 	var before_health: float = gs.health
-	gs.update_body_states(GOOD_DAY, 10.0)
+	_end_day(gs, GOOD_DAY)
 	var gain: float = gs.health - before_health
 	_check("a health gain gives XP", absf(gs.xp - (50.0 + gain * per_point)) < TOLERANCE and gain > 0.0)
 	var xp_before: float = gs.xp
 	before_health = gs.health
-	gs.update_body_states(BAD_DAY, 0.0)
+	_end_day(gs, BAD_DAY)
 	var loss: float = before_health - gs.health
 	_check("a health loss takes XP away", absf(gs.xp - (xp_before - loss * per_point)) < TOLERANCE and loss > 0.0)
 

@@ -349,12 +349,12 @@ max_value = 1.0
 step = 0.0
 show_percentage = false
 
-[node name="MentalLabel" type="Label" parent="HealthPanel/Margin/Measures"]
+[node name="HappinessLabel" type="Label" parent="HealthPanel/Margin/Measures"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "Mental"
+text = "Happiness"
 
-[node name="MentalBar" type="ProgressBar" parent="HealthPanel/Margin/Measures"]
+[node name="HappinessBar" type="ProgressBar" parent="HealthPanel/Margin/Measures"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 24)
 layout_mode = 2

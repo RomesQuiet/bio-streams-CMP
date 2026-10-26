@@ -1,12 +1,15 @@
 extends PanelContainer
 ## Debug panel (Milestone 3, Task 7). Only exists in debug builds (the Godot editor and
 ## debug exports); it removes itself from the published (release) game.
-## Shows the habit scores, body states, measures, target and displayed health.
+## Shows food, body, training, sleep, diet, happiness, measures, target and displayed health.
 ## F7 shows or hides it.
 
 const Hunger := preload("res://scripts/health/hunger.gd")
 const Energy := preload("res://scripts/health/energy.gd")
 const BodySize := preload("res://scripts/health/body_size.gd")
+const Training := preload("res://scripts/health/training.gd")
+const SleepModel := preload("res://scripts/health/sleep_model.gd")
+const Happiness := preload("res://scripts/health/happiness.gd")
 
 @onready var info: Label = $Margin/Info
 
@@ -17,7 +20,7 @@ func _ready() -> void:
 		return
 	visible = false
 	GameState.changed.connect(_refresh)
-	Habits.scores_updated.connect(_refresh)
+	Habits.day_closed.connect(_refresh)
 	_refresh()
 
 
@@ -33,13 +36,6 @@ func _refresh() -> void:
 	var gs := GameState
 	var lines: Array[String] = []
 	lines.append("DEBUG (F7)  %s, %s, %s" % [gs.difficulty, gs.age_group, gs.sex])
-	lines.append("Habit scores (last sleep %.1f h)" % Habits.last_sleep_hours)
-	if Habits.scores.is_empty():
-		lines.append("  none yet (no sleep has ended)")
-	else:
-		lines.append("  sleep %.2f  activity %.2f" % [Habits.scores["sleep"], Habits.scores["activity"]])
-		lines.append("  strength %.2f  screens %.2f  enjoyment %.2f" % [Habits.scores["strength"],
-				Habits.scores["screens"], Habits.scores.get("enjoyment", 0.0)])
 	var portion: float = Hunger.healthy_portion_kcal()
 	lines.append("Food  hunger %.0f kcal (%.2f healthy meals of %.0f)  %s" % [gs.hunger, gs.hunger / portion, portion,
 			"HUNGRY" if Hunger.is_hungry() else "not hungry"])
@@ -49,17 +45,16 @@ func _refresh() -> void:
 			gs.weight_z, BodySize.weight_score(gs.weight_z), gs.deficit_u])
 	lines.append("  last 24 h: eaten %.0f kcal, spent %.0f kcal" % [Energy.window_total("eaten"), Energy.window_total("spent")])
 	lines.append("Body states")
-	lines.append("  fitness %.3f  strength %.3f" % [gs.fitness, gs.strength])
-	lines.append("  sleep debt %.2f h  mood %.1f / %d" % [gs.sleep_debt, gs.mood, Config.get_int("health_m4.mood_max")])
-	lines.append("  habit cost %.2f mood points %s" % [gs.habit_cost_total,
-			", ".join(gs.habit_costs.keys().map(func(h): return "%s %.2f" % [h, gs.habit_costs[h]]))])
-	lines.append("  weight z %+.1f (score %.2f)" % [gs.weight_z, gs.weight_score(gs.weight_z)])
-	lines.append("  usual H / rooted R:")
-	for habit in gs.usual_habits:
-		lines.append("    %s %.3f / %.3f" % [habit, gs.usual_habits[habit], gs.rootedness.get(habit, 0.0)])
+	lines.append("  fitness %.3f  strength %.3f  overreaching O %.2f  capacity %.0f min (%.0f used today)" % [gs.fitness,
+			gs.strength, gs.overreach, Training.capacity_min(), gs.exercise_minutes_today])
+	lines.append("  recovery: cardio %.2f  strength %.2f" % [gs.cardio_recovery, gs.strength_recovery])
+	lines.append("  sleep debt %.2f h  tiredness %.2f  last sleep %.1f h (night quality %.2f)" % [gs.sleep_debt,
+			SleepModel.tiredness(), gs.last_sleep_hours, gs.night_quality])
+	lines.append("Diet  quality Q %.2f  craving C %.2f  habituation A %.2f" % [gs.diet_quality, gs.craving, gs.habituation])
+	lines.append("Happiness %.3f -> baseline %.3f  fun %.2f  screen excess %.2f" % [gs.happiness, gs.happiness_baseline,
+			Happiness.fun(), Happiness.screen_excess()])
 	lines.append("Measures")
-	lines.append("  physical %.3f  mental %.3f" % [gs.physical, gs.mental])
-	lines.append("  sleep %.3f" % gs.sleep)
+	lines.append("  physical %.3f  happiness %.3f  sleep %.3f" % [gs.physical, gs.happiness, gs.sleep])
 	lines.append("Health target %.2f  displayed %.2f (level %d)" % [gs.target_health, gs.health, gs.health_level])
 	lines.append("Scoring day %d  log entries %d  XP %.1f" % [Habits.current_day, Habits.entries.size(), gs.xp])
 	lines.append("CSV log: %s" % (HealthLog.log_path if HealthLog.enabled else "off"))

@@ -7,7 +7,7 @@ signal changed
 signal leveled_up(new_level: int)
 
 ## Values that always stay between 0 and 1.
-const MEASURES_0_TO_1 := ["physical", "mental", "sleep", "strength", "fitness"]
+const MEASURES_0_TO_1 := ["physical", "happiness", "sleep", "strength", "fitness"]
 ## The player's choices on the avatar creation screen. Empty means not chosen yet.
 const CHOICE_KEYS := ["avatar_name", "age_group", "sex", "difficulty"]
 
@@ -15,12 +15,25 @@ const WhoTables := preload("res://scripts/health/who_tables.gd")
 const Energy := preload("res://scripts/health/energy.gd")
 const Training := preload("res://scripts/health/training.gd")
 const SleepModel := preload("res://scripts/health/sleep_model.gd")
+const Happiness := preload("res://scripts/health/happiness.gd")
 
-# Measures: physical, mental and sleep go from 0 to 1. They are worked out from the
-# body states once per avatar day. Health (1 to 5) is the displayed health: it starts at
-# the target health and moves part of the way toward it once per avatar day.
+# Measures: physical, happiness and sleep go from 0 to 1. Health (1 to 5) is the displayed
+# health: it starts at the target health and moves part of the way toward it once per avatar
+# day. Until Task 8 Physical is the Milestone 4 mix, worked out when a sleep ends.
 var physical: float
-var mental: float
+## Happiness, 0 to 1 (v1 Step 10, Milestone 10 Task 7; called mental before). It moves every
+## step toward happiness_baseline and jumps with events (scripts/health/happiness.gd).
+var happiness: float
+var happiness_baseline: float
+## Diet quality Q, fast-food craving C and habituation A to fast-food pleasure, 0 to 1 (v1 Step 7).
+var diet_quality: float
+var craving: float
+var habituation: float
+## Fun minutes and screen minutes in each of the last 24 avatar hours (v1 Step 10).
+var fun_window: Dictionary
+## Screen minutes in this avatar day, and awake hours since the last screens (the wish for screens).
+var screen_minutes_today: float
+var hours_without_screens: float
 var sleep: float
 var health: float
 ## Energy the avatar wants to eat now, in kcal (Milestone 10, v1 Step 4). Grows every step
@@ -66,7 +79,6 @@ var energy_spent_step := 0.0
 var strength: float
 ## Total kcal spent by exercise so far (not limited to 1). A record only.
 var calories_spent: float
-## Slow body states (Milestone 3, Task 4). Updated once per avatar day by update_body_states().
 ## Aerobic fitness, 0 to 1 (v1 Step 6). Trained every step by Training from cardio and football
 ## (and a little from strength).
 var fitness: float
@@ -74,20 +86,7 @@ var fitness: float
 var sleep_debt: float
 ## WHO BMI-for-age z-score (Milestone 10: worked out every step from weight, height and body age).
 var weight_z: float
-## Mood, 0 to health.mood_max (100). Mental = mood / mood_max.
-var mood: float
-## The scores the mood target averages (MILESTONE_4.md Task 5: s, a, c and e).
-const MOOD_SCORES := ["sleep", "activity", "screens", "enjoyment"]
-## Habit-change cost of the last scoring day, per habit and in total (mood points).
-var habit_costs: Dictionary = {}
-var habit_cost_total := 0.0
-## Usual level H of each habit, as an intensity (0 to 1, see health.habit_intensity):
-## sleep, activity, strength, screens.
-var usual_habits: Dictionary
-## Rootedness R of each habit (0 to 1): how deeply the habit is rooted. It grows on every
-## real day the habit is stable and makes changing that habit cost more (Milestone 4 Task 5).
-var rootedness: Dictionary
-## Tired means sleepy. Placeholder rule: the Clock sets this to true when the day ends.
+## "I'm tired": tiredness is at least avatar_states.tired_at (SleepModel.update_tired()).
 var tired: bool
 ## Avatar hours awake since the last sleep ended (Milestone 10). Simulation adds to it.
 var hours_awake: float
@@ -137,7 +136,6 @@ func reset() -> void:
 	calories_spent = Config.get_float("measures.calories_spent_start")
 	tired = false
 	hours_awake = 0.0
-	health = calculate_health()
 	xp = Config.get_float("xp.start")
 	high_health_hours = 0.0
 	avatar_name = Config.get_string("defaults.avatar_name")
@@ -146,6 +144,7 @@ func reset() -> void:
 	difficulty = ""
 	language = Config.get_string("defaults.language")
 	_apply_body_start()
+	health = calculate_health()
 	changed.emit()
 
 
@@ -153,7 +152,14 @@ func reset() -> void:
 func to_dict() -> Dictionary:
 	return {
 		"physical": physical,
-		"mental": mental,
+		"happiness": happiness,
+		"happiness_baseline": happiness_baseline,
+		"diet_quality": diet_quality,
+		"craving": craving,
+		"habituation": habituation,
+		"fun_window": fun_window.duplicate(true),
+		"screen_minutes_today": screen_minutes_today,
+		"hours_without_screens": hours_without_screens,
 		"sleep": sleep,
 		"health": health,
 		"hunger": hunger,
@@ -178,11 +184,6 @@ func to_dict() -> Dictionary:
 		"night_quality": night_quality,
 		"last_sleep_hours": last_sleep_hours,
 		"weight_z": weight_z,
-		"mood": mood,
-		"habit_costs": habit_costs.duplicate(),
-		"habit_cost_total": habit_cost_total,
-		"usual_habits": usual_habits.duplicate(),
-		"rootedness": rootedness.duplicate(),
 		"tired": tired,
 		"hours_awake": hours_awake,
 		"xp": xp,
@@ -198,7 +199,16 @@ func to_dict() -> Dictionary:
 ## Restores values from to_dict(). Missing keys keep their current value.
 func from_dict(data: Dictionary) -> void:
 	physical = float(data.get("physical", physical))
-	mental = float(data.get("mental", mental))
+	happiness = float(data.get("happiness", happiness))
+	happiness_baseline = float(data.get("happiness_baseline", happiness_baseline))
+	diet_quality = float(data.get("diet_quality", diet_quality))
+	craving = float(data.get("craving", craving))
+	habituation = float(data.get("habituation", habituation))
+	if data.get("fun_window") is Dictionary:
+		fun_window = data["fun_window"].duplicate(true)
+		fun_window["hour"] = int(fun_window.get("hour", -1))
+	screen_minutes_today = float(data.get("screen_minutes_today", screen_minutes_today))
+	hours_without_screens = float(data.get("hours_without_screens", hours_without_screens))
 	sleep = float(data.get("sleep", sleep))
 	health = float(data.get("health", health))
 	hunger = float(data.get("hunger", hunger))
@@ -228,19 +238,6 @@ func from_dict(data: Dictionary) -> void:
 	night_quality = float(data.get("night_quality", night_quality))
 	last_sleep_hours = float(data.get("last_sleep_hours", last_sleep_hours))
 	weight_z = float(data.get("weight_z", weight_z))
-	mood = float(data.get("mood", mood))
-	habit_costs = data.get("habit_costs", {}).duplicate() if data.get("habit_costs") is Dictionary else {}
-	habit_cost_total = float(data.get("habit_cost_total", 0.0))
-	if data.get("rootedness") is Dictionary:
-		for habit in data["usual_habits"]:
-			usual_habits[habit] = float(data["usual_habits"][habit])
-		for habit in data["rootedness"]:
-			rootedness[habit] = float(data["rootedness"][habit])
-	else:
-		# A Milestone 3 save: no rootedness, its usual levels were habit scores and its
-		# mood was 0 to 1. H and R start again from the Normal starting values; mood is scaled.
-		_apply_habit_start(Config.get_string("defaults.difficulty"))
-		mood *= Config.get_float("health_m4.mood_max")
 	tired = bool(data.get("tired", tired))
 	hours_awake = float(data.get("hours_awake", 0.0))
 	xp = float(data.get("xp", xp))
@@ -266,18 +263,10 @@ func start_new_avatar(new_name: String, new_age_group: String, new_sex: String, 
 	changed.emit()
 
 
-## Starting measures and body states of a difficulty (health.difficulties in config).
+## Starting Physical measure of the Milestone 4 code (until Task 8). Every other starting
+## value comes from the v1 difficulty table (_apply_body_start()).
 func _apply_difficulty_start(difficulty_id: String) -> void:
-	var path := "health_m4.difficulties." + difficulty_id
-	physical = Config.get_float(path + ".physical")
-	mental = Config.get_float(path + ".mental")
-	sleep = Config.get_float(path + ".sleep")
-	strength = Config.get_float(path + ".muscle")
-	fitness = Config.get_float(path + ".fitness")
-	sleep_debt = Config.get_float(path + ".sleep_debt")
-	weight_z = Config.get_float(path + ".weight_z")
-	mood = Config.get_float(path + ".mood")
-	_apply_habit_start(difficulty_id)
+	physical = Config.get_float("health_m4.difficulties.%s.physical" % difficulty_id)
 
 
 ## Starting body (Milestone 10): body age from the age group, the starting z of the
@@ -310,6 +299,16 @@ func _apply_body_start() -> void:
 	overreach = 0.0
 	hunger = Config.get_float("meals.start_hunger_meals") * Energy.healthy_portion_kcal(sex_or_default(), body_age_months)
 	hours_since_meal = Config.get_float("meals.min_gap_h")
+	# Happiness and diet (v1 Steps 7 and 10).
+	var path := "health.difficulties.%s." % difficulty_id
+	happiness = Config.get_float(path + "happiness")
+	diet_quality = Config.get_float(path + "Q")
+	craving = Config.get_float(path + "C")
+	habituation = Config.get_float(path + "A")
+	fun_window = Happiness.starting_window()
+	screen_minutes_today = 0.0
+	hours_without_screens = 0.0
+	happiness_baseline = Happiness.baseline()
 
 
 ## The chosen sex, or the default one before the player chooses.
@@ -317,107 +316,17 @@ func sex_or_default() -> String:
 	return sex if not sex.is_empty() else Config.get_string("defaults.sex")
 
 
-## Starting usual level H and rootedness R of each habit for a difficulty.
-func _apply_habit_start(difficulty_id: String) -> void:
-	var path := "health_m4.difficulties." + difficulty_id
-	usual_habits = Config.get_value(path + ".start_H").duplicate()
-	rootedness = {}
-	for habit in usual_habits:
-		rootedness[habit] = Config.get_float(path + ".start_R")
-
-
-## Recommended sleep range for an age group, in hours: x = minimum, y = maximum.
-## An empty age group uses the default one.
-func sleep_range(group: String) -> Vector2:
-	var hours: Array = Config.get_value("health_m4.sleep_range." + _age_group_or_default(group))
-	return Vector2(float(hours[0]), float(hours[1]))
-
-
-## The one number of recommended sleep used by the sleep debt formula (hours).
-func recommended_sleep(group: String) -> float:
-	return Config.get_float("health_m4.sleep_recommended." + _age_group_or_default(group))
-
-
 func _age_group_or_default(group: String) -> String:
 	return group if not group.is_empty() else Config.get_string("defaults.age_group")
 
 
-## Once per scoring day, when a sleep ends, after the habit scores (Habits calls this).
-## scores: sleep, activity, strength, screens, enjoyment (0 to 1). sleep_hours: hours of
-## that sleep. intensities: today's intensity A of each habit (Habits.intensities());
-## a habit missing from it keeps its usual level.
-## The slow states that use k run the real-day update k times (Milestone 4 Task 4), so
-## one avatar day counts as k real days for the body and never overshoots.
-func update_body_states(scores: Dictionary, sleep_hours: float, intensities: Dictionary = {}) -> void:
-	var real_days := real_days_per_avatar_day()
-	# Sleep debt and the Sleep measure: SleepModel.new_day() (Milestone 10, Task 6).
-	# The cost of changing habits uses H and R from before this day.
-	habit_costs = habit_change_costs(intensities)
-	habit_cost_total = total_habit_cost(habit_costs)
-	# Per real day, a habit moves the share that reaches habit_share_reached (95%) of a
-	# new habit in habit_days_to_95 days.
-	var habit_rate := 1.0 - pow(1.0 - Config.get_float("health_m4.habit_share_reached"),
-			1.0 / Config.get_float("health_m4.habit_days_to_95"))
-	var lambda := Config.get_float("health_m4.habit_cost.lambda")
-	var tolerance := Config.get_float("health_m4.habit_cost.T")
-	for i in real_days:
-		for habit in usual_habits:
-			# Rootedness grows only while the habit is stable (|A - H| at most T), so a
-			# change in progress does not become more expensive every day.
-			var stable := true
-			if intensities.has(habit):
-				stable = absf(float(intensities[habit]) - usual_habits[habit]) <= tolerance
-				usual_habits[habit] = clampf(usual_habits[habit] + habit_rate * (float(intensities[habit]) - usual_habits[habit]), 0.0, 1.0)
-			if stable:
-				rootedness[habit] = clampf(rootedness[habit] + lambda * (1.0 - rootedness[habit]), 0.0, 1.0)
-	# Fitness and strength are trained every step by Training (Milestone 10, Task 5), and
-	# weight and z change every step (Task 4).
-	mood = clampf(mood + Config.get_float("health_m4.mood_speed") * (mood_target(scores) - mood) - habit_cost_total,
-			0.0, Config.get_float("health_m4.mood_max"))
-	_update_measures(float(scores.get("sleep", 0.0)))
+## Once per avatar day, when a sleep ends (Habits calls this): the Milestone 4 Physical
+## measure and the displayed health step (until Task 8). Sleep debt and Sleep, happiness, diet,
+## fitness, strength and weight change in Simulation's steps and events.
+func daily_update() -> void:
+	physical = physical_from_body(fitness, strength, weight_z)
 	_step_health()
 	changed.emit()
-
-
-## How many real days one avatar day counts for the body: k, rounded to a whole number.
-func real_days_per_avatar_day() -> int:
-	return maxi(1, roundi(Config.get_float("health_m4.k")))
-
-
-## Team model for the cost of changing habits (health.habit_cost), in mood points.
-## For each habit, with A = today's intensity, H = usual level, R = rootedness:
-## D = max(0, |A - H| - T), P = min(P_max, alpha x alpha_factor x R^gamma x D^gamma).
-## Small changes (up to T) cost nothing; with gamma 2 two small steps cost less than one
-## big one, and a big jump in a well-rooted habit costs most. Sleep has factor 0.
-func habit_change_costs(intensities: Dictionary) -> Dictionary:
-	var path := "health_m4.habit_cost."
-	var tolerance := Config.get_float(path + "T")
-	var alpha := Config.get_float(path + "alpha")
-	var gamma := Config.get_float(path + "gamma")
-	var p_max := Config.get_float(path + "P_max")
-	var costs := {}
-	for habit in usual_habits:
-		if not intensities.has(habit):
-			continue
-		var deviation := maxf(0.0, absf(float(intensities[habit]) - usual_habits[habit]) - tolerance)
-		var factor := Config.get_float(path + "alpha_factor." + habit)
-		costs[habit] = minf(p_max, alpha * factor * pow(rootedness[habit], gamma) * pow(deviation, gamma))
-	return costs
-
-
-## The day's total cost: the sum over the habits, with no cap (P_max limits each habit).
-func total_habit_cost(costs: Dictionary) -> float:
-	var total := 0.0
-	for habit in costs:
-		total += costs[habit]
-	return total
-
-
-## The three measures from the body states (CLAUDE.md, Health calculation, step 4).
-func _update_measures(_sleep_score: float) -> void:
-	physical = physical_from_body(fitness, strength, weight_z)
-	# sleep: worked out by SleepModel.new_day() (Milestone 10, Task 6).
-	mental = clampf(mood / Config.get_float("health_m4.mood_max"), 0.0, 1.0)
 
 
 ## The displayed health moves daily_alpha of the way toward the target health.
@@ -429,15 +338,6 @@ func _step_health() -> void:
 	if change != 0.0:
 		add_xp(change * Config.get_float("xp.per_health_point"))
 
-
-
-## The level mood moves toward: mood_max x the average of the sleep, activity, screens
-## and enjoyment scores.
-func mood_target(scores: Dictionary) -> float:
-	var total := 0.0
-	for key in MOOD_SCORES:
-		total += float(scores.get(key, 0.0))
-	return Config.get_float("health_m4.mood_max") * total / MOOD_SCORES.size()
 
 
 ## Failure (there is no death): the displayed health has reached the minimum
@@ -462,15 +362,15 @@ func has_all_choices(data: Dictionary) -> bool:
 
 ## Target health from the current measures.
 func calculate_health() -> float:
-	return health_from_measures(physical, mental, sleep)
+	return health_from_measures(physical, happiness, sleep)
 
 
 ## Weighted power mean of the three measures (health.combine in config),
 ## mapped from 0..1 to health_min..health_max.
-func health_from_measures(p_physical: float, p_mental: float, p_sleep: float) -> float:
-	var values := [clampf(p_physical, 0.0, 1.0), clampf(p_mental, 0.0, 1.0), clampf(p_sleep, 0.0, 1.0)]
+func health_from_measures(p_physical: float, p_happiness: float, p_sleep: float) -> float:
+	var values := [clampf(p_physical, 0.0, 1.0), clampf(p_happiness, 0.0, 1.0), clampf(p_sleep, 0.0, 1.0)]
 	var weights := [Config.get_float("health_m4.combine.weights.physical"),
-			Config.get_float("health_m4.combine.weights.mental"), Config.get_float("health_m4.combine.weights.sleep")]
+			Config.get_float("health_m4.combine.weights.happiness"), Config.get_float("health_m4.combine.weights.sleep")]
 	var total_weight := 0.0
 	for weight in weights:
 		total_weight += weight
@@ -512,7 +412,7 @@ func physical_from_body(fitness: float, muscle_value: float, weight_z: float) ->
 
 
 ## Called by the Clock as avatar time passes. Measures and health change only once per
-## avatar day (update_body_states); here only the XP over time.
+## avatar day (daily_update()); here only the XP over time.
 func apply_avatar_hours(hours: float, _asleep: bool) -> void:
 	_apply_time_xp(hours)
 	changed.emit()
@@ -564,11 +464,9 @@ func print_state() -> void:
 	print("--- GameState ---")
 	print("avatar_name='%s' age_group=%s sex=%s difficulty=%s language=%s" % [
 			avatar_name, age_group, sex, difficulty, language])
-	print("physical=%.2f mental=%.2f sleep=%.2f" % [physical, mental, sleep])
+	print("physical=%.2f happiness=%.2f sleep=%.2f" % [physical, happiness, sleep])
 	print("strength=%.2f calories_spent=%.0f" % [strength, calories_spent])
-	print("fitness=%.3f sleep_debt=%.2f h weight_z=%+.1f mood=%.1f habit cost=%.2f" % [fitness, sleep_debt, weight_z, mood, habit_cost_total])
-	print("usual_habits=%s" % usual_habits)
-	print("rootedness=%s" % rootedness)
+	print("fitness=%.3f sleep_debt=%.2f h weight_z=%+.1f Q=%.2f C=%.2f A=%.2f" % [fitness, sleep_debt, weight_z, diet_quality, craving, habituation])
 	print("hunger=%.0f kcal weight=%.1f kg tired=%s" % [hunger, weight_kg, tired])
 	print("health=%.2f (level %d) target=%.2f" % [health, health_level, target_health])
 	print("xp=%.1f level=%d progress=%.2f" % [xp, level, level_progress])

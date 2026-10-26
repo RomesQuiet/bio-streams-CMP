@@ -70,32 +70,32 @@ func _test_day_activity(activities: Node, game_state: Node, clock: Node) -> void
 		"options": {"play": {
 			"name": "Play",
 			"duration_hours": 2,
-			"effects_per_hour": {"mental": 0.1},
+			"effects_per_hour": {"calories_spent": 10.0},
 			"background_color": "#336633",
 			"animation": "hop",
 		}},
 	}
-	var mental_before: float = game_state.mental
+	var record_before: float = game_state.calories_spent
 	var day_before: float = clock.day_elapsed_hours
 	_check("day activity starts", activities.start("test_play", "play"))
 	_check("sleep is locked while it runs", not activities.can_start("sleep"))
 	while activities.is_running():
 		clock._process(STEP_SECONDS)
 	_check("day activity ends by itself after 2 h", absf(_ended_hours - 2.0) < TOLERANCE)
-	_check("full effect applied (+0.2 mental)", absf(game_state.mental - (mental_before + 0.2)) < TOLERANCE)
+	_check("full effect applied (+20 in the calories record)", absf(game_state.calories_spent - (record_before + 20.0)) < TOLERANCE)
 	_check("day time moved on", clock.day_elapsed_hours >= day_before + 2.0 - TOLERANCE)
 
-	mental_before = game_state.mental
+	record_before = game_state.calories_spent
 	clock.debug_speed = 60.0  # Smaller steps, so the stop lands close to 1 h.
 	activities.start("test_play", "play")
 	while activities.elapsed_hours < 1.0:
 		clock._process(STEP_SECONDS)
 	var done: float = activities.elapsed_hours
 	activities.stop()
-	_check("stop halfway applies about half", absf(game_state.mental - (mental_before + 0.1 * done)) < TOLERANCE and absf(done - 1.0) < 0.1)
-	var mental_after: float = game_state.mental
+	_check("stop halfway applies about half", absf(game_state.calories_spent - (record_before + 10.0 * done)) < TOLERANCE and absf(done - 1.0) < 0.1)
+	var record_after: float = game_state.calories_spent
 	clock._process(STEP_SECONDS)
-	_check("no effects after the activity ends", is_equal_approx(game_state.mental, mental_after))
+	_check("no effects after the activity ends", is_equal_approx(game_state.calories_spent, record_after))
 	activities.definitions.erase("test_play")
 
 
@@ -149,8 +149,8 @@ func _test_exercise(activities: Node, game_state: Node, clock: Node) -> void:
 	clock.debug_speed = 600.0
 
 
-## Entertainment has Screens and Football (decision 4), one hour each, with no per-hour effect
-## on the mental measure: screens are logged as screen time, and mood changes once per avatar day.
+## Entertainment has Screens and Football (decision 4), one hour each, with no per-hour effect value
+## on happiness: screens are logged as screen time, and happiness changes every step (v1 Step 10).
 func _test_entertainment(activities: Node, game_state: Node, clock: Node, _save_game: Node) -> void:
 	var option: Dictionary = activities.get_option("entertainment", "screens")
 	var football: Dictionary = activities.get_option("entertainment", "football")
@@ -162,12 +162,12 @@ func _test_entertainment(activities: Node, game_state: Node, clock: Node, _save_
 	game_state.reset()
 	var habits: Node = root.get_node("Habits")
 	var logged_before: int = habits.entries.size()
-	var mental_before: float = game_state.mental
+	var happiness_before: float = game_state.happiness
 	clock.debug_speed = 600.0
 	_check("screens start", activities.start("entertainment", "screens"))
 	while activities.is_running():
 		clock._process(STEP_SECONDS)
-	_check("mental does not change during entertainment", is_equal_approx(game_state.mental, mental_before))
+	_check("happiness rises during screens (v1: +0.05 per hour in the first 2 h)", game_state.happiness > happiness_before)
 	_check("screens are logged", habits.entries.size() == logged_before + 1 and habits.entries[-1]["type"] == "screens")
 
 
