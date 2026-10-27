@@ -108,6 +108,7 @@ Other team decisions that still hold: k = 10 (applies to sleep debt too); there 
 - **Activities must not run into the end of the awake period** in tests: the 0-hour rule starts a new day. The scenario test cuts an activity 0.01 h before the end.
 - **New test scripts get their `.uid` file only when the Godot editor scans the project**; commit the `.uid` files it creates.
 - **Shell:** macOS `sed` has no `\b`; use `perl -pi -e`. The Edit tool needs the file read first with the Read tool.
+- **Text fields on phones (web):** Godot 4.6's web build gives a focused LineEdit a hidden editable box (its IME support). On Android that box opens the keyboard, but it only passes real key presses, and phone keyboards send "Unidentified" keys (code 229), so no letter arrives. The experimental virtual keyboard export option is off and would fight with that box. Fix (27 Oct 2026): on `OS.has_feature("web")` with a touch screen, the name field never takes focus and a tap asks `window.prompt` through `JavaScriptBridge.eval` (`scripts/ui/creation.gd`). Any new text field needs the same. To test in the browser pane: `resize_window` preset mobile, a fresh origin (`127.0.0.1:8060` instead of `localhost:8060`, which has a save), replace `window.prompt` with a stand-in through `javascript_tool`, and refresh cached files with `fetch(f, {cache: 'reload'})` after an export.
 
 ## 6. Commands
 

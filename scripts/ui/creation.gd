@@ -2,8 +2,15 @@ extends Control
 ## Avatar creation screen, shown when there is no save. The player types a name and
 ## chooses the age group, sex and difficulty, then Start opens the main screen.
 ## Game time does not pass on this screen.
+## Phones and tablets in a browser: Godot's web text input only understands real key presses,
+## and their on-screen keyboards do not send them (Android sends "Unidentified" keys), so the
+## letters never reach the name field. There the field only shows the name, and a tap on it
+## opens the browser's own text box, which those keyboards type into normally.
 
 const MAIN_SCENE := "res://scenes/main.tscn"
+## The question in the browser's text box, and the field's hint when it opens that box.
+const NAME_QUESTION := "Name of your avatar:"
+const TAP_HINT := "Tap to type a name"
 
 ## Choice id (saved in GameState) -> text on the button.
 const AGE_GROUPS := {
@@ -50,6 +57,9 @@ func _ready() -> void:
 	Clock.set_paused(true)
 	name_edit.max_length = Config.get_int("creation.name_max_length")
 	name_edit.text_changed.connect(_refresh.unbind(1))
+	var browser_box := OS.has_feature("web") and DisplayServer.is_touchscreen_available()
+	if browser_box:
+		use_browser_name_box()
 	_add_choice_buttons(age_buttons, AGE_GROUPS, func(id: String) -> void: _age_group = id)
 	_add_choice_buttons(sex_buttons, SEXES, func(id: String) -> void: _sex = id)
 	var difficulty_names := {}
@@ -58,7 +68,39 @@ func _ready() -> void:
 	_add_choice_buttons(difficulty_buttons, difficulty_names, func(id: String) -> void: _difficulty = id)
 	start_button.pressed.connect(_on_start_pressed)
 	_refresh()
-	name_edit.grab_focus()
+	if not browser_box:
+		name_edit.grab_focus()
+
+
+## Touch screens in a browser: the name field never takes focus (so Godot does not open its
+## own keyboard box), and a tap on it asks for the name in the browser's text box.
+func use_browser_name_box() -> void:
+	name_edit.focus_mode = Control.FOCUS_NONE
+	name_edit.placeholder_text = TAP_HINT
+	name_edit.gui_input.connect(_on_name_tapped)
+
+
+func _on_name_tapped(event: InputEvent) -> void:
+	if not (event is InputEventMouseButton or event is InputEventScreenTouch):
+		return
+	# The field itself must not react (it would try to start editing).
+	name_edit.accept_event()
+	var tap := event as InputEventMouseButton
+	if tap and tap.button_index == MOUSE_BUTTON_LEFT and not tap.pressed:
+		set_typed_name(JavaScriptBridge.eval("window.prompt(%s, %s)" % [JSON.stringify(NAME_QUESTION),
+				JSON.stringify(name_edit.text)]))
+
+
+## A name typed outside the field (in the browser's text box). null (Cancel) keeps the name;
+## spaces at the ends are removed and the name is cut to the longest allowed.
+func set_typed_name(answer: Variant) -> void:
+	if answer == null:
+		return
+	var typed := str(answer).strip_edges()
+	if name_edit.max_length > 0:
+		typed = typed.left(name_edit.max_length)
+	name_edit.text = typed
+	_refresh()
 
 
 ## One toggle button per choice. Only one button of the group can be pressed;
