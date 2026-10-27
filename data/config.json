@@ -140,7 +140,8 @@
 		"cardio_recovery_h": {"value": 6, "status": "placeholder", "owner": "Pessoa 3", "comment": "Recovery time constant, clock time."},
 		"strength_tire_min": {"value": 45, "status": "placeholder", "owner": "Pessoa 3"},
 		"strength_recovery_h": {"value": 24, "status": "from source", "owner": "Pessoa 3", "comment": "Clock time; 86% recovered after 48 h (AAP 2020: non-consecutive days)."},
-		"strength_ready": {"value": 0.6, "status": "placeholder", "owner": "Pessoa 3", "comment": "A strength session that starts below this recovery counts as too soon: it gives no effective minutes, and all its minutes build overreaching (user decision, 25 Oct 2026)."}
+		"strength_ready": {"value": 0.6, "status": "placeholder", "owner": "Pessoa 3", "comment": "A strength session that starts below this recovery counts as too soon: it gives no effective minutes, and all its minutes build overreaching (user decision, 25 Oct 2026)."},
+		"strength_min_gap_h": {"value": 36, "status": "placeholder", "owner": "Pessoa 3", "comment": "Milestone 10.5 (team review, 27 Oct 2026): a strength session that starts less than this many avatar hours (clock time) after the start of the previous strength session is too soon as well, so strength every day does less good than 2 to 3 non-consecutive days a week (AAP 2020). Plans with 48 h or more between sessions are not affected."}
 	},
 
 	"minigame": {

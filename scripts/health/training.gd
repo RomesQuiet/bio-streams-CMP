@@ -6,8 +6,9 @@ extends RefCounted
 ## - Recovery (clock time): cardio and football tire the body (fully after cardio_tire_min
 ##   continuous minutes) and recover with cardio_recovery_h; strength tires after
 ##   strength_tire_min and recovers with strength_recovery_h. A strength session that starts
-##   below strength_ready counts as too soon: it gives no effective minutes, and all its
-##   minutes build O (user decision, 25 Oct 2026).
+##   below strength_ready, or less than strength_min_gap_h after the start of the previous
+##   strength session (Milestone 10.5, team review), counts as too soon: it gives no effective
+##   minutes, and all its minutes build O (user decision, 25 Oct 2026).
 ## - Effective minutes = minutes x performance x recovery (0 beyond capacity). Their sum over
 ##   the last 24 avatar hours gives A_cardio and A_strength (minutes per day).
 ## - Fitness and strength move toward their targets with time constants in body time
@@ -29,10 +30,14 @@ static func kind(option_id: String) -> String:
 	return ""
 
 
-## Called when an activity starts: a strength session below train.strength_ready is too soon.
+## Called when an activity starts: a strength session below train.strength_ready, or within
+## train.strength_min_gap_h of the start of the previous one, is too soon.
 static func on_activity_started(option_id: String) -> void:
 	if kind(option_id) == STRENGTH:
-		GameState.strength_too_soon = GameState.strength_recovery < Config.get_float("train.strength_ready")
+		var gs := GameState
+		gs.strength_too_soon = gs.strength_recovery < Config.get_float("train.strength_ready") \
+				or gs.hours_since_strength < Config.get_float("train.strength_min_gap_h")
+		gs.hours_since_strength = 0.0
 
 
 ## A new avatar day (after any sleep, or the 0-hour rule): the daily capacity starts again.
@@ -61,6 +66,8 @@ static func step(hours: float, _asleep: bool) -> void:
 	var doing := kind(Activities.current_option) if Activities.is_running() else ""
 	var excess := 0.0
 	gs.beyond_capacity_minutes_step = 0.0
+	# Clock time since the last strength session started (the minimum gap).
+	gs.hours_since_strength += hours
 	if not doing.is_empty():
 		var within := minf(minutes, maxf(0.0, capacity_min() - gs.exercise_minutes_today))
 		var beyond := minutes - within

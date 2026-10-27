@@ -2,9 +2,10 @@ extends SceneTree
 ## Tests for training (Milestone 10, Task 5; v1 Step 6). Run from the project folder:
 ##   Godot --headless --path . -s res://tests/training_test.gd
 ## Checks the daily capacity, minutes beyond it, recovery (strength 86% after 48 h), a strength
-## session that starts too soon, the starting window, and then plays three v1 plans for 21
-## avatar days through the real game: the guideline plan raises fitness and strength; 4 h of
-## cardio a day and strength twice a day end with less strength and build overreaching.
+## session that starts too soon (low recovery, or within 36 h of the previous start: Milestone
+## 10.5), the starting window, and then plays four plans for 21 avatar days through the real
+## game: the guideline plan raises fitness and strength; 4 h of cardio a day, strength twice a
+## day and strength every day end with less strength and build overreaching.
 ## Uses a test save path; the real save is never touched.
 
 const TOLERANCE := 0.001
@@ -27,6 +28,7 @@ func _process(_delta: float) -> bool:
 	_test_capacity_and_performance()
 	_test_recovery()
 	_test_too_soon_and_beyond_capacity()
+	_test_minimum_gap()
 	_test_starting_window()
 	_test_plans()
 
@@ -102,6 +104,31 @@ func _test_too_soon_and_beyond_capacity() -> void:
 	_check("O fades with rest (a week: under 10% of it is left)", gs.overreach < 0.1 * overreach_before)
 
 
+## Milestone 10.5 (team review): a strength session that starts less than train.strength_min_gap_h
+## (36 h) after the start of the previous one is too soon, even when the muscles have recovered
+## past train.strength_ready (0.6, reached about 23 h after a full session).
+func _test_minimum_gap() -> void:
+	var gap: float = root.get_node("Config").get_float("train.strength_min_gap_h")
+	var gs := _new_avatar("normal")
+	_check("a new avatar's first strength session is never too soon by the gap", gs.hours_since_strength >= gap)
+	_play_activity("exercise", "strength", 1.0)
+	_steps(23.0)
+	print("  24 h after the last start: recovery %.2f (ready at 0.60), %.1f h since that start (gap %.0f h)"
+			% [gs.strength_recovery, gs.hours_since_strength, gap])
+	_check("24 h later the muscles have recovered past 0.6", gs.strength_recovery >= 0.6)
+	var effective_before: float = training.effective_minutes("strength")
+	var overreach_before: float = gs.overreach
+	_play_activity("exercise", "strength", 1.0)
+	_check("...but a session 24 h after the last start is too soon (36 h gap)", gs.strength_too_soon)
+	_check("...so it gives no effective minutes and builds O", training.effective_minutes("strength") <= effective_before + TOLERANCE
+			and gs.overreach > overreach_before)
+	gs = _new_avatar("normal")
+	_play_activity("exercise", "strength", 1.0)
+	_steps(47.0)
+	_play_activity("exercise", "strength", 1.0)
+	_check("a session 48 h after the last start is not too soon", not gs.strength_too_soon)
+
+
 ## A new avatar's window gives its starting fitness and strength as targets, so the levels
 ## stay put until the player does something different; with no exercise they fall slowly.
 func _test_starting_window() -> void:
@@ -117,14 +144,19 @@ func _test_starting_window() -> void:
 	_check("with no exercise for 2 days fitness falls (the window empties)", gs.fitness < start)
 
 
-## v1 'Predicted results': guideline plan vs 4 h of cardio a day vs strength twice a day.
+## v1 'Predicted results': guideline plan vs 4 h of cardio a day vs strength twice a day; and
+## strength every day (team review, Milestone 10.5).
 func _test_plans() -> void:
 	var guideline := _play_plan("guideline")
 	var cardio_4h := _play_plan("cardio_4h")
 	var strength_2x := _play_plan("strength_2x")
-	print("  after %d avatar days (v1: guideline fitness 0.83 strength 0.70; 4 h cardio 0.86 / 0.50; strength twice 0.66 / 0.34)" % DAYS)
-	for row in [["guideline", guideline], ["4 h cardio", cardio_4h], ["strength twice", strength_2x]]:
+	var strength_daily := _play_plan("strength_daily")
+	print("  after %d avatar days (v1: guideline fitness 0.83 strength 0.70; 4 h cardio 0.86 / 0.50; strength twice 0.66 / 0.34;" % DAYS
+			+ " review: strength every day 0.44 with the 36 h gap)")
+	for row in [["guideline", guideline], ["4 h cardio", cardio_4h], ["strength twice", strength_2x], ["strength daily", strength_daily]]:
 		print("    %-15s fitness %.2f  strength %.2f  O %.2f" % [row[0], row[1]["fitness"], row[1]["strength"], row[1]["overreach"]])
+	_check("strength every day: less strength than the guideline plan (36 h gap)", strength_daily["strength"] < guideline["strength"])
+	_check("strength every day builds overreaching", strength_daily["overreach"] > 0.2)
 	_check("the guideline plan raises fitness and strength (from 0.40)", guideline["fitness"] > 0.6 and guideline["strength"] > 0.55)
 	_check("the guideline plan builds no overreaching", guideline["overreach"] < 0.05)
 	_check("4 h of cardio a day: less strength than the guideline plan", cardio_4h["strength"] < guideline["strength"])
@@ -138,6 +170,7 @@ func _test_plans() -> void:
 ## Every day: healthy meals at 0, 4.5, 8 and 12 h awake, then 10.5 h of sleep.
 ## guideline: 1 h cardio every day, 1 h strength on 3 non-consecutive days a week.
 ## cardio_4h: 4 h cardio every day. strength_2x: 1 h cardio and 1 h strength twice every day.
+## strength_daily: 1 h cardio and 1 h strength every day.
 func _play_plan(plan: String) -> Dictionary:
 	var gs := _new_avatar("normal")
 	for day in DAYS:
@@ -154,6 +187,9 @@ func _play_plan(plan: String) -> Dictionary:
 				events.append([1.0, "exercise", "cardio"])
 				events.append([2.5, "exercise", "strength"])
 				events.append([6.0, "exercise", "strength"])
+			"strength_daily":
+				events.append([1.0, "exercise", "cardio"])
+				events.append([2.5, "exercise", "strength"])
 		events.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
 		for event in events:
 			_idle_until(event[0])

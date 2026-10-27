@@ -37,8 +37,8 @@ func header() -> PackedStringArray:
 			"difficulty", "age_group", "sex",
 			"body_age_months", "height_cm", "weight_kg", "z", "weight_score",
 			"hunger_kcal", "hours_since_meal", "kcal_eaten_24h", "kcal_spent_24h", "deficit_u", "calories_spent",
-			"fitness", "strength", "cardio_recovery", "strength_recovery", "exercise_min_today", "capacity_min", "overreach",
-			"sleep_debt", "tiredness", "hours_awake", "night_quality",
+			"fitness", "strength", "cardio_recovery", "strength_recovery", "hours_since_strength", "exercise_min_today",
+			"capacity_min", "overreach", "sleep_debt", "tiredness", "hours_awake", "night_quality",
 			"diet_quality", "craving", "habituation", "fun", "screen_excess", "happiness_baseline",
 			"physical", "happiness", "sleep", "target_health", "health", "health_level", "xp",
 			"health_low_hours", "happiness_low_hours", "risk_index", "disease_damage"])
@@ -52,7 +52,8 @@ func row() -> PackedStringArray:
 	for value in [gs.body_age_months, gs.height_m * Config.get_float("units.cm_per_m"), gs.weight_kg, gs.weight_z,
 			BodySize.weight_score(gs.weight_z),
 			gs.hunger, gs.hours_since_meal, Energy.window_total("eaten"), Energy.window_total("spent"), gs.deficit_u, gs.calories_spent,
-			gs.fitness, gs.strength, gs.cardio_recovery, gs.strength_recovery, gs.exercise_minutes_today, Training.capacity_min(), gs.overreach,
+			gs.fitness, gs.strength, gs.cardio_recovery, gs.strength_recovery, gs.hours_since_strength, gs.exercise_minutes_today,
+			Training.capacity_min(), gs.overreach,
 			gs.sleep_debt, SleepModel.tiredness(), gs.hours_awake, gs.night_quality,
 			gs.diet_quality, gs.craving, gs.habituation, Happiness.fun(), Happiness.screen_excess(), gs.happiness_baseline,
 			gs.physical, gs.happiness, gs.sleep, gs.target_health, gs.health]:

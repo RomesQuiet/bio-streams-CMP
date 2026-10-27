@@ -58,8 +58,11 @@ var sim_hours: float
 ## Training (Milestone 10, v1 Step 6). Recovery of cardio and of strength, 0 to 1 (1 = rested).
 var cardio_recovery: float
 var strength_recovery: float
-## Whether the strength session running now started too soon (below train.strength_ready).
+## Whether the strength session running now started too soon (below train.strength_ready, or
+## within train.strength_min_gap_h of the previous start).
 var strength_too_soon: bool
+## Avatar hours (clock time) since the last strength session started (Milestone 10.5).
+var hours_since_strength: float
 ## Minutes of exercise done in this avatar day (they use up the daily capacity).
 var exercise_minutes_today: float
 ## Excess minutes per day, averaged over train.overreach_tau_h, and the overreaching load O (0 to 1).
@@ -180,6 +183,7 @@ func to_dict() -> Dictionary:
 		"cardio_recovery": cardio_recovery,
 		"strength_recovery": strength_recovery,
 		"strength_too_soon": strength_too_soon,
+		"hours_since_strength": hours_since_strength,
 		"exercise_minutes_today": exercise_minutes_today,
 		"overreach_minutes": overreach_minutes,
 		"overreach": overreach,
@@ -236,6 +240,7 @@ func from_dict(data: Dictionary) -> void:
 	cardio_recovery = float(data.get("cardio_recovery", cardio_recovery))
 	strength_recovery = float(data.get("strength_recovery", strength_recovery))
 	strength_too_soon = bool(data.get("strength_too_soon", strength_too_soon))
+	hours_since_strength = float(data.get("hours_since_strength", hours_since_strength))
 	exercise_minutes_today = float(data.get("exercise_minutes_today", exercise_minutes_today))
 	overreach_minutes = float(data.get("overreach_minutes", overreach_minutes))
 	overreach = float(data.get("overreach", overreach))
@@ -302,6 +307,8 @@ func _apply_body_start() -> void:
 	SleepModel.update_tired()
 	strength_recovery = 1.0
 	strength_too_soon = false
+	# Long enough ago that the first strength session is never too soon.
+	hours_since_strength = Config.get_float("train.strength_min_gap_h")
 	exercise_minutes_today = 0.0
 	overreach_minutes = 0.0
 	overreach = 0.0
