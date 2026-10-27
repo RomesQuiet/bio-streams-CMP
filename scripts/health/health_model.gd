@@ -11,6 +11,9 @@ extends RefCounted
 ## - Failure (no death): target health below fail.health_line for fail.health_hours (decision
 ##   10: the target, not the slow bar), or happiness below fail.happiness_line for
 ##   fail.happiness_hours (clock time).
+## - Danger state of severe thinness (Milestone 10.5, team review): z below fail.danger_z. It
+##   ends only when z is back at fail.danger_z or above (decision 11). It is failure too when it
+##   lasts fail.danger_hours, or when z reaches fail.danger_failure_z.
 
 const BodySize := preload("res://scripts/health/body_size.gd")
 const Progress := preload("res://scripts/health/progress.gd")
@@ -64,6 +67,13 @@ static func step(hours: float, _asleep: bool) -> void:
 	var gs := GameState
 	gs.health_low_hours = gs.health_low_hours + hours if gs.target_health < Config.get_float("fail.health_line") else 0.0
 	gs.happiness_low_hours = gs.happiness_low_hours + hours if gs.happiness < Config.get_float("fail.happiness_line") else 0.0
+	gs.danger_hours = gs.danger_hours + hours if in_danger() else 0.0
+
+
+## The danger state of severe thinness: BMI-for-age z below fail.danger_z (WHO severe thinness).
+## The avatar looks thin and ill and the health bar warns.
+static func in_danger() -> bool:
+	return GameState.weight_z < Config.get_float("fail.danger_z")
 
 
 ## Once per avatar day (when a sleep ends): the displayed health moves part of the way to the
@@ -75,8 +85,20 @@ static func daily_step() -> void:
 	Progress.on_health_change(change)
 
 
-## Failure: target health or happiness has stayed below its line for long enough.
+## Failure: severe thinness for too long, or target health or happiness below its line for long
+## enough.
 static func is_at_failure() -> bool:
+	return not failure_cause().is_empty()
+
+
+## Why the avatar is at failure: "thinness" (the danger state lasted fail.danger_hours, or z
+## reached fail.danger_failure_z), "health", "happiness", or "" when it is not.
+static func failure_cause() -> String:
 	var gs := GameState
-	return gs.health_low_hours >= Config.get_float("fail.health_hours") \
-			or gs.happiness_low_hours >= Config.get_float("fail.happiness_hours")
+	if gs.danger_hours >= Config.get_float("fail.danger_hours") or gs.weight_z <= Config.get_float("fail.danger_failure_z"):
+		return "thinness"
+	if gs.health_low_hours >= Config.get_float("fail.health_hours"):
+		return "health"
+	if gs.happiness_low_hours >= Config.get_float("fail.happiness_hours"):
+		return "happiness"
+	return ""

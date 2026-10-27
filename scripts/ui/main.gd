@@ -5,9 +5,17 @@ extends Control
 const CREATION_SCENE := "res://scenes/ui/creation.tscn"
 const Hunger := preload("res://scripts/health/hunger.gd")
 const AvatarStates := preload("res://scripts/health/avatar_states.gd")
-## Placeholder failure message (the failure effect is not decided yet). Failure: target
-## health or happiness has stayed below its line for too long (fail group in config).
-const FAILURE_TEXT := "Failure: my health or happiness has stayed too low for too long."
+const HealthModel := preload("res://scripts/health/health_model.gd")
+## Placeholder failure messages by cause (HealthModel.failure_cause(); the failure effect is not
+## decided yet): severe thinness for too long, or target health or happiness below its line for
+## too long (fail group in config).
+const FAILURE_TEXTS := {
+	"thinness": "Failure: I have been severely thin for too long.",
+	"health": "Failure: my health has stayed too low for too long.",
+	"happiness": "Failure: my happiness has stayed too low for too long.",
+}
+## Placeholder health bar warning in the danger state of severe thinness (Milestone 10.5).
+const DANGER_TEXT := "Health: danger"
 
 ## Sky colours. The sky follows the clock (daylight hours in config), not whether
 ## the avatar is awake or asleep.
@@ -19,6 +27,8 @@ const FAILURE_TEXT := "Failure: my health or happiness has stayed too low for to
 @export var backdrop_fade_seconds := 0.8
 ## How long the "Level up!" message stays in the speech bubble (real seconds).
 @export var level_up_message_seconds := 3.0
+## Health bar colour in the danger state of severe thinness (placeholder warning).
+@export var danger_bar_color := Color(1.0, 0.4, 0.35)
 
 @onready var sky: ColorRect = $Background
 @onready var activity_backdrop: ColorRect = %ActivityBackdrop
@@ -26,6 +36,7 @@ const FAILURE_TEXT := "Failure: my health or happiness has stayed too low for to
 @onready var health_level_button: Button = %HealthLevelButton
 @onready var health_bar_button: Button = %HealthBarButton
 @onready var health_bar: ProgressBar = %HealthBar
+@onready var health_label: Label = %HealthLabel
 @onready var health_panel: PanelContainer = %HealthPanel
 @onready var physical_button: Button = %PhysicalButton
 @onready var physical_bar: ProgressBar = %PhysicalBar
@@ -230,6 +241,10 @@ func _refresh_sky() -> void:
 func _refresh() -> void:
 	health_level_button.text = str(GameState.health_level)
 	health_bar.value = GameState.health
+	# The danger state of severe thinness: the health bar warns.
+	var danger := HealthModel.in_danger()
+	health_bar.self_modulate = danger_bar_color if danger else Color.WHITE
+	health_label.text = DANGER_TEXT if danger else "Health"
 	physical_bar.value = GameState.physical
 	happiness_bar.value = GameState.happiness
 	sleep_bar.value = GameState.sleep
@@ -283,7 +298,7 @@ func _refresh_phase() -> void:
 	match phase:
 		Clock.Phase.DAY:
 			if GameState.is_at_failure():
-				_set_speech(FAILURE_TEXT)
+				_set_speech(failure_text())
 			elif GameState.tired:
 				# Stays visible until the avatar sleeps.
 				_set_speech("I'm tired. Sleep is recommended.")
@@ -296,8 +311,13 @@ func _refresh_phase() -> void:
 		Clock.Phase.SLEEP_OVER:
 			var text := "I slept %.1f h. Press the wake button to start the day." % Clock.sleep_elapsed_hours
 			if GameState.is_at_failure():
-				text = FAILURE_TEXT + "\n" + text
+				text = failure_text() + "\n" + text
 			_set_speech(text)
+
+
+## The placeholder failure message for the current cause ("" when there is no failure).
+func failure_text() -> String:
+	return FAILURE_TEXTS.get(HealthModel.failure_cause(), "")
 
 
 ## Shows what the chosen hours mean: real sleep time and the length of the next day.

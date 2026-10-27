@@ -30,8 +30,10 @@ extends Control
 @export var muscular_outline_width := 8.0
 @export var mouth_width := 0.16
 @export var mouth_curve := 0.03
+## Placeholder Ill look (Milestone 10.5): a pale, greenish body.
+@export var ill_color := Color(0.82, 0.88, 0.7)
 
-## Avatar states shown by the looks (AvatarStates.current()): "tired", "sad", "thin",
+## Avatar states shown by the looks (AvatarStates.current()): "tired", "sad", "ill", "thin",
 ## "overweight", "muscular" (true or false). Muscular with fat is muscular and overweight.
 var states: Dictionary = {}:
 	set(value):
@@ -101,7 +103,8 @@ func stop_animation() -> void:
 func _draw() -> void:
 	draw_set_transform(Vector2(0.0, -hop_offset))
 	var points := _egg_points()
-	draw_colored_polygon(points, body_color)
+	var fill := ill_color if states.get("ill", false) else body_color
+	draw_colored_polygon(points, fill)
 	points.append(points[0])
 	var line_width := muscular_outline_width if states.get("muscular", false) else outline_width
 	draw_polyline(points, outline_color, line_width, true)
@@ -114,7 +117,7 @@ func _draw() -> void:
 			draw_circle(Vector2(eye_x, eye_y), eye_radius, eye_color)
 			if states.get("tired", false):
 				# Heavy eyelids: the top half of the eye is covered.
-				draw_rect(Rect2(eye_x - eye_radius, eye_y - eye_radius, eye_radius * 2.0, eye_radius), body_color)
+				draw_rect(Rect2(eye_x - eye_radius, eye_y - eye_radius, eye_radius * 2.0, eye_radius), fill)
 				draw_line(Vector2(eye_x - eye_radius, eye_y), Vector2(eye_x + eye_radius, eye_y), outline_color, 3.0, true)
 	if not eyes_closed:
 		_draw_mouth(states.get("sad", false))

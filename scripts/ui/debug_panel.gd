@@ -11,6 +11,7 @@ const Training := preload("res://scripts/health/training.gd")
 const SleepModel := preload("res://scripts/health/sleep_model.gd")
 const Happiness := preload("res://scripts/health/happiness.gd")
 const AvatarStates := preload("res://scripts/health/avatar_states.gd")
+const HealthModel := preload("res://scripts/health/health_model.gd")
 
 @onready var info: Label = $Margin/Info
 
@@ -60,8 +61,9 @@ func _refresh() -> void:
 	lines.append("Measures")
 	lines.append("  physical %.3f  happiness %.3f  sleep %.3f" % [gs.physical, gs.happiness, gs.sleep])
 	lines.append("Health target %.2f  displayed %.2f (level %d)" % [gs.target_health, gs.health, gs.health_level])
-	lines.append("Failure timers: health below line %.1f h, happiness below line %.1f h%s" % [gs.health_low_hours,
-			gs.happiness_low_hours, "  FAILURE" if gs.is_at_failure() else ""])
+	lines.append("Failure timers: target health below line %.1f h, happiness below line %.1f h, danger (z below %.0f) %.1f h%s" % [
+			gs.health_low_hours, gs.happiness_low_hours, Config.get_float("fail.danger_z"), gs.danger_hours,
+			"  FAILURE (%s)" % HealthModel.failure_cause() if gs.is_at_failure() else ""])
 	lines.append("Risk index R %.2f  hidden damage %.3f (no disease stages yet)" % [gs.risk_index, gs.disease_damage])
 	lines.append("Avatar states: %s" % ", ".join(AvatarStates.current().keys().filter(func(k): return AvatarStates.current()[k])))
 	lines.append("Scoring day %d  log entries %d  XP %.1f" % [Habits.current_day, Habits.entries.size(), gs.xp])

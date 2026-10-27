@@ -41,7 +41,7 @@ func header() -> PackedStringArray:
 			"capacity_min", "overreach", "sleep_debt", "tiredness", "hours_awake", "night_quality",
 			"diet_quality", "craving", "habituation", "fun", "screen_excess", "happiness_baseline",
 			"physical", "happiness", "sleep", "target_health", "health", "health_level", "xp",
-			"health_low_hours", "happiness_low_hours", "risk_index", "disease_damage"])
+			"health_low_hours", "happiness_low_hours", "danger_hours", "risk_index", "disease_damage"])
 
 
 ## The values now, in the order of header().
@@ -59,7 +59,7 @@ func row() -> PackedStringArray:
 			gs.physical, gs.happiness, gs.sleep, gs.target_health, gs.health]:
 		values.append(_number(value))
 	values.append_array([str(gs.health_level), _number(gs.xp)])
-	for value in [gs.health_low_hours, gs.happiness_low_hours, gs.risk_index, gs.disease_damage]:
+	for value in [gs.health_low_hours, gs.happiness_low_hours, gs.danger_hours, gs.risk_index, gs.disease_damage]:
 		values.append(_number(value))
 	return values
 

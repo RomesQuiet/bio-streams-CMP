@@ -4,7 +4,8 @@ extends SceneTree
 ##   Godot --headless --path . -s res://tests/measures_test.gd
 ## Plays avatar days with the main screen open and checks, after each sleep, that Physical, the
 ## target health and the health bar follow the v1 formulas and that the screen shows them. Then
-## checks the failure timers and message, the avatar states and the physical values box.
+## checks the failure timers and message, the avatar states, the health bar warning of the danger
+## state (Milestone 10.5) and the physical values box.
 ## Uses a test save path; nothing is saved.
 
 const TOLERANCE := 0.0001
@@ -117,16 +118,16 @@ func _test_failure(gs: Node, main: Node) -> void:
 	health_model.step(23.0, false)
 	gs.changed.emit()
 	_check("target health below 1.3 for 23 h is not failure yet", gs.target_health < 1.3
-			and not gs.is_at_failure() and main.speech_label.text != main.FAILURE_TEXT)
+			and not gs.is_at_failure() and main.speech_label.text != main.FAILURE_TEXTS["health"])
 	health_model.step(1.0, false)
 	gs.changed.emit()
 	_check("target health below 1.3 for 24 h is failure, even with the bar at 3", gs.is_at_failure())
-	_check("the failure message is shown", main.speech_label.text == main.FAILURE_TEXT)
+	_check("the failure message is shown", main.speech_label.text == main.FAILURE_TEXTS["health"])
 	gs.physical = 0.5
 	gs.sleep = 0.5
 	health_model.step(1.0 / 12.0, false)
 	gs.changed.emit()
-	_check("the message goes away when health rises again", not gs.is_at_failure() and main.speech_label.text != main.FAILURE_TEXT)
+	_check("the message goes away when health rises again", not gs.is_at_failure() and main.speech_label.text != main.FAILURE_TEXTS["health"])
 	gs.happiness = 0.05
 	health_model.step(12.0, false)
 	_check("happiness below 0.10 for 12 h is failure too", gs.is_at_failure())
@@ -154,6 +155,16 @@ func _test_states_and_values(gs: Node, main: Node) -> void:
 	_check("the physical box shows weight, height, BMI-for-age z and diet quality as numbers",
 			main.weight_label.text.contains("kg") and main.height_label.text.contains("cm")
 			and main.bmi_label.text.contains("z") and main.diet_label.text.contains("Diet quality"))
+	_check("z -2.5: no danger warning on the health bar", main.health_label.text != main.DANGER_TEXT and not states["ill"])
+	# Milestone 10.5: the danger state of severe thinness (z below -3).
+	gs.weight_z = -3.5
+	gs.changed.emit()
+	states = states_script.current()
+	_check("z -3.5: thin and ill, and the avatar draws it", states["thin"] and states["ill"] and main.avatar.states == states)
+	_check("...and the health bar warns", main.health_label.text == main.DANGER_TEXT and main.health_bar.self_modulate != Color.WHITE)
+	gs.weight_z = -2.5
+	gs.changed.emit()
+	_check("z back at -2.5: the warning goes away", main.health_label.text != main.DANGER_TEXT and main.health_bar.self_modulate == Color.WHITE)
 
 
 func _check(name: String, ok: bool) -> void:

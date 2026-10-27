@@ -98,6 +98,9 @@ var hours_awake: float
 ## happiness have stayed below their failure lines.
 var health_low_hours: float
 var happiness_low_hours: float
+## Avatar hours without a break in the danger state of severe thinness (Milestone 10.5; 0 when
+## z is at fail.danger_z or above).
+var danger_hours: float
 ## Disease risk index R and hidden damage (v1 Step 12; debug only, decision 9).
 var risk_index: float
 var disease_damage: float
@@ -199,6 +202,7 @@ func to_dict() -> Dictionary:
 		"hours_awake": hours_awake,
 		"health_low_hours": health_low_hours,
 		"happiness_low_hours": happiness_low_hours,
+		"danger_hours": danger_hours,
 		"risk_index": risk_index,
 		"disease_damage": disease_damage,
 		"xp": xp,
@@ -258,6 +262,7 @@ func from_dict(data: Dictionary) -> void:
 	hours_awake = float(data.get("hours_awake", 0.0))
 	health_low_hours = float(data.get("health_low_hours", 0.0))
 	happiness_low_hours = float(data.get("happiness_low_hours", 0.0))
+	danger_hours = float(data.get("danger_hours", 0.0))
 	risk_index = float(data.get("risk_index", 0.0))
 	disease_damage = float(data.get("disease_damage", 0.0))
 	xp = float(data.get("xp", xp))
@@ -327,6 +332,7 @@ func _apply_body_start() -> void:
 	physical = HealthModel.physical()
 	health_low_hours = 0.0
 	happiness_low_hours = 0.0
+	danger_hours = 0.0
 	risk_index = 0.0
 	disease_damage = 0.0
 	happiness_baseline = Happiness.baseline()
@@ -350,7 +356,8 @@ func daily_update() -> void:
 
 
 ## Failure (there is no death): target health or happiness has stayed below its failure line
-## for long enough (fail group in config). The effect is not decided; the main screen shows a message.
+## for long enough, or severe thinness has (fail group in config). The effect is not decided;
+## the main screen shows a message.
 func is_at_failure() -> bool:
 	return HealthModel.is_at_failure()
 
