@@ -81,6 +81,9 @@ var check_hours := 0.5
 ## and of football, the strength session's minutes (3 non-consecutive days a week), and whether
 ## strength comes before the rest.
 var guideline := {"cardio_min": 70.0, "football_min": 0.0, "strength_min": 30.0, "strength_first": false}
+## Hours of screens a day in the two no-sport plans and in the severe diet (v1 does not say;
+## tests/parity_test.gd tries others).
+var screens := {"no_sport_h": 1.0, "severe_diet_h": 1.0}
 ## True: the health bar follows the target health at every step (decision 1 off; parity test).
 var instant_bar := false
 
@@ -298,7 +301,8 @@ func _play(scenario: String, sex: String, group: String, difficulty: String, day
 
 
 ## After every 5-minute step of a scenario: the hours awake, asleep, hungry and tired, the
-## lowest happiness, and the first danger state and failure. With instant_bar the health bar
+## lowest happiness, the longest time with happiness below the failure line (does the
+## 12-hour timer fire?), and the first danger state and failure. With instant_bar the health bar
 ## jumps to the target (and the change gives or takes XP, as when the bar moves).
 func _record_step(result: Dictionary, hours: float, asleep: bool) -> void:
 	var gs: Node = root.get_node("GameState")
@@ -317,6 +321,7 @@ func _record_step(result: Dictionary, hours: float, asleep: bool) -> void:
 			result["hungry_hours"] += hours
 		if gs.tired:
 			result["tired_hours"] += hours
+	result["longest_unhappy_hours"] = maxf(result.get("longest_unhappy_hours", 0.0), gs.happiness_low_hours)
 	var day: float = gs.sim_hours / _config.get_float("units.hours_per_day")
 	if result["danger_day"] < 0.0 and health_model.in_danger():
 		result["danger_day"] = day
@@ -330,7 +335,7 @@ func _record_step(result: Dictionary, hours: float, asleep: bool) -> void:
 ## share of the option's duration], the food rule and the hours of sleep.
 func _day_plan(scenario: String, day: int) -> Dictionary:
 	var sport := _guideline_sport(day % 7 in [0, 2, 4], guideline["strength_min"])
-	var screens_1h := [[6.0, "entertainment", "screens", 1.0]]
+	var screens_1h := _screens(1.0)
 	var plan := {"events": sport + screens_1h, "food": "healthy", "sleep": SLEEP_GOOD, "day": day}
 	match scenario:
 		"couch":
@@ -341,7 +346,7 @@ func _day_plan(scenario: String, day: int) -> Dictionary:
 			plan["events"] = [[1.0, "exercise", "cardio", 1.0], [2.0, "exercise", "cardio", 1.0], [3.0, "exercise", "cardio", 1.0]] + screens_1h
 			plan["food"] = "fast"
 		"severe_diet":
-			plan["events"] = screens_1h
+			plan["events"] = _screens(screens["severe_diet_h"])
 			plan["food"] = "skip_2_of_3"
 		"short_sleep_extra_cardio":
 			plan["events"] = sport + [[4.5, "exercise", "cardio", 1.0]] + screens_1h
@@ -363,11 +368,23 @@ func _day_plan(scenario: String, day: int) -> Dictionary:
 		"strength_daily":
 			plan["events"] = _guideline_sport(true, 60.0) + screens_1h
 		"healthy_no_sport":
-			plan["events"] = screens_1h
+			plan["events"] = _screens(screens["no_sport_h"])
 		"healthy_no_sport_7h":
-			plan["events"] = screens_1h
+			plan["events"] = _screens(screens["no_sport_h"])
 			plan["sleep"] = 7.0
 	return plan
+
+
+## Screens from 6 h after waking, in blocks of at most 1 h, one per hour.
+func _screens(hours: float) -> Array:
+	var events: Array = []
+	var left := hours
+	var start := 6.0
+	while left > TOLERANCE:
+		events.append([start, "entertainment", "screens", minf(left, 1.0)])
+		left -= 1.0
+		start += 1.0
+	return events
 
 
 ## The guideline activity of one day: guideline.cardio_min of cardio in blocks of at most 1 h,
@@ -450,14 +467,15 @@ func _print_table(results: Dictionary) -> void:
 
 ## Failure, the danger state and the player's counts for every scenario (team review, Method).
 func _print_failures(results: Dictionary) -> void:
-	print("\nEvery scenario, all days played: failure (day, cause, z), first day in the danger state, lowest happiness,")
-	print("hungry share of awake time (above 1.2 meals), meals eaten and skipped and kcal eaten per day, strength sessions too soon.")
+	print("\nEvery scenario, all days played: failure (day, cause, z), first day in the danger state, lowest happiness and the")
+	print("longest time below the happiness failure line (the timer fires at %.0f h), hungry share of awake time (above 1.2 meals)," % _config.get_float("fail.happiness_hours"))
+	print("meals eaten and skipped and kcal eaten per day, strength sessions too soon.")
 	for scenario in V1:
 		var r: Dictionary = results[scenario]
 		var days: float = r["days"].size() - 1
-		print("  %-44s failure %-30s danger %-5s lowest %.2f  hungry %3.0f%%  %.2f meals (+%.2f skipped) %4.0f kcal a day  too soon %d of %d" % [
-				TITLES[scenario].left(44), _failure_text(r), _day_text(r["danger_day"]), r["lowest_happiness"], r["hungry_share"] * 100.0,
-				r["meals"] / days, r["skipped"] / days, r["kcal_per_day"], r["too_soon"], r["strength_sessions"]])
+		print("  %-44s failure %-30s danger %-5s lowest %.2f (%4.1f h below)  hungry %3.0f%%  %.2f meals (+%.2f skipped) %4.0f kcal a day  too soon %d of %d" % [
+				TITLES[scenario].left(44), _failure_text(r), _day_text(r["danger_day"]), r["lowest_happiness"], r["longest_unhappy_hours"],
+				r["hungry_share"] * 100.0, r["meals"] / days, r["skipped"] / days, r["kcal_per_day"], r["too_soon"], r["strength_sessions"]])
 
 
 ## "ours (v1)" with this format; "-" when v1 does not give the value.

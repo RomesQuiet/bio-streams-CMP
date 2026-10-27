@@ -121,7 +121,7 @@
 		"capacity_base_min": {"value": 60, "status": "from source", "owner": "Pessoa 3", "comment": "WHO 2020: 60 min a day. Clock time."},
 		"capacity_fit_min": {"value": 90, "status": "placeholder", "owner": "Pessoa 3", "comment": "A very fit avatar tolerates 60 + 90 = 150 minutes."},
 		"capacity_sleep_cut": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 3"},
-		"average_window_h": {"value": 24, "status": "placeholder", "owner": "Pessoa 3", "comment": "Effective minutes are averaged over this many avatar hours (clock time) to give A_cardio and A_strength."},
+		"average_window_h": {"value": 24, "status": "placeholder", "owner": "Pessoa 3", "comment": "Effective minutes per day, averaged over this many avatar hours (clock time), give A_cardio and A_strength. With 24 h, strength trained 3 days a week rises and falls through the week (Milestone 10.5 parity run: 0.60 to 0.69 over days 14 to 21, 0.61 at day 21); a week (168 h) gives the weekly average (0.76 at day 21; v1 0.70). Team to decide."},
 		"fitness_ref_min": {"value": 60, "status": "from source", "owner": "Pessoa 3", "comment": "WHO 2020. Clock time."},
 		"strength_ref_min": {"value": 20, "status": "from source", "owner": "Pessoa 3", "comment": "About three 45-minute sessions a week (AAP 2020). Clock time."},
 		"fitness_strength_share": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 3", "comment": "Share of strength minutes that count for fitness."},

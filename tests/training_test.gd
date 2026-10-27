@@ -142,6 +142,14 @@ func _test_starting_window() -> void:
 	_check("the first hour does not move fitness", absf(gs.fitness - start) < TOLERANCE)
 	_steps(48.0)
 	_check("with no exercise for 2 days fitness falls (the window empties)", gs.fitness < start)
+	# Milestone 10.5: a longer window averages the minutes per day over it.
+	var config: Node = root.get_node("Config")
+	var hours: Variant = config._data["train"]["average_window_h"]["value"]
+	config._data["train"]["average_window_h"]["value"] = 168
+	gs = _new_avatar("normal")
+	_check("a one-week window also gives the starting fitness and strength as targets",
+			absf(training.fitness_target() - gs.fitness) < TOLERANCE and absf(training.strength_target() - gs.strength) < TOLERANCE)
+	config._data["train"]["average_window_h"]["value"] = hours
 
 
 ## v1 'Predicted results': guideline plan vs 4 h of cardio a day vs strength twice a day; and

@@ -9,8 +9,9 @@ extends RefCounted
 ##   below strength_ready, or less than strength_min_gap_h after the start of the previous
 ##   strength session (Milestone 10.5, team review), counts as too soon: it gives no effective
 ##   minutes, and all its minutes build O (user decision, 25 Oct 2026).
-## - Effective minutes = minutes x performance x recovery (0 beyond capacity). Their sum over
-##   the last 24 avatar hours gives A_cardio and A_strength (minutes per day).
+## - Effective minutes = minutes x performance x recovery (0 beyond capacity). Their average per
+##   day over the last train.average_window_h avatar hours gives A_cardio and A_strength
+##   (with 24 h: their sum over the last day).
 ## - Fitness and strength move toward their targets with time constants in body time
 ##   (k applies); gains are cut by sleep debt, the energy deficit U and O.
 
@@ -91,9 +92,12 @@ static func step(hours: float, _asleep: bool) -> void:
 	_update_levels(hours)
 
 
-## A_cardio or A_strength: effective minutes in the last 24 avatar hours.
+## A_cardio or A_strength: effective minutes per day, averaged over the hours of the training
+## window (train.average_window_h; with 24 h, the sum of the last day).
 static func effective_minutes(training_kind: String) -> float:
-	return HourWindow.total(GameState.training_window, GameState.sim_hours, training_kind)
+	var window := GameState.training_window
+	return HourWindow.total(window, GameState.sim_hours, training_kind) \
+			* Config.get_float("units.hours_per_day") / HourWindow.hours(window)
 
 
 static func fitness_target() -> float:
@@ -116,8 +120,10 @@ static func starting_window(fitness: float, strength: float) -> Dictionary:
 	# fitness_minutes = cardio + share_f x strength_min; strength_minutes = strength_min + share_s x cardio.
 	var cardio := maxf(0.0, (fitness_minutes - share_f * strength_minutes) / (1.0 - share_f * share_s))
 	var strength_min := maxf(0.0, strength_minutes - share_s * cardio)
-	var slots := Config.get_int("train.average_window_h")
-	return HourWindow.create(slots, {CARDIO: cardio / slots, STRENGTH: strength_min / slots}, [CARDIO, STRENGTH])
+	# Minutes per day spread evenly over every hour of the window.
+	var hours_per_day := Config.get_float("units.hours_per_day")
+	return HourWindow.create(Config.get_int("train.average_window_h"), {CARDIO: cardio / hours_per_day,
+			STRENGTH: strength_min / hours_per_day}, [CARDIO, STRENGTH])
 
 
 ## O: the excess minutes per day, averaged over train.overreach_tau_h (clock time), divided by

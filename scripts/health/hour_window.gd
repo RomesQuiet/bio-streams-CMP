@@ -30,6 +30,14 @@ static func add(window: Dictionary, avatar_hours: float, key: String, value: flo
 	window[key][floori(avatar_hours) % slots] += value
 
 
+## How many hours (N) the window covers.
+static func hours(window: Dictionary) -> int:
+	for key in window:
+		if key != "hour":
+			return window[key].size() - 1
+	return 0
+
+
 ## Sum of a key over the last N hours, as seen at this avatar hour.
 static func total(window: Dictionary, avatar_hours: float, key: String) -> float:
 	var hour := floori(avatar_hours)
