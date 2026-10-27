@@ -4,7 +4,7 @@ Last updated: 27 October 2026, at the end of Milestone 10.5. Read this after `CL
 
 ## 1. Where the work stands
 
-- **Milestone 10.5 is complete and committed, but NOT pushed** (`MILESTONE_10_5.md`). It acts on the team's review of the Milestone 10 differences (`documentation/milestone10_review.md`): failure reads the target health, a 36-hour gap between strength sessions, a danger state for severe thinness, a better scenario test and a parity test that found the causes of the differences (`documentation/milestone10_calibration.md`). The user chose to review everything at the end: ask what they found in the Godot editor and whether to push.
+- **Milestone 10.5 is complete and pushed** (27 Oct 2026, published on GitHub Pages; the user checked the game in the Godot editor first; `MILESTONE_10_5.md`). It acts on the team's review of the Milestone 10 differences (`documentation/milestone10_review.md`): failure reads the target health, a 36-hour gap between strength sessions, a danger state for severe thinness, a better scenario test and a parity test that found the causes of the differences (`documentation/milestone10_calibration.md`).
 - **Milestone 10** (food as an activity + the whole health system rebuilt to Health Calculation Architecture v1) is pushed (`e3e6a89`, plus the handoff commit `6d3639b`).
 - **All 20 tests pass** (`tests/*_test.gd`; `calibration_test.gd` takes about 2.5 minutes and `parity_test.gd` about 5; the parity test prints numbers for the team and only fails if it crashes).
 - **Waiting on the team:** the plan guesses, the training window, eating time and the hunger penalty, the danger-state and gap values (`documentation/milestone10_calibration.md`, "Proposals for the team"). No value was changed to fit the tests.
@@ -82,7 +82,7 @@ Other team decisions that still hold: k = 10 (applies to sleep debt too); there 
 - The user is a 9th-grade student. Plain language, exact steps, and after each step: what changed, how to run it, what to check.
 - **One task at a time.** The user replies "Commit Task N, then start Task N+1" (or "Commit Task N"). Each task ends with a summary, the test results and the question whether to commit; nothing is committed without that. Exception: for Milestone 10.5 the user chose "all tasks in a row, each committed, review at the end" (decision 13); ask again at the start of each milestone.
 - When a new team decision contradicts an earlier user decision (example: the review said failure should read the true health, decision 1 said the bar), ask the user before changing it, with a proposed default.
-- **Never push without asking.** Pushing publishes the game on GitHub Pages. (The user pushed Milestone 10 themselves.)
+- **Never push without asking.** Pushing publishes the game on GitHub Pages. (The user pushed Milestone 10 themselves; Milestone 10.5 was pushed by Claude when the user asked, after their check in the Godot editor.)
 - When a test result differs from v1 or a rule fails, **do not change values to make it pass**: report the numbers, propose options, and let the user decide (example: the too-soon strength rule in Task 5).
 - Questions to the user go with a proposed default; record their answers in the milestone file.
 - Be honest about own mistakes and fix them (example: the CLAUDE.md cut-off in Task 8, found and repaired in Task 11).

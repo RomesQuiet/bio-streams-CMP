@@ -1,6 +1,6 @@
 # Milestone 10.5 — Fixes from the team's review of Milestone 10
 
-**Status: complete (27 October 2026), committed, not pushed** (the user checks first). Task 0 `f89926e`; Task 1 `2d9ac90`; Task 2 `47e5d0b`; Task 3 `2b8fce2`; Task 4 `e3c6f06`; Task 5 `1926e49`; Task 6 `d761cef`. All 20 tests pass. Results and proposals for the team: `documentation/milestone10_calibration.md`.
+**Status: complete and pushed (27 October 2026)**, after the user checked the game in the Godot editor. Task 0 `f89926e`; Task 1 `2d9ac90`; Task 2 `47e5d0b`; Task 3 `2b8fce2`; Task 4 `e3c6f06`; Task 5 `1926e49`; Task 6 `d761cef`. All 20 tests pass. Results and proposals for the team: `documentation/milestone10_calibration.md`.
 
 **Changes made while building (beyond this list):** the failure message now names its cause (thinness, health or happiness); the training window (`train.average_window_h`) now averages minutes per day over its length, so the parity test can try a one-week window (with 24 h nothing changes); the scenario test cuts an activity just before the end of the day so it never runs into the 0-hour rule.
 
@@ -63,7 +63,7 @@ The review's proposals for the two gaps are taken as written (the user asked to 
 ## Task 6 — Docs, web export and checks
 - `CLAUDE.md`, `documentation/handoff.md`, `documentation/milestone10_calibration.md` and this file describe the new state.
 - Run all tests; export the web build to `docs/`.
-- Done when: everything is committed. **Not pushed:** the user checks the game first.
+- Done when: everything is committed. Pushed only after the user has checked the game (done on 27 Oct 2026).
 
 ## Out of scope
 Values the team must research or decide (the review's numbers stay placeholders), the failure effect, disease stages, a 45-minute strength option (the review shows it would not raise strength), translations and the other "Not decided yet" items in `CLAUDE.md`.
