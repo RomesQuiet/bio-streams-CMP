@@ -1,6 +1,6 @@
 # Milestone 10.5 — Fixes from the team's review of Milestone 10
 
-**Status: complete (27 October 2026), committed, not pushed** (the user checks first). Task 0 `f89926e`; Task 1 `2d9ac90`; Task 2 `47e5d0b`; Task 3 `2b8fce2`; Task 4 `e3c6f06`; Tasks 5 and 6: the two commits after it. All 20 tests pass. Results and proposals for the team: `documentation/milestone10_calibration.md`.
+**Status: complete (27 October 2026), committed, not pushed** (the user checks first). Task 0 `f89926e`; Task 1 `2d9ac90`; Task 2 `47e5d0b`; Task 3 `2b8fce2`; Task 4 `e3c6f06`; Task 5 `1926e49`; Task 6 `d761cef`. All 20 tests pass. Results and proposals for the team: `documentation/milestone10_calibration.md`.
 
 **Changes made while building (beyond this list):** the failure message now names its cause (thinness, health or happiness); the training window (`train.average_window_h`) now averages minutes per day over its length, so the parity test can try a one-week window (with 24 h nothing changes); the scenario test cuts an activity just before the end of the day so it never runs into the 0-hour rule.
 

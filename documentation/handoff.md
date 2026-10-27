@@ -18,8 +18,8 @@ Last updated: 27 October 2026, at the end of Milestone 10.5. Read this after `CL
 | `47e5d0b` | Task 2: 36-hour minimum gap between strength sessions |
 | `2b8fce2` | Task 3: danger state of severe thinness, Ill look, health bar warning, failure causes, thinness risk term |
 | `e3c6f06` | Task 4: scenario test method (exact player rule, failure for every scenario, new scenarios and rules) |
-| (Task 5) | Parity test and the causes of differences 1, 2 and 4; training window averaged per day |
-| (Task 6) | Docs and web export |
+| `1926e49` | Task 5: parity test and the causes of differences 1, 2 and 4; training window averaged per day |
+| `d761cef` | Task 6: docs and web export |
 
 ### Commit history of Milestone 10
 
