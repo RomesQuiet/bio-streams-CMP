@@ -8,8 +8,9 @@ extends RefCounted
 ##   Sleep (p 0.5, equal weights). It follows the measures every step.
 ## - Displayed health (the bar, decision 1) moves health.alpha_bar of the way to the target once
 ##   per avatar day, when a sleep ends. Its changes give or take XP.
-## - Failure (no death): displayed health below fail.health_line for fail.health_hours, or
-##   happiness below fail.happiness_line for fail.happiness_hours (clock time).
+## - Failure (no death): target health below fail.health_line for fail.health_hours (decision
+##   10: the target, not the slow bar), or happiness below fail.happiness_line for
+##   fail.happiness_hours (clock time).
 
 const BodySize := preload("res://scripts/health/body_size.gd")
 const Progress := preload("res://scripts/health/progress.gd")
@@ -57,10 +58,11 @@ static func update_physical() -> void:
 	GameState.physical = physical()
 
 
-## Step 9 of the update order (part): the failure timers.
+## Step 9 of the update order (part): the failure timers. The health timer reads the target
+## health (decision 10), so failure does not wait for the slow bar to come down.
 static func step(hours: float, _asleep: bool) -> void:
 	var gs := GameState
-	gs.health_low_hours = gs.health_low_hours + hours if gs.health < Config.get_float("fail.health_line") else 0.0
+	gs.health_low_hours = gs.health_low_hours + hours if gs.target_health < Config.get_float("fail.health_line") else 0.0
 	gs.happiness_low_hours = gs.happiness_low_hours + hours if gs.happiness < Config.get_float("fail.happiness_line") else 0.0
 
 
@@ -73,7 +75,7 @@ static func daily_step() -> void:
 	Progress.on_health_change(change)
 
 
-## Failure: displayed health or happiness has stayed below its line for long enough.
+## Failure: target health or happiness has stayed below its line for long enough.
 static func is_at_failure() -> bool:
 	var gs := GameState
 	return gs.health_low_hours >= Config.get_float("fail.health_hours") \

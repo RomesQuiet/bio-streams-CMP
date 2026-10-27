@@ -91,8 +91,8 @@ var weight_z: float
 var tired: bool
 ## Avatar hours awake since the last sleep ended (Milestone 10). Simulation adds to it.
 var hours_awake: float
-## Failure timers (v1 Step 12): avatar hours that displayed health and happiness have stayed
-## below their failure lines.
+## Failure timers (v1 Step 12): avatar hours that the target health (decision 10) and
+## happiness have stayed below their failure lines.
 var health_low_hours: float
 var happiness_low_hours: float
 ## Disease risk index R and hidden damage (v1 Step 12; debug only, decision 9).
@@ -342,7 +342,7 @@ func daily_update() -> void:
 	changed.emit()
 
 
-## Failure (there is no death): displayed health or happiness has stayed below its failure line
+## Failure (there is no death): target health or happiness has stayed below its failure line
 ## for long enough (fail group in config). The effect is not decided; the main screen shows a message.
 func is_at_failure() -> bool:
 	return HealthModel.is_at_failure()

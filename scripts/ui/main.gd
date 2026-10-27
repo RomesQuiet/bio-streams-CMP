@@ -5,7 +5,7 @@ extends Control
 const CREATION_SCENE := "res://scenes/ui/creation.tscn"
 const Hunger := preload("res://scripts/health/hunger.gd")
 const AvatarStates := preload("res://scripts/health/avatar_states.gd")
-## Placeholder failure message (the failure effect is not decided yet). Failure: displayed
+## Placeholder failure message (the failure effect is not decided yet). Failure: target
 ## health or happiness has stayed below its line for too long (fail group in config).
 const FAILURE_TEXT := "Failure: my health or happiness has stayed too low for too long."
 

@@ -30,7 +30,7 @@ These are not written in v1 or Bases fundamental; the user decided them.
 
 | # | Question | Decision |
 |---|---|---|
-| 1 | v1 calculates health directly ("Instant"). Keep the slow health bar? | **Yes, keep it.** v1 health is the **target health**; the displayed health bar moves toward it with `health.alpha_bar` (0.37, placeholder) once per avatar day when a sleep ends, as now. Failure and XP use the displayed health. |
+| 1 | v1 calculates health directly ("Instant"). Keep the slow health bar? | **Yes, keep it.** v1 health is the **target health**; the displayed health bar moves toward it with `health.alpha_bar` (0.37, placeholder) once per avatar day when a sleep ends, as now. Failure and XP use the displayed health. (Milestone 10.5, decision 10: failure now uses the target health; XP still uses the displayed health.) |
 | 2 | Does eating take avatar time? | **Yes.** A meal is an activity of 0.5 avatar hours (placeholder); the buttons are locked like other activities. |
 | 3 | Which food options? | Two options only: **Healthy meal** and **Fast-food meal**. |
 | 4 | Football and screens as entertainment options | **Yes.** Entertainment gets **Screens** and **Football** (1 avatar hour each, placeholder). |

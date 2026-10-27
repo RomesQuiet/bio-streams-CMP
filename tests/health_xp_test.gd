@@ -3,18 +3,21 @@ extends SceneTree
 ##   Godot --headless --path . -s res://tests/health_xp_test.gd
 ## The displayed health moves once per avatar day toward the target (decision 1); every change
 ## gives or takes 100 XP per point; at health 4.5 or more XP grows over time, faster the longer
-## health stays high (at most x 3); XP never goes below 0. Nothing is saved.
+## health stays high (at most x 3); XP never goes below 0. Failure reads the target health, not
+## the slow bar (decision 10, Milestone 10.5). Nothing is saved.
 
 const TOLERANCE := 0.0001
 
 ## Loaded at run time: the scripts use the autoloads, which do not exist yet when this test
 ## script is compiled.
 var progress: GDScript
+var health_model: GDScript
 var _failures := 0
 
 
 func _process(_delta: float) -> bool:
 	progress = load("res://scripts/health/progress.gd")
+	health_model = load("res://scripts/health/health_model.gd")
 	var save_game: Node = root.get_node("SaveGame")
 	save_game.save_path = "user://test_save.json"
 	save_game.use_web_storage = false
@@ -29,6 +32,7 @@ func _process(_delta: float) -> bool:
 	_test_xp_from_health_changes(gs, config)
 	_test_xp_over_time(gs)
 	_test_level_up(gs, config)
+	_test_failure_reads_target(gs, config)
 
 	DirAccess.remove_absolute(save_game.save_path)
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
@@ -114,6 +118,29 @@ func _test_level_up(gs: Node, config: Node) -> void:
 	_check("reaching a new level emits leveled_up", levels == [1] and gs.level == 1)
 	gs.add_xp(-per_level)
 	_check("losing XP can lower the level", gs.level == 0)
+
+
+## Decision 10: the health failure timer counts the hours the target health stays below
+## fail.health_line, whatever the slow bar shows.
+func _test_failure_reads_target(gs: Node, config: Node) -> void:
+	var line: float = config.get_float("fail.health_line")
+	var hours: float = config.get_float("fail.health_hours")
+	gs.start_new_avatar("Test", "child", "female", "normal")
+	_set_measures(gs, BAD_DAY)
+	gs.health = 4.0
+	_check("bad measures: the target is below the failure line, the bar is high", gs.target_health < line and gs.health > line)
+	for hour in roundi(hours) - 1:
+		health_model.step(1.0, false)
+	_check("one hour before fail.health_hours: no failure yet", not gs.is_at_failure())
+	health_model.step(1.0, false)
+	_check("after fail.health_hours (24 h) with the target below the line: failure", gs.is_at_failure())
+
+	gs.start_new_avatar("Test", "child", "female", "normal")
+	_set_measures(gs, GOOD_DAY)
+	gs.health = 1.0
+	for hour in roundi(hours) * 2:
+		health_model.step(1.0, false)
+	_check("a low bar with a good target never reaches failure", not gs.is_at_failure() and is_zero_approx(gs.health_low_hours))
 
 
 func _set_measures(gs: Node, measures: Dictionary) -> void:

@@ -102,23 +102,28 @@ func _test_physical_formula(gs: Node) -> void:
 	gs.overreach = 0.0
 
 
-## Failure (no death): displayed health below 1.3 for 24 avatar hours, or happiness below 0.10
-## for 12 avatar hours. Only a placeholder message is shown.
+## Failure (no death): target health below 1.3 for 24 avatar hours (decision 10: the target, not
+## the slow bar), or happiness below 0.10 for 12 avatar hours. Only a placeholder message is shown.
 func _test_failure(gs: Node, main: Node) -> void:
 	var config: Node = root.get_node("Config")
 	_check("there is no death", config.get_value("health.death_enabled") == false)
-	gs.health = 1.25
+	# Physical and Sleep 0 with happiness 0.5: target health 1.22; the bar still shows 3.
+	gs.physical = 0.0
+	gs.sleep = 0.0
 	gs.happiness = 0.5
+	gs.health = 3.0
 	gs.health_low_hours = 0.0
 	gs.happiness_low_hours = 0.0
 	health_model.step(23.0, false)
 	gs.changed.emit()
-	_check("health below 1.3 for 23 h is not failure yet", not gs.is_at_failure() and main.speech_label.text != main.FAILURE_TEXT)
+	_check("target health below 1.3 for 23 h is not failure yet", gs.target_health < 1.3
+			and not gs.is_at_failure() and main.speech_label.text != main.FAILURE_TEXT)
 	health_model.step(1.0, false)
 	gs.changed.emit()
-	_check("health below 1.3 for 24 h is failure", gs.is_at_failure())
+	_check("target health below 1.3 for 24 h is failure, even with the bar at 3", gs.is_at_failure())
 	_check("the failure message is shown", main.speech_label.text == main.FAILURE_TEXT)
-	gs.health = 3.0
+	gs.physical = 0.5
+	gs.sleep = 0.5
 	health_model.step(1.0 / 12.0, false)
 	gs.changed.emit()
 	_check("the message goes away when health rises again", not gs.is_at_failure() and main.speech_label.text != main.FAILURE_TEXT)
