@@ -1,9 +1,11 @@
 # Handoff — state of the project and how to continue
 
-Last updated: 27 October 2026, at the end of Milestone 10.5. Read this after `CLAUDE.md` when a new session starts. `CLAUDE.md` describes the game and the code; this file says **where the work stands, what was decided along the way, what is still open, and the lessons learned**, so nothing has to be found out again.
+Last updated: 30 October 2026, when Milestone 11 was planned. Read this after `CLAUDE.md` when a new session starts. `CLAUDE.md` describes the game and the code; this file says **where the work stands, what was decided along the way, what is still open, and the lessons learned**, so nothing has to be found out again.
 
 ## 1. Where the work stands
 
+- **Next: Milestone 11, settings panel and European Portuguese (`MILESTONE_11.md`), planned, not built.** It holds the decisions, the state of the code, how translation works and every task. Task 1 needs the user.
+- **Name on phones: the pop-up box stays (user, 30 Oct 2026).** `fe5c4c3` (`window.prompt`) is confirmed on a real Android phone. The virtual keyboard attempt `adfe369` never reached GitHub and was reverted untested on a real phone. The pop-up box was reported as doing nothing on 28 Oct, for an unknown reason (a cached old page is possible). Always confirm a push with `git ls-remote origin refs/heads/main` and the published file size: that push from GitHub Desktop failed silently.
 - **Milestone 10.5 is complete and pushed** (27 Oct 2026, published on GitHub Pages; the user checked the game in the Godot editor first; `MILESTONE_10_5.md`). It acts on the team's review of the Milestone 10 differences (`documentation/milestone10_review.md`): failure reads the target health, a 36-hour gap between strength sessions, a danger state for severe thinness, a better scenario test and a parity test that found the causes of the differences (`documentation/milestone10_calibration.md`).
 - **Milestone 10** (food as an activity + the whole health system rebuilt to Health Calculation Architecture v1) is pushed (`e3e6a89`, plus the handoff commit `6d3639b`).
 - **All 20 tests pass** (`tests/*_test.gd`; `calibration_test.gd` takes about 2.5 minutes and `parity_test.gd` about 5; the parity test prints numbers for the team and only fails if it crashes).
@@ -62,6 +64,9 @@ Recorded in `MILESTONE_10.md` ("Decisions") and `documentation/milestone10_plan.
 | 11 | (Milestone 10.5) The danger state of severe thinness ends **only when z is back at −3 or above**. |
 | 12 | (Milestone 10.5) Scenario plans: use what we know (our plans + the review's corrections) and list every guessed detail for the team. |
 | 13 | (Milestone 10.5) Work through all tasks in a row, committing each; no push; the user reviews at the end. |
+| 14 | (Milestone 11) Settings hold the language and "Start a new avatar" with a confirmation. Music and sound wait for the music. |
+| 15 | (Milestone 11) First start follows the browser's language (any Portuguese gives Portuguese, otherwise English); the creation screen also has PT and EN buttons. |
+| 16 | (Milestone 11) All tasks in a row, each committed; no push; the user reviews at the end. |
 
 Other team decisions that still hold: k = 10 (applies to sleep debt too); there is no death, only failure; p = 0.5 for health. The team's review (27 Oct 2026) added the 36-hour strength gap, the danger state (z −3, 72 h, z −4) and the thinness risk term (placeholders).
 
@@ -71,7 +76,7 @@ Other team decisions that still hold: k = 10 (applies to sleep debt too); there 
 
 **Not decided** (do not guess; see `CLAUDE.md`, "Not decided yet"): researched values for every placeholder; failure effect; diseases; food menus and tastes; full entertainment menu; whether football counts toward the 60 minutes (it does for now); activity durations; avatar art; settings contents; translations; server and accounts.
 
-**Likely next milestones** (none planned yet; ask the user): the team's answers to the Milestone 10.5 proposals; translations pt/en (the `translations/` folder is empty; all text is English in scenes and scripts); settings screen; failure effect and screen; minigames; menus; the lobby screen; plasticine art. (A 45-minute strength option would not raise strength: Milestone 10.5 parity run.)
+**Likely after Milestone 11** (ask the user): the team's answers to the Milestone 10.5 proposals; failure effect and screen; minigames; menus; the lobby screen; plasticine art. (A 45-minute strength option would not raise strength: Milestone 10.5 parity run.)
 
 **Placeholders added in Milestone 10.5:** the Ill look (pale, greenish body), the health bar warning (red bar, "Health: danger") and the failure messages by cause; the review's numbers (`train.strength_min_gap_h` 36, `fail.danger_z` −3, `fail.danger_hours` 72, `fail.danger_failure_z` −4, `risk.thin_weight` 0.4, `risk.thin_from` −2, `risk.thin_range` 2).
 
@@ -80,9 +85,9 @@ Other team decisions that still hold: k = 10 (applies to sleep debt too); there 
 ## 4. How to work with this user (what worked)
 
 - The user is a 9th-grade student. Plain language, exact steps, and after each step: what changed, how to run it, what to check.
-- **One task at a time.** The user replies "Commit Task N, then start Task N+1" (or "Commit Task N"). Each task ends with a summary, the test results and the question whether to commit; nothing is committed without that. Exception: for Milestone 10.5 the user chose "all tasks in a row, each committed, review at the end" (decision 13); ask again at the start of each milestone.
+- **One task at a time.** The user replies "Commit Task N, then start Task N+1" (or "Commit Task N"). Each task ends with a summary, the test results and the question whether to commit; nothing is committed without that. Exception: for Milestones 10.5 and 11 the user chose "all tasks in a row, each committed, review at the end" (decisions 13 and 16); ask again at the start of each milestone.
 - When a new team decision contradicts an earlier user decision (example: the review said failure should read the true health, decision 1 said the bar), ask the user before changing it, with a proposed default.
-- **Never push without asking.** Pushing publishes the game on GitHub Pages. (The user pushed Milestone 10 themselves; Milestone 10.5 was pushed by Claude when the user asked, after their check in the Godot editor.)
+- **Never push without asking.** Pushing publishes the game on GitHub Pages. (This shell has no GitHub login, so the user pushes from GitHub Desktop: give them the steps, then confirm with `git ls-remote origin refs/heads/main`. The commit "Milestone 10.5: status pushed" and earlier ones went up that way.)
 - When a test result differs from v1 or a rule fails, **do not change values to make it pass**: report the numbers, propose options, and let the user decide (example: the too-soon strength rule in Task 5).
 - Questions to the user go with a proposed default; record their answers in the milestone file.
 - Be honest about own mistakes and fix them (example: the CLAUDE.md cut-off in Task 8, found and repaired in Task 11).
@@ -107,8 +112,9 @@ Other team decisions that still hold: k = 10 (applies to sleep debt too); there 
 - **k = 10 magnifies small energy differences:** 20 kcal a day (half an hour of eating at METy 1.5 instead of idle 1.7) is about 0.4 kg in 21 avatar days.
 - **Activities must not run into the end of the awake period** in tests: the 0-hour rule starts a new day. The scenario test cuts an activity 0.01 h before the end.
 - **New test scripts get their `.uid` file only when the Godot editor scans the project**; commit the `.uid` files it creates.
+- **Translations:** after changing `translations/strings.csv`, run `Godot --headless --path . --import` before headless tests; the `.translation` files are ignored by git (`MILESTONE_11.md`).
 - **Shell:** macOS `sed` has no `\b`; use `perl -pi -e`. The Edit tool needs the file read first with the Read tool.
-- **Text fields on phones (web), fixed 28 Oct 2026 (the first fix, on 27 Oct, was wrong and did nothing on a real Android phone).** With the Web export option `html/experimental_virtual_keyboard` OFF (the Godot default) the page types through a hidden editable `div` (IME support) that Android keyboards open but do not feed reliably: the keyboard shows and no letter appears. Godot's own source says the IME and the virtual keyboard support exclude each other, and a Godot forum thread (4.5.1) reports exactly this symptom fixed by turning the option on. With it ON (and a touch screen), a tap on a LineEdit focuses a real hidden `<input>` that every phone keyboard types into, and the text reaches the LineEdit through `set_text`, which **does not emit `text_changed`** (checked headless: `get_viewport().push_text_input("x")` sets the text and emits nothing). So any screen that reacts to typing must look at `LineEdit.text` itself (the creation screen compares it every frame), and a LineEdit must not grab focus at start on a touch screen (browsers only open the keyboard from a tap). The option is stored in `docs/index.html` (`"experimentalVK":true`), not in the .pck: a phone that cached an old `index.html` keeps the old behaviour for up to 10 minutes (GitHub Pages `cache-control: max-age=600`).
+- **Text fields on phones (web):** any new text field needs the pop-up box of `scripts/ui/creation.gd` (web + touch screen: the field never takes focus, a tap calls `window.prompt` through `JavaScriptBridge.eval`). Without it the keyboard opens but no letters arrive. The alternative, the export option `html/experimental_virtual_keyboard`, worked in phone emulation but was never tried on a real phone; if it is ever used, its text arrives through `set_text`, which does not emit `text_changed`, and the option is stored in `index.html`, not the .pck. GitHub Pages lets phones keep old files for up to 10 minutes.
 - **Testing phone input in the browser pane:** `resize_window` preset mobile (the page then reports a touch screen), a fresh origin (a new port such as `127.0.0.1:8062`; the game re-saves when the page closes, so an origin with a save skips the creation screen), refresh cached files with `fetch(url, {cache: 'reload'})` for `'/'`, `index.html` and `index.pck`, then check `GODOT_CONFIG` really says `experimentalVK: true`. Send a real touch (`new TouchEvent('touchstart'/'touchend')` with a `Touch` on the canvas), check that a hidden `INPUT` is the `document.activeElement`, and type with the `computer` tool. A real Android phone is still the only full test.
 
 ## 6. Commands
