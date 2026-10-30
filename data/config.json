@@ -315,7 +315,7 @@
 	},
 
 "defaults": {
-		"language": { "value": "pt", "placeholder": true, "comment": "Starting language until settings exist. pt or en." },
+		"language": { "value": "en", "status": "team decision", "owner": "team", "comment": "Language at the first start when the browser is not in Portuguese (decision 15). Portuguese browsers get pt. The chosen language is kept by Settings, not in the avatar's save." },
 		"avatar_name": { "value": "", "placeholder": true, "comment": "Set on the avatar creation screen." },
 		"age_group": { "value": "child", "placeholder": true, "comment": "Used for the recommended sleep before the player chooses an age group." },
 		"sex": { "value": "female", "placeholder": true, "comment": "Used for the WHO tables and the BMR before the player chooses a sex." },

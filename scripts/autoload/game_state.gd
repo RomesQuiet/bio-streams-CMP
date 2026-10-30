@@ -114,7 +114,6 @@ var age_group: String
 var sex: String
 ## "easy", "normal", "hard" or "very_hard".
 var difficulty: String
-var language: String
 
 ## Health the displayed health moves toward: the health formula of the current measures.
 var target_health: float:
@@ -155,7 +154,6 @@ func reset() -> void:
 	age_group = ""
 	sex = ""
 	difficulty = ""
-	language = Config.get_string("defaults.language")
 	_apply_body_start()
 	health = calculate_health()
 	changed.emit()
@@ -211,7 +209,6 @@ func to_dict() -> Dictionary:
 		"age_group": age_group,
 		"sex": sex,
 		"difficulty": difficulty,
-		"language": language,
 	}
 
 
@@ -271,7 +268,6 @@ func from_dict(data: Dictionary) -> void:
 	age_group = str(data.get("age_group", age_group))
 	sex = str(data.get("sex", sex))
 	difficulty = str(data.get("difficulty", difficulty))
-	language = str(data.get("language", language))
 	changed.emit()
 
 
@@ -411,8 +407,8 @@ func _xp_per_level() -> float:
 
 func print_state() -> void:
 	print("--- GameState ---")
-	print("avatar_name='%s' age_group=%s sex=%s difficulty=%s language=%s" % [
-			avatar_name, age_group, sex, difficulty, language])
+	print("avatar_name='%s' age_group=%s sex=%s difficulty=%s" % [
+			avatar_name, age_group, sex, difficulty])
 	print("physical=%.2f happiness=%.2f sleep=%.2f" % [physical, happiness, sleep])
 	print("strength=%.2f calories_spent=%.0f" % [strength, calories_spent])
 	print("fitness=%.3f sleep_debt=%.2f h weight_z=%+.1f Q=%.2f C=%.2f A=%.2f" % [fitness, sleep_debt, weight_z, diet_quality, craving, habituation])
