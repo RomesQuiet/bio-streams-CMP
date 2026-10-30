@@ -2,23 +2,30 @@ extends SceneTree
 ## Tests for the settings panel (Milestone 11, Task 5). Run from the project folder (after --import):
 ##   Godot --headless --path . -s res://tests/settings_panel_test.gd
 ## Opening and closing, the pause while it is open, and every text on the main screen changing
-## language at once, without a reload. Uses test files, so nothing real is touched.
+## language at once, without a reload, and "Start a new avatar" (Task 7). Uses test files, so
+## nothing real is touched.
 
 const TEST_SETTINGS := "user://test_settings.json"
+const TEST_SAVE := "user://test_save.json"
 
 var _failures := 0
 var main: Node
 var settings: Node
 var clock: Node
 var activities: Node
+## Frames since the new avatar was confirmed; the scene changes at the end of a frame.
+var _frames_after_confirm := -1
 
 
 func _process(_delta: float) -> bool:
+	if _frames_after_confirm >= 0:
+		_frames_after_confirm += 1
+		return _frames_after_confirm >= 2 and _finish()
 	settings = root.get_node("Settings")
 	clock = root.get_node("Clock")
 	activities = root.get_node("Activities")
 	var save_game: Node = root.get_node("SaveGame")
-	save_game.save_path = "user://test_save.json"
+	save_game.save_path = TEST_SAVE
 	save_game.use_web_storage = false
 	save_game.auto_save_enabled = false
 	settings.settings_path = TEST_SETTINGS
@@ -33,8 +40,15 @@ func _process(_delta: float) -> bool:
 
 	_test_open_and_close()
 	_test_language()
+	_test_new_avatar(save_game)
+	_frames_after_confirm = 0
+	return false
 
-	main.queue_free()
+
+func _finish() -> bool:
+	_check("the creation screen opens", current_scene != null and current_scene.name == "Creation")
+	_check("game time is paused there", clock.paused)
+	_check("the page closing now saves nothing, so the old avatar cannot come back", _autosave_saves_nothing())
 	settings.set_language("en")
 	DirAccess.remove_absolute(TEST_SETTINGS)
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
@@ -99,6 +113,42 @@ func _test_language() -> void:
 	_check("...and follows the language too", main.speech_label.text == "Level up! Level 3")
 	_check("back in English", main.diet_label.text.contains("Diet quality") and main.weight_label.text.contains("."))
 	main.options_panel.hide()
+
+
+func _test_new_avatar(save_game: Node) -> void:
+	var game_state: Node = root.get_node("GameState")
+	var button: Button = main.get_node("%NewAvatarButton")
+	var confirm: Button = main.get_node("%ConfirmNewAvatarButton")
+	settings.set_language("pt")
+	save_game.save_game()
+	main.get_node("%SettingsButton").pressed.emit()
+	_check("no warning at first", not main.confirm_box.visible and button.visible)
+	button.pressed.emit()
+	_check("the first press only shows the warning", main.confirm_box.visible and game_state.is_created()
+			and FileAccess.file_exists(TEST_SAVE))
+	main.get_node("%ConfirmCancelButton").pressed.emit()
+	_check("Cancel keeps the avatar and hides the warning", not main.confirm_box.visible and button.visible
+			and game_state.is_created() and FileAccess.file_exists(TEST_SAVE))
+	button.pressed.emit()
+	main.get_node("%SettingsCloseButton").pressed.emit()
+	_check("Close keeps the avatar and hides the warning too", not main.confirm_box.visible and game_state.is_created())
+	main.get_node("%SettingsButton").pressed.emit()
+	activities.start("exercise", "cardio")
+	button.pressed.emit()
+	confirm.pressed.emit()
+	_check("the second press deletes the avatar", not game_state.is_created())
+	_check("the save is gone", not FileAccess.file_exists(TEST_SAVE))
+	_check("no activity is left running", not activities.is_running())
+	_check("the clock starts again", clock.day_number == 1 and clock.phase == clock.Phase.DAY)
+	_check("the language stays", settings.language == "pt")
+
+
+func _autosave_saves_nothing() -> bool:
+	var save_game: Node = root.get_node("SaveGame")
+	save_game.auto_save_enabled = true
+	save_game._auto_save()
+	save_game.auto_save_enabled = false
+	return not FileAccess.file_exists(TEST_SAVE)
 
 
 func _check(name: String, ok: bool) -> void:

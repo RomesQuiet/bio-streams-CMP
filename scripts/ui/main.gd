@@ -73,6 +73,8 @@ const HEALTH_TEXT := "MEASURE_HEALTH"
 @onready var settings_overlay: Control = %SettingsOverlay
 @onready var portuguese_button: Button = %PortugueseButton
 @onready var english_button: Button = %EnglishButton
+@onready var new_avatar_button: Button = %NewAvatarButton
+@onready var confirm_box: Control = %ConfirmBox
 
 var _backdrop_tween: Tween
 ## A short message (such as "Level up!") shown instead of the normal speech for a moment:
@@ -113,6 +115,9 @@ func _ready() -> void:
 	%SettingsCloseButton.pressed.connect(_close_settings)
 	portuguese_button.pressed.connect(Settings.set_language.bind("pt"))
 	english_button.pressed.connect(Settings.set_language.bind("en"))
+	new_avatar_button.pressed.connect(_show_new_avatar_confirmation.bind(true))
+	%ConfirmCancelButton.pressed.connect(_show_new_avatar_confirmation.bind(false))
+	%ConfirmNewAvatarButton.pressed.connect(_start_new_avatar)
 	wake_button.pressed.connect(Clock.wake_up)
 	sleep_button.pressed.connect(_on_sleep_button_pressed)
 	exercise_button.pressed.connect(_open_options.bind("exercise"))
@@ -180,9 +185,24 @@ func _open_settings() -> void:
 ## Back to how the game was before the settings opened.
 func _close_settings() -> void:
 	settings_overlay.hide()
+	_show_new_avatar_confirmation(false)
 	if _paused_by_settings:
 		_paused_by_settings = false
 		Clock.set_paused(false)
+
+
+## "Start a new avatar" only shows the warning; nothing happens without the second press.
+func _show_new_avatar_confirmation(show_it: bool) -> void:
+	confirm_box.visible = show_it
+	new_avatar_button.visible = not show_it
+
+
+## The avatar is deleted for good and the creation screen opens. The language stays: it is in
+## Settings, not in the avatar's save.
+func _start_new_avatar() -> void:
+	Activities.stop()
+	SaveGame.delete_save()
+	get_tree().change_scene_to_file(CREATION_SCENE)
 
 
 func _on_leveled_up(new_level: int) -> void:

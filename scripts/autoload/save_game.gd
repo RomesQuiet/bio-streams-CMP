@@ -126,6 +126,11 @@ func load_game() -> bool:
 ## Removes the save and starts a new game.
 func delete_save() -> void:
 	if FileAccess.file_exists(save_path):
+		# On the web, removing a file alone does not reach the browser's storage: only closing a
+		# written file makes Godot sync it, and the old save would come back after a reload.
+		var file := FileAccess.open(save_path, FileAccess.WRITE)
+		if file != null:
+			file.close()
 		DirAccess.remove_absolute(save_path)
 	if use_web_storage:
 		JavaScriptBridge.eval("try { localStorage.removeItem(%s); } catch (e) {}" % JSON.stringify(WEB_STORAGE_KEY))
