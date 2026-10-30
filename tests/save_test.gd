@@ -101,6 +101,8 @@ func _process(_delta: float) -> bool:
 	_check("the main screen sends the player to the creation screen", not game_state.is_created())
 	main_scene.queue_free()
 
+	_test_deleted_save(save_game, game_state)
+
 	DirAccess.remove_absolute(TEST_PATH)
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
 	quit(1 if _failures > 0 else 0)
@@ -129,6 +131,25 @@ func _same(a: Dictionary, b: Dictionary) -> bool:
 			print("  differs: %s %s != %s" % [key, a[key], b[key]])
 			return false
 	return true
+
+
+## "Start a new avatar" on the web (Milestone 11, Task 7): after a reload the browser can give
+## back the deleted file, so a copy that is not newer than the deleted save is ignored, and the
+## new avatar's saves count on from it so they still load.
+func _test_deleted_save(save_game: Node, game_state: Node) -> void:
+	game_state.start_new_avatar("Old", "child", "male", "normal")
+	save_game.save_game()
+	var old_copy := FileAccess.get_file_as_string(TEST_PATH)
+	save_game.delete_save()
+	var file := FileAccess.open(TEST_PATH, FileAccess.WRITE)
+	file.store_string(old_copy)
+	file.close()
+	game_state.reset()
+	_check("a deleted save that comes back is ignored", not save_game.load_game() and not game_state.is_created())
+	game_state.start_new_avatar("New", "child", "male", "normal")
+	save_game.save_game()
+	game_state.reset()
+	_check("the new avatar after it loads", save_game.load_game() and game_state.avatar_name == "New")
 
 
 ## Compares two arrays of numbers or dictionaries (such as log entries) the same way.

@@ -6,9 +6,14 @@ extends Node
 ## IndexedDB, but writing it finishes a moment later, which can be too late when
 ## the tab closes. So the web build also keeps a copy in localStorage, which is
 ## written at once. On load, the newest of the two copies is used.
+##
+## Deleting has the same problem the other way round: after a reload the browser can still
+## give back the deleted file. So delete_save() writes down the last save number in
+## localStorage, at once, and any copy that is not newer than it is ignored.
 
 const SAVE_PATH := "user://save.json"
 const WEB_STORAGE_KEY := "plasticine_tamagotchi_save"
+const WEB_DELETED_KEY := "plasticine_tamagotchi_deleted_save"
 ## Version of the save format. A save with another version is ignored and the creation
 ## screen opens. 2 = Milestone 10 (Health Calculation Architecture v1): saves from Milestone 4
 ## or earlier (version 1) do not load (decision 6, user, 25 Oct 2026).
@@ -23,6 +28,8 @@ var auto_save_enabled := true
 ## Goes up by one with every save, so the newest copy can be found
 ## without reading the device clock.
 var _save_count := 0
+## Saves up to this number were deleted (web only; "Start a new avatar").
+var _deleted_count := 0
 var _ready_done := false
 ## Kept so the browser callback is not freed while the page is open.
 var _page_event_callback: JavaScriptObject
@@ -102,10 +109,15 @@ func save_game() -> void:
 
 ## Loads the newest saved copy. Returns false if there is no valid save.
 func load_game() -> bool:
+	if use_web_storage:
+		_deleted_count = _read_deleted_count()
+	# New saves must count on from the deleted ones, or they would be ignored too.
+	_save_count = maxi(_save_count, _deleted_count)
 	var best: Dictionary = {}
 	for text in [_read_file(), _read_web_storage()]:
 		var data := _parse(text)
-		if not data.is_empty() and int(data.get("save_count", 0)) > int(best.get("save_count", -1)):
+		var count := int(data.get("save_count", 0))
+		if not data.is_empty() and count > _deleted_count and count > int(best.get("save_count", -1)):
 			best = data
 	if best.is_empty():
 		return false
@@ -126,15 +138,11 @@ func load_game() -> bool:
 ## Removes the save and starts a new game.
 func delete_save() -> void:
 	if FileAccess.file_exists(save_path):
-		# On the web, removing a file alone does not reach the browser's storage: only closing a
-		# written file makes Godot sync it, and the old save would come back after a reload.
-		var file := FileAccess.open(save_path, FileAccess.WRITE)
-		if file != null:
-			file.close()
 		DirAccess.remove_absolute(save_path)
+	_deleted_count = _save_count
 	if use_web_storage:
-		JavaScriptBridge.eval("try { localStorage.removeItem(%s); } catch (e) {}" % JSON.stringify(WEB_STORAGE_KEY))
-	_save_count = 0
+		JavaScriptBridge.eval("try { localStorage.removeItem(%s); localStorage.setItem(%s, %s); } catch (e) {}" % [
+			JSON.stringify(WEB_STORAGE_KEY), JSON.stringify(WEB_DELETED_KEY), JSON.stringify(str(_deleted_count))])
 	Activities.reset()
 	Habits.reset()
 	Simulation.reset()
@@ -146,6 +154,13 @@ func _read_file() -> String:
 	if not FileAccess.file_exists(save_path):
 		return ""
 	return FileAccess.get_file_as_string(save_path)
+
+
+func _read_deleted_count() -> int:
+	var value: Variant = JavaScriptBridge.eval(
+		"(function () { try { return localStorage.getItem(%s) || '0'; } catch (e) { return '0'; } })()"
+		% JSON.stringify(WEB_DELETED_KEY))
+	return int(value) if value is String else 0
 
 
 func _read_web_storage() -> String:
