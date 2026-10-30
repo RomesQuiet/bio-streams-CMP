@@ -40,22 +40,22 @@ theme_override_constants/separation = 16
 [node name="Title" type="Label" parent="Margin/Layout"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 40
-text = "Create your avatar"
+text = "CREATION_TITLE"
 horizontal_alignment = 1
 
 [node name="NameLabel" type="Label" parent="Margin/Layout"]
 layout_mode = 2
-text = "Name"
+text = "CREATION_NAME"
 
 [node name="NameEdit" type="LineEdit" parent="Margin/Layout"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 72)
 layout_mode = 2
-placeholder_text = "Type a name"
+placeholder_text = "CREATION_NAME_HINT"
 
 [node name="AgeLabel" type="Label" parent="Margin/Layout"]
 layout_mode = 2
-text = "Age group"
+text = "CREATION_AGE"
 
 [node name="AgeButtons" type="HBoxContainer" parent="Margin/Layout"]
 unique_name_in_owner = true
@@ -63,7 +63,7 @@ layout_mode = 2
 
 [node name="SexLabel" type="Label" parent="Margin/Layout"]
 layout_mode = 2
-text = "Sex"
+text = "CREATION_SEX"
 
 [node name="SexButtons" type="HBoxContainer" parent="Margin/Layout"]
 unique_name_in_owner = true
@@ -71,7 +71,7 @@ layout_mode = 2
 
 [node name="DifficultyLabel" type="Label" parent="Margin/Layout"]
 layout_mode = 2
-text = "Difficulty"
+text = "CREATION_DIFFICULTY"
 
 [node name="DifficultyButtons" type="GridContainer" parent="Margin/Layout"]
 unique_name_in_owner = true
@@ -92,4 +92,4 @@ size_flags_vertical = 3
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 96)
 layout_mode = 2
-text = "Start"
+text = "CREATION_START"

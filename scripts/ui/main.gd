@@ -8,14 +8,15 @@ const AvatarStates := preload("res://scripts/health/avatar_states.gd")
 const HealthModel := preload("res://scripts/health/health_model.gd")
 ## Placeholder failure messages by cause (HealthModel.failure_cause(); the failure effect is not
 ## decided yet): severe thinness for too long, or target health or happiness below its line for
-## too long (fail group in config).
+## too long (fail group in config). Translation keys, like every text on this screen.
 const FAILURE_TEXTS := {
-	"thinness": "Failure: I have been severely thin for too long.",
-	"health": "Failure: my health has stayed too low for too long.",
-	"happiness": "Failure: my happiness has stayed too low for too long.",
+	"thinness": "FAILURE_THINNESS",
+	"health": "FAILURE_HEALTH",
+	"happiness": "FAILURE_HAPPINESS",
 }
 ## Placeholder health bar warning in the danger state of severe thinness (Milestone 10.5).
-const DANGER_TEXT := "Health: danger"
+const DANGER_TEXT := "MEASURE_HEALTH_DANGER"
+const HEALTH_TEXT := "MEASURE_HEALTH"
 
 ## Sky colours. The sky follows the clock (daylight hours in config), not whether
 ## the avatar is awake or asleep.
@@ -71,8 +72,12 @@ const DANGER_TEXT := "Health: danger"
 @onready var sleep_info_label: Label = %SleepInfoLabel
 
 var _backdrop_tween: Tween
-## A short message (such as "Level up!") shown instead of the normal speech for a moment.
-var _flash_text := ""
+## A short message (such as "Level up!") shown instead of the normal speech for a moment:
+## its translation key and the values for its format.
+var _flash_key := ""
+var _flash_args := []
+## The activity whose options are in the options panel.
+var _options_activity := ""
 
 
 func _ready() -> void:
@@ -135,25 +140,43 @@ func _toggle_values_panel() -> void:
 	values_panel.visible = not values_panel.visible
 
 
+## The language changed: every text written here is written again. Text that holds a key in the
+## scenes follows by itself. _ready() may not have run yet when the language is first set.
+func _notification(what: int) -> void:
+	if what != NOTIFICATION_TRANSLATION_CHANGED or not is_node_ready():
+		return
+	_refresh()
+	_refresh_sleep_info()
+	if options_panel.visible:
+		_open_options(_options_activity)
+	if not _flash_key.is_empty():
+		_show_flash()
+
+
 func _on_leveled_up(new_level: int) -> void:
-	_flash("Level up! Level %d" % new_level)
+	_flash("SPEECH_LEVEL_UP", [new_level])
 
 
 ## Shows a short message in the speech bubble for level_up_message_seconds.
-func _flash(text: String) -> void:
-	_flash_text = text
-	speech_label.text = _flash_text
+func _flash(key: String, args := []) -> void:
+	_flash_key = key
+	_flash_args = args
+	_show_flash()
 	get_tree().create_timer(level_up_message_seconds).timeout.connect(_end_flash)
 
 
+func _show_flash() -> void:
+	speech_label.text = tr(_flash_key) % _flash_args
+
+
 func _end_flash() -> void:
-	_flash_text = ""
+	_flash_key = ""
 	_refresh_phase()
 
 
 ## Writes to the speech bubble, unless a short message is being shown.
 func _set_speech(text: String) -> void:
-	if _flash_text.is_empty():
+	if _flash_key.is_empty():
 		speech_label.text = text
 
 
@@ -161,7 +184,7 @@ func _set_speech(text: String) -> void:
 ## The slider stops at the longest sleep allowed now.
 func _on_sleep_button_pressed() -> void:
 	if not Clock.is_sleepy():
-		_flash("I'm not sleepy.")
+		_flash("SPEECH_NOT_SLEEPY")
 		return
 	sleep_slider.max_value = Clock.max_sleep_hours()
 	_refresh_sleep_info()
@@ -177,18 +200,19 @@ func _open_options(activity_id: String) -> void:
 		option_buttons.remove_child(child)
 		child.queue_free()
 	var options: Dictionary = Activities.definitions.get(activity_id, {}).get("options", {})
+	_options_activity = activity_id
 	options_title.text = str(Activities.definitions.get(activity_id, {}).get("name", activity_id))
 	for option_id in options:
 		var option: Dictionary = options[option_id]
 		var button := Button.new()
-		button.text = "%s (%s h)" % [option.get("name", option_id), option.get("duration_hours", "?")]
+		button.text = tr("UI_OPTION") % [tr(option.get("name", option_id)), Settings.decimal_text(str(option.get("duration_hours", "?")))]
 		button.custom_minimum_size = Vector2(0, 72)
 		button.pressed.connect(_on_option_chosen.bind(activity_id, option_id))
 		option_buttons.add_child(button)
 	# A hungry avatar can also skip the meal: hunger stays, the 2-hour gap starts again.
 	if activity_id == "eat" and Hunger.is_hungry():
 		var skip := Button.new()
-		skip.text = "Skip meal"
+		skip.text = "UI_SKIP_MEAL"
 		skip.custom_minimum_size = Vector2(0, 72)
 		skip.pressed.connect(_on_skip_meal)
 		option_buttons.add_child(skip)
@@ -244,22 +268,22 @@ func _refresh() -> void:
 	# The danger state of severe thinness: the health bar warns.
 	var danger := HealthModel.in_danger()
 	health_bar.self_modulate = danger_bar_color if danger else Color.WHITE
-	health_label.text = DANGER_TEXT if danger else "Health"
+	health_label.text = DANGER_TEXT if danger else HEALTH_TEXT
 	physical_bar.value = GameState.physical
 	happiness_bar.value = GameState.happiness
 	sleep_bar.value = GameState.sleep
-	calories_label.text = "Calories spent\n%d kcal" % roundi(GameState.calories_spent)
-	muscle_label.text = "Strength\n%.2f" % GameState.strength
-	fitness_label.text = "Fitness\n%.2f" % GameState.fitness
-	weight_label.text = "Weight\n%.1f kg" % GameState.weight_kg
-	height_label.text = "Height\n%.0f cm" % (GameState.height_m * Config.get_float("units.cm_per_m"))
-	bmi_label.text = "BMI-for-age\nz %+.2f" % GameState.weight_z
-	diet_label.text = "Diet quality\n%.2f" % GameState.diet_quality
+	calories_label.text = tr("MEASURE_CALORIES") % roundi(GameState.calories_spent)
+	muscle_label.text = tr("MEASURE_STRENGTH") % Settings.number(GameState.strength, 2)
+	fitness_label.text = tr("MEASURE_FITNESS") % Settings.number(GameState.fitness, 2)
+	weight_label.text = tr("MEASURE_WEIGHT") % Settings.number(GameState.weight_kg, 1)
+	height_label.text = tr("MEASURE_HEIGHT") % (GameState.height_m * Config.get_float("units.cm_per_m"))
+	bmi_label.text = tr("MEASURE_BMI") % Settings.number(GameState.weight_z, 2, true)
+	diet_label.text = tr("MEASURE_DIET") % Settings.number(GameState.diet_quality, 2)
 	avatar.states = AvatarStates.current()
-	level_label.text = "Lv %d" % GameState.level
+	level_label.text = tr("UI_LEVEL") % GameState.level
 	xp_bar.value = GameState.level_progress
 	var per_level := Config.get_float("xp.per_level")
-	xp_label.text = "XP %d / %d" % [floori(GameState.level_progress * per_level), roundi(per_level)]
+	xp_label.text = tr("UI_XP") % [floori(GameState.level_progress * per_level), roundi(per_level)]
 	_refresh_phase()
 
 
@@ -274,8 +298,9 @@ func _refresh_clock() -> void:
 func _refresh_activity_speech() -> void:
 	if not Activities.is_running():
 		return
-	var label := "Zzz..." if Activities.current_activity == "sleep" else "%s..." % Activities.current_option_data().get("name", "")
-	_set_speech("%s (%.1f of %.1f h)" % [label, Activities.elapsed_hours, Activities.target_hours])
+	var label := "Zzz..." if Activities.current_activity == "sleep" else "%s..." % tr(Activities.current_option_data().get("name", ""))
+	_set_speech(tr("SPEECH_PROGRESS") % [label, Settings.number(Activities.elapsed_hours, 1),
+			Settings.number(Activities.target_hours, 1)])
 
 
 func _refresh_phase() -> void:
@@ -301,15 +326,15 @@ func _refresh_phase() -> void:
 				_set_speech(failure_text())
 			elif GameState.tired:
 				# Stays visible until the avatar sleeps.
-				_set_speech("I'm tired. Sleep is recommended.")
+				_set_speech(tr("SPEECH_TIRED"))
 			elif Hunger.is_hungry():
-				_set_speech("I'm hungry!")
+				_set_speech(tr("SPEECH_HUNGRY"))
 			elif AvatarStates.current()["sad"]:
-				_set_speech("I'm sad.")
+				_set_speech(tr("SPEECH_SAD"))
 			else:
-				_set_speech("Paused" if Clock.paused else "Hello!")
+				_set_speech(tr("SPEECH_PAUSED") if Clock.paused else tr("SPEECH_HELLO"))
 		Clock.Phase.SLEEP_OVER:
-			var text := "I slept %.1f h. Press the wake button to start the day." % Clock.sleep_elapsed_hours
+			var text := tr("SPEECH_SLEPT") % Settings.number(Clock.sleep_elapsed_hours, 1)
 			if GameState.is_at_failure():
 				text = failure_text() + "\n" + text
 			_set_speech(text)
@@ -317,19 +342,19 @@ func _refresh_phase() -> void:
 
 ## The placeholder failure message for the current cause ("" when there is no failure).
 func failure_text() -> String:
-	return FAILURE_TEXTS.get(HealthModel.failure_cause(), "")
+	return tr(FAILURE_TEXTS.get(HealthModel.failure_cause(), ""))
 
 
 ## Shows what the chosen hours mean: real sleep time and the length of the next day.
 func _refresh_sleep_info() -> void:
 	var hours := sleep_slider.value
 	var day_hours := Clock.day_hours_after_sleep(hours)
-	sleep_info_label.text = "%.1f h of sleep (%d real min)\nNext day: %.1f h (%.1f real min)" % [
-		hours,
+	sleep_info_label.text = tr("SLEEP_INFO") % [
+		Settings.number(hours, 1),
 		roundi(Clock.avatar_hours_to_real_seconds(hours, true) / 60.0),
-		day_hours,
-		Clock.avatar_hours_to_real_seconds(day_hours, false) / 60.0,
+		Settings.number(day_hours, 1),
+		Settings.number(Clock.avatar_hours_to_real_seconds(day_hours, false) / 60.0, 1),
 	]
-	sleep_info_label.text += "\nAt most %.1f h now." % Clock.max_sleep_hours()
+	sleep_info_label.text += "\n" + tr("SLEEP_AT_MOST") % Settings.number(Clock.max_sleep_hours(), 1)
 	if Clock.phase == Clock.Phase.DAY:
-		sleep_info_label.text += "\nSleeping now ends the current day."
+		sleep_info_label.text += "\n" + tr("SLEEP_ENDS_DAY")

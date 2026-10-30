@@ -9,35 +9,37 @@ extends Control
 
 const MAIN_SCENE := "res://scenes/main.tscn"
 ## The question in the browser's text box, and the field's hint when it opens that box.
-const NAME_QUESTION := "Name of your avatar:"
-const TAP_HINT := "Tap to type a name"
+const NAME_QUESTION := "CREATION_NAME_QUESTION"
+const TAP_HINT := "CREATION_TAP_HINT"
 
-## Choice id (saved in GameState) -> text on the button.
+## Choice id (saved in GameState) -> text on the button. All the texts here are translation keys
+## (translations/strings.csv); the buttons and labels translate them by themselves, also when
+## the language changes.
 const AGE_GROUPS := {
-	"child": "Child\n(6 to 12 years)",
-	"teenager": "Teenager\n(13 to 18 years)",
+	"child": "CREATION_CHILD",
+	"teenager": "CREATION_TEENAGER",
 }
 const SEXES := {
-	"male": "Male",
-	"female": "Female",
+	"male": "CREATION_MALE",
+	"female": "CREATION_FEMALE",
 }
 ## Placeholder texts. They describe the starting habits only, in neutral words.
 const DIFFICULTIES := {
 	"easy": {
-		"name": "Easy",
-		"description": "Starts with healthy habits: enough sleep, regular physical activity and a good mood.",
+		"name": "CREATION_EASY",
+		"description": "CREATION_EASY_INFO",
 	},
 	"normal": {
-		"name": "Normal",
-		"description": "Starts with average habits: some physical activity and sleep, with room to improve.",
+		"name": "CREATION_NORMAL",
+		"description": "CREATION_NORMAL_INFO",
 	},
 	"hard": {
-		"name": "Hard",
-		"description": "Starts with few healthy habits: little physical activity and short sleep. New habits are easy to take on.",
+		"name": "CREATION_HARD",
+		"description": "CREATION_HARD_INFO",
 	},
 	"very_hard": {
-		"name": "Very hard",
-		"description": "Starts with very few healthy habits: almost no physical activity, very short sleep and a low mood. Changing habits too fast is hard on the mood.",
+		"name": "CREATION_VERY_HARD",
+		"description": "CREATION_VERY_HARD_INFO",
 	},
 }
 
@@ -87,7 +89,7 @@ func _on_name_tapped(event: InputEvent) -> void:
 	name_edit.accept_event()
 	var tap := event as InputEventMouseButton
 	if tap and tap.button_index == MOUSE_BUTTON_LEFT and not tap.pressed:
-		set_typed_name(JavaScriptBridge.eval("window.prompt(%s, %s)" % [JSON.stringify(NAME_QUESTION),
+		set_typed_name(JavaScriptBridge.eval("window.prompt(%s, %s)" % [JSON.stringify(tr(NAME_QUESTION)),
 				JSON.stringify(name_edit.text)]))
 
 
@@ -121,7 +123,7 @@ func _add_choice_buttons(container: Container, choices: Dictionary, on_chosen: C
 
 
 func _refresh() -> void:
-	difficulty_info.text = DIFFICULTIES[_difficulty]["description"] if _difficulty else "Choose a difficulty."
+	difficulty_info.text = DIFFICULTIES[_difficulty]["description"] if _difficulty else "CREATION_CHOOSE_DIFFICULTY"
 	start_button.disabled = name_edit.text.strip_edges().is_empty() \
 			or _age_group.is_empty() or _sex.is_empty() or _difficulty.is_empty()
 

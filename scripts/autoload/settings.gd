@@ -55,6 +55,17 @@ func set_language(id: String) -> void:
 			JSON.stringify(WEB_STORAGE_KEY), JSON.stringify(text)])
 
 
+## A number for the player, with the decimal mark of the language (0.85 or 0,85).
+## signed: also shows + on positive numbers.
+func number(value: float, decimals: int, signed := false) -> String:
+	return decimal_text(("%+.*f" if signed else "%.*f") % [decimals, value])
+
+
+## A number already written as text, with the decimal mark of the language.
+func decimal_text(text: String) -> String:
+	return text.replace(".", tr("FORMAT_DECIMAL_MARK"))
+
+
 func _apply(id: String) -> void:
 	language = id
 	TranslationServer.set_locale(id)

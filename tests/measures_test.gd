@@ -26,6 +26,7 @@ func _process(_delta: float) -> bool:
 	save_game.save_path = "user://test_save.json"
 	save_game.use_web_storage = false
 	save_game.auto_save_enabled = false
+	TranslationServer.set_locale("en")
 	var gs: Node = root.get_node("GameState")
 	var clock: Node = root.get_node("Clock")
 	var activities: Node = root.get_node("Activities")
@@ -118,16 +119,16 @@ func _test_failure(gs: Node, main: Node) -> void:
 	health_model.step(23.0, false)
 	gs.changed.emit()
 	_check("target health below 1.3 for 23 h is not failure yet", gs.target_health < 1.3
-			and not gs.is_at_failure() and main.speech_label.text != main.FAILURE_TEXTS["health"])
+			and not gs.is_at_failure() and main.speech_label.text != main.tr(main.FAILURE_TEXTS["health"]))
 	health_model.step(1.0, false)
 	gs.changed.emit()
 	_check("target health below 1.3 for 24 h is failure, even with the bar at 3", gs.is_at_failure())
-	_check("the failure message is shown", main.speech_label.text == main.FAILURE_TEXTS["health"])
+	_check("the failure message is shown", main.speech_label.text == main.tr(main.FAILURE_TEXTS["health"]))
 	gs.physical = 0.5
 	gs.sleep = 0.5
 	health_model.step(1.0 / 12.0, false)
 	gs.changed.emit()
-	_check("the message goes away when health rises again", not gs.is_at_failure() and main.speech_label.text != main.FAILURE_TEXTS["health"])
+	_check("the message goes away when health rises again", not gs.is_at_failure() and main.speech_label.text != main.tr(main.FAILURE_TEXTS["health"]))
 	gs.happiness = 0.05
 	health_model.step(12.0, false)
 	_check("happiness below 0.10 for 12 h is failure too", gs.is_at_failure())

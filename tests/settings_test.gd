@@ -38,7 +38,13 @@ func _process(_delta: float) -> bool:
 	settings.set_language("fr")
 	_check("an unknown language is refused", settings.language == "en")
 
+	settings.set_language("en")
+	_check("numbers in English: decimal point", settings.number(0.849, 2) == "0.85" and settings.number(36.04, 1) == "36.0")
+	_check("...with a sign when asked", settings.number(1.2, 2, true) == "+1.20" and settings.number(-1.2, 2, true) == "-1.20")
 	settings.set_language("pt")
+	_check("numbers in Portuguese: decimal comma", settings.number(0.849, 2) == "0,85" and settings.number(1.2, 2, true) == "+1,20")
+	_check("...also a number written as text", settings.decimal_text("0.5") == "0,5")
+
 	game_state.reset()
 	game_state.start_new_avatar("Test", "child", "male", "normal")
 	_check("a new avatar does not change the language", settings.language == "pt")

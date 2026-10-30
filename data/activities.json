@@ -1,12 +1,12 @@
 {
-	"_comment": "Activities the avatar can do. Each activity has options; each option has a duration in avatar hours (or \"slider\" for sleep), mety (youth MET: energy per avatar hour = BMR / 24 x mety, Milestone 10), effects per avatar hour on GameState values (none for now), activity_intensity (\"moderate_vigorous\" counts toward the 60 minutes), a background colour and an animation name. Effects only count for the time actually done; energy is counted every 5-minute step (Simulation). Options marked \"placeholder\": true use temporary numbers; mety and activity_intensity have their own status and owner.",
+	"_comment": "Activities the avatar can do. Each activity has options; every name is a key of translations/strings.csv; each option has a duration in avatar hours (or \"slider\" for sleep), mety (youth MET: energy per avatar hour = BMR / 24 x mety, Milestone 10), effects per avatar hour on GameState values (none for now), activity_intensity (\"moderate_vigorous\" counts toward the 60 minutes), a background colour and an animation name. Effects only count for the time actually done; energy is counted every 5-minute step (Simulation). Options marked \"placeholder\": true use temporary numbers; mety and activity_intensity have their own status and owner.",
 
 	"sleep": {
-		"name": "Sleep",
+		"name": "ACTIVITY_SLEEP",
 		"uses_sleep_time": true,
 		"options": {
 			"sleep": {
-				"name": "Sleep",
+				"name": "ACTIVITY_SLEEP",
 				"duration_hours": "slider",
 				"effects_per_hour": {},
 				"mety": { "value": 0.95, "status": "from source", "owner": "Pessoa 3", "comment": "Youth MET while asleep (v1 Step 3). Energy per avatar hour = BMR / 24 x METy." },
@@ -19,10 +19,10 @@
 	},
 
 	"exercise": {
-		"name": "Exercise",
+		"name": "ACTIVITY_EXERCISE",
 		"options": {
 			"cardio": {
-				"name": "Cardio",
+				"name": "ACTIVITY_CARDIO",
 				"duration_hours": 1,
 				"effects_per_hour": {},
 				"mety": { "value": 7.0, "status": "from source", "owner": "Pessoa 3", "comment": "Youth Compendium (v1 Step 3)." },
@@ -33,7 +33,7 @@
 				"comment": "Cardio spends more energy than muscle strength. Fitness and strength are trained every step (config.json: train; v1 Step 6)."
 			},
 			"strength": {
-				"name": "Muscle strength",
+				"name": "ACTIVITY_STRENGTH",
 				"duration_hours": 1,
 				"effects_per_hour": {},
 				"mety": { "value": 5.0, "status": "from source", "owner": "Pessoa 3", "comment": "Strength or calisthenics, Youth Compendium (v1 Step 3)." },
@@ -47,11 +47,11 @@
 	},
 
 	"eat": {
-		"name": "Eat",
+		"name": "ACTIVITY_EAT",
 		"_comment": "Milestone 10, Task 3. The food values of each option are in data/foods.json (same id). A meal takes avatar time (decision 2, user, 25 Oct 2026; the duration is a placeholder); its kcal and its effect on hunger count when it ends, in proportion to the time eaten (Stop = part of a meal).",
 		"options": {
 			"healthy_meal": {
-				"name": "Healthy meal",
+				"name": "ACTIVITY_HEALTHY_MEAL",
 				"duration_hours": 0.5,
 				"effects_per_hour": {},
 				"mety": { "value": 1.5, "status": "placeholder", "owner": "Pessoa 3", "comment": "Eating while sitting. Not in v1." },
@@ -60,7 +60,7 @@
 				"placeholder": true
 			},
 			"fast_food_meal": {
-				"name": "Fast-food meal",
+				"name": "ACTIVITY_FAST_FOOD_MEAL",
 				"duration_hours": 0.5,
 				"effects_per_hour": {},
 				"mety": { "value": 1.5, "status": "placeholder", "owner": "Pessoa 3", "comment": "Eating while sitting. Not in v1." },
@@ -72,11 +72,11 @@
 	},
 
 	"entertainment": {
-		"name": "Entertainment",
+		"name": "ACTIVITY_ENTERTAINMENT",
 		"_comment": "Decision 4 (user, 25 Oct 2026): Screens and Football (v1 uses both). Football is active play: it counts as moderate-to-vigorous activity and, in v1, with cardio for fitness.",
 		"options": {
 			"screens": {
-				"name": "Screens",
+				"name": "ACTIVITY_SCREENS",
 				"duration_hours": 1,
 				"effects_per_hour": {},
 				"mety": { "value": 1.3, "status": "from source", "owner": "Pessoa 3", "comment": "Watching TV 1.3, Youth Compendium (v1 Step 3)." },
@@ -86,7 +86,7 @@
 				"comment": "Recreational screen time."
 			},
 			"football": {
-				"name": "Football",
+				"name": "ACTIVITY_FOOTBALL",
 				"duration_hours": 1,
 				"effects_per_hour": {},
 				"mety": { "value": 7.5, "status": "from source", "owner": "Pessoa 3", "comment": "Youth Compendium: soccer 8.1 at 10 to 12 years; play with friends set lower (v1 Step 3)." },

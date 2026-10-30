@@ -110,7 +110,6 @@ mouse_filter = 2
 [node name="SpeechLabel" type="Label" parent="Margin/Layout/Stage/SpeechBubble"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Hello!"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
@@ -129,7 +128,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Stop"
+text = "UI_STOP"
 
 [node name="ActionGrid" type="GridContainer" parent="Margin/Layout"]
 layout_mode = 2
@@ -142,28 +141,28 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Exercise"
+text = "UI_EXERCISE"
 
 [node name="SleepButton" type="Button" parent="Margin/Layout/ActionGrid"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Sleep"
+text = "UI_SLEEP"
 
 [node name="EatButton" type="Button" parent="Margin/Layout/ActionGrid"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Eat"
+text = "UI_EAT"
 
 [node name="EntertainmentButton" type="Button" parent="Margin/Layout/ActionGrid"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Entertainment"
+text = "UI_ENTERTAINMENT"
 
 [node name="HealthLevelButton" type="Button" parent="."]
 unique_name_in_owner = true
@@ -172,7 +171,7 @@ offset_left = 24.0
 offset_top = 24.0
 offset_right = 112.0
 offset_bottom = 112.0
-tooltip_text = "Health level (1 to 5). Click to show the measures."
+tooltip_text = "UI_HEALTH_LEVEL_TIP"
 theme_override_font_sizes/font_size = 44
 text = "4"
 
@@ -183,7 +182,7 @@ offset_left = 120.0
 offset_top = 24.0
 offset_right = 340.0
 offset_bottom = 64.0
-tooltip_text = "Health. Click to show the measures."
+tooltip_text = "UI_HEALTH_BAR_TIP"
 
 [node name="HealthBar" type="ProgressBar" parent="HealthBarButton"]
 unique_name_in_owner = true
@@ -213,7 +212,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 20
-text = "Health"
+text = "MEASURE_HEALTH"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -238,7 +237,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 20
-text = "XP 0 / 100"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -258,12 +256,11 @@ theme_override_constants/separation = 8
 [node name="LevelBox" type="PanelContainer" parent="RightColumn"]
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-tooltip_text = "XP level"
+tooltip_text = "UI_XP_LEVEL_TIP"
 
 [node name="LevelLabel" type="Label" parent="RightColumn/LevelBox"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Lv 0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -279,7 +276,7 @@ vertical_alignment = 1
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-tooltip_text = "Pause"
+tooltip_text = "UI_PAUSE_TIP"
 toggle_mode = true
 icon = ExtResource("3_pause")
 icon_alignment = 1
@@ -289,7 +286,7 @@ expand_icon = true
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-tooltip_text = "Settings"
+tooltip_text = "SETTINGS_TITLE"
 icon = ExtResource("5_settings")
 icon_alignment = 1
 expand_icon = true
@@ -298,9 +295,9 @@ expand_icon = true
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
-tooltip_text = "Start the new day"
+tooltip_text = "UI_WAKE_TIP"
 disabled = true
-text = "Wake"
+text = "UI_WAKE"
 
 [node name="HealthPanel" type="PanelContainer" parent="."]
 unique_name_in_owner = true
@@ -325,13 +322,13 @@ theme_override_constants/separation = 6
 [node name="PhysicalLabel" type="Label" parent="HealthPanel/Margin/Measures"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "Physical"
+text = "MEASURE_PHYSICAL"
 
 [node name="PhysicalButton" type="Button" parent="HealthPanel/Margin/Measures"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
-tooltip_text = "Click to show the physical values"
+tooltip_text = "UI_PHYSICAL_TIP"
 
 [node name="PhysicalBar" type="ProgressBar" parent="HealthPanel/Margin/Measures/PhysicalButton"]
 unique_name_in_owner = true
@@ -353,7 +350,7 @@ show_percentage = false
 [node name="HappinessLabel" type="Label" parent="HealthPanel/Margin/Measures"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "Happiness"
+text = "MEASURE_HAPPINESS"
 
 [node name="HappinessBar" type="ProgressBar" parent="HealthPanel/Margin/Measures"]
 unique_name_in_owner = true
@@ -366,7 +363,7 @@ show_percentage = false
 [node name="SleepLabel" type="Label" parent="HealthPanel/Margin/Measures"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "Sleep amount"
+text = "MEASURE_SLEEP"
 
 [node name="SleepBar" type="ProgressBar" parent="HealthPanel/Margin/Measures"]
 unique_name_in_owner = true
@@ -400,50 +397,36 @@ theme_override_constants/separation = 10
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Calories spent
-0 kcal"
 
 [node name="MuscleLabel" type="Label" parent="ValuesPanel/Margin/Values"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Strength
-0.50"
 
 [node name="FitnessLabel" type="Label" parent="ValuesPanel/Margin/Values"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Fitness
-0.50"
 
 [node name="WeightLabel" type="Label" parent="ValuesPanel/Margin/Values"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Weight
-36.0 kg"
 
 [node name="HeightLabel" type="Label" parent="ValuesPanel/Margin/Values"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Height
-138 cm"
 
 [node name="BmiLabel" type="Label" parent="ValuesPanel/Margin/Values"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "BMI-for-age
-z +1.20"
 
 [node name="DietLabel" type="Label" parent="ValuesPanel/Margin/Values"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Diet quality
-0.50"
 
 [node name="OptionsPanel" type="PanelContainer" parent="."]
 unique_name_in_owner = true
@@ -475,7 +458,6 @@ theme_override_constants/separation = 16
 [node name="OptionsTitle" type="Label" parent="OptionsPanel/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Choose"
 horizontal_alignment = 1
 
 [node name="OptionButtons" type="VBoxContainer" parent="OptionsPanel/Margin/Content"]
@@ -487,7 +469,7 @@ theme_override_constants/separation = 12
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
-text = "Cancel"
+text = "UI_CANCEL"
 
 [node name="SleepPanel" type="PanelContainer" parent="."]
 unique_name_in_owner = true
@@ -518,7 +500,7 @@ theme_override_constants/separation = 16
 
 [node name="SleepTitle" type="Label" parent="SleepPanel/Margin/Content"]
 layout_mode = 2
-text = "How many hours of sleep?"
+text = "UI_SLEEP_QUESTION"
 horizontal_alignment = 1
 
 [node name="SleepSlider" type="HSlider" parent="SleepPanel/Margin/Content"]
@@ -529,7 +511,6 @@ layout_mode = 2
 [node name="SleepInfoLabel" type="Label" parent="SleepPanel/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "10 h of sleep"
 horizontal_alignment = 1
 autowrap_mode = 3
 
@@ -542,14 +523,14 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Cancel"
+text = "UI_CANCEL"
 
 [node name="SleepStartButton" type="Button" parent="SleepPanel/Margin/Content/SleepButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Sleep"
+text = "UI_SLEEP"
 
 [node name="DebugPanel" parent="." instance=ExtResource("6_debug")]
 layout_mode = 0
