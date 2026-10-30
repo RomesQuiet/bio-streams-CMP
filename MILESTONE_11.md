@@ -1,6 +1,15 @@
 # Milestone 11 — Settings panel and Portuguese
 
-**Status: planned (30 October 2026). Nothing is built yet.** Start with Task 2.
+**Status: built and committed (30 October 2026), not pushed.** The user checks the game and the Portuguese, then pushes. Claude's Portuguese is a draft until the user or the team has read it (Task 4). Task 2 `03c4ead`; the later commits are in `documentation/handoff.md`.
+
+**Changes made while building (beyond this list):**
+
+- The settings panel sits on a dark layer over the whole screen, so nothing else can be pressed while it is open (an activity started behind it would have ended the pause).
+- **Deleting a save on the web needed a marker.** After "Start a new avatar" and an immediate reload the old avatar came back, because the browser's IndexedDB still held the file. `SaveGame.delete_save()` now writes the last save number to localStorage (`plasticine_tamagotchi_deleted_save`), which is written at once; a copy that is not newer is ignored, and new saves count on from it. Only the browser test found this, so repeat it after any change to saving.
+- Numbers with decimals use `%s` in the texts, filled by `Settings.number()`, because `%.1f` cannot give a decimal comma. Keys of texts that only hold a number format stay in the CSV.
+- In Portuguese "IMC para a idade" and "Qualidade da alimentação" have a line break, because the values box covered the right column.
+
+**Checked in the web build (browser pane, 30 Oct 2026):** every screen and panel in Portuguese; the language surviving a reload; a `pt-BR` browser opening in Portuguese and `en-GB` in English, with nothing saved until the player chooses; a new avatar deleted and reloaded at once, and the next avatar loading. **Not checked:** a real phone, including the pop-up name box in Portuguese.
 
 Goal: the settings button (top right of the main screen, which does nothing today) opens a real settings panel, and the whole game can be played in **European Portuguese** or English. The concept document requires both languages, "in scientifically correct language, not simplified for young children".
 
@@ -44,7 +53,7 @@ Read `CLAUDE.md` and `documentation/handoff.md` first. Rules that still hold: no
 - `TranslationServer.set_locale("pt")` changes the language, and `tr("KEY")` returns the text. Formats work: `tr("LEVEL_UP") % 3`.
 - **After changing the CSV, run the import** before headless tests: `"/Applications/Godot 2.app/Contents/MacOS/Godot" --headless --path . --import`. The `.translation` files are ignored by git (`.gitignore`), so a new copy of the project also needs this. `strings.csv.import` is committed.
 - The default font has ã, ç, é and õ (checked).
-- **Not tested yet:** that the web export includes the translations, and that `OS.get_locale_language()` gives the browser's language on a phone. Task 9 checks both.
+- The web export includes the translations, and `OS.get_locale_language()` gives the browser's language (checked in Task 8 in the browser pane; a real phone is still to be checked).
 - Controls translate their own `text` and `tooltip_text` when these hold a key. Text set from a script needs `tr()` and must be set again when the language changes (`NOTIFICATION_TRANSLATION_CHANGED`).
 
 ## Task 1 — The phone name field (done, 30 Oct 2026)

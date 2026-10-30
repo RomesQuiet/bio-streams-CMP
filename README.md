@@ -2,14 +2,14 @@
 
 A web game about **childhood obesity**, made for the Bio-Streams (EU) science competition.
 
-The player looks after an avatar who is a school student and tries to raise its health (from 1 to 5) through **sport, sleep and food**. The game uses scientifically correct information and will be available in Portuguese and English.
+The player looks after an avatar who is a school student and tries to raise its health (from 1 to 5) through **sport, sleep and food**. The game uses scientifically correct information and is available in Portuguese and English.
 
 ## Play
 
 Play in the browser (computer, Android or iOS):
 **https://romesquiet.github.io/bio-streams-game-Porto-Portugal-Conservat-rio-de-M-sica-do-Porto/**
 
-The game saves on your device. Nothing is sent to a server. A new game starts on the avatar creation screen. Saves from before Milestone 3 do not load: you create a new avatar. 
+The game saves on your device. Nothing is sent to a server. A new game starts on the avatar creation screen. Saves from before Milestone 10 do not load: you create a new avatar. The game opens in Portuguese if your browser is in Portuguese, otherwise in English; you can change the language on the creation screen and in the settings, where you can also start a new avatar.
 
 ## Run it yourself
 
