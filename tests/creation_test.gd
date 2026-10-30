@@ -50,42 +50,46 @@ func _process(_delta: float) -> bool:
 			and is_equal_approx(game_state.happiness, 0.3) and is_equal_approx(game_state.sleep, 0.1))
 	_check("game time runs again after Start", not clock.paused)
 
-	_test_name_without_text_changed(game_state, clock)
+	_test_browser_name_box(game_state, clock)
 
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
 	quit(1 if _failures > 0 else 0)
 	return true
 
 
-## Phones and tablets in a browser (bug fix, 28 Oct 2026): with the web export option
-## html/experimental_virtual_keyboard the keyboard's text arrives through LineEdit.set_text (the
-## engine calls it for the focused field), which does not emit text_changed. The screen must
-## notice the name anyway, or Start would stay disabled.
-func _test_name_without_text_changed(game_state: Node, clock: Node) -> void:
+## Phones and tablets in a browser (bug fix, 27 Oct 2026): the name field never takes focus, a
+## tap asks the browser's text box (window.prompt; outside a browser it answers nothing), and
+## the typed name goes into the field.
+func _test_browser_name_box(game_state: Node, clock: Node) -> void:
 	game_state.reset()
 	clock.reset()
 	var screen: Control = load("res://scenes/ui/creation.tscn").instantiate()
 	root.add_child(screen)
+	screen.use_browser_name_box()
 	var name_edit: LineEdit = screen.get_node("%NameEdit")
-	var start: Button = screen.get_node("%StartButton")
-	var heard := []
-	name_edit.text_changed.connect(func(typed: String) -> void: heard.append(typed))
+	name_edit.release_focus()
+	_check("touch screen in a browser: the name field cannot take focus", name_edit.focus_mode == Control.FOCUS_NONE)
+	_check("...and its hint says to tap it", name_edit.placeholder_text == screen.TAP_HINT)
+	var tap := InputEventMouseButton.new()
+	tap.button_index = MOUSE_BUTTON_LEFT
+	for pressed in [true, false]:
+		tap.pressed = pressed
+		name_edit.gui_input.emit(tap)
+	_check("a tap does not give the field focus (Godot would open its own keyboard box)", not name_edit.has_focus())
+	_check("outside a browser the text box answers nothing and the name stays empty", name_edit.text.is_empty())
 	screen.get_node("%AgeButtons").get_child(0).pressed.emit()
 	screen.get_node("%SexButtons").get_child(0).pressed.emit()
 	screen.get_node("%DifficultyButtons").get_child(1).pressed.emit()
-	_check("the three choices are made, no name yet: Start is disabled", start.disabled)
-	# Exactly what the web virtual keyboard does with the text of its hidden box.
-	root.push_text_input("Maria")
-	_check("the keyboard's text reaches the field", name_edit.text == "Maria")
-	_check("...without text_changed (this is why the screen looks at the name itself)", heard.is_empty())
-	screen._process(0.0)
-	_check("the next frame enables Start", not start.disabled)
-	root.push_text_input("   ")
-	screen._process(0.0)
-	_check("a name of only spaces disables Start again", start.disabled)
-	root.push_text_input("A very long name that goes on and on")
-	screen._process(0.0)
+	var start: Button = screen.get_node("%StartButton")
+	screen.set_typed_name("  Ana  ")
+	_check("a name typed in the browser's box goes into the field, without spaces", name_edit.text == "Ana")
+	_check("...and Start is enabled", not start.disabled)
+	screen.set_typed_name(null)
+	_check("Cancel in the browser's box keeps the name", name_edit.text == "Ana")
+	screen.set_typed_name("A very long name that goes on and on")
 	_check("a long name is cut to the longest allowed", name_edit.text.length() == name_edit.max_length)
+	screen.set_typed_name("   ")
+	_check("only spaces: no name, Start is disabled", name_edit.text.is_empty() and start.disabled)
 	screen.queue_free()
 
 
