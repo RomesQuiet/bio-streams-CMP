@@ -1,79 +1,79 @@
 keys,en,pt
 FORMAT_DECIMAL_MARK,.,","
-UI_STOP,Stop,
-UI_EXERCISE,Exercise,
-UI_SLEEP,Sleep,
-UI_EAT,Eat,
-UI_ENTERTAINMENT,Entertainment,
-UI_WAKE,Wake,
-UI_CANCEL,Cancel,
-UI_SKIP_MEAL,Skip meal,
-UI_SLEEP_QUESTION,How many hours of sleep?,
-UI_OPTION,%s (%s h),
-UI_LEVEL,Lv %d,
-UI_XP,XP %d / %d,
-UI_HEALTH_LEVEL_TIP,Health level (1 to 5). Click to show the measures.,
-UI_HEALTH_BAR_TIP,Health. Click to show the measures.,
-UI_PHYSICAL_TIP,Click to show the physical values,
-UI_XP_LEVEL_TIP,XP level,
-UI_PAUSE_TIP,Pause,
-UI_WAKE_TIP,Start the new day,
-MEASURE_HEALTH,Health,
-MEASURE_HEALTH_DANGER,Health: danger,
-MEASURE_PHYSICAL,Physical,
-MEASURE_HAPPINESS,Happiness,
-MEASURE_SLEEP,Sleep amount,
-MEASURE_CALORIES,Calories spent\n%d kcal,
-MEASURE_STRENGTH,Strength\n%s,
-MEASURE_FITNESS,Fitness\n%s,
-MEASURE_WEIGHT,Weight\n%s kg,
-MEASURE_HEIGHT,Height\n%.0f cm,
-MEASURE_BMI,BMI-for-age\nz %s,
-MEASURE_DIET,Diet quality\n%s,
-SPEECH_HELLO,Hello!,
-SPEECH_PAUSED,Paused,
-SPEECH_HUNGRY,I'm hungry!,
-SPEECH_TIRED,I'm tired. Sleep is recommended.,
-SPEECH_NOT_SLEEPY,I'm not sleepy.,
-SPEECH_SAD,I'm sad.,
-SPEECH_LEVEL_UP,Level up! Level %d,
-SPEECH_PROGRESS,%s (%s of %s h),
-SPEECH_SLEPT,I slept %s h. Press the wake button to start the day.,
-SLEEP_INFO,%s h of sleep (%d real min)\nNext day: %s h (%s real min),
-SLEEP_AT_MOST,At most %s h now.,
-SLEEP_ENDS_DAY,Sleeping now ends the current day.,
-FAILURE_THINNESS,Failure: I have been severely thin for too long.,
-FAILURE_HEALTH,Failure: my health has stayed too low for too long.,
-FAILURE_HAPPINESS,Failure: my happiness has stayed too low for too long.,
-CREATION_TITLE,Create your avatar,
-CREATION_NAME,Name,
-CREATION_NAME_HINT,Type a name,
-CREATION_TAP_HINT,Tap to type a name,
-CREATION_NAME_QUESTION,Name of your avatar:,
-CREATION_AGE,Age group,
-CREATION_CHILD,Child\n(6 to 12 years),
-CREATION_TEENAGER,Teenager\n(13 to 18 years),
-CREATION_SEX,Sex,
-CREATION_MALE,Male,
-CREATION_FEMALE,Female,
-CREATION_DIFFICULTY,Difficulty,
-CREATION_CHOOSE_DIFFICULTY,Choose a difficulty.,
-CREATION_EASY,Easy,
-CREATION_EASY_INFO,"Starts with healthy habits: enough sleep, regular physical activity and a good mood.",
-CREATION_NORMAL,Normal,
-CREATION_NORMAL_INFO,"Starts with average habits: some physical activity and sleep, with room to improve.",
-CREATION_HARD,Hard,
-CREATION_HARD_INFO,Starts with few healthy habits: little physical activity and short sleep. New habits are easy to take on.,
-CREATION_VERY_HARD,Very hard,
-CREATION_VERY_HARD_INFO,"Starts with very few healthy habits: almost no physical activity, very short sleep and a low mood. Changing habits too fast is hard on the mood.",
-CREATION_START,Start,
-ACTIVITY_SLEEP,Sleep,
-ACTIVITY_EXERCISE,Exercise,
-ACTIVITY_CARDIO,Cardio,
-ACTIVITY_STRENGTH,Muscle strength,
-ACTIVITY_EAT,Eat,
-ACTIVITY_HEALTHY_MEAL,Healthy meal,
-ACTIVITY_FAST_FOOD_MEAL,Fast-food meal,
-ACTIVITY_ENTERTAINMENT,Entertainment,
-ACTIVITY_SCREENS,Screens,
-ACTIVITY_FOOTBALL,Football,
+UI_STOP,Stop,Parar
+UI_EXERCISE,Exercise,Exercício
+UI_SLEEP,Sleep,Dormir
+UI_EAT,Eat,Comer
+UI_ENTERTAINMENT,Entertainment,Entretenimento
+UI_WAKE,Wake,Acordar
+UI_CANCEL,Cancel,Cancelar
+UI_SKIP_MEAL,Skip meal,Saltar a refeição
+UI_SLEEP_QUESTION,How many hours of sleep?,Quantas horas de sono?
+UI_OPTION,%s (%s h),%s (%s h)
+UI_LEVEL,Lv %d,Nv %d
+UI_XP,XP %d / %d,XP %d / %d
+UI_HEALTH_LEVEL_TIP,Health level (1 to 5). Click to show the measures.,Nível de saúde (1 a 5). Clica para ver as medidas.
+UI_HEALTH_BAR_TIP,Health. Click to show the measures.,Saúde. Clica para ver as medidas.
+UI_PHYSICAL_TIP,Click to show the physical values,Clica para ver os valores físicos
+UI_XP_LEVEL_TIP,XP level,Nível de XP
+UI_PAUSE_TIP,Pause,Pausa
+UI_WAKE_TIP,Start the new day,Começar o novo dia
+MEASURE_HEALTH,Health,Saúde
+MEASURE_HEALTH_DANGER,Health: danger,Saúde: perigo
+MEASURE_PHYSICAL,Physical,Físico
+MEASURE_HAPPINESS,Happiness,Felicidade
+MEASURE_SLEEP,Sleep amount,Quantidade de sono
+MEASURE_CALORIES,Calories spent\n%d kcal,Calorias gastas\n%d kcal
+MEASURE_STRENGTH,Strength\n%s,Força\n%s
+MEASURE_FITNESS,Fitness\n%s,Aptidão física\n%s
+MEASURE_WEIGHT,Weight\n%s kg,Peso\n%s kg
+MEASURE_HEIGHT,Height\n%.0f cm,Altura\n%.0f cm
+MEASURE_BMI,BMI-for-age\nz %s,IMC para a idade\nz %s
+MEASURE_DIET,Diet quality\n%s,Qualidade da alimentação\n%s
+SPEECH_HELLO,Hello!,Olá!
+SPEECH_PAUSED,Paused,Em pausa
+SPEECH_HUNGRY,I'm hungry!,Tenho fome!
+SPEECH_TIRED,I'm tired. Sleep is recommended.,Tenho sono. Recomenda-se dormir.
+SPEECH_NOT_SLEEPY,I'm not sleepy.,Não tenho sono.
+SPEECH_SAD,I'm sad.,Estou triste.
+SPEECH_LEVEL_UP,Level up! Level %d,Subiste de nível! Nível %d
+SPEECH_PROGRESS,%s (%s of %s h),%s (%s de %s h)
+SPEECH_SLEPT,I slept %s h. Press the wake button to start the day.,Dormi %s h. Carrega no botão Acordar para começar o dia.
+SLEEP_INFO,%s h of sleep (%d real min)\nNext day: %s h (%s real min),%s h de sono (%d min reais)\nPróximo dia: %s h (%s min reais)
+SLEEP_AT_MOST,At most %s h now.,No máximo %s h agora.
+SLEEP_ENDS_DAY,Sleeping now ends the current day.,Dormir agora termina o dia atual.
+FAILURE_THINNESS,Failure: I have been severely thin for too long.,Falha: estive demasiado tempo em magreza grave.
+FAILURE_HEALTH,Failure: my health has stayed too low for too long.,Falha: a minha saúde esteve demasiado baixa durante demasiado tempo.
+FAILURE_HAPPINESS,Failure: my happiness has stayed too low for too long.,Falha: a minha felicidade esteve demasiado baixa durante demasiado tempo.
+CREATION_TITLE,Create your avatar,Cria o teu avatar
+CREATION_NAME,Name,Nome
+CREATION_NAME_HINT,Type a name,Escreve um nome
+CREATION_TAP_HINT,Tap to type a name,Toca para escrever um nome
+CREATION_NAME_QUESTION,Name of your avatar:,Nome do teu avatar:
+CREATION_AGE,Age group,Faixa etária
+CREATION_CHILD,Child\n(6 to 12 years),Criança\n(6 a 12 anos)
+CREATION_TEENAGER,Teenager\n(13 to 18 years),Adolescente\n(13 a 18 anos)
+CREATION_SEX,Sex,Sexo
+CREATION_MALE,Male,Masculino
+CREATION_FEMALE,Female,Feminino
+CREATION_DIFFICULTY,Difficulty,Dificuldade
+CREATION_CHOOSE_DIFFICULTY,Choose a difficulty.,Escolhe uma dificuldade.
+CREATION_EASY,Easy,Fácil
+CREATION_EASY_INFO,"Starts with healthy habits: enough sleep, regular physical activity and a good mood.","Começa com hábitos saudáveis: sono suficiente, atividade física regular e bom humor."
+CREATION_NORMAL,Normal,Normal
+CREATION_NORMAL_INFO,"Starts with average habits: some physical activity and sleep, with room to improve.","Começa com hábitos medianos: alguma atividade física e algum sono, com margem para melhorar."
+CREATION_HARD,Hard,Difícil
+CREATION_HARD_INFO,Starts with few healthy habits: little physical activity and short sleep. New habits are easy to take on.,Começa com poucos hábitos saudáveis: pouca atividade física e sono curto. Os novos hábitos são fáceis de adquirir.
+CREATION_VERY_HARD,Very hard,Muito difícil
+CREATION_VERY_HARD_INFO,"Starts with very few healthy habits: almost no physical activity, very short sleep and a low mood. Changing habits too fast is hard on the mood.","Começa com muito poucos hábitos saudáveis: quase nenhuma atividade física, sono muito curto e mau humor. Mudar de hábitos demasiado depressa é difícil para o humor."
+CREATION_START,Start,Começar
+ACTIVITY_SLEEP,Sleep,Dormir
+ACTIVITY_EXERCISE,Exercise,Exercício
+ACTIVITY_CARDIO,Cardio,Cardio
+ACTIVITY_STRENGTH,Muscle strength,Força muscular
+ACTIVITY_EAT,Eat,Comer
+ACTIVITY_HEALTHY_MEAL,Healthy meal,Refeição saudável
+ACTIVITY_FAST_FOOD_MEAL,Fast-food meal,Refeição de fast food
+ACTIVITY_ENTERTAINMENT,Entertainment,Entretenimento
+ACTIVITY_SCREENS,Screens,Ecrãs
+ACTIVITY_FOOTBALL,Football,Futebol
