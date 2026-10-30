@@ -1,7 +1,8 @@
 extends Control
 ## Avatar creation screen, shown when there is no save. The player types a name and
 ## chooses the age group, sex and difficulty, then Start opens the main screen.
-## Game time does not pass on this screen.
+## Game time does not pass on this screen. Settings cannot be reached from here, so the screen
+## has its own language buttons (decision 15); what was typed and chosen stays when they are used.
 ## Phones and tablets in a browser: Godot's web text input only understands real key presses,
 ## and their on-screen keyboards do not send them (Android sends "Unidentified" keys), so the
 ## letters never reach the name field. There the field only shows the name, and a tap on it
@@ -49,6 +50,8 @@ const DIFFICULTIES := {
 @onready var difficulty_buttons: GridContainer = %DifficultyButtons
 @onready var difficulty_info: Label = %DifficultyInfo
 @onready var start_button: Button = %StartButton
+@onready var portuguese_button: Button = %PortugueseButton
+@onready var english_button: Button = %EnglishButton
 
 var _age_group := ""
 var _sex := ""
@@ -69,6 +72,13 @@ func _ready() -> void:
 		difficulty_names[id] = DIFFICULTIES[id]["name"]
 	_add_choice_buttons(difficulty_buttons, difficulty_names, func(id: String) -> void: _difficulty = id)
 	start_button.pressed.connect(_on_start_pressed)
+	var languages := ButtonGroup.new()
+	portuguese_button.button_group = languages
+	english_button.button_group = languages
+	portuguese_button.set_pressed_no_signal(Settings.language == "pt")
+	english_button.set_pressed_no_signal(Settings.language == "en")
+	portuguese_button.pressed.connect(Settings.set_language.bind("pt"))
+	english_button.pressed.connect(Settings.set_language.bind("en"))
 	_refresh()
 	if not browser_box:
 		name_edit.grab_focus()

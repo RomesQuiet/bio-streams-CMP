@@ -3,6 +3,8 @@ extends SceneTree
 ##   Godot --headless --path . -s res://tests/creation_test.gd
 ## Nothing is saved, so the real save is never touched.
 
+const TEST_SETTINGS := "user://test_settings.json"
+
 var _failures := 0
 
 
@@ -10,6 +12,10 @@ func _process(_delta: float) -> bool:
 	var save_game: Node = root.get_node("SaveGame")
 	var game_state: Node = root.get_node("GameState")
 	var clock: Node = root.get_node("Clock")
+	var settings: Node = root.get_node("Settings")
+	settings.settings_path = TEST_SETTINGS
+	settings.use_web_storage = false
+	settings.set_language("en")
 	save_game.save_path = "user://test_save.json"
 	save_game.use_web_storage = false
 	save_game.auto_save_enabled = false
@@ -51,7 +57,9 @@ func _process(_delta: float) -> bool:
 	_check("game time runs again after Start", not clock.paused)
 
 	_test_browser_name_box(game_state, clock)
+	_test_language_buttons(game_state, clock)
 
+	DirAccess.remove_absolute(TEST_SETTINGS)
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
 	quit(1 if _failures > 0 else 0)
 	return true
@@ -90,6 +98,42 @@ func _test_browser_name_box(game_state: Node, clock: Node) -> void:
 	_check("a long name is cut to the longest allowed", name_edit.text.length() == name_edit.max_length)
 	screen.set_typed_name("   ")
 	_check("only spaces: no name, Start is disabled", name_edit.text.is_empty() and start.disabled)
+	screen.queue_free()
+
+
+## Milestone 11, Task 6: the PT and EN buttons change the language at once. What was typed and
+## chosen stays, and the description of the chosen difficulty changes language.
+func _test_language_buttons(game_state: Node, clock: Node) -> void:
+	var settings: Node = root.get_node("Settings")
+	settings.set_language("en")
+	game_state.reset()
+	clock.reset()
+	var screen: Control = load("res://scenes/ui/creation.tscn").instantiate()
+	root.add_child(screen)
+	var info: Label = screen.get_node("%DifficultyInfo")
+	var english: Button = screen.get_node("%EnglishButton")
+	var portuguese: Button = screen.get_node("%PortugueseButton")
+	_check("the button of the language in use is pressed", english.button_pressed and not portuguese.button_pressed)
+	screen.get_node("%NameEdit").text = "Rui"
+	var age: Button = screen.get_node("%AgeButtons").get_child(0)
+	var difficulty: Button = screen.get_node("%DifficultyButtons").get_child(1)
+	age.button_pressed = true
+	age.pressed.emit()
+	screen.get_node("%SexButtons").get_child(1).pressed.emit()
+	difficulty.button_pressed = true
+	difficulty.pressed.emit()
+	_check("the description is in English", screen.tr(info.text).begins_with("Starts with average habits"))
+	portuguese.button_pressed = true
+	portuguese.pressed.emit()
+	_check("PT changes the language", settings.language == "pt")
+	_check("the description changes language", screen.tr(info.text).begins_with("Começa com hábitos medianos"))
+	_check("a choice button changes language", screen.tr(difficulty.text) == "Normal" and screen.tr(age.text).begins_with("Criança"))
+	_check("the name stays", screen.get_node("%NameEdit").text == "Rui")
+	_check("the choices stay", age.button_pressed and difficulty.button_pressed)
+	_check("Start stays enabled", not screen.get_node("%StartButton").disabled)
+	english.button_pressed = true
+	english.pressed.emit()
+	_check("EN changes it back", settings.language == "en" and screen.tr(info.text).begins_with("Starts with average habits"))
 	screen.queue_free()
 
 
