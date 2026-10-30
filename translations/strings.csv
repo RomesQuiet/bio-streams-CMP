@@ -28,8 +28,8 @@ MEASURE_STRENGTH,Strength\n%s,Força\n%s
 MEASURE_FITNESS,Fitness\n%s,Aptidão física\n%s
 MEASURE_WEIGHT,Weight\n%s kg,Peso\n%s kg
 MEASURE_HEIGHT,Height\n%.0f cm,Altura\n%.0f cm
-MEASURE_BMI,BMI-for-age\nz %s,IMC para a idade\nz %s
-MEASURE_DIET,Diet quality\n%s,Qualidade da alimentação\n%s
+MEASURE_BMI,BMI-for-age\nz %s,IMC para\na idade\nz %s
+MEASURE_DIET,Diet quality\n%s,Qualidade da\nalimentação\n%s
 SPEECH_HELLO,Hello!,Olá!
 SPEECH_PAUSED,Paused,Em pausa
 SPEECH_HUNGRY,I'm hungry!,Tenho fome!
