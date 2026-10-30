@@ -532,5 +532,114 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "UI_SLEEP"
 
+[node name="SettingsOverlay" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.5)
+
+[node name="SettingsPanel" type="PanelContainer" parent="SettingsOverlay"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -240.0
+offset_right = 300.0
+offset_bottom = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="SettingsOverlay/SettingsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="Content" type="VBoxContainer" parent="SettingsOverlay/SettingsPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="SettingsTitle" type="Label" parent="SettingsOverlay/SettingsPanel/Margin/Content"]
+layout_mode = 2
+text = "SETTINGS_TITLE"
+horizontal_alignment = 1
+
+[node name="LanguageLabel" type="Label" parent="SettingsOverlay/SettingsPanel/Margin/Content"]
+layout_mode = 2
+text = "SETTINGS_LANGUAGE"
+
+[node name="LanguageButtons" type="HBoxContainer" parent="SettingsOverlay/SettingsPanel/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="PortugueseButton" type="Button" parent="SettingsOverlay/SettingsPanel/Margin/Content/LanguageButtons"]
+unique_name_in_owner = true
+auto_translate_mode = 2
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "Português"
+
+[node name="EnglishButton" type="Button" parent="SettingsOverlay/SettingsPanel/Margin/Content/LanguageButtons"]
+unique_name_in_owner = true
+auto_translate_mode = 2
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "English"
+
+[node name="NewAvatarButton" type="Button" parent="SettingsOverlay/SettingsPanel/Margin/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+text = "SETTINGS_NEW_AVATAR"
+
+[node name="ConfirmBox" type="VBoxContainer" parent="SettingsOverlay/SettingsPanel/Margin/Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="WarningLabel" type="Label" parent="SettingsOverlay/SettingsPanel/Margin/Content/ConfirmBox"]
+layout_mode = 2
+text = "SETTINGS_NEW_AVATAR_WARNING"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="ConfirmButtons" type="HBoxContainer" parent="SettingsOverlay/SettingsPanel/Margin/Content/ConfirmBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ConfirmCancelButton" type="Button" parent="SettingsOverlay/SettingsPanel/Margin/Content/ConfirmBox/ConfirmButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_CANCEL"
+
+[node name="ConfirmNewAvatarButton" type="Button" parent="SettingsOverlay/SettingsPanel/Margin/Content/ConfirmBox/ConfirmButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "SETTINGS_NEW_AVATAR_CONFIRM"
+
+[node name="SettingsCloseButton" type="Button" parent="SettingsOverlay/SettingsPanel/Margin/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+text = "SETTINGS_CLOSE"
+
 [node name="DebugPanel" parent="." instance=ExtResource("6_debug")]
 layout_mode = 0

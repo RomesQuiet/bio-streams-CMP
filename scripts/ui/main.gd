@@ -70,6 +70,9 @@ const HEALTH_TEXT := "MEASURE_HEALTH"
 @onready var sleep_panel: PanelContainer = %SleepPanel
 @onready var sleep_slider: HSlider = %SleepSlider
 @onready var sleep_info_label: Label = %SleepInfoLabel
+@onready var settings_overlay: Control = %SettingsOverlay
+@onready var portuguese_button: Button = %PortugueseButton
+@onready var english_button: Button = %EnglishButton
 
 var _backdrop_tween: Tween
 ## A short message (such as "Level up!") shown instead of the normal speech for a moment:
@@ -78,6 +81,8 @@ var _flash_key := ""
 var _flash_args := []
 ## The activity whose options are in the options panel.
 var _options_activity := ""
+## Whether opening the settings paused the day, so closing them starts it again.
+var _paused_by_settings := false
 
 
 func _ready() -> void:
@@ -95,11 +100,19 @@ func _ready() -> void:
 	values_panel.visible = false
 	sleep_panel.visible = false
 	options_panel.visible = false
+	settings_overlay.visible = false
+	var languages := ButtonGroup.new()
+	portuguese_button.button_group = languages
+	english_button.button_group = languages
 
 	health_level_button.pressed.connect(_toggle_health_panel)
 	health_bar_button.pressed.connect(_toggle_health_panel)
 	physical_button.pressed.connect(_toggle_values_panel)
 	pause_button.pressed.connect(Clock.toggle_pause)
+	%SettingsButton.pressed.connect(_open_settings)
+	%SettingsCloseButton.pressed.connect(_close_settings)
+	portuguese_button.pressed.connect(Settings.set_language.bind("pt"))
+	english_button.pressed.connect(Settings.set_language.bind("en"))
 	wake_button.pressed.connect(Clock.wake_up)
 	sleep_button.pressed.connect(_on_sleep_button_pressed)
 	exercise_button.pressed.connect(_open_options.bind("exercise"))
@@ -151,6 +164,25 @@ func _notification(what: int) -> void:
 		_open_options(_options_activity)
 	if not _flash_key.is_empty():
 		_show_flash()
+
+
+## The settings open at any moment, even during an activity. They cover the screen, so nothing
+## else can be pressed. The day pauses while they are open; sleep cannot pause and keeps running.
+func _open_settings() -> void:
+	portuguese_button.set_pressed_no_signal(Settings.language == "pt")
+	english_button.set_pressed_no_signal(Settings.language == "en")
+	settings_overlay.show()
+	if Clock.phase == Clock.Phase.DAY and not Clock.paused:
+		_paused_by_settings = true
+		Clock.set_paused(true)
+
+
+## Back to how the game was before the settings opened.
+func _close_settings() -> void:
+	settings_overlay.hide()
+	if _paused_by_settings:
+		_paused_by_settings = false
+		Clock.set_paused(false)
 
 
 func _on_leveled_up(new_level: int) -> void:

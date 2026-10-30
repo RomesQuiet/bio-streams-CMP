@@ -77,3 +77,9 @@ ACTIVITY_FAST_FOOD_MEAL,Fast-food meal,Refeição de fast food
 ACTIVITY_ENTERTAINMENT,Entertainment,Entretenimento
 ACTIVITY_SCREENS,Screens,Ecrãs
 ACTIVITY_FOOTBALL,Football,Futebol
+SETTINGS_TITLE,Settings,Definições
+SETTINGS_LANGUAGE,Language,Idioma
+SETTINGS_NEW_AVATAR,Start a new avatar,Criar um novo avatar
+SETTINGS_NEW_AVATAR_WARNING,This avatar will be lost. This cannot be undone.,Este avatar vai perder-se. Isto não pode ser desfeito.
+SETTINGS_NEW_AVATAR_CONFIRM,"Yes, start again","Sim, recomeçar"
+SETTINGS_CLOSE,Close,Fechar
