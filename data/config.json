@@ -58,6 +58,7 @@
 		"hours_per_year": 8760,
 		"months_per_year": 12,
 		"minutes_per_hour": 60,
+		"seconds_per_minute": 60,
 		"cm_per_m": 100
 	},
 
@@ -152,10 +153,25 @@
 	},
 
 	"minigame": {
-		"_comment": "Performance = min_performance + (1 - min_performance) x score x (1 - tired_cut x tiredness).",
+		"_comment": "Performance = min_performance + (1 - min_performance) x score x (1 - tired_cut x tiredness). The cardio minigame (Milestone 12, sources in MILESTONE_12.md): capacity = fitness x body x (1 - capacity_tired_cut x tiredness); one tap is one stride.",
 		"min_performance": {"value": 0.7, "status": "placeholder", "owner": "Pessoa 4", "comment": "Decisions matter more than skill."},
 		"tired_cut": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 4"},
-		"default_score": {"value": 1, "status": "placeholder", "owner": "Pessoa 4", "comment": "Decision 5: used until minigames exist."}
+		"default_score": {"value": 1, "status": "placeholder", "owner": "Pessoa 4", "comment": "Decision 5: used by activities without a minigame, and when no player is there (the scenario tests)."},
+		"steps_per_tap": {"value": 2, "status": "team decision", "owner": "team", "comment": "Decision 24: one tap is one stride. Real cadences would need more than 2 taps a second otherwise."},
+		"moderate_cadence": {
+			"child": {"value": 115, "status": "from source", "owner": "Pessoa 3", "comment": "Steps per minute at 4 METy, ages 9 to 11. CADENCE-kids (Tudor-Locke 2018), Table 4, heuristic thresholds."},
+			"teenager": {"value": 110, "status": "from source", "owner": "Pessoa 3", "comment": "Ages 12 to 14, same source."}
+		},
+		"vigorous_cadence": {
+			"child": {"value": 130, "status": "from source", "owner": "Pessoa 3", "comment": "Steps per minute at 6 METy, ages 9 to 11. CADENCE-kids, Table 4, heuristic thresholds."},
+			"teenager": {"value": 125, "status": "from source", "owner": "Pessoa 3", "comment": "Ages 12 to 14, same source."}
+		},
+		"walk_cadence_share": {"value": 0.8, "status": "placeholder", "owner": "Pessoa 3", "comment": "Cadence while getting the breath back, as a share of the moderate threshold: below moderate intensity."},
+		"weight_cut_per_z": {"value": 0.16, "status": "placeholder", "owner": "Pessoa 1", "comment": "Capacity lost per z above 0. At z +2 (WHO obesity) capacity is 0.68 times: about 25 against 36.5 ml/kg/min of peak oxygen uptake (Frontiers in Physiology 2021, PMC8155533). The studies agree on the direction; the size varies."},
+		"body_floor": {"value": 0.4, "status": "placeholder", "owner": "Pessoa 1", "comment": "The body term never goes below this."},
+		"capacity_tired_cut": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 2", "comment": "Capacity x (1 - this x tiredness)."},
+		"run_minutes_base": {"value": 10, "status": "placeholder", "owner": "Pessoa 3", "comment": "Avatar minutes of running at capacity 0 before the Breath bar is empty."},
+		"run_minutes_range": {"value": 110, "status": "placeholder", "owner": "Pessoa 3", "comment": "Added at capacity 1, which gives train.cardio_tire_min (120)."}
 	},
 
 	"diet": {
