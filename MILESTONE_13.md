@@ -1,6 +1,14 @@
 # Milestone 13 — The strength minigame
 
-**Status: in progress (31 October 2026).**
+**Status: built and committed (31 October 2026), not pushed.** Task 1 `4b5235f`, Task 2 `2c1a1e9`, Task 3 `2087d08`, Task 4 `c894f95`, Task 5 `5461691`, `0817f91` and the docs commit. All 25 tests pass, and the scenario test gives exactly the same output as before the minigames, so without a player nothing changed. The user plays it and pushes.
+
+**Changes made while building (beyond the plan):**
+
+- The `Minigame` value `breath` is now `reserve`, shared by the Breath and Muscle bars.
+- Rushing a press still moves the avatar and counts the repetition; it is poor technique and tires the muscles faster. (In cardio a tap that is too soon is not a stride.)
+- Code review: `resting` stayed true after a session ended; fixed.
+
+**Checked in the web build (browser pane, 31 Oct 2026):** the waiting state; Down and Up in turn with only the expected button enabled; set, repetitions and Muscle bar; the squat; a rest followed by set 2 with less Muscle; the too-soon warning on a second session, which can still be played. The presses were sent by a script as arrow keys. **Not checked:** a real person playing it, and a real phone.
 
 Goal: muscle strength becomes a minigame, as cardio did in Milestone 12. The concept's idea: two buttons, Down lowers the avatar and Up raises it, and "the performance and the exercise time adapt to the avatar's current health".
 
@@ -57,6 +65,7 @@ The AAP gives no number for the speed of a repetition, so `press_seconds` is a p
 ## Still open (for the team)
 
 - All the new numbers are placeholders, except the repetitions and sets, which are from the AAP.
+- With decision 36 a long session goes past the AAP's sets: more sets are possible, and the existing rule (`train.strength_tire_min`, 45 minutes) makes them count less.
 - Rest minutes count as training, as the v1 sessions do.
 - `strength` trains a little from cardio and the other way round, as in v1; the minigame does not change that.
 - The real AAP rest is 1 minute, longer than the game's scale allows.

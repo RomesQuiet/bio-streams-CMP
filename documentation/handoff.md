@@ -4,6 +4,7 @@ Last updated: 31 October 2026, in Milestone 12. Read this after `CLAUDE.md` when
 
 ## 1. Where the work stands
 
+- **Milestone 13 (the strength minigame, `MILESTONE_13.md`) is built and committed, not pushed.** Waiting on the user: play it, then push from GitHub Desktop. As in cardio, the presses in the web check were sent by a script.
 - **Milestone 12 (minutes slider and the cardio minigame, `MILESTONE_12.md`) is complete, pushed up to `839cd05`.** The taps in the web check were sent by a script, so how it feels for a person, and on a real phone, is not checked.
 - **Milestone 11 (settings panel and European Portuguese, `MILESTONE_11.md`) is complete and pushed (`25aada7`).** Still to do: the team checks the Portuguese (Claude's draft, above all the health terms), and someone tries it on a real phone (the pop-up name box in Portuguese was not tried there).
 - **Name on phones: the pop-up box stays (user, 30 Oct 2026).** `fe5c4c3` (`window.prompt`) is confirmed on a real Android phone. The virtual keyboard attempt `adfe369` never reached GitHub and was reverted untested on a real phone. The pop-up box was reported as doing nothing on 28 Oct, for an unknown reason (a cached old page is possible). Always confirm a push with `git ls-remote origin refs/heads/main` and the published file size: that push from GitHub Desktop failed silently.
@@ -90,6 +91,14 @@ Recorded in `MILESTONE_10.md` ("Decisions") and `documentation/milestone10_plan.
 | 28 | (Milestone 12) With no tap the avatar stands still and waits up to 20 seconds, then the activity ends. |
 | 29 | (Milestone 12) Football has no minigame for now and keeps the fixed score. |
 | 30 | (Milestone 12) All steps in a row, each reviewed and committed; no push; the user reviews at the end. |
+| 31 | (Milestone 13) A strength session is sets, repetitions and rest; Down then Up is one repetition. |
+| 32 | (Milestone 13) Repetitions and sets come from strength, BMI-for-age z and sleepiness. |
+| 33 | (Milestone 13) The score is half technique, half finishing the repetitions. |
+| 34 | (Milestone 13) Tired muscles end a set early and the avatar rests; it never trains to failure. |
+| 35 | (Milestone 13) A session started too soon: the avatar warns, and the player can still play. |
+| 36 | (Milestone 13) When the avatar's sets are done and minutes are left, more sets follow until the time ends. |
+| 37 | (Milestone 13) Stopping works as in cardio; the rest between sets is not stopping. |
+| 38 | (Milestone 13) All steps in a row, each reviewed and committed; no push; the user reviews at the end. |
 
 Other team decisions that still hold: k = 10 (applies to sleep debt too); there is no death, only failure; p = 0.5 for health. The team's review (27 Oct 2026) added the 36-hour strength gap, the danger state (z −3, 72 h, z −4) and the thinness risk term (placeholders).
 
@@ -101,7 +110,7 @@ Other team decisions that still hold: k = 10 (applies to sleep debt too); there 
 
 **Proposed in Milestone 11, not confirmed by the user or team:** European Portuguese for all browsers, wording that does not depend on the avatar's sex, the decimal comma, the pause while settings are open, English in the debug panel and logs.
 
-**Likely after Milestone 12** (ask the user): the team's answers to the Milestone 10.5 proposals; failure effect and screen; the other minigames; menus; the lobby screen; plasticine art. (A 45-minute strength option would not raise strength: Milestone 10.5 parity run.)
+**Likely after Milestone 13** (ask the user): the team's answers to the Milestone 10.5 proposals; failure effect and screen; the other minigames; menus; the lobby screen; plasticine art. (A 45-minute strength option would not raise strength: Milestone 10.5 parity run.)
 
 **Placeholders added in Milestone 10.5:** the Ill look (pale, greenish body), the health bar warning (red bar, "Health: danger") and the failure messages by cause; the review's numbers (`train.strength_min_gap_h` 36, `fail.danger_z` −3, `fail.danger_hours` 72, `fail.danger_failure_z` −4, `risk.thin_weight` 0.4, `risk.thin_from` −2, `risk.thin_range` 2).
 
@@ -141,6 +150,8 @@ Other team decisions that still hold: k = 10 (applies to sleep debt too); there 
 - **Never trust an empty diff of two runs:** check first that both really finished. In Milestone 12 a before-and-after comparison of the scenario test was empty because both runs had been killed by the time limit, with the game open in the browser pane using the CPU. Count the PASS lines first.
 - **Comparing two versions of the project:** `git archive <commit> | tar -x -C <folder>` in the scratchpad gives a clean copy with no git link. It needs its own `--import`.
 - **Sending keys or touches to the web build from a script:** `new KeyboardEvent` or `new TouchEvent` dispatched on the canvas reach Godot, so a session can be played from `setInterval`.
+- **The AAP 2020 report** is at `https://ncys.org/wp-content/uploads/2022/10/Resistance-Training-for-Youth_AAP-Position-Paper.pdf`. WebFetch reads it badly; save it and extract the text with PDFKit through `osascript -l JavaScript` (`ObjC.import('Quartz')`), because this Mac has no pdftoppm or pypdf.
+- **A test can print ALL PASSED after SCRIPT ERROR lines:** always look for those too (`grep -E "SCRIPT ERROR|^ERROR"`), as the time-limit advice above does not catch them.
 - **Reading the cadence paper:** PMC shows a reCAPTCHA to scripts and Springer asks for a login. The public Europe PMC API has the full text: `https://www.ebi.ac.uk/europepmc/webservices/rest/PMC5828000/fullTextXML`.
 - **Deleting on the web is not immediate.** `DirAccess.remove_absolute` on `user://` does not reach IndexedDB at once, so a deleted save can return after a reload, and a headless test cannot see this. Use something written to localStorage, which is immediate (`WEB_DELETED_KEY` in `save_game.gd`), and test with a real reload in the browser.
 - **The web build takes about 20 seconds to boot in the browser pane.** Do not read the Godot splash as a hang: check the console log first. To try another browser language, open a file on the fresh origin `127.0.0.1:8060`, override `navigator.language` on `Navigator.prototype`, load `/index.js` and call `new Engine(config).startGame()`; rewriting the page with `document.write` does not work.
