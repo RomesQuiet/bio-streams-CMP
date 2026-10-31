@@ -440,29 +440,29 @@ func _test_strength_saving() -> void:
 	minigame.press(true)
 	_repetition(1.0)
 	_repetition(1.0)
-	save_game.save_game()
-	activities.reset()
-	minigame.reset()
-	save_game.load_game()
-	minigame.detach()
-	minigame.attach()
+	_reload(save_game)
 	_check("in the middle of a set: it waits, with its repetitions", minigame.kind == "strength" and minigame.is_waiting()
 			and minigame.reps_in_set == 2 and minigame.set_reps == 9 and minigame.sets_goal == 2)
 	minigame.press(true)
 	_play_set(1.0)
 	_check("the set goes on from there", minigame.resting and minigame.strides == 9)
-	save_game.save_game()
-	activities.reset()
-	minigame.reset()
-	save_game.load_game()
-	minigame.detach()
-	minigame.attach()
+	_reload(save_game)
 	_check("during a rest: the rest goes on", minigame.resting and not minigame.is_waiting())
 	_pass_time(6.1)
 	_check("...and the next set starts", minigame.sets_started == 2 and not minigame.resting)
 	activities.stop()
 	minigame.detach()
 	save_game.delete_save()
+
+
+## As when the page opens again: the save loads first, then the main screen opens.
+func _reload(save_game: Node) -> void:
+	save_game.save_game()
+	minigame.detach()
+	activities.reset()
+	minigame.reset()
+	save_game.load_game()
+	minigame.attach()
 
 
 ## Milestone 13, Task 3: strength reaches the health system only when the avatar really moves.
