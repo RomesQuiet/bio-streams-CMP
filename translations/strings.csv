@@ -62,6 +62,14 @@ MINIGAME_RESTING,Resting,A descansar
 MINIGAME_SET,Set %d of %d,Série %d de %d
 MINIGAME_SET_EXTRA,Extra set %d,Série extra %d
 MINIGAME_REPS,Repetitions: %d / %d,Repetições: %d / %d
+MINIGAME_PLAY_WAITING,Move to play!,Mexe-te para jogar!
+MINIGAME_PLAYING,Playing,A jogar
+MINIGAME_JOGGING,Jogging: catching my breath,A trotar: a recuperar o fôlego
+MINIGAME_SCORE,Goals: %d – %d,Golos: %d – %d
+MINIGAME_PASS,Pass,Passe
+MINIGAME_SHOOT,Shoot,Rematar
+MINIGAME_TACKLE,Tackle,Desarmar
+SPEECH_MATCH_RESULT,Final score: %d – %d,Resultado final: %d – %d
 CREATION_TITLE,Create your avatar,Cria o teu avatar
 CREATION_NAME,Name,Nome
 CREATION_NAME_HINT,Type a name,Escreve um nome

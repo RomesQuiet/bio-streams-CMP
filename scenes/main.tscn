@@ -6,6 +6,8 @@
 [ext_resource type="Texture2D" path="res://assets/art/ui/settings.svg" id="5_settings"]
 [ext_resource type="PackedScene" path="res://scenes/ui/debug_panel.tscn" id="6_debug"]
 [ext_resource type="Script" path="res://scripts/ui/beat_bar.gd" id="7_beat"]
+[ext_resource type="Script" path="res://scripts/ui/football_field.gd" id="8_field"]
+[ext_resource type="Script" path="res://scripts/ui/football_pad.gd" id="9_pad"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -91,6 +93,18 @@ offset_right = 110.0
 offset_bottom = -60.0
 grow_horizontal = 2
 grow_vertical = 0
+
+[node name="FootballField" type="Control" parent="Margin/Layout/Stage"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("8_field")
 
 [node name="SpeechBubble" type="PanelContainer" parent="Margin/Layout/Stage"]
 unique_name_in_owner = true
@@ -220,6 +234,15 @@ layout_mode = 2
 size_flags_vertical = 3
 focus_mode = 0
 text = "MINIGAME_TAP"
+
+[node name="FootballPad" type="Control" parent="Margin/Layout/MinigamePanel"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 170)
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+script = ExtResource("9_pad")
 
 [node name="StrengthButtons" type="HBoxContainer" parent="Margin/Layout/MinigamePanel"]
 unique_name_in_owner = true

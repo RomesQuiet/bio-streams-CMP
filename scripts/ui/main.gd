@@ -57,6 +57,8 @@ const HEALTH_TEXT := "MEASURE_HEALTH"
 @onready var xp_label: Label = %XPLabel
 @onready var clock_label: Label = %ClockLabel
 @onready var pause_button: Button = %PauseButton
+@onready var football_field: Control = %FootballField
+@onready var football_pad: Control = %FootballPad
 @onready var wake_button: Button = %WakeButton
 @onready var speech_label: Label = %SpeechLabel
 @onready var stop_button: Button = %StopButton
@@ -100,6 +102,10 @@ var _flash_args := []
 var _options_activity := ""
 ## Whether opening the settings paused the day, so closing them starts it again.
 var _paused_by_settings := false
+
+
+## The joystick's direction, on screen.
+var _pad_stick := Vector2.ZERO
 
 
 func _ready() -> void:
@@ -163,6 +169,10 @@ func _ready() -> void:
 	Minigame.strode.connect(_on_stride.unbind(1))
 	Minigame.session_changed.connect(_on_session_changed)
 	Minigame.gave_up.connect(_flash.bind("SPEECH_GAVE_UP"))
+	Minigame.match_ended.connect(_on_match_ended)
+	football_pad.stick_moved.connect(_on_pad_stick)
+	football_pad.pass_pressed.connect(Minigame.pass_ball)
+	football_pad.shoot_pressed.connect(Minigame.shoot_or_tackle)
 	# A game loaded in the middle of cardio goes on as a session.
 	Minigame.attach()
 
@@ -179,15 +189,41 @@ func _exit_tree() -> void:
 
 func _process(_delta: float) -> void:
 	if Minigame.running:
+		_send_stick()
 		_refresh_minigame()
 
 
-## On a computer Space plays cardio, and the arrow keys Down and Up play strength.
+## The joystick, or the arrow keys on a computer. The screen's y goes down, the field's goes up.
+func _send_stick() -> void:
+	if Minigame.kind != Minigame.FOOTBALL:
+		return
+	var keys := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	var direction := _pad_stick if _pad_stick != Vector2.ZERO else keys
+	var wanted := Vector2(direction.x, -direction.y)
+	if wanted != Minigame.game.stick:
+		Minigame.set_stick(wanted)
+
+
+func _on_pad_stick(direction: Vector2) -> void:
+	_pad_stick = direction
+
+
+func _on_match_ended(goals_us: int, goals_them: int) -> void:
+	_flash("SPEECH_MATCH_RESULT", [goals_us, goals_them])
+
+
+## On a computer Space plays cardio, the arrow keys Down and Up play strength, and in football the
+## arrow keys move, Z passes and X or Space shoots or tackles.
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not Minigame.running:
 		return
 	if event.is_action_pressed("ui_accept"):
 		Minigame.tap()
+		Minigame.shoot_or_tackle()
+	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_Z:
+		Minigame.pass_ball()
+	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_X:
+		Minigame.shoot_or_tackle()
 	elif event.is_action_pressed("ui_down"):
 		Minigame.press(true)
 	elif event.is_action_pressed("ui_up"):
@@ -392,7 +428,7 @@ func _on_session_changed() -> void:
 func _on_stride() -> void:
 	if Minigame.kind == Minigame.STRENGTH:
 		avatar.squat(not Minigame.next_down)
-	else:
+	elif Minigame.kind == Minigame.CARDIO:
 		avatar.stride(Minigame.walking)
 
 
@@ -406,13 +442,21 @@ func _warn_if_too_soon() -> void:
 func _refresh_minigame() -> void:
 	minigame_panel.visible = Minigame.running
 	action_grid.visible = not Minigame.running
+	var football := Minigame.running and Minigame.kind == Minigame.FOOTBALL
+	football_field.visible = football
+	avatar.visible = not football
 	if not Minigame.running:
 		return
 	var strength := Minigame.kind == Minigame.STRENGTH
-	tap_button.visible = not strength
+	tap_button.visible = Minigame.kind == Minigame.CARDIO
 	strength_buttons.visible = strength
+	football_pad.visible = football
+	beat_bar.visible = not football
 	reserve_label.text = tr("MINIGAME_MUSCLE" if strength else "MINIGAME_BREATH")
 	reserve_bar.value = Minigame.reserve
+	if football:
+		_refresh_football()
+		return
 	if strength:
 		_refresh_strength()
 	else:
@@ -422,6 +466,20 @@ func _refresh_minigame() -> void:
 	var stopped := Minigame.waiting or Minigame.resting
 	var elapsed := 0.0 if stopped else Minigame.seconds_since_tap / Minigame.interval()
 	beat_bar.show_time(elapsed, Config.get_float("minigame.on_beat_share"), Minigame.last_on_beat)
+
+
+func _refresh_football() -> void:
+	var game: RefCounted = Minigame.game
+	var status := "MINIGAME_PLAY_WAITING" if Minigame.waiting else ("MINIGAME_JOGGING" if Minigame.walking else "MINIGAME_PLAYING")
+	minigame_status.text = tr(status)
+	minigame_steps.text = tr("MINIGAME_SCORE") % [game.goals_us, game.goals_them]
+	football_field.game = game
+	football_field.queue_redraw()
+	football_pad.pass_text = tr("MINIGAME_PASS")
+	football_pad.shoot_text = tr("MINIGAME_TACKLE" if game.defending() else "MINIGAME_SHOOT")
+	football_pad.pass_enabled = game.has_ball()
+	football_pad.shoot_enabled = game.has_ball() or game.can_tackle()
+	football_pad.queue_redraw()
 
 
 func _refresh_strength() -> void:
