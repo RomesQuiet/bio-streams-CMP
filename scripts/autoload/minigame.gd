@@ -9,6 +9,10 @@ extends Node
 ## press in turn at a controlled pace. Pace: repetitions done of those planned. The reserve
 ## (Muscle) falls with each repetition, faster when rushing; a set ends at its repetitions or
 ## with the reserve empty, and the avatar rests. More sets follow until the time ends.
+## Football (decisions 39 to 46): a match (football_match.gd) that the player steers. Rhythm: the
+## timing of passes, shots and tackles. Pace: the share of recent time the avatar kept moving.
+## The reserve (Breath) falls while moving and with each move, and refills a little in quiet
+## moments. At 0 the avatar jogs until it has partly refilled. The match stops while it waits.
 ## With no tap or press the avatar stands still and waits, nothing counts, and the activity ends
 ## after minigame.wait_seconds. The rest between sets is not waiting.
 ## A session only exists with the main screen open (attach()), at normal speed, for an option
@@ -18,9 +22,12 @@ extends Node
 
 const CardioPace := preload("res://scripts/health/cardio_pace.gd")
 const StrengthLoad := preload("res://scripts/health/strength_load.gd")
+const FootballLoad := preload("res://scripts/health/football_load.gd")
+const FootballMatch := preload("res://scripts/health/football_match.gd")
 
 const CARDIO := "cardio"
 const STRENGTH := "strength"
+const FOOTBALL := "football"
 
 ## A stride or a press was made. on_beat: it came at the right time.
 signal strode(on_beat: bool)
@@ -30,16 +37,18 @@ signal first_stride
 signal gave_up
 ## A session started or ended, the avatar stopped or started moving, or a rest began or ended.
 signal session_changed
+## A football match the player played ended, with this score.
+signal match_ended(goals_us: int, goals_them: int)
 ## Emitted just before the avatar stops, starts, walks or runs, so Simulation can first run the
 ## minutes that belong to what it was doing (like Activities.changing).
 signal changing
 
 var running := false
-## CARDIO or STRENGTH while a session runs.
+## CARDIO, STRENGTH or FOOTBALL while a session runs.
 var kind := ""
 ## True while the avatar stands still, waiting for a tap or press.
 var waiting := false
-## Cardio: true while the avatar walks to get its breath back.
+## Cardio: true while the avatar walks to get its breath back. Football: while it jogs.
 var walking := false
 ## Strength: true during the rest between sets.
 var resting := false
@@ -48,7 +57,7 @@ var reserve := 1.0
 ## Share of the last strides or presses on the beat, 0 to 1.
 var rhythm := 1.0
 ## Cardio: how close the last strides came to the running pace. Strength: repetitions done of
-## those planned in the sets so far. 0 to 1.
+## those planned in the sets so far. Football: share of recent time spent moving. 0 to 1.
 var pace := 1.0
 ## Strides (cardio) or repetitions (strength) of the session.
 var strides := 0
@@ -61,6 +70,10 @@ var sets_started := 0
 var sets_goal := 0
 var reps_in_set := 0
 var set_reps := 0
+## Football: the match of this session.
+var game: RefCounted = null
+## Football: the seed of the next match. 0 picks a new one.
+var match_seed := 0
 
 var _player_present := false
 ## The session comes from a save: its values stay when it starts.
@@ -76,6 +89,9 @@ var _rest_left := 0.0
 var _reps_planned := 0
 ## Strength: the next press has no press before it to be timed against.
 var _untimed := true
+## Football: the score restored from a save.
+var _goals_us := 0
+var _goals_them := 0
 
 
 func _ready() -> void:
@@ -116,7 +132,8 @@ func to_dict() -> Dictionary:
 	return {"walking": walking, "resting": resting, "reserve": reserve, "rhythm": rhythm, "pace": pace,
 			"strides": strides, "moved": _moved, "judged": _judged, "next_down": next_down,
 			"sets_started": sets_started, "sets_goal": sets_goal, "reps_in_set": reps_in_set,
-			"set_reps": set_reps, "rest_left": _rest_left, "reps_planned": _reps_planned}
+			"set_reps": set_reps, "rest_left": _rest_left, "reps_planned": _reps_planned,
+			"goals_us": game.goals_us if game else 0, "goals_them": game.goals_them if game else 0}
 
 
 ## Restores values from to_dict(). Call after Activities.from_dict(); the session itself starts
@@ -139,6 +156,8 @@ func from_dict(data: Dictionary) -> void:
 	set_reps = int(data.get("set_reps", set_reps))
 	_rest_left = float(data.get("rest_left", _rest_left))
 	_reps_planned = int(data.get("reps_planned", _reps_planned))
+	_goals_us = int(data.get("goals_us", _goals_us))
+	_goals_them = int(data.get("goals_them", _goals_them))
 
 
 ## True while a session is waiting for the player: the avatar is not doing the activity.
@@ -220,6 +239,34 @@ func press(down: bool) -> void:
 		_finish_repetition()
 
 
+## The player moved the joystick (football). Moving starts or wakes the session.
+func set_stick(direction: Vector2) -> void:
+	if not running or kind != FOOTBALL or (Clock.paused and direction != Vector2.ZERO):
+		return
+	game.stick = direction
+	if direction != Vector2.ZERO:
+		_football_input()
+
+
+## The player pressed Pass (football).
+func pass_ball() -> void:
+	if _football_ready() and game.has_ball():
+		_judge(game.pass_ball())
+		_football_move("minigame.football.pass_cost")
+
+
+## The player pressed Shoot, which is Tackle while an opponent has the ball (football).
+func shoot_or_tackle() -> void:
+	if not _football_ready():
+		return
+	if game.has_ball():
+		_judge(game.shoot())
+		_football_move("minigame.football.shot_cost")
+	elif game.can_tackle():
+		_judge(game.tackle())
+		_football_move("minigame.football.tackle_cost")
+
+
 ## Real time passed while the game is not paused.
 func advance(seconds: float) -> void:
 	if not running:
@@ -233,15 +280,18 @@ func advance(seconds: float) -> void:
 	if resting:
 		_rest(seconds)
 		return
-	seconds_since_tap += seconds
+	seconds_since_tap = 0.0 if kind == FOOTBALL and game.stick != Vector2.ZERO else seconds_since_tap + seconds
 	if seconds_since_tap >= Config.get_float("minigame.stall_seconds"):
 		changing.emit()
 		waiting = true
 		_waited = 0.0
 		session_changed.emit()
 		return
+	var minutes := Clock.real_seconds_to_avatar_hours(seconds, false) * Config.get_float("units.minutes_per_hour")
 	if kind == CARDIO:
-		_update_breath(Clock.real_seconds_to_avatar_hours(seconds, false) * Config.get_float("units.minutes_per_hour"))
+		_update_breath(minutes)
+	elif kind == FOOTBALL:
+		_play_football(seconds, minutes)
 
 
 func _start_moving() -> void:
@@ -272,6 +322,61 @@ func _update_breath(minutes: float) -> void:
 		if reserve <= 0.0:
 			changing.emit()
 			walking = true
+
+
+## Football: true if the session can take a move now. A move starts or wakes the session.
+func _football_ready() -> bool:
+	if not running or kind != FOOTBALL or Clock.paused:
+		return false
+	_football_input()
+	return true
+
+
+func _football_input() -> void:
+	seconds_since_tap = 0.0
+	if waiting:
+		_start_moving()
+
+
+func _football_move(cost: String) -> void:
+	strides += 1
+	strode.emit(last_on_beat)
+	_spend_breath(Config.get_float(cost))
+
+
+func _spend_breath(amount: float) -> void:
+	reserve = maxf(0.0, reserve - amount)
+	if reserve <= 0.0 and not walking:
+		changing.emit()
+		walking = true
+
+
+func _play_football(seconds: float, minutes: float) -> void:
+	var moving: bool = game.stick != Vector2.ZERO
+	if walking:
+		_update_breath(minutes)
+	elif moving:
+		_spend_breath(minutes / FootballLoad.play_minutes())
+	else:
+		reserve = minf(1.0, reserve + minutes / Config.get_float("minigame.football.quiet_recover_min"))
+	var share := minf(1.0, seconds / Config.get_float("minigame.football.active_window_seconds"))
+	pace += ((1.0 if moving else 0.0) - pace) * share
+	_set_body()
+	game.advance(seconds)
+
+
+## The avatar's body as it is now sets what it can do in the match.
+func _set_body() -> void:
+	game.avatar_speed = FootballLoad.speed(walking)
+	game.free_distance = FootballLoad.free_distance()
+	game.shot_range = FootballLoad.shot_range()
+
+
+func _new_game() -> void:
+	game = FootballMatch.new(match_seed if match_seed != 0 else randi())
+	game.goals_us = _goals_us
+	game.goals_them = _goals_them
+	_set_body()
 
 
 ## Up finished a repetition. The set ends at its repetitions or when the muscles are tired: the
@@ -336,9 +441,12 @@ func _on_activity_started(_activity_id: String, option_id: String) -> void:
 			sets_goal = StrengthLoad.sets_goal()
 			_start_set()
 		else:
+			# Cardio and football share the Breath bar.
 			reserve = GameState.cardio_recovery
 			walking = reserve <= 0.0
 	_restored = false
+	if kind == FOOTBALL:
+		_new_game()
 	running = true
 	# A rest goes on by itself after a reload; anything else waits for the player.
 	waiting = not resting
@@ -346,6 +454,8 @@ func _on_activity_started(_activity_id: String, option_id: String) -> void:
 
 
 func _on_activity_ended() -> void:
+	if running and kind == FOOTBALL and _moved:
+		match_ended.emit(game.goals_us, game.goals_them)
 	_end_session()
 
 
@@ -381,3 +491,6 @@ func _clear() -> void:
 	_rest_left = 0.0
 	_reps_planned = 0
 	_untimed = true
+	_goals_us = 0
+	_goals_them = 0
+	game = null

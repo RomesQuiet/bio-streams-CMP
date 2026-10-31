@@ -25,6 +25,11 @@ func _process(_delta: float) -> bool:
 	_test_kick_off()
 	_test_actions()
 	_test_whole_match()
+	_test_session()
+	_test_breath()
+	_test_score()
+	_test_stopping()
+	_test_saving(save_game)
 	print("ALL PASSED (0 failed)" if _failures == 0 else "SOME FAILED (%d failed)" % _failures)
 	quit(1 if _failures > 0 else 0)
 	return true
@@ -116,7 +121,7 @@ func _test_actions() -> void:
 	_check("no second tackle at once", not game.can_tackle())
 
 	game = _new_match()
-	game.stick = Vector2.UP
+	game.stick = Vector2(0, 1)
 	game.advance(1.0)
 	_check("the frame rate does not change the match", _same_after(0.05, 0.016))
 
@@ -170,6 +175,138 @@ func _test_whole_match() -> void:
 		them += game.goals_them
 	print("  20 matches of 86 s: %.1f to %.1f goals a match" % [us / 20.0, them / 20.0])
 	_check("both teams score", us > 0 and them > 0)
+
+
+func _start(difficulty: String, first_move := true) -> void:
+	var minigame: Node = root.get_node("Minigame")
+	root.get_node("Activities").reset()
+	minigame.reset()
+	root.get_node("Simulation").reset()
+	root.get_node("GameState").reset()
+	root.get_node("Clock").reset()
+	root.get_node("GameState").start_new_avatar("Test", "child", "male", difficulty)
+	minigame.match_seed = SEED
+	minigame.attach()
+	root.get_node("Activities").start("entertainment", "football")
+	if first_move:
+		minigame.set_stick(Vector2(0, 1))
+
+
+func _pass_time(seconds: float) -> void:
+	var left := seconds
+	while left > 0.0:
+		var step := minf(left, 0.02)
+		root.get_node("Clock")._process(step)
+		root.get_node("Minigame").advance(step)
+		left -= step
+
+
+func _test_session() -> void:
+	var minigame: Node = root.get_node("Minigame")
+	var activities: Node = root.get_node("Activities")
+	_start("normal", false)
+	_check("football is a session that waits", minigame.kind == "football" and minigame.is_waiting())
+	_check("while waiting the avatar is not playing", activities.doing_option() == "")
+	var before: Vector2 = minigame.game.positions[1]
+	_pass_time(1.0)
+	_check("the match stops while waiting", minigame.game.positions[1] == before)
+	minigame.set_stick(Vector2(0, 1))
+	_check("the joystick starts it", not minigame.is_waiting() and activities.doing_option() == "football")
+	var y: float = minigame.game.positions[0].y
+	_pass_time(1.0)
+	_check("the avatar moves up", minigame.game.positions[0].y > y)
+	minigame.detach()
+	activities.reset()
+	minigame.reset()
+	activities.start("entertainment", "football")
+	_check("without a player football keeps the fixed score", not minigame.running
+			and is_equal_approx(minigame.score(), root.get_node("Config").get_float("minigame.default_score")))
+	activities.reset()
+
+
+func _test_breath() -> void:
+	var minigame: Node = root.get_node("Minigame")
+	_start("normal")
+	var full: float = minigame.reserve
+	_pass_time(5.0)
+	_check("moving costs Breath", minigame.reserve < full)
+	var moving: float = minigame.reserve
+	minigame.set_stick(Vector2.ZERO)
+	_pass_time(2.0)
+	_check("quiet moments refill Breath", minigame.reserve > moving)
+	minigame.game.kick_off(true)
+	var before: float = minigame.reserve
+	minigame.shoot_or_tackle()
+	_check("a shot costs Breath", minigame.reserve < before)
+	minigame.reserve = 0.01
+	minigame.set_stick(Vector2(0, 1))
+	_pass_time(1.0)
+	_check("at an empty bar the avatar jogs", minigame.is_walking())
+	_check("jogging is slower", is_equal_approx(minigame.game.avatar_speed, _load.speed(true)))
+	_pass_time(30.0)
+	_check("it runs again after recovering", not minigame.is_walking())
+
+
+func _test_score() -> void:
+	var minigame: Node = root.get_node("Minigame")
+	_start("normal")
+	_pass_time(20.0)
+	_check("moving all the time gives a full active share", minigame.pace > 0.99)
+	var rhythm: float = minigame.rhythm
+	minigame.game.kick_off(true)
+	minigame.game.positions[0] = Vector2(15, 5)
+	minigame.shoot_or_tackle()
+	_check("a shot from far away lowers the timing", minigame.rhythm < rhythm)
+	var score: float = minigame.score()
+	_check("score is half timing and half active", is_equal_approx(score, 0.5 * minigame.rhythm + 0.5 * minigame.pace))
+	minigame.set_stick(Vector2.ZERO)
+	for _i in 10:
+		_pass_time(2.0)
+		minigame.game.kick_off(true)
+		minigame.set_stick(Vector2.ZERO)
+		minigame.pass_ball()
+	_check("standing still lowers the active share", minigame.pace < 0.6)
+
+
+func _test_stopping() -> void:
+	var minigame: Node = root.get_node("Minigame")
+	var activities: Node = root.get_node("Activities")
+	_start("normal")
+	minigame.set_stick(Vector2.ZERO)
+	_pass_time(3.1)
+	_check("after 3 s with no input the avatar waits", minigame.is_waiting())
+	_pass_time(20.1)
+	_check("20 s later the activity ends", not activities.is_running() and not minigame.running)
+	_start("normal")
+	var scores := []
+	minigame.match_ended.connect(func(us: int, them: int) -> void: scores.append([us, them]))
+	minigame.game.goals_us = 2
+	minigame.game.goals_them = 1
+	activities.stop()
+	_check("the end of a match gives its score", scores == [[2, 1]])
+
+
+func _test_saving(save_game: Node) -> void:
+	var minigame: Node = root.get_node("Minigame")
+	var activities: Node = root.get_node("Activities")
+	_start("normal")
+	_pass_time(3.0)
+	minigame.game.goals_us = 3
+	minigame.game.goals_them = 2
+	var reserve: float = minigame.reserve
+	save_game.save_game()
+	minigame.detach()
+	activities.reset()
+	minigame.reset()
+	save_game.load_game()
+	minigame.attach()
+	_check("a loaded match goes on, waiting", minigame.kind == "football" and minigame.is_waiting())
+	_check("with its score", minigame.game.goals_us == 3 and minigame.game.goals_them == 2)
+	_check("and its Breath", is_equal_approx(minigame.reserve, reserve))
+	minigame.detach()
+	activities.reset()
+	minigame.reset()
+	save_game.delete_save()
 
 
 func _check(label: String, ok: bool) -> void:

@@ -91,6 +91,7 @@
 			},
 			"football": {
 				"name": "ACTIVITY_FOOTBALL",
+				"minigame": "football",
 				"duration_hours": 1,
 				"effects_per_hour": {},
 				"mety": { "value": 7.5, "status": "from source", "owner": "Pessoa 3", "comment": "Youth Compendium: soccer 8.1 at 10 to 12 years; play with friends set lower (v1 Step 3)." },

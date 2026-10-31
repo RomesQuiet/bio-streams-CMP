@@ -144,8 +144,8 @@ func _test_when_it_runs() -> void:
 	_check("no player (the scenario tests): no session, and the fixed score", not minigame.running and is_equal_approx(minigame.score(), 1.0))
 	activities.stop()
 	minigame.attach()
-	activities.start("entertainment", "football")
-	_check("football has no minigame (decision 29)", not minigame.running)
+	activities.start("entertainment", "screens")
+	_check("screens have no minigame", not minigame.running)
 	activities.stop()
 	clock.debug_speed = 60.0
 	activities.start("exercise", "cardio")
