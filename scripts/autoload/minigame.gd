@@ -354,6 +354,7 @@ func _end_session() -> void:
 		running = false
 		kind = ""
 		waiting = false
+		resting = false
 		session_changed.emit()
 
 

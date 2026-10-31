@@ -333,6 +333,12 @@ func _test_strength_set() -> void:
 	_check("the bar has partly refilled", absf(minigame.reserve - 0.8) < 0.02)
 	activities.stop()
 
+	_start_strength("normal")
+	minigame.press(true)
+	_play_set(1.0)
+	activities.stop()
+	_check("Stop during a rest ends the rest too", not minigame.resting and not minigame.running)
+
 
 ## Milestone 13, Task 2: rushing, the wrong button and going too slowly are poor technique.
 func _test_strength_technique() -> void:
