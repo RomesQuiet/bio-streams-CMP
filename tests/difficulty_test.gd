@@ -28,6 +28,7 @@ func _process(_delta: float) -> bool:
 	var config: Node = root.get_node("Config")
 	var health_model: GDScript = load("res://scripts/health/health_model.gd")
 	root.get_node("Activities").reset()
+	root.get_node("Simulation").reset()
 	gs.reset()
 	root.get_node("Clock").reset()
 
