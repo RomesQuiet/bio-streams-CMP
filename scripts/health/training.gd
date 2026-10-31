@@ -31,14 +31,18 @@ static func kind(option_id: String) -> String:
 	return ""
 
 
-## Called when an activity starts: a strength session below train.strength_ready, or within
+## A strength session that starts now, below train.strength_ready or within
 ## train.strength_min_gap_h of the start of the previous one, is too soon.
+static func strength_too_soon() -> bool:
+	return GameState.strength_recovery < Config.get_float("train.strength_ready") \
+			or GameState.hours_since_strength < Config.get_float("train.strength_min_gap_h")
+
+
+## Called when the avatar really starts an activity (with a minigame, at the first press).
 static func on_activity_started(option_id: String) -> void:
 	if kind(option_id) == STRENGTH:
-		var gs := GameState
-		gs.strength_too_soon = gs.strength_recovery < Config.get_float("train.strength_ready") \
-				or gs.hours_since_strength < Config.get_float("train.strength_min_gap_h")
-		gs.hours_since_strength = 0.0
+		GameState.strength_too_soon = strength_too_soon()
+		GameState.hours_since_strength = 0.0
 
 
 ## A new avatar day (after any sleep, or the 0-hour rule): the daily capacity starts again.

@@ -124,16 +124,20 @@ func _on_day_started(slept: bool) -> void:
 		Happiness.new_day()
 
 
+## With a minigame the avatar only really starts at the first tap or press (decision 19), so an
+## activity nobody played neither costs happiness nor counts as a strength session.
 func _on_activity_started(_activity_id: String, option_id: String) -> void:
-	if not loading:
-		Training.on_activity_started(option_id)
-		# With a minigame the avatar only really starts at the first tap (decision 19).
-		if not Minigame.is_waiting():
-			Happiness.on_activity_started(option_id)
+	if not loading and not Minigame.is_waiting():
+		_avatar_started(option_id)
 
 
 func _on_first_stride() -> void:
-	Happiness.on_activity_started(Activities.current_option)
+	_avatar_started(Activities.current_option)
+
+
+func _avatar_started(option_id: String) -> void:
+	Training.on_activity_started(option_id)
+	Happiness.on_activity_started(option_id)
 
 
 ## A meal counts when it ends, in proportion to the time eaten (Stop = part of a meal).

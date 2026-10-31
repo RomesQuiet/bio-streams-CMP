@@ -50,6 +50,7 @@ func _process(_delta: float) -> bool:
 	_test_strength_more_sets()
 	_test_strength_waiting()
 	_test_strength_saving()
+	_test_strength_health()
 	_test_no_tap_counts_nothing()
 	_test_played_minutes_count()
 	_test_score_reaches_training()
@@ -456,6 +457,53 @@ func _test_strength_saving() -> void:
 	activities.stop()
 	minigame.detach()
 	save_game.delete_save()
+
+
+## Milestone 13, Task 3: strength reaches the health system only when the avatar really moves.
+func _test_strength_health() -> void:
+	_start_strength("normal")
+	var gap: float = gs.hours_since_strength
+	_pass_time(21.0)
+	_check("a session nobody played is not a session: the 36-hour gap goes on", gs.hours_since_strength >= gap
+			and not activities.is_running())
+	_check("...and no exercise counts", is_equal_approx(gs.exercise_minutes_today, 0.0))
+	_check("...so the next one is not too soon", not training.strength_too_soon())
+
+	activities.start("exercise", "strength")
+	var happiness_before: float = gs.happiness
+	minigame.press(true)
+	_check("the first press starts the session", gs.hours_since_strength < 0.1 and not gs.strength_too_soon)
+	_check("...with the cost of starting exercise", gs.happiness < happiness_before)
+	_check("while moving, the METy of strength", is_equal_approx(energy.mety_now(), 5.0))
+	var window_before: float = training.effective_minutes("strength")
+	_play_set(1.0)
+	_check("a played set trains strength", training.effective_minutes("strength") > window_before)
+	_check("the rest keeps the METy of the session", minigame.resting and is_equal_approx(energy.mety_now(), 5.0))
+	activities.stop()
+
+	_check("right after it, the next session would be too soon", training.strength_too_soon())
+	activities.start("exercise", "strength")
+	_check("before the first press nothing is decided", not gs.strength_too_soon)
+	minigame.press(true)
+	_check("the first press marks it too soon", gs.strength_too_soon)
+	var trained: float = training.effective_minutes("strength")
+	_repetition(1.0)
+	_repetition(1.0)
+	_check("too soon: no effective minutes", training.effective_minutes("strength") <= trained)
+	activities.stop()
+
+	_new_avatar("easy")
+	gs.sleep_debt = 0.0
+	minigame.attach()
+	activities.start("exercise", "strength")
+	minigame.press(true)
+	for i in 3:
+		_repetition(1.0)
+	_check("good technique: full performance", absf(training.performance() - 1.0) < TOLERANCE)
+	for i in 6:
+		_repetition(0.4)
+	_check("poor technique: lower performance, never below 0.7", training.performance() < 1.0 and training.performance() >= 0.7)
+	activities.stop()
 
 
 ## Task 4 (decision 19): a session without a tap is not done, whatever the time that passed.
