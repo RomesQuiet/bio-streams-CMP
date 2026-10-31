@@ -4,7 +4,7 @@ Last updated: 31 October 2026, in Milestone 12. Read this after `CLAUDE.md` when
 
 ## 1. Where the work stands
 
-- **Milestone 13 (the strength minigame, `MILESTONE_13.md`) is built and committed, not pushed.** Waiting on the user: play it, then push from GitHub Desktop. As in cardio, the presses in the web check were sent by a script.
+- **Milestone 13 (the strength minigame, `MILESTONE_13.md`) is built and committed, not pushed.** The user played it and is happy with it (31 Oct 2026). Waiting on the user: push from GitHub Desktop. A real phone is not confirmed.
 - **Milestone 12 (minutes slider and the cardio minigame, `MILESTONE_12.md`) is complete, pushed up to `839cd05`.** The taps in the web check were sent by a script, so how it feels for a person, and on a real phone, is not checked.
 - **Milestone 11 (settings panel and European Portuguese, `MILESTONE_11.md`) is complete and pushed (`25aada7`).** Still to do: the team checks the Portuguese (Claude's draft, above all the health terms), and someone tries it on a real phone (the pop-up name box in Portuguese was not tried there).
 - **Name on phones: the pop-up box stays (user, 30 Oct 2026).** `fe5c4c3` (`window.prompt`) is confirmed on a real Android phone. The virtual keyboard attempt `adfe369` never reached GitHub and was reverted untested on a real phone. The pop-up box was reported as doing nothing on 28 Oct, for an unknown reason (a cached old page is possible). Always confirm a push with `git ls-remote origin refs/heads/main` and the published file size: that push from GitHub Desktop failed silently.

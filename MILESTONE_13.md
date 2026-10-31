@@ -1,6 +1,6 @@
 # Milestone 13 — The strength minigame
 
-**Status: built and committed (31 October 2026), not pushed.** Task 1 `4b5235f`, Task 2 `2c1a1e9`, Task 3 `2087d08`, Task 4 `c894f95`, Task 5 `5461691`, `0817f91` and the docs commit. All 25 tests pass, and the scenario test gives exactly the same output as before the minigames, so without a player nothing changed. The user plays it and pushes.
+**Status: built and committed (31 October 2026), not pushed.** Task 1 `4b5235f`, Task 2 `2c1a1e9`, Task 3 `2087d08`, Task 4 `c894f95`, Task 5 `5461691`, `0817f91` and the docs commit. All 25 tests pass, and the scenario test gives exactly the same output as before the minigames, so without a player nothing changed. The user played it and is happy with it (31 Oct 2026), and pushes next.
 
 **Changes made while building (beyond the plan):**
 
@@ -8,7 +8,7 @@
 - Rushing a press still moves the avatar and counts the repetition; it is poor technique and tires the muscles faster. (In cardio a tap that is too soon is not a stride.)
 - Code review: `resting` stayed true after a session ended; fixed.
 
-**Checked in the web build (browser pane, 31 Oct 2026):** the waiting state; Down and Up in turn with only the expected button enabled; set, repetitions and Muscle bar; the squat; a rest followed by set 2 with less Muscle; the too-soon warning on a second session, which can still be played. The presses were sent by a script as arrow keys. **Not checked:** a real person playing it, and a real phone.
+**Checked in the web build (browser pane, 31 Oct 2026):** the waiting state; Down and Up in turn with only the expected button enabled; set, repetitions and Muscle bar; the squat; a rest followed by set 2 with less Muscle; the too-soon warning on a second session, which can still be played. The presses were sent by a script as arrow keys; the user then played it by hand. **Not confirmed:** a real phone.
 
 Goal: muscle strength becomes a minigame, as cardio did in Milestone 12. The concept's idea: two buttons, Down lowers the avatar and Up raises it, and "the performance and the exercise time adapt to the avatar's current health".
 
