@@ -1,5 +1,5 @@
 {
-	"_comment": "Activities the avatar can do. Each activity has options; every name is a key of translations/strings.csv; each option has a duration in avatar hours (or \"slider\" for sleep; with \"minutes_slider\": true on the activity the player chooses the minutes and this is where the slider starts), mety (youth MET: energy per avatar hour = BMR / 24 x mety, Milestone 10), effects per avatar hour on GameState values (none for now), activity_intensity (\"moderate_vigorous\" counts toward the 60 minutes), a background colour and an animation name. Effects only count for the time actually done; energy is counted every 5-minute step (Simulation). Options marked \"placeholder\": true use temporary numbers; mety and activity_intensity have their own status and owner.",
+	"_comment": "Activities the avatar can do. Each activity has options; every name is a key of translations/strings.csv; each option has a duration in avatar hours (or \"slider\" for sleep; with \"minutes_slider\": true on the activity the player chooses the minutes and this is where the slider starts), mety (youth MET: energy per avatar hour = BMR / 24 x mety, Milestone 10), effects per avatar hour on GameState values (none for now), activity_intensity (\"moderate_vigorous\" counts toward the 60 minutes), a background colour and an animation name. An option with \"minigame\" is played by the player (Milestone 12). Effects only count for the time actually done; energy is counted every 5-minute step (Simulation). Options marked \"placeholder\": true use temporary numbers; mety and activity_intensity have their own status and owner.",
 
 	"sleep": {
 		"name": "ACTIVITY_SLEEP",
@@ -24,6 +24,7 @@
 		"options": {
 			"cardio": {
 				"name": "ACTIVITY_CARDIO",
+				"minigame": "cardio",
 				"duration_hours": 1,
 				"effects_per_hour": {},
 				"mety": { "value": 7.0, "status": "from source", "owner": "Pessoa 3", "comment": "Youth Compendium (v1 Step 3)." },

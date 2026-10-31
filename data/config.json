@@ -171,7 +171,16 @@
 		"body_floor": {"value": 0.4, "status": "placeholder", "owner": "Pessoa 1", "comment": "The body term never goes below this."},
 		"capacity_tired_cut": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 2", "comment": "Capacity x (1 - this x tiredness)."},
 		"run_minutes_base": {"value": 10, "status": "placeholder", "owner": "Pessoa 3", "comment": "Avatar minutes of running at capacity 0 before the Breath bar is empty."},
-		"run_minutes_range": {"value": 110, "status": "placeholder", "owner": "Pessoa 3", "comment": "Added at capacity 1, which gives train.cardio_tire_min (120)."}
+		"run_minutes_range": {"value": 110, "status": "placeholder", "owner": "Pessoa 3", "comment": "Added at capacity 1, which gives train.cardio_tire_min (120)."},
+		"walk_recover_min": {"value": 20, "status": "placeholder", "owner": "Pessoa 3", "comment": "Avatar minutes of walking that would refill the whole Breath bar. Children recover quickly (Birat 2018)."},
+		"run_again_at": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 3", "comment": "Share of the Breath bar at which the avatar can run again."},
+		"walk_mety": {"value": 4, "status": "placeholder", "owner": "Pessoa 3", "comment": "Energy while walking: the top of this walk is about moderate intensity, 4 METy in CADENCE-kids."},
+		"on_beat_share": {"value": 0.2, "status": "placeholder", "owner": "Pessoa 4", "comment": "A tap this share of the interval away from it is on the beat."},
+		"min_gap_share": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 4", "comment": "A tap sooner than this share of the interval is not a stride: the leg cannot move that fast."},
+		"rhythm_weight": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 4", "comment": "Score = this x rhythm + the rest x pace (decision 22: both count)."},
+		"score_window_strides": {"value": 10, "status": "placeholder", "owner": "Pessoa 4", "comment": "Rhythm and pace are averages of about this many last strides, so the score follows the player (decision 20)."},
+		"stall_seconds": {"value": 3, "status": "placeholder", "owner": "Pessoa 4", "comment": "Real seconds without a tap until the avatar stands still and waits."},
+		"wait_seconds": {"value": 20, "status": "team decision", "owner": "team", "comment": "Decision 28: real seconds the avatar waits for a tap before the activity ends."}
 	},
 
 	"diet": {
