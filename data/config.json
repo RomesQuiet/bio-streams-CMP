@@ -180,7 +180,16 @@
 		"rhythm_weight": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 4", "comment": "Score = this x rhythm + the rest x pace (decision 22: both count)."},
 		"score_window_strides": {"value": 10, "status": "placeholder", "owner": "Pessoa 4", "comment": "Rhythm and pace are averages of about this many last strides, so the score follows the player (decision 20)."},
 		"stall_seconds": {"value": 3, "status": "placeholder", "owner": "Pessoa 4", "comment": "Real seconds without a tap until the avatar stands still and waits."},
-		"wait_seconds": {"value": 20, "status": "team decision", "owner": "team", "comment": "Decision 28: real seconds the avatar waits for a tap before the activity ends."}
+		"wait_seconds": {"value": 20, "status": "team decision", "owner": "team", "comment": "Decision 28: real seconds the avatar waits for a tap before the activity ends."},
+		"strength_weight_cut_per_z": {"value": 0.12, "status": "placeholder", "owner": "Pessoa 1", "comment": "Strength capacity lost per z above 0. At z +2 (WHO obesity) it is 0.76 times: force per body weight about 24% lower with obesity; 12 to 36% lower by joint (Theis 2019)."},
+		"reps_min": {"value": 8, "status": "from source", "owner": "Pessoa 3", "comment": "Repetitions per set at capacity 0. AAP 2020: beginners, 1 to 2 sets of 8 to 12."},
+		"reps_max": {"value": 12, "status": "from source", "owner": "Pessoa 3", "comment": "Repetitions per set at capacity 1. AAP 2020."},
+		"sets_min": {"value": 1, "status": "from source", "owner": "Pessoa 3", "comment": "Sets for the weakest avatar. AAP 2020."},
+		"sets_max": {"value": 4, "status": "from source", "owner": "Pessoa 3", "comment": "Sets for the strongest avatar. AAP 2020: later 2 to 4 sets. More sets can follow while time is left (decision 36)."},
+		"press_seconds": {"value": 1, "status": "placeholder", "owner": "Pessoa 3", "comment": "Real seconds between Down and Up: a controlled pace. The AAP gives no number."},
+		"reps_margin": {"value": 1.25, "status": "placeholder", "owner": "Pessoa 3", "comment": "A rested avatar could do this many times its repetitions: the set ends without undue fatigue (AAP 2020)."},
+		"rest_seconds": {"value": 6, "status": "placeholder", "owner": "Pessoa 3", "comment": "Real seconds of rest between sets, about 4 avatar minutes. The AAP's 1 minute would be 86 real seconds at this time scale."},
+		"rest_refill": {"value": 0.6, "status": "placeholder", "owner": "Pessoa 3", "comment": "Share of the Muscle bar that one rest refills, so later sets are shorter."}
 	},
 
 	"diet": {

@@ -10,6 +10,7 @@ const TOLERANCE := 0.001
 ## Loaded at run time: the script uses the autoloads, which do not exist yet when this test
 ## script is compiled.
 var pace: GDScript
+var load_model: GDScript
 var training: GDScript
 var energy: GDScript
 var gs: Node
@@ -21,6 +22,7 @@ var _failures := 0
 
 func _process(_delta: float) -> bool:
 	pace = load("res://scripts/health/cardio_pace.gd")
+	load_model = load("res://scripts/health/strength_load.gd")
 	training = load("res://scripts/health/training.gd")
 	energy = load("res://scripts/health/energy.gd")
 	gs = root.get_node("GameState")
@@ -36,6 +38,7 @@ func _process(_delta: float) -> bool:
 	clock.reset()
 
 	_test_pace()
+	_test_strength_load()
 	_test_when_it_runs()
 	_test_score()
 	_test_breath()
@@ -95,6 +98,36 @@ func _test_pace() -> void:
 	_set_body(1.0, 0.0, 0.0)
 	_check("a teenager: vigorous threshold 125 steps/min", absf(pace.run_interval() - 120.0 / 125.0) < TOLERANCE)
 	gs.age_group = "child"
+
+
+## Milestone 13, Task 1: repetitions and sets come from strength, weight and sleepiness.
+func _test_strength_load() -> void:
+	print("difficulty  capacity  reps  sets")
+	for id in ["easy", "normal", "hard", "very_hard"]:
+		gs.start_new_avatar("Test", "child", "male", id)
+		print("%-10s  %.3f     %d     %d" % [id, load_model.capacity(), load_model.reps_per_set(), load_model.sets_goal()])
+	gs.start_new_avatar("Test", "child", "male", "normal")
+	_check("Normal capacity = 0.4 x (1 - 0.12 x 1.2) x (1 - 0.3 x 0.5)", absf(load_model.capacity() - 0.4 * 0.856 * 0.85) < TOLERANCE)
+	_set_strength(1.0, 0.0, 0.0)
+	_check("the strongest avatar: 12 repetitions and 4 sets (AAP)", load_model.reps_per_set() == 12 and load_model.sets_goal() == 4)
+	_set_strength(0.0, 0.0, 0.0)
+	_check("the weakest avatar: 8 repetitions and 1 set (AAP)", load_model.reps_per_set() == 8 and load_model.sets_goal() == 1)
+	_set_strength(0.8, 0.0, 0.0)
+	var strong: float = load_model.capacity()
+	_check("no weight or sleep cut: capacity = strength", absf(strong - 0.8) < TOLERANCE)
+	_set_strength(0.8, 2.0, 0.0)
+	_check("obesity (z +2): capacity x 0.76", absf(load_model.capacity() - 0.8 * 0.76) < TOLERANCE)
+	_set_strength(0.8, 10.0, 0.0)
+	_check("the weight term stops at its floor", absf(load_model.capacity() - 0.8 * 0.4) < TOLERANCE)
+	_set_strength(0.8, -1.5, 0.0)
+	_check("below z 0 weight does not change capacity", absf(load_model.capacity() - 0.8) < TOLERANCE)
+	_set_strength(0.8, 0.0, 8.0)
+	_check("sleepier: less capacity", load_model.capacity() < strong)
+
+
+func _set_strength(strength: float, z: float, debt: float) -> void:
+	_set_body(gs.fitness, z, debt)
+	gs.strength = strength
 
 
 ## Task 3: a session needs a player, a minigame on the option and normal speed.
