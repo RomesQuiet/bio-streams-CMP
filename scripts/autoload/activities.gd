@@ -43,6 +43,11 @@ func current_option_data() -> Dictionary:
 	return get_option(current_activity, current_option)
 
 
+## The option the avatar is really doing: none while the minigame waits for a tap.
+func doing_option() -> String:
+	return "" if Minigame.is_waiting() else current_option
+
+
 ## The option with this id in any activity (for example "cardio"), or {} if there is none.
 func find_option(option_id: String) -> Dictionary:
 	for activity_id in definitions:
@@ -138,7 +143,7 @@ func from_dict(data: Dictionary) -> void:
 
 
 func _on_avatar_time_passed(hours: float, asleep: bool) -> void:
-	if not is_running() or asleep != uses_sleep_time(current_activity):
+	if not is_running() or asleep != uses_sleep_time(current_activity) or Minigame.is_waiting():
 		return
 	var done := minf(hours, target_hours - elapsed_hours)
 	if done > 0.0:

@@ -2,13 +2,16 @@ extends SceneTree
 ## Tests for the cardio minigame (Milestone 12, Tasks 2 to 4). Run from the project folder:
 ##   Godot --headless --path . -s res://tests/minigame_test.gd
 ## The avatar's pace and how long it can run, then a session played tap by tap: rhythm, steps,
-## the Breath bar, walking and waiting. Time is passed in by the test. Nothing is saved.
+## the Breath bar, walking and waiting, and how a session reaches the health system. Time is
+## passed in by the test. Nothing is saved.
 
 const TOLERANCE := 0.001
 
 ## Loaded at run time: the script uses the autoloads, which do not exist yet when this test
 ## script is compiled.
 var pace: GDScript
+var training: GDScript
+var energy: GDScript
 var gs: Node
 var clock: Node
 var activities: Node
@@ -18,6 +21,8 @@ var _failures := 0
 
 func _process(_delta: float) -> bool:
 	pace = load("res://scripts/health/cardio_pace.gd")
+	training = load("res://scripts/health/training.gd")
+	energy = load("res://scripts/health/energy.gd")
 	gs = root.get_node("GameState")
 	clock = root.get_node("Clock")
 	activities = root.get_node("Activities")
@@ -36,6 +41,11 @@ func _process(_delta: float) -> bool:
 	_test_breath()
 	_test_waiting()
 	_test_saving()
+	_test_no_tap_counts_nothing()
+	_test_played_minutes_count()
+	_test_score_reaches_training()
+	_test_walking_energy()
+	minigame.detach()
 
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
 	quit(1 if _failures > 0 else 0)
@@ -250,6 +260,80 @@ func _test_saving() -> void:
 	activities.stop()
 	minigame.detach()
 	save_game.delete_save()
+
+
+## Task 4 (decision 19): a session without a tap is not done, whatever the time that passed.
+func _test_no_tap_counts_nothing() -> void:
+	_start_session("normal", false)
+	var calories: float = gs.calories_spent
+	var happiness_at_start: float = gs.happiness
+	var hours_before: float = gs.sim_hours
+	_check("no happiness cost before the first tap", is_equal_approx(gs.happiness, happiness_at_start))
+	_check("while waiting the avatar uses idle energy", is_equal_approx(energy.mety_now(), root.get_node("Config").get_float("energy.mety_idle")))
+	_check("while waiting it is doing nothing", activities.doing_option() == "")
+	_pass_time(10.0)
+	_check("no activity minutes pass", is_equal_approx(activities.elapsed_hours, 0.0))
+	_check("no exercise minutes count", is_equal_approx(gs.exercise_minutes_today, 0.0))
+	_check("no calories go to the record", is_equal_approx(calories, gs.calories_spent))
+	_check("the game day goes on, and no time is lost", absf(gs.sim_hours - hours_before - clock.real_seconds_to_avatar_hours(10.0, false)) < 0.1)
+	_pass_time(11.0)
+	_check("the activity ends with nothing done", not activities.is_running() and is_equal_approx(gs.exercise_minutes_today, 0.0))
+
+	_start_session("normal", false)
+	var before_tap: float = gs.happiness
+	minigame.tap()
+	_check("the first tap brings the cost of starting exercise, once", gs.happiness < before_tap)
+	var after_tap: float = gs.happiness
+	_pass_time(3.1)
+	minigame.tap()
+	_check("a tap after a wait does not bring it again", absf(gs.happiness - after_tap) < 0.01)
+	activities.stop()
+
+
+## Task 4: minutes count only while the avatar moves, as for Stop (decision 20).
+func _test_played_minutes_count() -> void:
+	_start_session("normal")
+	var interval: float = minigame.interval()
+	_play(10, interval)
+	var played: float = activities.elapsed_hours
+	_check("tapping: the activity moves on", absf(played - clock.real_seconds_to_avatar_hours(10.0 * interval, false)) < 0.02)
+	_pass_time(3.1)
+	var at_wait: float = activities.elapsed_hours
+	_pass_time(10.0)
+	_check("waiting: it stops", is_equal_approx(activities.elapsed_hours, at_wait))
+	minigame.tap()
+	_pass_time(0.5)
+	_check("a tap: it goes on", activities.elapsed_hours > at_wait)
+	activities.stop()
+	_check("training counted the played minutes only", gs.exercise_minutes_today > 0.0
+			and gs.exercise_minutes_today < at_wait * 60.0 + 6.0)
+
+
+## Task 4: the score reaches performance, and without a player nothing changes.
+func _test_score_reaches_training() -> void:
+	_new_avatar("easy")
+	gs.sleep_debt = 0.0
+	var fixed: float = training.performance()
+	_check("no player: performance as before, score 1", is_equal_approx(fixed, 1.0))
+	minigame.attach()
+	activities.start("exercise", "cardio")
+	minigame.tap()
+	_play(15, minigame.interval())
+	_check("a perfect player: the same performance", absf(training.performance() - fixed) < TOLERANCE)
+	_play(40, minigame.interval() * 1.5)
+	_check("a poor player: lower performance, never below 0.7", training.performance() < 0.85 and training.performance() >= 0.7)
+	activities.stop()
+
+
+## Task 4: running spends the cardio METy and walking spends less.
+func _test_walking_energy() -> void:
+	_start_session("very_hard")
+	var running_mety: float = energy.mety_now()
+	_check("running uses the cardio METy", is_equal_approx(running_mety, 7.0))
+	minigame.walking = true
+	_check("walking uses walk_mety", is_equal_approx(energy.mety_now(), root.get_node("Config").get_float("minigame.walk_mety"))
+			and energy.mety_now() < running_mety)
+	activities.stop()
 
 
 func _new_avatar(difficulty: String) -> void:

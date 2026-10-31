@@ -57,7 +57,7 @@ static func baseline() -> float:
 static func step(hours: float, asleep: bool) -> void:
 	var gs := GameState
 	var minutes := hours * Config.get_float("units.minutes_per_hour")
-	var doing := kind(Activities.current_option) if Activities.is_running() else ""
+	var doing := kind(Activities.doing_option())
 	var events := "mood.events."
 	var change := 0.0
 	match doing:

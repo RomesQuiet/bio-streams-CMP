@@ -53,10 +53,11 @@ static func capacity_min() -> float:
 
 
 ## Minigame performance: min_performance + (1 - min_performance) x score x (1 - tired_cut x
-## tiredness). Until minigames exist the score is minigame.default_score (decision 5).
+## tiredness). The score comes from Minigame: the player's while a session runs, otherwise
+## minigame.default_score (decision 5).
 static func performance() -> float:
 	var lowest := Config.get_float("minigame.min_performance")
-	return lowest + (1.0 - lowest) * Config.get_float("minigame.default_score") \
+	return lowest + (1.0 - lowest) * Minigame.score() \
 			* (1.0 - Config.get_float("minigame.tired_cut") * SleepModel.tiredness())
 
 
@@ -64,7 +65,7 @@ static func performance() -> float:
 static func step(hours: float, _asleep: bool) -> void:
 	var gs := GameState
 	var minutes := hours * Config.get_float("units.minutes_per_hour")
-	var doing := kind(Activities.current_option) if Activities.is_running() else ""
+	var doing := kind(Activities.doing_option())
 	var excess := 0.0
 	gs.beyond_capacity_minutes_step = 0.0
 	# Clock time since the last strength session started (the minimum gap).

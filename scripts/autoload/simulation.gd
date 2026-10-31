@@ -45,6 +45,7 @@ func _ready() -> void:
 	Activities.started.connect(_on_activity_started)
 	Clock.day_started.connect(_on_day_started)
 	Activities.ended.connect(_on_activity_ended)
+	Minigame.first_stride.connect(_on_first_stride)
 
 
 ## Length of one step, in avatar minutes.
@@ -78,7 +79,8 @@ func flush() -> void:
 
 func _on_avatar_time_passed(hours: float, asleep: bool) -> void:
 	var now := hours
-	if Activities.is_running() and not Activities.uses_sleep_time(Activities.current_activity):
+	if Activities.is_running() and not Activities.uses_sleep_time(Activities.current_activity) \
+			and not Minigame.is_waiting():
 		var left := maxf(0.0, Activities.target_hours - Activities.elapsed_hours)
 		if hours > left:
 			now = left
@@ -123,7 +125,13 @@ func _on_day_started(slept: bool) -> void:
 func _on_activity_started(_activity_id: String, option_id: String) -> void:
 	if not loading:
 		Training.on_activity_started(option_id)
-		Happiness.on_activity_started(option_id)
+		# With a minigame the avatar only really starts at the first tap (decision 19).
+		if not Minigame.is_waiting():
+			Happiness.on_activity_started(option_id)
+
+
+func _on_first_stride() -> void:
+	Happiness.on_activity_started(Activities.current_option)
 
 
 ## A meal counts when it ends, in proportion to the time eaten (Stop = part of a meal).

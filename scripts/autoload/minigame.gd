@@ -108,6 +108,11 @@ func is_waiting() -> bool:
 	return running and waiting
 
 
+## True while a session has the avatar walking to get its breath back.
+func is_walking() -> bool:
+	return running and walking
+
+
 ## The score for Training.performance(), 0 to 1.
 func score() -> float:
 	if not running:

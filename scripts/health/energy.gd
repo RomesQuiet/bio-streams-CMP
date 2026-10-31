@@ -34,11 +34,15 @@ static func healthy_portion_kcal(sex: String, age_months: float) -> float:
 
 
 ## METy of what the avatar is doing now: the running activity's mety (data/activities.json),
-## or energy.mety_idle when no activity runs.
+## minigame.walk_mety while the minigame has it walking, or energy.mety_idle when it is doing
+## nothing (no activity, or the minigame waits for a tap).
 static func mety_now() -> float:
-	if Activities.is_running():
-		return float(Activities.option_value(Activities.current_option_data(), "mety", Config.get_float("energy.mety_idle")))
-	return Config.get_float("energy.mety_idle")
+	var idle := Config.get_float("energy.mety_idle")
+	if Activities.doing_option().is_empty():
+		return idle
+	if Minigame.is_walking():
+		return Config.get_float("minigame.walk_mety")
+	return float(Activities.option_value(Activities.current_option_data(), "mety", idle))
 
 
 ## kcal spent per avatar hour with this METy.
@@ -53,7 +57,7 @@ static func step(hours: float, _asleep: bool) -> void:
 	gs.energy_spent_step = kcal_per_hour(gs.sex_or_default(), gs.body_age_months, gs.weight_kg, mety_now()) * hours
 	_add_to_window("spent", gs.energy_spent_step)
 	_change_weight(-gs.energy_spent_step)
-	if Activities.is_running():
+	if not Activities.doing_option().is_empty():
 		var intensity := str(Activities.option_value(Activities.current_option_data(), "activity_intensity", ""))
 		if intensity in Config.get_value("energy.record_intensities"):
 			gs.calories_spent += gs.energy_spent_step
