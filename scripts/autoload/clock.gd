@@ -55,7 +55,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if paused:
 		return
-	var real_seconds := minf(delta, Config.get_float("time.max_frame_seconds")) * debug_speed
+	var real_seconds := minf(delta, Config.get_float("time.max_frame_seconds")) * debug_speed * Minigame.time_share()
 	match phase:
 		Phase.DAY:
 			var hours := minf(real_seconds_to_avatar_hours(real_seconds, false), day_length_hours - day_elapsed_hours)

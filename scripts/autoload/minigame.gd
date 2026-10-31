@@ -13,6 +13,8 @@ extends Node
 ## timing of passes, shots and tackles. Pace: the share of recent time the avatar kept moving.
 ## The reserve (Breath) falls while moving and with each move, and refills a little in quiet
 ## moments. At 0 the avatar jogs until it has partly refilled. The match stops while it waits.
+## Avatar time runs time_slowdown times slower while the avatar plays (decision 47), so a match
+## lasts longer on screen. Breath is counted in avatar time, so a move costs that much less.
 ## With no tap or press the avatar stands still and waits, nothing counts, and the activity ends
 ## after minigame.wait_seconds. The rest between sets is not waiting.
 ## A session only exists with the main screen open (attach()), at normal speed, for an option
@@ -37,6 +39,8 @@ signal first_stride
 signal gave_up
 ## A session started or ended, the avatar stopped or started moving, or a rest began or ended.
 signal session_changed
+## Something happened in the match. key: a key of translations/strings.csv.
+signal football_event(key: String)
 ## A football match the player played ended, with this score.
 signal match_ended(goals_us: int, goals_them: int)
 ## Emitted just before the avatar stops, starts, walks or runs, so Simulation can first run the
@@ -178,6 +182,13 @@ func score() -> float:
 	return weight * rhythm + (1.0 - weight) * pace
 
 
+## Share of normal speed at which avatar time runs now. Read by the Clock.
+func time_share() -> float:
+	if running and kind == FOOTBALL and not waiting:
+		return 1.0 / Config.get_float("minigame.football.time_slowdown")
+	return 1.0
+
+
 ## Real seconds the next tap or press should come after the last one.
 func interval() -> float:
 	if kind == STRENGTH:
@@ -248,11 +259,15 @@ func set_stick(direction: Vector2) -> void:
 		_football_input()
 
 
-## The player pressed Pass (football).
+## The player pressed Pass (football), which asks for the ball while a team-mate has it.
 func pass_ball() -> void:
-	if _football_ready() and game.has_ball():
+	if not _football_ready():
+		return
+	if game.has_ball():
 		_judge(game.pass_ball())
 		_football_move("minigame.football.pass_cost")
+	else:
+		game.call_for_ball()
 
 
 ## The player pressed Shoot, which is Tackle while an opponent has the ball (football).
@@ -287,7 +302,7 @@ func advance(seconds: float) -> void:
 		_waited = 0.0
 		session_changed.emit()
 		return
-	var minutes := Clock.real_seconds_to_avatar_hours(seconds, false) * Config.get_float("units.minutes_per_hour")
+	var minutes := Clock.real_seconds_to_avatar_hours(seconds * time_share(), false) * Config.get_float("units.minutes_per_hour")
 	if kind == CARDIO:
 		_update_breath(minutes)
 	elif kind == FOOTBALL:
@@ -341,7 +356,7 @@ func _football_input() -> void:
 func _football_move(cost: String) -> void:
 	strides += 1
 	strode.emit(last_on_beat)
-	_spend_breath(Config.get_float(cost))
+	_spend_breath(Config.get_float(cost) / Config.get_float("minigame.football.time_slowdown"))
 
 
 func _spend_breath(amount: float) -> void:
@@ -376,6 +391,7 @@ func _new_game() -> void:
 	game = FootballMatch.new(match_seed if match_seed != 0 else randi())
 	game.goals_us = _goals_us
 	game.goals_them = _goals_them
+	game.happened.connect(football_event.emit)
 	_set_body()
 
 

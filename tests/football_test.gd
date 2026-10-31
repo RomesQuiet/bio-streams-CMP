@@ -25,6 +25,7 @@ func _process(_delta: float) -> bool:
 	_test_kick_off()
 	_test_actions()
 	_test_whole_match()
+	_test_human_match()
 	_test_session()
 	_test_breath()
 	_test_score()
@@ -162,6 +163,55 @@ func _bot_match(seed_value: int, seconds: float) -> RefCounted:
 	return game
 
 
+## A human-like player: the normal speed, reacts late, misjudges a little. Prints how the match
+## goes, so the computer team's values can be chosen by people and not by a perfect player.
+func _human_match(seed_value: int, seconds: float, speed: float) -> Dictionary:
+	var random := RandomNumberGenerator.new()
+	random.seed = seed_value
+	var game: RefCounted = _match_script.new(seed_value)
+	game.avatar_speed = speed
+	game.free_distance = 6.0
+	game.shot_range = 14.0
+	var left := 0.0
+	var think := 0.0
+	var owned := 0.0
+	while left < seconds:
+		left += STEP
+		think -= STEP
+		owned += STEP if game.has_ball() else 0.0
+		if think <= 0.0:
+			think = 0.3 + random.randf() * 0.3
+			if game.has_ball():
+				game.stick = (Vector2(15, 45) - game.positions[0]).normalized()
+				var pressed: bool = game.positions[0].distance_to(game.positions[game._nearest_of(1, game.positions[0])]) < 5.0
+				if game.in_shot_range():
+					game.shoot()
+				elif pressed and random.randf() < 0.5:
+					game.pass_ball()
+			else:
+				game.stick = (game.ball - game.positions[0]).normalized()
+				if game.team_mate_has_ball() and random.randf() < 0.2:
+					game.call_for_ball()
+				if game.in_tackle_reach() and game.can_tackle():
+					game.tackle()
+		game.advance(STEP)
+	return {"us": game.goals_us, "them": game.goals_them, "owned": owned / seconds}
+
+
+func _test_human_match() -> void:
+	var total := {"us": 0.0, "them": 0.0, "owned": 0.0}
+	var slow := {"us": 0.0, "them": 0.0, "owned": 0.0}
+	for i in 8:
+		var one := _human_match(i + 1, 430.0, 7.4)
+		var two := _human_match(i + 1, 430.0, 6.1)
+		for key in total:
+			total[key] += one[key] / 8.0
+			slow[key] += two[key] / 8.0
+	print("  human-like player, 7 minutes, Normal speed: %.1f to %.1f, has the ball %.0f%% of the time" % [total["us"], total["them"], total["owned"] * 100.0])
+	print("  human-like player, 7 minutes, Very hard speed: %.1f to %.1f, has the ball %.0f%% of the time" % [slow["us"], slow["them"], slow["owned"] * 100.0])
+	_check("a human-like player scores and concedes", total["us"] > 0.0 and total["them"] > 0.0)
+
+
 func _test_whole_match() -> void:
 	var one := _bot_match(SEED, 86.0)
 	var two := _bot_match(SEED, 86.0)
@@ -174,7 +224,7 @@ func _test_whole_match() -> void:
 		us += game.goals_us
 		them += game.goals_them
 	print("  20 matches of 86 s: %.1f to %.1f goals a match" % [us / 20.0, them / 20.0])
-	_check("both teams score", us > 0 and them > 0)
+	_check("a perfect player scores", us > 0)
 
 
 func _start(difficulty: String, first_move := true) -> void:
@@ -238,12 +288,12 @@ func _test_breath() -> void:
 	var before: float = minigame.reserve
 	minigame.shoot_or_tackle()
 	_check("a shot costs Breath", minigame.reserve < before)
-	minigame.reserve = 0.01
+	minigame.reserve = 0.0001
 	minigame.set_stick(Vector2(0, 1))
 	_pass_time(1.0)
 	_check("at an empty bar the avatar jogs", minigame.is_walking())
 	_check("jogging is slower", is_equal_approx(minigame.game.avatar_speed, _load.speed(true)))
-	_pass_time(30.0)
+	_pass_time(80.0)
 	_check("it runs again after recovering", not minigame.is_walking())
 
 

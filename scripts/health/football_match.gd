@@ -5,6 +5,9 @@ extends RefCounted
 ## It runs in fixed steps with its own random generator, so a seed always plays the same match.
 ## Numbers are in Config (group minigame.football).
 
+## What just happened, for the player. Each is a key of translations/strings.csv.
+signal happened(key: String)
+
 const NOBODY := -1
 enum Flight {NONE, PASS, SHOT}
 
@@ -27,6 +30,8 @@ var free_distance := 0.0
 var shot_range := 0.0
 
 var _rng := RandomNumberGenerator.new()
+var _values := {}
+var _formation: Array = []
 var _left := 0.0
 var _tick := 0.0
 var _decide_left := 0.0
@@ -37,11 +42,16 @@ var _ball_target := Vector2.ZERO
 var _ball_speed := 0.0
 var _shot_scores := false
 var _shooter_team := 0
+## Real seconds left of the stop after a goal or a miss.
+var _pause_left := 0.0
+## Real seconds in which a player who just got the ball cannot be tackled.
+var _safe_left := 0.0
 
 
 func _init(seed_value: int) -> void:
 	_rng.seed = seed_value
 	team_size = Config.get_int("minigame.football.team_size")
+	_formation = Config.get_value("minigame.football.formation")
 	width = _value("field_width")
 	length = _value("field_length")
 	_tick = _value("tick_seconds")
@@ -50,7 +60,9 @@ func _init(seed_value: int) -> void:
 
 
 ## Everyone back to their places. The team that kicks off has the ball.
-func kick_off(ours: bool) -> void:
+## stop: the match stops for a moment first, so the player can see what happened.
+func kick_off(ours: bool, stop := false) -> void:
+	_pause_left = _value("restart_seconds") if stop else 0.0
 	for i in positions.size():
 		positions[i] = _home(i, false)
 	owner = 0 if ours else team_size
@@ -59,6 +71,7 @@ func kick_off(ours: bool) -> void:
 	_receiver = NOBODY
 	_decide_left = _value("cpu_decide_seconds")
 	_tackle_left = _value("cpu_tackle_seconds")
+	_safe_left = _value("protect_seconds")
 
 
 ## Real seconds passed. Runs whole steps, so the frame rate does not change the match.
@@ -80,6 +93,20 @@ func defending() -> bool:
 
 func can_tackle() -> bool:
 	return defending() and _own_tackle_left <= 0.0
+
+
+func in_tackle_reach() -> bool:
+	return defending() and positions[0].distance_to(positions[owner]) <= _value("tackle_reach")
+
+
+## A team-mate has the ball: the player can ask for it.
+func team_mate_has_ball() -> bool:
+	return owner > 0 and owner < team_size
+
+
+## The match is stopped for a moment after a goal or a miss.
+func stopped() -> bool:
+	return _pause_left > 0.0
 
 
 ## True if no opponent is within free_distance of this player.
@@ -112,7 +139,14 @@ func pass_ball() -> bool:
 	var receiver := best_receiver()
 	var good := is_free(receiver)
 	_pass_to(receiver)
+	happened.emit("FOOTBALL_PASS_GOOD" if good else "FOOTBALL_PASS_MARKED")
 	return good
+
+
+## The avatar asks the team-mate with the ball for a pass.
+func call_for_ball() -> void:
+	if team_mate_has_ball():
+		_pass_to(0)
 
 
 ## The avatar shoots. Returns true for a good shot: it was in range.
@@ -120,6 +154,8 @@ func shoot() -> bool:
 	if not has_ball():
 		return false
 	var good := in_shot_range()
+	if not good:
+		happened.emit("FOOTBALL_SHOT_FAR")
 	_shoot(_value("goal_chance_good") if good else _value("goal_chance_far"))
 	return good
 
@@ -130,15 +166,23 @@ func tackle() -> bool:
 	if not can_tackle():
 		return false
 	_own_tackle_left = _value("tackle_seconds")
-	if positions[0].distance_to(positions[owner]) > _value("tackle_reach"):
+	if not in_tackle_reach():
+		happened.emit("FOOTBALL_TACKLE_FAR")
 		return false
 	if _rng.randf() < _value("tackle_chance"):
 		_receive(0)
+		happened.emit("FOOTBALL_TACKLE_WON")
+	else:
+		happened.emit("FOOTBALL_TACKLE_MISSED")
 	return true
 
 
 func _step(seconds: float) -> void:
+	if _pause_left > 0.0:
+		_pause_left -= seconds
+		return
 	_own_tackle_left -= seconds
+	_safe_left -= seconds
 	var move := stick.limit_length(1.0) * avatar_speed * seconds
 	positions[0] = _on_field(positions[0] + move)
 	for i in range(1, positions.size()):
@@ -158,6 +202,8 @@ func _move_ball(seconds: float) -> void:
 		_ball_target = positions[_receiver]
 		for i in positions.size():
 			if _team(i) != _team(_receiver) and positions[i].distance_to(ball) <= _value("intercept_radius"):
+				if _team(i) == 1:
+					happened.emit("FOOTBALL_INTERCEPTED")
 				_receive(i)
 				return
 	ball = ball.move_toward(_ball_target, _ball_speed * seconds)
@@ -168,10 +214,14 @@ func _move_ball(seconds: float) -> void:
 	else:
 		if _shot_scores and _shooter_team == 0:
 			goals_us += 1
+			happened.emit("FOOTBALL_GOAL")
 		elif _shot_scores:
 			goals_them += 1
+			happened.emit("FOOTBALL_GOAL_THEM")
+		else:
+			happened.emit("FOOTBALL_MISSED")
 		# After a goal or a miss the other team restarts the game.
-		kick_off(_shooter_team == 1)
+		kick_off(_shooter_team == 1, true)
 
 
 func _receive(player: int) -> void:
@@ -180,6 +230,7 @@ func _receive(player: int) -> void:
 	_receiver = NOBODY
 	ball = positions[player]
 	_decide_left = _value("cpu_decide_seconds")
+	_safe_left = _value("protect_seconds")
 
 
 func _pick_up() -> void:
@@ -222,12 +273,14 @@ func _target(player: int) -> Vector2:
 ## A computer player tries to take the ball from a close opponent, at most once per tackle time.
 func _computer_tackle(seconds: float) -> void:
 	_tackle_left -= seconds
-	if _tackle_left > 0.0 or owner == NOBODY:
+	if _tackle_left > 0.0 or owner == NOBODY or _safe_left > 0.0:
 		return
 	_tackle_left = _value("cpu_tackle_seconds")
 	var tackler := _nearest_computer(1 - _team(owner), positions[owner])
 	if positions[tackler].distance_to(positions[owner]) <= _value("cpu_tackle_reach") \
 			and _rng.randf() < _value("cpu_tackle_chance"):
+		if owner == 0:
+			happened.emit("FOOTBALL_LOST_BALL")
 		_receive(tackler)
 
 
@@ -261,7 +314,7 @@ func _freest_team_mate(player: int) -> int:
 ## follows the ball up and down the field.
 func _home(player: int, following: bool) -> Vector2:
 	var team := _team(player)
-	var place: Array = Config.get_value("minigame.football.formation")[player - team * team_size]
+	var place: Array = _formation[player - team * team_size]
 	var y := float(place[1]) * length
 	if following:
 		y += (ball.y / length - _value("field_middle")) * _value("follow_share") * length
@@ -304,5 +357,8 @@ func _nearest_distance(player: int, team: int) -> float:
 	return positions[player].distance_to(positions[_nearest_of(team, positions[player])])
 
 
+## Config values are read once per key: the match asks for them many times per step.
 func _value(key: String) -> float:
-	return Config.get_float("minigame.football." + key)
+	if not _values.has(key):
+		_values[key] = Config.get_float("minigame.football." + key)
+	return _values[key]
