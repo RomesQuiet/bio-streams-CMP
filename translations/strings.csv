@@ -41,6 +41,7 @@ SPEECH_LEVEL_UP,Level up! Level %d,Subiste de nível! Nível %d
 SPEECH_PROGRESS,%s (%s of %s h),%s (%s de %s h)
 SPEECH_PROGRESS_MINUTES,%s (%d of %d min),%s (%d de %d min)
 SPEECH_GAVE_UP,"You stopped tapping, so I stopped.","Deixaste de tocar, por isso parei."
+SPEECH_TOO_SOON,My muscles still need rest.,Os meus músculos ainda precisam de descanso.
 SPEECH_SLEPT,I slept %s h. Press the wake button to start the day.,Dormi %s h. Carrega no botão Acordar para começar o dia.
 SLEEP_INFO,%s h of sleep (%d real min)\nNext day: %s h (%s real min),%s h de sono (%d min reais)\nPróximo dia: %s h (%s min reais)
 SLEEP_AT_MOST,At most %s h now.,No máximo %s h agora.
@@ -54,6 +55,13 @@ MINIGAME_RUNNING,Running,A correr
 MINIGAME_WALKING,Walking: catching my breath,A andar: a recuperar o fôlego
 MINIGAME_BREATH,Breath,Fôlego
 MINIGAME_STEPS,Steps: %d / %d,Passos: %d / %d
+MINIGAME_DOWN,Down,Baixar
+MINIGAME_UP,Up,Subir
+MINIGAME_MUSCLE,Muscle,Músculo
+MINIGAME_RESTING,Resting,A descansar
+MINIGAME_SET,Set %d of %d,Série %d de %d
+MINIGAME_SET_EXTRA,Extra set %d,Série extra %d
+MINIGAME_REPS,Repetitions: %d / %d,Repetições: %d / %d
 CREATION_TITLE,Create your avatar,Cria o teu avatar
 CREATION_NAME,Name,Nome
 CREATION_NAME_HINT,Type a name,Escreve um nome

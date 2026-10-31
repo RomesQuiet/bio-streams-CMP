@@ -6,6 +6,7 @@ const CREATION_SCENE := "res://scenes/ui/creation.tscn"
 const Hunger := preload("res://scripts/health/hunger.gd")
 const AvatarStates := preload("res://scripts/health/avatar_states.gd")
 const HealthModel := preload("res://scripts/health/health_model.gd")
+const Training := preload("res://scripts/health/training.gd")
 ## Placeholder failure messages by cause (HealthModel.failure_cause(); the failure effect is not
 ## decided yet): severe thinness for too long, or target health or happiness below its line for
 ## too long (fail group in config). Translation keys, like every text on this screen.
@@ -81,7 +82,12 @@ const HEALTH_TEXT := "MEASURE_HEALTH"
 @onready var minigame_panel: Control = %MinigamePanel
 @onready var minigame_status: Label = %MinigameStatus
 @onready var minigame_steps: Label = %MinigameSteps
-@onready var breath_bar: ProgressBar = %BreathBar
+@onready var reserve_label: Label = %ReserveLabel
+@onready var reserve_bar: ProgressBar = %ReserveBar
+@onready var tap_button: Button = %TapButton
+@onready var strength_buttons: Control = %StrengthButtons
+@onready var down_button: Button = %DownButton
+@onready var up_button: Button = %UpButton
 @onready var beat_bar: Control = %BeatBar
 @onready var confirm_box: Control = %ConfirmBox
 
@@ -150,7 +156,10 @@ func _ready() -> void:
 	Activities.started.connect(_refresh_activity.unbind(2))
 	Activities.ended.connect(_refresh_activity.unbind(3))
 	Activities.progressed.connect(_refresh_activity_speech)
-	%TapButton.button_down.connect(Minigame.tap)
+	Activities.started.connect(_warn_if_too_soon.unbind(2))
+	tap_button.button_down.connect(Minigame.tap)
+	down_button.button_down.connect(Minigame.press.bind(true))
+	up_button.button_down.connect(Minigame.press.bind(false))
 	Minigame.strode.connect(_on_stride.unbind(1))
 	Minigame.session_changed.connect(_on_session_changed)
 	Minigame.gave_up.connect(_flash.bind("SPEECH_GAVE_UP"))
@@ -173,10 +182,16 @@ func _process(_delta: float) -> void:
 		_refresh_minigame()
 
 
-## Space plays the cardio minigame on a computer.
+## On a computer Space plays cardio, and the arrow keys Down and Up play strength.
 func _unhandled_key_input(event: InputEvent) -> void:
-	if Minigame.running and event.is_action_pressed("ui_accept"):
+	if not Minigame.running:
+		return
+	if event.is_action_pressed("ui_accept"):
 		Minigame.tap()
+	elif event.is_action_pressed("ui_down"):
+		Minigame.press(true)
+	elif event.is_action_pressed("ui_up"):
+		Minigame.press(false)
 
 
 ## Clicking the health level or the health bar shows or hides the three measures.
@@ -360,12 +375,12 @@ func _refresh_activity(instant := false) -> void:
 	_refresh_phase()
 
 
-## The running activity's repeating animation. In the cardio minigame the avatar moves only with
-## the taps: it hops once per stride and stands still while it waits.
+## The running activity's repeating animation. In a minigame the avatar moves only with the
+## player, and stands still while it waits. At the start of a rest it finishes its last move.
 func _refresh_animation() -> void:
 	if Activities.is_running() and not Minigame.running:
 		avatar.play_animation(str(Activities.current_option_data().get("animation", "")))
-	else:
+	elif not Minigame.resting:
 		avatar.stop_animation()
 
 
@@ -375,7 +390,16 @@ func _on_session_changed() -> void:
 
 
 func _on_stride() -> void:
-	avatar.stride(Minigame.walking)
+	if Minigame.kind == Minigame.STRENGTH:
+		avatar.squat(not Minigame.next_down)
+	else:
+		avatar.stride(Minigame.walking)
+
+
+## The avatar says so, and the player can still train (decision 35).
+func _warn_if_too_soon() -> void:
+	if Minigame.kind == Minigame.STRENGTH and Training.strength_too_soon():
+		_flash("SPEECH_TOO_SOON")
 
 
 ## The minigame takes the place of the four buttons while a session runs.
@@ -384,12 +408,34 @@ func _refresh_minigame() -> void:
 	action_grid.visible = not Minigame.running
 	if not Minigame.running:
 		return
-	var status := "MINIGAME_WAITING" if Minigame.waiting else ("MINIGAME_WALKING" if Minigame.walking else "MINIGAME_RUNNING")
-	minigame_status.text = tr(status)
-	minigame_steps.text = tr("MINIGAME_STEPS") % [Minigame.steps(), Minigame.steps_goal()]
-	breath_bar.value = Minigame.reserve
-	var elapsed := 0.0 if Minigame.waiting else Minigame.seconds_since_tap / Minigame.interval()
+	var strength := Minigame.kind == Minigame.STRENGTH
+	tap_button.visible = not strength
+	strength_buttons.visible = strength
+	reserve_label.text = tr("MINIGAME_MUSCLE" if strength else "MINIGAME_BREATH")
+	reserve_bar.value = Minigame.reserve
+	if strength:
+		_refresh_strength()
+	else:
+		var status := "MINIGAME_WAITING" if Minigame.waiting else ("MINIGAME_WALKING" if Minigame.walking else "MINIGAME_RUNNING")
+		minigame_status.text = tr(status)
+		minigame_steps.text = tr("MINIGAME_STEPS") % [Minigame.steps(), Minigame.steps_goal()]
+	var stopped := Minigame.waiting or Minigame.resting
+	var elapsed := 0.0 if stopped else Minigame.seconds_since_tap / Minigame.interval()
 	beat_bar.show_time(elapsed, Config.get_float("minigame.on_beat_share"), Minigame.last_on_beat)
+
+
+func _refresh_strength() -> void:
+	if Minigame.waiting:
+		minigame_status.text = tr("MINIGAME_WAITING")
+	elif Minigame.resting:
+		minigame_status.text = tr("MINIGAME_RESTING")
+	elif Minigame.sets_started <= Minigame.sets_goal:
+		minigame_status.text = tr("MINIGAME_SET") % [Minigame.sets_started, Minigame.sets_goal]
+	else:
+		minigame_status.text = tr("MINIGAME_SET_EXTRA") % (Minigame.sets_started - Minigame.sets_goal)
+	minigame_steps.text = tr("MINIGAME_REPS") % [Minigame.reps_in_set, Minigame.set_reps]
+	down_button.disabled = Minigame.resting or not Minigame.next_down
+	up_button.disabled = Minigame.resting or Minigame.next_down
 
 
 func _refresh_sky() -> void:

@@ -101,6 +101,14 @@ func stride(walking: bool) -> void:
 	_animation.tween_property(self, "hop_offset", 0.0, cardio_seconds * 0.5)
 
 
+## Down or up for one press of the strength minigame.
+func squat(down: bool) -> void:
+	if _animation:
+		_animation.kill()
+	_animation = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_animation.tween_property(self, "scale", strength_squash if down else Vector2.ONE, strength_seconds * 0.5)
+
+
 func stop_animation() -> void:
 	if _animation:
 		_animation.kill()

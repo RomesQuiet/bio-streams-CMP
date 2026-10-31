@@ -621,10 +621,62 @@ func _test_screen() -> void:
 	_pass_time(21.0)
 	_check("after the wait the buttons are back, with a message", main.action_grid.visible
 			and main.speech_label.text == "You stopped tapping, so I stopped.")
+	_test_strength_screen(main, settings)
 	root.remove_child(main)
 	main.free()
 	_check("closing the main screen ends the player's presence", not minigame._player_present)
 	DirAccess.remove_absolute("user://test_settings.json")
+
+
+## Milestone 13, Task 4: the panel for strength, with main still open.
+func _test_strength_screen(main: Node, settings: Node) -> void:
+	activities.start("exercise", "strength")
+	main._refresh_minigame()
+	var down: Button = main.down_button
+	var up: Button = main.up_button
+	_check("strength: Down and Up in place of the tap button", main.strength_buttons.visible and not main.tap_button.visible)
+	_check("the bar is the Muscle bar", main.reserve_label.text == "Muscle")
+	_check("only the expected button is enabled", not down.disabled and up.disabled)
+	_check("it asks for the first press", main.minigame_status.text == "Tap to start!")
+	down.button_down.emit()
+	main._refresh_minigame()
+	_check("Down moves the avatar down", main.avatar._animation != null)
+	_check("the set is shown", main.minigame_status.text == "Set 1 of %d" % minigame.sets_goal)
+	_check("now Up is the expected one", down.disabled and not up.disabled)
+	_pass_time(1.0)
+	up.button_down.emit()
+	main._refresh_minigame()
+	_check("the repetitions are shown", main.minigame_steps.text == "Repetitions: 1 / %d" % minigame.set_reps)
+	var key := InputEventKey.new()
+	key.pressed = true
+	key.keycode = KEY_DOWN
+	_pass_time(1.0)
+	main._unhandled_key_input(key)
+	_pass_time(1.0)
+	key.keycode = KEY_UP
+	main._unhandled_key_input(key)
+	_check("the arrow keys play it on a computer", minigame.reps_in_set == 2)
+	_pass_time(1.0)
+	down.button_down.emit()
+	_play_set(1.0)
+	main._refresh_minigame()
+	_check("the rest is shown, with both buttons off", main.minigame_status.text == "Resting" and down.disabled and up.disabled)
+	settings.set_language("pt")
+	main._refresh_minigame()
+	_check("the texts change language", main.minigame_status.text == "A descansar" and main.reserve_label.text == "Músculo"
+			and main.minigame_steps.text.begins_with("Repetições:"))
+	settings.set_language("en")
+	minigame.sets_goal = 1
+	minigame.sets_started = 2
+	minigame.resting = false
+	main._refresh_minigame()
+	_check("past the goal the set is an extra one", main.minigame_status.text == "Extra set 1")
+	activities.stop()
+	main._end_flash()
+	activities.start("exercise", "strength")
+	_check("too soon: the avatar warns", main.speech_label.text == "My muscles still need rest.")
+	_check("...and the player can still play", minigame.running and activities.is_running())
+	activities.stop()
 
 
 func _new_avatar(difficulty: String) -> void:

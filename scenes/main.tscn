@@ -187,16 +187,16 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 
-[node name="BreathRow" type="HBoxContainer" parent="Margin/Layout/MinigamePanel"]
+[node name="ReserveRow" type="HBoxContainer" parent="Margin/Layout/MinigamePanel"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="BreathLabel" type="Label" parent="Margin/Layout/MinigamePanel/BreathRow"]
+[node name="ReserveLabel" type="Label" parent="Margin/Layout/MinigamePanel/ReserveRow"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "MINIGAME_BREATH"
 
-[node name="BreathBar" type="ProgressBar" parent="Margin/Layout/MinigamePanel/BreathRow"]
+[node name="ReserveBar" type="ProgressBar" parent="Margin/Layout/MinigamePanel/ReserveRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
@@ -220,6 +220,29 @@ layout_mode = 2
 size_flags_vertical = 3
 focus_mode = 0
 text = "MINIGAME_TAP"
+
+[node name="StrengthButtons" type="HBoxContainer" parent="Margin/Layout/MinigamePanel"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="DownButton" type="Button" parent="Margin/Layout/MinigamePanel/StrengthButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+text = "MINIGAME_DOWN"
+
+[node name="UpButton" type="Button" parent="Margin/Layout/MinigamePanel/StrengthButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+text = "MINIGAME_UP"
 
 [node name="HealthLevelButton" type="Button" parent="."]
 unique_name_in_owner = true
