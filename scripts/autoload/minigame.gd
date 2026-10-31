@@ -20,8 +20,11 @@ signal strode(on_beat: bool)
 signal first_stride
 ## The player stopped tapping and the wait ran out.
 signal gave_up
-## A session started or ended.
+## A session started or ended, or the avatar stopped or started moving.
 signal session_changed
+## Emitted just before the avatar stops, starts, walks or runs, so Simulation can first run the
+## minutes that belong to what it was doing (like Activities.changing).
+signal changing
 
 var running := false
 ## True while the avatar stands still, waiting for a tap.
@@ -170,6 +173,7 @@ func advance(seconds: float) -> void:
 		return
 	seconds_since_tap += seconds
 	if seconds_since_tap >= Config.get_float("minigame.stall_seconds"):
+		changing.emit()
 		waiting = true
 		_waited = 0.0
 		session_changed.emit()
@@ -178,6 +182,7 @@ func advance(seconds: float) -> void:
 
 
 func _start_moving() -> void:
+	changing.emit()
 	waiting = false
 	_effort = 1.0
 	session_changed.emit()
@@ -196,10 +201,14 @@ func _stride(on_beat: bool) -> void:
 func _update_breath(minutes: float) -> void:
 	if walking:
 		breath = minf(1.0, breath + minutes / Config.get_float("minigame.walk_recover_min"))
-		walking = breath < Config.get_float("minigame.run_again_at")
+		if breath >= Config.get_float("minigame.run_again_at"):
+			changing.emit()
+			walking = false
 	else:
 		breath = maxf(0.0, breath - minutes / CardioPace.run_minutes() * _effort)
-		walking = breath <= 0.0
+		if breath <= 0.0:
+			changing.emit()
+			walking = true
 
 
 ## The average of about the last score_window_strides values.

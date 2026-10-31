@@ -8,7 +8,8 @@ extends Node
 ## Nothing runs while the game is paused or closed, because the Clock does not move then.
 ## Simulation is listed before Activities in the autoloads, so it hears each frame's time
 ## while the activity of that frame still runs; and just before an activity starts or ends
-## (Activities.changing) the minutes not yet run are run, so each step uses the right METy.
+## (Activities.changing) or the minigame's avatar changes what it is doing (Minigame.changing)
+## the minutes not yet run are run, so each step uses the right METy.
 ## A frame that goes past the end of a day activity is split: the part after the end is
 ## counted when the activity has ended.
 ## All numbers come from Config.
@@ -45,6 +46,7 @@ func _ready() -> void:
 	Activities.started.connect(_on_activity_started)
 	Clock.day_started.connect(_on_day_started)
 	Activities.ended.connect(_on_activity_ended)
+	Minigame.changing.connect(flush)
 	Minigame.first_stride.connect(_on_first_stride)
 
 

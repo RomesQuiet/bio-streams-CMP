@@ -305,9 +305,9 @@ func _test_played_minutes_count() -> void:
 	minigame.tap()
 	_pass_time(0.5)
 	_check("a tap: it goes on", activities.elapsed_hours > at_wait)
+	var activities_played: float = activities.elapsed_hours
 	activities.stop()
-	_check("training counted the played minutes only", gs.exercise_minutes_today > 0.0
-			and gs.exercise_minutes_today < at_wait * 60.0 + 6.0)
+	_check("training counted exactly the played minutes", absf(gs.exercise_minutes_today - activities_played * 60.0) < 0.1)
 
 
 ## Task 4: the score reaches performance, and without a player nothing changes.
