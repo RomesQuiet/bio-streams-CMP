@@ -43,6 +43,13 @@
 		"slider_default_hours": { "value": 10, "placeholder": true, "comment": "Where the slider starts. 10 h is the baseline sleep." }
 	},
 
+	"activity_slider": {
+		"_comment": "The minutes slider shown before an activity with \"minutes_slider\": true in data/activities.json. It starts at the option's duration_hours. The limits are an open decision in the concept.",
+		"min_minutes": { "value": 5, "status": "placeholder", "owner": "Pessoa 3", "comment": "Smallest value on the slider." },
+		"max_minutes": { "value": 240, "status": "placeholder", "owner": "Pessoa 3", "comment": "Largest value. High enough for the 4 h of cardio in the v1 scenarios, so too much exercise stays possible and has its consequences." },
+		"step_minutes": { "value": 5, "status": "placeholder", "owner": "Pessoa 3" }
+	},
+
 	"_comment_v1": "Milestone 10: the groups units, body, energy, appetite, meals, deficit, train, minigame, diet, sleep, mood, health, fail, risk, progress and avatar_states hold every value of Health Calculation Architecture v1 (documentation/health_calculation_architecture_v1.md, section Parameters and Steps 1 to 12). Each value has a status (placeholder, team decision or from source) and an owner (Pessoa 1 to 4, or team). Time constants say in their name or comment whether they are body time (multiplied by body.k) or clock time. Food values are in data/foods.json, METy of each activity in data/activities.json, and the WHO tables in data/who_bmi_for_age.json and data/who_height_for_age.json. (The Milestone 4 health block health_m4 was deleted in Milestone 10 Task 8.)",
 
 	"units": {

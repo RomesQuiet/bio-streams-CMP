@@ -10,6 +10,7 @@ UI_CANCEL,Cancel,Cancelar
 UI_SKIP_MEAL,Skip meal,Saltar a refeição
 UI_SLEEP_QUESTION,How many hours of sleep?,Quantas horas de sono?
 UI_OPTION,%s (%s h),%s (%s h)
+UI_MINUTES,Minutes: %d,Minutos: %d
 UI_LEVEL,Lv %d,Nv %d
 UI_XP,XP %d / %d,XP %d / %d
 UI_HEALTH_LEVEL_TIP,Health level (1 to 5). Click to show the measures.,Nível de saúde (1 a 5). Clica para ver as medidas.
@@ -38,6 +39,7 @@ SPEECH_NOT_SLEEPY,I'm not sleepy.,Não tenho sono.
 SPEECH_SAD,I'm sad.,Estou triste.
 SPEECH_LEVEL_UP,Level up! Level %d,Subiste de nível! Nível %d
 SPEECH_PROGRESS,%s (%s of %s h),%s (%s de %s h)
+SPEECH_PROGRESS_MINUTES,%s (%d of %d min),%s (%d de %d min)
 SPEECH_SLEPT,I slept %s h. Press the wake button to start the day.,Dormi %s h. Carrega no botão Acordar para começar o dia.
 SLEEP_INFO,%s h of sleep (%d real min)\nNext day: %s h (%s real min),%s h de sono (%d min reais)\nPróximo dia: %s h (%s min reais)
 SLEEP_AT_MOST,At most %s h now.,No máximo %s h agora.

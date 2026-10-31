@@ -1,14 +1,15 @@
 # Handoff — state of the project and how to continue
 
-Last updated: 30 October 2026, when Milestone 11 was built. Read this after `CLAUDE.md` when a new session starts. `CLAUDE.md` describes the game and the code; this file says **where the work stands, what was decided along the way, what is still open, and the lessons learned**, so nothing has to be found out again.
+Last updated: 31 October 2026, in Milestone 12. Read this after `CLAUDE.md` when a new session starts. `CLAUDE.md` describes the game and the code; this file says **where the work stands, what was decided along the way, what is still open, and the lessons learned**, so nothing has to be found out again.
 
 ## 1. Where the work stands
 
-- **Milestone 11 (settings panel and European Portuguese, `MILESTONE_11.md`) is built and committed, not pushed.** Waiting on the user: check the game, read the Portuguese (Claude's draft, the team should check the health terms) and try it on a real phone (the pop-up name box in Portuguese was not tried there), then push from GitHub Desktop.
+- **Next: Milestone 12, minutes slider and the cardio minigame (`MILESTONE_12.md`).** Task 1 (slider) is built; the cardio minigame waits for the user's choices (decision 21).
+- **Milestone 11 (settings panel and European Portuguese, `MILESTONE_11.md`) is complete and pushed (`25aada7`).** Still to do: the team checks the Portuguese (Claude's draft, above all the health terms), and someone tries it on a real phone (the pop-up name box in Portuguese was not tried there).
 - **Name on phones: the pop-up box stays (user, 30 Oct 2026).** `fe5c4c3` (`window.prompt`) is confirmed on a real Android phone. The virtual keyboard attempt `adfe369` never reached GitHub and was reverted untested on a real phone. The pop-up box was reported as doing nothing on 28 Oct, for an unknown reason (a cached old page is possible). Always confirm a push with `git ls-remote origin refs/heads/main` and the published file size: that push from GitHub Desktop failed silently.
 - **Milestone 10.5 is complete and pushed** (27 Oct 2026, published on GitHub Pages; the user checked the game in the Godot editor first; `MILESTONE_10_5.md`). It acts on the team's review of the Milestone 10 differences (`documentation/milestone10_review.md`): failure reads the target health, a 36-hour gap between strength sessions, a danger state for severe thinness, a better scenario test and a parity test that found the causes of the differences (`documentation/milestone10_calibration.md`).
 - **Milestone 10** (food as an activity + the whole health system rebuilt to Health Calculation Architecture v1) is pushed (`e3e6a89`, plus the handoff commit `6d3639b`).
-- **All 23 tests pass** (`tests/*_test.gd`; `calibration_test.gd` takes about 2.5 minutes and `parity_test.gd` about 5; the parity test prints numbers for the team and only fails if it crashes).
+- **All 24 tests pass** (`tests/*_test.gd`; `calibration_test.gd` takes about 2.5 minutes and `parity_test.gd` about 5; the parity test prints numbers for the team and only fails if it crashes).
 - **Waiting on the team:** the plan guesses, the training window, eating time and the hunger penalty, the danger-state and gap values (`documentation/milestone10_calibration.md`, "Proposals for the team"). No value was changed to fit the tests.
 
 ### Commit history of Milestone 11
@@ -75,6 +76,11 @@ Recorded in `MILESTONE_10.md` ("Decisions") and `documentation/milestone10_plan.
 | 14 | (Milestone 11) Settings hold the language and "Start a new avatar" with a confirmation. Music and sound wait for the music. |
 | 15 | (Milestone 11) First start follows the browser's language (any Portuguese gives Portuguese, otherwise English); the creation screen also has PT and EN buttons. |
 | 16 | (Milestone 11) All tasks in a row, each committed; no push; the user reviews at the end. |
+| 17 | (Milestone 12) The first minigame is cardio. |
+| 18 | (Milestone 12) The minutes slider is built before the minigame. |
+| 19 | (Milestone 12) If the player does not tap, the activity is not done: the avatar does not do it and returns to normal after some seconds. |
+| 20 | (Milestone 12) The minigame score counts as the player goes, not once per session. |
+| 21 | (Milestone 12) How the player scores well and how long they tap are decided during development, by messaging. |
 
 Other team decisions that still hold: k = 10 (applies to sleep debt too); there is no death, only failure; p = 0.5 for health. The team's review (27 Oct 2026) added the 36-hour strength gap, the danger state (z −3, 72 h, z −4) and the thinness risk term (placeholders).
 
@@ -86,7 +92,7 @@ Other team decisions that still hold: k = 10 (applies to sleep debt too); there 
 
 **Proposed in Milestone 11, not confirmed by the user or team:** European Portuguese for all browsers, wording that does not depend on the avatar's sex, the decimal comma, the pause while settings are open, English in the debug panel and logs.
 
-**Likely after Milestone 11** (ask the user): the team's answers to the Milestone 10.5 proposals; failure effect and screen; minigames; menus; the lobby screen; plasticine art. (A 45-minute strength option would not raise strength: Milestone 10.5 parity run.)
+**Likely after Milestone 12** (ask the user): the team's answers to the Milestone 10.5 proposals; failure effect and screen; the other minigames; menus; the lobby screen; plasticine art. (A 45-minute strength option would not raise strength: Milestone 10.5 parity run.)
 
 **Placeholders added in Milestone 10.5:** the Ill look (pale, greenish body), the health bar warning (red bar, "Health: danger") and the failure messages by cause; the review's numbers (`train.strength_min_gap_h` 36, `fail.danger_z` −3, `fail.danger_hours` 72, `fail.danger_failure_z` −4, `risk.thin_weight` 0.4, `risk.thin_from` −2, `risk.thin_range` 2).
 

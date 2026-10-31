@@ -72,14 +72,15 @@ func can_start(activity_id: String) -> bool:
 	return Clock.phase == Clock.Phase.DAY
 
 
-## Starts an activity option. hours is used when the option's duration is "slider".
+## Starts an activity option. hours is the time chosen on a slider; without it the option's
+## duration_hours is used. Sleep always needs it.
 ## Returns false if it could not start.
 func start(activity_id: String, option_id: String, hours := -1.0) -> bool:
 	var option := get_option(activity_id, option_id)
 	if option.is_empty() or not can_start(activity_id):
 		return false
 	var duration: Variant = option.get("duration_hours")
-	target_hours = hours if duration is String else float(duration)
+	target_hours = hours if duration is String or hours >= 0.0 else float(duration)
 	elapsed_hours = 0.0
 	changing.emit()
 	current_activity = activity_id

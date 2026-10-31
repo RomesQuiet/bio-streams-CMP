@@ -67,6 +67,9 @@ const HEALTH_TEXT := "MEASURE_HEALTH"
 @onready var options_panel: PanelContainer = %OptionsPanel
 @onready var options_title: Label = %OptionsTitle
 @onready var option_buttons: VBoxContainer = %OptionButtons
+@onready var minutes_box: Control = %MinutesBox
+@onready var minutes_label: Label = %MinutesLabel
+@onready var minutes_slider: HSlider = %MinutesSlider
 @onready var sleep_panel: PanelContainer = %SleepPanel
 @onready var sleep_slider: HSlider = %SleepSlider
 @onready var sleep_info_label: Label = %SleepInfoLabel
@@ -98,6 +101,9 @@ func _ready() -> void:
 	sleep_slider.max_value = Config.get_float("time.max_sleep_hours")
 	sleep_slider.step = Config.get_float("sleep_activity.slider_step_hours")
 	sleep_slider.value = Config.get_float("sleep_activity.slider_default_hours")
+	minutes_slider.min_value = Config.get_float("activity_slider.min_minutes")
+	minutes_slider.max_value = Config.get_float("activity_slider.max_minutes")
+	minutes_slider.step = Config.get_float("activity_slider.step_minutes")
 	health_panel.visible = false
 	values_panel.visible = false
 	sleep_panel.visible = false
@@ -126,6 +132,7 @@ func _ready() -> void:
 	%OptionsCancelButton.pressed.connect(options_panel.hide)
 	stop_button.pressed.connect(Activities.stop)
 	sleep_slider.value_changed.connect(_refresh_sleep_info.unbind(1))
+	minutes_slider.value_changed.connect(_refresh_minutes.unbind(1))
 	%SleepCancelButton.pressed.connect(sleep_panel.hide)
 	%SleepStartButton.pressed.connect(_on_sleep_start_pressed)
 	GameState.changed.connect(_refresh)
@@ -165,8 +172,9 @@ func _notification(what: int) -> void:
 		return
 	_refresh()
 	_refresh_sleep_info()
+	_refresh_minutes()
 	if options_panel.visible:
-		_open_options(_options_activity)
+		_build_options(_options_activity)
 	if not _flash_key.is_empty():
 		_show_flash()
 
@@ -243,9 +251,25 @@ func _on_sleep_button_pressed() -> void:
 	sleep_panel.show()
 
 
-## Opens the list of options of an activity (cardio and muscle strength for exercise),
-## built from data/activities.json.
+## Opens the list of options of an activity (cardio and muscle strength for exercise), built
+## from data/activities.json. The player first chooses the minutes on the slider, then clicks
+## the option; meals have no slider because their portions are fixed.
 func _open_options(activity_id: String) -> void:
+	var definition: Dictionary = Activities.definitions.get(activity_id, {})
+	minutes_box.visible = definition.get("minutes_slider", false)
+	if minutes_box.visible:
+		var first_option: Dictionary = definition.get("options", {}).values()[0]
+		minutes_slider.value = float(first_option.get("duration_hours")) * Clock.MINUTES_PER_HOUR
+		_refresh_minutes()
+	_build_options(activity_id)
+	options_panel.show()
+
+
+func _refresh_minutes() -> void:
+	minutes_label.text = tr("UI_MINUTES") % roundi(minutes_slider.value)
+
+
+func _build_options(activity_id: String) -> void:
 	# Remove the old buttons at once (not only at the end of the frame), so the
 	# panel never holds the options of another activity.
 	for child in option_buttons.get_children():
@@ -257,7 +281,8 @@ func _open_options(activity_id: String) -> void:
 	for option_id in options:
 		var option: Dictionary = options[option_id]
 		var button := Button.new()
-		button.text = tr("UI_OPTION") % [tr(option.get("name", option_id)), Settings.decimal_text(str(option.get("duration_hours", "?")))]
+		button.text = tr(option.get("name", option_id)) if minutes_box.visible else tr("UI_OPTION") % [
+				tr(option.get("name", option_id)), Settings.decimal_text(str(option.get("duration_hours", "?")))]
 		button.custom_minimum_size = Vector2(0, 72)
 		button.pressed.connect(_on_option_chosen.bind(activity_id, option_id))
 		option_buttons.add_child(button)
@@ -268,7 +293,6 @@ func _open_options(activity_id: String) -> void:
 		skip.custom_minimum_size = Vector2(0, 72)
 		skip.pressed.connect(_on_skip_meal)
 		option_buttons.add_child(skip)
-	options_panel.show()
 
 
 func _on_skip_meal() -> void:
@@ -278,7 +302,7 @@ func _on_skip_meal() -> void:
 
 func _on_option_chosen(activity_id: String, option_id: String) -> void:
 	options_panel.hide()
-	Activities.start(activity_id, option_id)
+	Activities.start(activity_id, option_id, minutes_slider.value / Clock.MINUTES_PER_HOUR if minutes_box.visible else -1.0)
 
 
 func _on_sleep_start_pressed() -> void:
@@ -350,9 +374,12 @@ func _refresh_clock() -> void:
 func _refresh_activity_speech() -> void:
 	if not Activities.is_running():
 		return
-	var label := "Zzz..." if Activities.current_activity == "sleep" else "%s..." % tr(Activities.current_option_data().get("name", ""))
-	_set_speech(tr("SPEECH_PROGRESS") % [label, Settings.number(Activities.elapsed_hours, 1),
-			Settings.number(Activities.target_hours, 1)])
+	if Activities.current_activity == "sleep":
+		_set_speech(tr("SPEECH_PROGRESS") % ["Zzz...", Settings.number(Activities.elapsed_hours, 1),
+				Settings.number(Activities.target_hours, 1)])
+		return
+	_set_speech(tr("SPEECH_PROGRESS_MINUTES") % ["%s..." % tr(Activities.current_option_data().get("name", "")),
+			roundi(Activities.elapsed_hours * Clock.MINUTES_PER_HOUR), roundi(Activities.target_hours * Clock.MINUTES_PER_HOUR)])
 
 
 func _refresh_phase() -> void:

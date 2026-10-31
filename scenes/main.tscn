@@ -460,6 +460,20 @@ unique_name_in_owner = true
 layout_mode = 2
 horizontal_alignment = 1
 
+[node name="MinutesBox" type="VBoxContainer" parent="OptionsPanel/Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="MinutesLabel" type="Label" parent="OptionsPanel/Margin/Content/MinutesBox"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="MinutesSlider" type="HSlider" parent="OptionsPanel/Margin/Content/MinutesBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
 [node name="OptionButtons" type="VBoxContainer" parent="OptionsPanel/Margin/Content"]
 unique_name_in_owner = true
 layout_mode = 2

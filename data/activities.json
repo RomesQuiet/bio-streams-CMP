@@ -1,5 +1,5 @@
 {
-	"_comment": "Activities the avatar can do. Each activity has options; every name is a key of translations/strings.csv; each option has a duration in avatar hours (or \"slider\" for sleep), mety (youth MET: energy per avatar hour = BMR / 24 x mety, Milestone 10), effects per avatar hour on GameState values (none for now), activity_intensity (\"moderate_vigorous\" counts toward the 60 minutes), a background colour and an animation name. Effects only count for the time actually done; energy is counted every 5-minute step (Simulation). Options marked \"placeholder\": true use temporary numbers; mety and activity_intensity have their own status and owner.",
+	"_comment": "Activities the avatar can do. Each activity has options; every name is a key of translations/strings.csv; each option has a duration in avatar hours (or \"slider\" for sleep; with \"minutes_slider\": true on the activity the player chooses the minutes and this is where the slider starts), mety (youth MET: energy per avatar hour = BMR / 24 x mety, Milestone 10), effects per avatar hour on GameState values (none for now), activity_intensity (\"moderate_vigorous\" counts toward the 60 minutes), a background colour and an animation name. Effects only count for the time actually done; energy is counted every 5-minute step (Simulation). Options marked \"placeholder\": true use temporary numbers; mety and activity_intensity have their own status and owner.",
 
 	"sleep": {
 		"name": "ACTIVITY_SLEEP",
@@ -20,6 +20,7 @@
 
 	"exercise": {
 		"name": "ACTIVITY_EXERCISE",
+		"minutes_slider": true,
 		"options": {
 			"cardio": {
 				"name": "ACTIVITY_CARDIO",
@@ -73,6 +74,7 @@
 
 	"entertainment": {
 		"name": "ACTIVITY_ENTERTAINMENT",
+		"minutes_slider": true,
 		"_comment": "Decision 4 (user, 25 Oct 2026): Screens and Football (v1 uses both). Football is active play: it counts as moderate-to-vigorous activity and, in v1, with cardio for fitness.",
 		"options": {
 			"screens": {
