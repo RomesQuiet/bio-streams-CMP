@@ -44,6 +44,12 @@ func _process(_delta: float) -> bool:
 	_test_breath()
 	_test_waiting()
 	_test_saving()
+	_test_strength_set()
+	_test_strength_technique()
+	_test_strength_tiring()
+	_test_strength_more_sets()
+	_test_strength_waiting()
+	_test_strength_saving()
 	_test_no_tap_counts_nothing()
 	_test_played_minutes_count()
 	_test_score_reaches_training()
@@ -146,8 +152,9 @@ func _test_when_it_runs() -> void:
 	activities.stop()
 	clock.debug_speed = 1.0
 	activities.start("exercise", "strength")
-	_check("strength has no minigame yet", not minigame.running)
+	_check("strength starts a strength session", minigame.running and minigame.kind == "strength" and minigame.is_waiting())
 	activities.stop()
+	_check("the session ends with its kind", minigame.kind == "")
 	activities.start("exercise", "cardio")
 	_check("cardio starts a session, waiting for the first tap", minigame.running and minigame.is_waiting())
 	activities.stop()
@@ -181,14 +188,14 @@ func _test_score() -> void:
 	_play(40, interval * 1.5)
 	_check("too slow: rhythm falls to 0 and pace to 2/3", minigame.rhythm < 0.05 and absf(minigame.pace - 1.0 / 1.5) < 0.03)
 	_check("...so the score is low", minigame.score() < 0.4)
-	minigame.breath = 1.0
+	minigame.reserve = 1.0
 	_play(40, interval)
 	_check("back on the beat the score recovers", minigame.score() > 0.95)
-	minigame.breath = 1.0
+	minigame.reserve = 1.0
 	_play(40, interval * 0.6)
 	_check("too fast: pace stays 1, rhythm falls to 0", minigame.rhythm < 0.05 and minigame.pace > 0.99)
 	_check("...so the score is about half", absf(minigame.score() - 0.5) < 0.05)
-	minigame.breath = 1.0
+	minigame.reserve = 1.0
 	var strides_before: int = minigame.strides
 	_play(1, interval)
 	minigame.tap()
@@ -210,15 +217,15 @@ func _test_breath() -> void:
 	_start_session("very_hard")
 	var seconds: float = clock.avatar_hours_to_real_seconds(pace.run_minutes() / 60.0, false)
 	_play(int(seconds * 0.5 / minigame.interval()), minigame.interval())
-	_check("half way through its time the Breath bar is about half", absf(minigame.breath - 0.5) < 0.1 and not minigame.walking)
+	_check("half way through its time the Breath bar is about half", absf(minigame.reserve - 0.5) < 0.1 and not minigame.walking)
 	var left: int = ceili(seconds * 0.6 / minigame.interval())
 	_play(left, minigame.interval())
-	_check("at 0 the avatar walks", minigame.walking and minigame.breath < 0.2)
+	_check("at 0 the avatar walks", minigame.walking and minigame.reserve < 0.2)
 	_check("walking has its own slower beat", absf(minigame.interval() - pace.walk_interval()) < TOLERANCE)
 	var walking_score: float = minigame.pace
 	var strides_to_refill := ceili(clock.avatar_hours_to_real_seconds(10.0 / 60.0, false) / pace.walk_interval())
 	_play(strides_to_refill - 2, pace.walk_interval())
-	_check("walking refills the bar", minigame.walking and minigame.breath > 0.3)
+	_check("walking refills the bar", minigame.walking and minigame.reserve > 0.3)
 	_check("walking lowers the pace part of the score", walking_score <= 1.0 and minigame.pace < 0.95)
 	_play(3, pace.walk_interval())
 	_check("at half the bar it runs again", not minigame.walking)
@@ -228,19 +235,19 @@ func _test_breath() -> void:
 	var slow_seconds: float = clock.avatar_hours_to_real_seconds(pace.run_minutes() / 60.0, false)
 	_check("a fit avatar lasts much longer", slow_seconds > seconds * 5.0)
 	_play(30, pace.run_interval())
-	var on_pace: float = 1.0 - minigame.breath
+	var on_pace: float = 1.0 - minigame.reserve
 	activities.stop()
 	_start_session("easy")
 	_play(50, pace.run_interval() * 0.6)
-	_check("running faster than the pace tires faster", (1.0 - minigame.breath) > on_pace)
+	_check("running faster than the pace tires faster", (1.0 - minigame.reserve) > on_pace)
 	activities.stop()
 
 	_start_session("normal")
-	var full: float = minigame.breath
+	var full: float = minigame.reserve
 	gs.cardio_recovery = 0.4
 	activities.stop()
 	activities.start("exercise", "cardio")
-	_check("a session right after another starts tired", absf(minigame.breath - 0.4) < TOLERANCE and full > 0.9)
+	_check("a session right after another starts tired", absf(minigame.reserve - 0.4) < TOLERANCE and full > 0.9)
 	activities.stop()
 
 
@@ -259,9 +266,9 @@ func _test_waiting() -> void:
 	_check("tapping: not waiting", not minigame.is_waiting())
 	_pass_time(3.1)
 	_check("3 s without a tap: it stands still", minigame.is_waiting() and activities.is_running())
-	var breath_before: float = minigame.breath
+	var breath_before: float = minigame.reserve
 	_pass_time(10.0)
-	_check("the bar does not change while it waits", is_equal_approx(minigame.breath, breath_before))
+	_check("the bar does not change while it waits", is_equal_approx(minigame.reserve, breath_before))
 	var strides_before: int = minigame.strides
 	minigame.tap()
 	_check("a tap starts it again", not minigame.is_waiting() and minigame.strides == strides_before + 1)
@@ -280,7 +287,7 @@ func _test_saving() -> void:
 	_play(30, minigame.interval())
 	var saved: Dictionary = minigame.to_dict()
 	var strides: int = minigame.strides
-	var breath: float = minigame.breath
+	var breath: float = minigame.reserve
 	save_game.save_game()
 	activities.reset()
 	minigame.reset()
@@ -289,8 +296,163 @@ func _test_saving() -> void:
 	minigame.detach()
 	minigame.attach()
 	_check("the session goes on after a reload, waiting for a tap", minigame.running and minigame.is_waiting())
-	_check("with its strides and Breath bar", minigame.strides == strides and is_equal_approx(minigame.breath, breath))
+	_check("with its strides and Breath bar", minigame.strides == strides and is_equal_approx(minigame.reserve, breath))
 	_check("to_dict holds them", int(saved["strides"]) == strides)
+	activities.stop()
+	minigame.detach()
+	save_game.delete_save()
+
+
+## Milestone 13, Task 2: Down then Up is one repetition; a full set is followed by a rest.
+func _test_strength_set() -> void:
+	_start_strength("normal")
+	_check("the session starts at set 1, waiting for the first press", minigame.is_waiting() and minigame.sets_started == 1)
+	_check("the avatar's repetitions and sets", minigame.set_reps == 9 and minigame.sets_goal == 2)
+	_check("the Muscle bar starts rested", absf(minigame.reserve - gs.strength_recovery) < TOLERANCE)
+	minigame.press(false)
+	_check("Up first does not start it", minigame.is_waiting())
+	minigame.press(true)
+	_check("Down starts it", not minigame.is_waiting() and not minigame.next_down)
+	_pass_time(1.0)
+	minigame.press(false)
+	_check("Up finishes one repetition", minigame.reps_in_set == 1 and minigame.next_down)
+	_pass_time(1.0)
+	minigame.press(true)
+	for i in 8:
+		_repetition(1.0)
+	_check("a full set: the avatar rests", minigame.resting and minigame.strides == 9)
+	_check("controlled, every repetition done: score 1", absf(minigame.score() - 1.0) < TOLERANCE)
+	_check("the set leaves some reserve: no training to failure", absf(minigame.reserve - 0.2) < 0.02)
+	minigame.press(true)
+	_check("a press does nothing during the rest", minigame.reps_in_set == 9 and minigame.next_down)
+	_pass_time(2.0)
+	_check("the rest refills the bar little by little", minigame.reserve > 0.3 and minigame.reserve < 0.5)
+	_pass_time(4.1)
+	_check("after the rest the next set starts", not minigame.resting and minigame.sets_started == 2 and minigame.reps_in_set == 0)
+	_check("the bar has partly refilled", absf(minigame.reserve - 0.8) < 0.02)
+	activities.stop()
+
+
+## Milestone 13, Task 2: rushing, the wrong button and going too slowly are poor technique.
+func _test_strength_technique() -> void:
+	_start_strength("normal")
+	minigame.press(true)
+	for i in 4:
+		_repetition(1.5)
+	_check("too slow: technique falls", minigame.rhythm < 0.5 and not minigame.last_on_beat)
+	_check("...but the repetitions count", minigame.strides == 4)
+	activities.stop()
+
+	_start_strength("normal")
+	minigame.press(true)
+	_pass_time(1.0)
+	minigame.press(true)
+	_check("the wrong button does not move the avatar", not minigame.next_down and not minigame.last_on_beat)
+	_check("...and is poor technique", minigame.rhythm < 1.0)
+	activities.stop()
+
+	_start_strength("normal")
+	minigame.press(true)
+	for i in 3:
+		_repetition(1.0)
+	var steady: float = 1.0 - minigame.reserve
+	activities.stop()
+	_start_strength("normal")
+	minigame.press(true)
+	for i in 3:
+		_repetition(0.5)
+	_check("rushing is poor technique", minigame.rhythm < 0.5)
+	_check("rushing tires the muscles faster", (1.0 - minigame.reserve) > steady * 1.5)
+	activities.stop()
+
+
+## Milestone 13, Task 2: tired muscles end a set early (decision 34), and it lowers the score.
+func _test_strength_tiring() -> void:
+	_start_strength("normal")
+	gs.strength_recovery = 0.4
+	activities.stop()
+	activities.start("exercise", "strength")
+	_check("a session soon after another starts tired", absf(minigame.reserve - 0.4) < TOLERANCE)
+	minigame.press(true)
+	_play_set(1.0)
+	_check("the avatar stops the set early and rests", minigame.resting and minigame.reps_in_set < minigame.set_reps)
+	_check("repetitions not done lower the pace part", minigame.pace < 1.0 and minigame.score() < 1.0)
+	activities.stop()
+
+	_start_strength("normal")
+	minigame.press(true)
+	_play_set(0.5)
+	_check("rushing a whole set ends it early", minigame.resting and minigame.reps_in_set < minigame.set_reps)
+	activities.stop()
+
+
+## Milestone 13, Task 2: more sets follow until the chosen time ends (decision 36).
+func _test_strength_more_sets() -> void:
+	_start_strength("very_hard")
+	_check("Very hard: one set is the avatar's goal", minigame.sets_goal == 1)
+	var guard := 0
+	var most_sets := 0
+	while activities.is_running() and guard < 400:
+		guard += 1
+		most_sets = maxi(most_sets, minigame.sets_started)
+		if minigame.resting:
+			_pass_time(0.2)
+		elif minigame.is_waiting():
+			minigame.press(true)
+		else:
+			_pass_time(1.0)
+			minigame.press(minigame.next_down)
+	_check("the activity ends with the chosen time", not activities.is_running())
+	_check("more sets followed the goal", most_sets > 1)
+
+
+## Milestone 13, Task 2: no press: same as cardio, but the rest is not stopping (decision 37).
+func _test_strength_waiting() -> void:
+	_start_strength("normal")
+	_pass_time(20.5)
+	_check("no first press: the activity ends after 20 s", not activities.is_running())
+
+	_start_strength("normal")
+	minigame.press(true)
+	_play_set(1.0)
+	_check("in the rest", minigame.resting)
+	_pass_time(5.5)
+	_check("the rest is not waiting", not minigame.is_waiting() and minigame.resting)
+	_pass_time(0.6)
+	_check("the new set waits for its first press like any other", not minigame.resting and not minigame.is_waiting())
+	_pass_time(3.1)
+	_check("3 s without a press: the avatar stands still", minigame.is_waiting())
+	_pass_time(20.5)
+	_check("20 s later the activity ends", not activities.is_running())
+
+
+## Milestone 13, Task 2: a session survives a reload, also during a rest.
+func _test_strength_saving() -> void:
+	var save_game: Node = root.get_node("SaveGame")
+	_start_strength("normal")
+	minigame.press(true)
+	_repetition(1.0)
+	_repetition(1.0)
+	save_game.save_game()
+	activities.reset()
+	minigame.reset()
+	save_game.load_game()
+	minigame.detach()
+	minigame.attach()
+	_check("in the middle of a set: it waits, with its repetitions", minigame.kind == "strength" and minigame.is_waiting()
+			and minigame.reps_in_set == 2 and minigame.set_reps == 9 and minigame.sets_goal == 2)
+	minigame.press(true)
+	_play_set(1.0)
+	_check("the set goes on from there", minigame.resting and minigame.strides == 9)
+	save_game.save_game()
+	activities.reset()
+	minigame.reset()
+	save_game.load_game()
+	minigame.detach()
+	minigame.attach()
+	_check("during a rest: the rest goes on", minigame.resting and not minigame.is_waiting())
+	_pass_time(6.1)
+	_check("...and the next set starts", minigame.sets_started == 2 and not minigame.resting)
 	activities.stop()
 	minigame.detach()
 	save_game.delete_save()
@@ -380,9 +542,6 @@ func _test_screen() -> void:
 	var main: Node = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
 	_check("no session: the four buttons show", main.action_grid.visible and not main.minigame_panel.visible)
-	activities.start("exercise", "strength")
-	_check("strength keeps the four buttons", main.action_grid.visible)
-	activities.stop()
 	activities.start("exercise", "cardio")
 	_check("cardio: the panel takes their place", main.minigame_panel.visible and not main.action_grid.visible)
 	_check("it asks for the first tap", main.minigame_status.text == "Tap to start!")
@@ -434,6 +593,27 @@ func _start_session(difficulty: String, first_tap := true) -> void:
 	activities.start("exercise", "cardio")
 	if first_tap:
 		minigame.tap()
+
+
+func _start_strength(difficulty: String) -> void:
+	_new_avatar(difficulty)
+	minigame.attach()
+	activities.start("exercise", "strength")
+
+
+## Up after gap seconds, then Down after gap seconds: the Down of the next repetition.
+func _repetition(gap: float) -> void:
+	_pass_time(gap)
+	minigame.press(false)
+	if not minigame.resting:
+		_pass_time(gap)
+		minigame.press(true)
+
+
+## Repetitions until the set ends.
+func _play_set(gap: float) -> void:
+	while activities.is_running() and not minigame.resting:
+		_repetition(gap)
 
 
 ## Plays this many strides, one every gap seconds.

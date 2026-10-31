@@ -387,7 +387,7 @@ func _refresh_minigame() -> void:
 	var status := "MINIGAME_WAITING" if Minigame.waiting else ("MINIGAME_WALKING" if Minigame.walking else "MINIGAME_RUNNING")
 	minigame_status.text = tr(status)
 	minigame_steps.text = tr("MINIGAME_STEPS") % [Minigame.steps(), Minigame.steps_goal()]
-	breath_bar.value = Minigame.breath
+	breath_bar.value = Minigame.reserve
 	var elapsed := 0.0 if Minigame.waiting else Minigame.seconds_since_tap / Minigame.interval()
 	beat_bar.show_time(elapsed, Config.get_float("minigame.on_beat_share"), Minigame.last_on_beat)
 

@@ -36,6 +36,7 @@
 			},
 			"strength": {
 				"name": "ACTIVITY_STRENGTH",
+				"minigame": "strength",
 				"duration_hours": 1,
 				"effects_per_hour": {},
 				"mety": { "value": 5.0, "status": "from source", "owner": "Pessoa 3", "comment": "Strength or calisthenics, Youth Compendium (v1 Step 3)." },
