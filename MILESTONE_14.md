@@ -11,7 +11,24 @@
 - The pad reads touches itself (`scripts/ui/football_pad.gd`), because Godot's Button only hears the first finger.
 - The speech bubble is hidden during a match, so the minutes are in the status line.
 
-**Checked in the web build (browser pane, 31 Oct 2026, phone size):** the field, waiting, the joystick and a second finger on Pass at the same time (scripted touches), and Tackle replacing Shoot. **Not checked:** a real person playing, a real phone, how hard the match feels. A test player that is perfect and fast wins about 8 to 1, so the difficulty is a guess.
+**Second round, after the user played it (31 Oct 2026):** "5x more time playing", "it isn't very intuitive", an explanation the first time, and better play on a computer.
+
+| # | Question | Decision |
+|---|---|---|
+| 47 | How long does a match last? | **Avatar time runs 5 times slower while the avatar plays** (`time_slowdown`), so 60 minutes last about 7 real minutes. Not while it waits. Energy, training and Breath stay per avatar minute, so a move costs a fifth of its Breath. |
+| 48 | The explanation | **It opens the first time someone plays football on this device** (`Settings.football_help_seen`, kept apart from the avatar) and the day pauses. The ? button or H opens it again. |
+
+Choices Claude made for "work for it", to confirm:
+
+- **The first computer team was far too strong.** A test player with human reactions lost about 2 to 23 in 7 minutes. A new test player with slower reactions set the values: it now loses about 2.5 to 5 at Normal speed and 1.9 to 5.9 at Very hard speed. A real player should do better.
+- A player who just got the ball cannot be tackled for 1 second. The match stops 2 seconds after a goal or a miss.
+- **New rule:** while a team-mate has the ball, Pass becomes **Ask for ball**, so the player is never left with nothing to do.
+- On the field: arrows up the field, the green shot zone, a line showing where a pass goes, a ring on the player with the ball that turns green in tackle reach, YOU over the avatar, a small map of the whole field, a line saying what to do next, and short messages such as "Good pass!".
+- Computer: no joystick, a list of keys and a larger field. WASD or arrows, Z or J to pass, X, K or Space to shoot or tackle, P to pause, H for help. The first touch brings the joystick back.
+
+**Checked in the web build (31 Oct 2026, computer size, after the second round):** the explanation, Play, WASD, X, P, the field, messages, Ask for ball. Keys were sent by a script.
+
+**Checked in the web build (browser pane, 31 Oct 2026, phone size):** the field, waiting, the joystick and a second finger on Pass at the same time (scripted touches), and Tackle replacing Shoot. **Not checked:** a real person playing, a real phone, how hard the match feels. Difficulty still needs people: a perfect test player wins about 8 to 0, and the human-like one above loses.
 
 Goal: football becomes a real arcade match, with the core loop of Nintendo World Cup seen from above and played from bottom to top. Only the idea is used: the art, names, characters and code are original (concept document).
 

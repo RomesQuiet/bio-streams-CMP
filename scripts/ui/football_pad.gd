@@ -2,10 +2,14 @@ extends Control
 ## The football controls (Milestone 14): a joystick on the left and two buttons on the right. It
 ## reads touches itself, because Godot's Button only hears the first finger, and a player needs
 ## one finger on the joystick and another on a button at the same time.
+## On a computer there is no joystick: the left side lists the keys, and the buttons show theirs.
+## The first touch on a screen with a keyboard too brings the joystick back.
 
 signal stick_moved(direction: Vector2)
 signal pass_pressed
 signal shoot_pressed
+## The first touch on a device that started as a computer.
+signal touch_seen
 
 const NO_FINGER := -1
 const MOUSE_FINGER := -2
@@ -17,6 +21,7 @@ const MOUSE_FINGER := -2
 @export var disabled_color := Color(0.3, 0.32, 0.36)
 @export var text_color := Color.WHITE
 @export var font_size := 24
+@export var keys_font_size := 20
 ## Moves smaller than this share of the joystick do nothing.
 @export var dead_zone := 0.15
 ## Share of the width for the joystick.
@@ -26,6 +31,10 @@ var pass_text := ""
 var shoot_text := ""
 var pass_enabled := true
 var shoot_enabled := true
+## True on a touch screen: the joystick is shown.
+var touch_mode := DisplayServer.is_touchscreen_available()
+## The list of keys, already translated.
+var keys_text := ""
 
 var _finger := NO_FINGER
 var _direction := Vector2.ZERO
@@ -55,7 +64,12 @@ func _on_touch(finger: int, pressed: bool, point: Vector2) -> void:
 		return
 	if not Rect2(Vector2.ZERO, size).has_point(point):
 		return
+	if finger != MOUSE_FINGER and not touch_mode:
+		touch_mode = true
+		touch_seen.emit()
 	if point.x < size.x * stick_share:
+		if not touch_mode:
+			return
 		_finger = finger
 		_aim(point)
 	elif point.y < size.y * 0.5:
@@ -89,8 +103,12 @@ func _stick_radius() -> float:
 
 
 func _draw() -> void:
-	draw_circle(_stick_centre(), _stick_radius(), stick_color)
-	draw_circle(_stick_centre() + _direction * _stick_radius() * 0.6, _stick_radius() * 0.4, knob_color)
+	if touch_mode:
+		draw_circle(_stick_centre(), _stick_radius(), stick_color)
+		draw_circle(_stick_centre() + _direction * _stick_radius() * 0.6, _stick_radius() * 0.4, knob_color)
+	else:
+		draw_multiline_string(get_theme_default_font(), Vector2(0.0, 30.0), keys_text, HORIZONTAL_ALIGNMENT_LEFT,
+				size.x * stick_share, keys_font_size, -1, text_color)
 	var left := size.x * stick_share
 	var half := size.y * 0.5
 	_draw_button(Rect2(left + 8.0, 0.0, size.x - left - 8.0, half - 4.0), pass_text, pass_color if pass_enabled else disabled_color)

@@ -20,6 +20,11 @@ signal language_changed(id: String)
 var settings_path := SETTINGS_PATH
 var use_web_storage := OS.has_feature("web")
 var language := ""
+## The first-time explanation of football was shown on this device (Milestone 14).
+var football_help_seen := false
+
+## The language the player chose, or "" while the game follows the browser.
+var _chosen_language := ""
 
 
 func _ready() -> void:
@@ -28,7 +33,10 @@ func _ready() -> void:
 
 ## Reads the saved language, or uses the first-start rule when there is none.
 func load_settings() -> void:
-	var saved := str(_read().get("language", ""))
+	var data := _read()
+	var saved := str(data.get("language", ""))
+	_chosen_language = saved if saved in LANGUAGES else ""
+	football_help_seen = bool(data.get("football_help_seen", false))
 	_apply(saved if saved in LANGUAGES else language_for_locale(OS.get_locale_language()))
 
 
@@ -43,7 +51,21 @@ func set_language(id: String) -> void:
 		push_error("Settings: unknown language '%s'" % id)
 		return
 	_apply(id)
-	var text := JSON.stringify({"language": language}, "\t")
+	_chosen_language = id
+	_save()
+
+
+## The player has seen the explanation of football.
+func mark_football_help_seen() -> void:
+	football_help_seen = true
+	_save()
+
+
+func _save() -> void:
+	var data := {"football_help_seen": football_help_seen}
+	if not _chosen_language.is_empty():
+		data["language"] = _chosen_language
+	var text := JSON.stringify(data, "\t")
 	var file := FileAccess.open(settings_path, FileAccess.WRITE)
 	if file == null:
 		push_error("Settings: could not write %s (error %d)" % [settings_path, FileAccess.get_open_error()])

@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/ui/beat_bar.gd" id="7_beat"]
 [ext_resource type="Script" path="res://scripts/ui/football_field.gd" id="8_field"]
 [ext_resource type="Script" path="res://scripts/ui/football_pad.gd" id="9_pad"]
+[ext_resource type="Script" path="res://scripts/ui/football_help.gd" id="10_help"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -137,6 +138,7 @@ mouse_filter = 2
 
 [node name="StopButton" type="Button" parent="Margin/Layout/StopSlot"]
 unique_name_in_owner = true
+focus_mode = 0
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -196,6 +198,15 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 22
+
+[node name="HelpButton" type="Button" parent="Margin/Layout/MinigamePanel/InfoRow"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(44, 40)
+layout_mode = 2
+focus_mode = 0
+auto_translate_mode = 2
+text = "?"
 
 [node name="MinigameSteps" type="Label" parent="Margin/Layout/MinigamePanel/InfoRow"]
 unique_name_in_owner = true
@@ -378,6 +389,7 @@ vertical_alignment = 1
 
 [node name="PauseButton" type="Button" parent="RightColumn"]
 unique_name_in_owner = true
+focus_mode = 0
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 tooltip_text = "UI_PAUSE_TIP"
@@ -388,6 +400,7 @@ expand_icon = true
 
 [node name="SettingsButton" type="Button" parent="RightColumn"]
 unique_name_in_owner = true
+focus_mode = 0
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 tooltip_text = "SETTINGS_TITLE"
@@ -758,6 +771,18 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 text = "SETTINGS_CLOSE"
+
+[node name="FootballHelp" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+script = ExtResource("10_help")
 
 [node name="DebugPanel" parent="." instance=ExtResource("6_debug")]
 layout_mode = 0

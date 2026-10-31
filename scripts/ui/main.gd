@@ -3,6 +3,10 @@ extends Control
 ## Eat opens the meals (Milestone 10, Task 3) and, when the avatar is hungry, Skip meal.
 
 const CREATION_SCENE := "res://scenes/ui/creation.tscn"
+## Height of the minigame panel, and of the football controls on a touch screen and on a computer.
+const MINIGAME_PANEL_HEIGHT := 256.0
+const FOOTBALL_PAD_TOUCH := 170.0
+const FOOTBALL_PAD_KEYS := 104.0
 const Hunger := preload("res://scripts/health/hunger.gd")
 const AvatarStates := preload("res://scripts/health/avatar_states.gd")
 const HealthModel := preload("res://scripts/health/health_model.gd")
@@ -59,6 +63,8 @@ const HEALTH_TEXT := "MEASURE_HEALTH"
 @onready var pause_button: Button = %PauseButton
 @onready var football_field: Control = %FootballField
 @onready var football_pad: Control = %FootballPad
+@onready var football_help: Control = %FootballHelp
+@onready var help_button: Button = %HelpButton
 @onready var wake_button: Button = %WakeButton
 @onready var speech_label: Label = %SpeechLabel
 @onready var speech_bubble: PanelContainer = %SpeechBubble
@@ -174,8 +180,14 @@ func _ready() -> void:
 	football_pad.stick_moved.connect(_on_pad_stick)
 	football_pad.pass_pressed.connect(Minigame.pass_ball)
 	football_pad.shoot_pressed.connect(Minigame.shoot_or_tackle)
+	football_pad.touch_seen.connect(_refresh_minigame)
+	Minigame.football_event.connect(_on_football_event)
+	help_button.pressed.connect(_open_football_help)
+	football_help.closed.connect(_close_football_help)
+	Activities.started.connect(_open_football_help_first_time.unbind(2))
 	# A game loaded in the middle of cardio goes on as a session.
 	Minigame.attach()
+	_open_football_help_first_time()
 
 	# The game may have been loaded mid-activity, so show it at once.
 	_refresh_activity(true)
@@ -194,11 +206,15 @@ func _process(_delta: float) -> void:
 		_refresh_minigame()
 
 
-## The joystick, or the arrow keys on a computer. The screen's y goes down, the field's goes up.
+## The joystick, or the arrow keys or WASD on a computer. The screen's y goes down, the field's
+## goes up. WASD reads the key's place on the keyboard, so it also works on other layouts.
 func _send_stick() -> void:
 	if Minigame.kind != Minigame.FOOTBALL:
 		return
 	var keys := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	keys.x += float(Input.is_physical_key_pressed(KEY_D)) - float(Input.is_physical_key_pressed(KEY_A))
+	keys.y += float(Input.is_physical_key_pressed(KEY_S)) - float(Input.is_physical_key_pressed(KEY_W))
+	keys = keys.normalized()
 	var direction := _pad_stick if _pad_stick != Vector2.ZERO else keys
 	var wanted := Vector2(direction.x, -direction.y)
 	if wanted != Minigame.game.stick:
@@ -213,22 +229,59 @@ func _on_match_ended(goals_us: int, goals_them: int) -> void:
 	_flash("SPEECH_MATCH_RESULT", [goals_us, goals_them])
 
 
-## On a computer Space plays cardio, the arrow keys Down and Up play strength, and in football the
-## arrow keys move, Z passes and X or Space shoots or tackles.
+func _on_football_event(key: String) -> void:
+	football_field.show_event(tr(key))
+
+
+## The first time someone plays football on this device.
+func _open_football_help_first_time() -> void:
+	if Minigame.kind == Minigame.FOOTBALL and not Settings.football_help_seen:
+		_open_football_help()
+
+
+## The day pauses while the explanation is open, as with the settings.
+func _open_football_help() -> void:
+	if football_help.visible:
+		return
+	football_help.open(football_pad.touch_mode)
+	if Clock.phase == Clock.Phase.DAY and not Clock.paused:
+		_paused_by_settings = true
+		Clock.set_paused(true)
+
+
+func _close_football_help() -> void:
+	Settings.mark_football_help_seen()
+	if _paused_by_settings:
+		_paused_by_settings = false
+		Clock.set_paused(false)
+
+
+## On a computer Space plays cardio, the arrow keys Down and Up play strength, and in football
+## arrow keys or WASD move, Z or J passes, X, K or Space shoots or tackles, P pauses and H helps.
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not Minigame.running:
 		return
+	if Minigame.kind == Minigame.FOOTBALL and event is InputEventKey and event.pressed and not event.echo:
+		_on_football_key(event.physical_keycode)
 	if event.is_action_pressed("ui_accept"):
 		Minigame.tap()
-		Minigame.shoot_or_tackle()
-	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_Z:
-		Minigame.pass_ball()
-	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_X:
 		Minigame.shoot_or_tackle()
 	elif event.is_action_pressed("ui_down"):
 		Minigame.press(true)
 	elif event.is_action_pressed("ui_up"):
 		Minigame.press(false)
+
+
+func _on_football_key(key: Key) -> void:
+	match key:
+		KEY_Z, KEY_J:
+			Minigame.pass_ball()
+		KEY_X, KEY_K:
+			Minigame.shoot_or_tackle()
+		KEY_P:
+			Clock.toggle_pause()
+		KEY_H:
+			_open_football_help()
 
 
 ## Clicking the health level or the health bar shows or hides the three measures.
@@ -452,9 +505,14 @@ func _refresh_minigame() -> void:
 		return
 	var strength := Minigame.kind == Minigame.STRENGTH
 	tap_button.visible = Minigame.kind == Minigame.CARDIO
+	help_button.visible = football
 	strength_buttons.visible = strength
 	football_pad.visible = football
 	beat_bar.visible = not football
+	# On a computer the keys need less room, so the field is larger.
+	var small_pad: bool = football and not football_pad.touch_mode
+	football_pad.custom_minimum_size.y = FOOTBALL_PAD_KEYS if small_pad else FOOTBALL_PAD_TOUCH
+	minigame_panel.custom_minimum_size.y = 0.0 if small_pad else MINIGAME_PANEL_HEIGHT
 	reserve_label.text = tr("MINIGAME_MUSCLE" if strength else "MINIGAME_BREATH")
 	reserve_bar.value = Minigame.reserve
 	if football:
@@ -478,12 +536,42 @@ func _refresh_football() -> void:
 			roundi(Activities.target_hours * Clock.MINUTES_PER_HOUR)]
 	minigame_steps.text = tr("MINIGAME_SCORE") % [game.goals_us, game.goals_them]
 	football_field.game = game
-	football_field.queue_redraw()
-	football_pad.pass_text = tr("MINIGAME_PASS")
-	football_pad.shoot_text = tr("MINIGAME_TACKLE" if game.defending() else "MINIGAME_SHOOT")
-	football_pad.pass_enabled = game.has_ball()
-	football_pad.shoot_enabled = game.has_ball() or game.can_tackle()
+	football_field.you_text = tr("FOOTBALL_YOU")
+	football_field.hint = tr(_football_hint())
+	var keys: bool = not football_pad.touch_mode
+	var ask: bool = game.team_mate_has_ball()
+	football_pad.pass_text = _with_key("MINIGAME_ASK" if ask else "MINIGAME_PASS", "Z", keys)
+	football_pad.shoot_text = _with_key("MINIGAME_TACKLE" if game.defending() else "MINIGAME_SHOOT", "X", keys)
+	football_pad.pass_enabled = game.has_ball() or ask
+	football_pad.shoot_enabled = game.has_ball() or game.in_tackle_reach()
+	football_pad.keys_text = tr("FOOTBALL_KEYS")
 	football_pad.queue_redraw()
+
+
+func _with_key(key: String, keyboard_key: String, keys: bool) -> String:
+	return "%s  [%s]" % [tr(key), keyboard_key] if keys else tr(key)
+
+
+## What the player should do now.
+func _football_hint() -> String:
+	var game: RefCounted = Minigame.game
+	if Clock.paused:
+		return "FOOTBALL_PAUSED"
+	if Minigame.waiting:
+		return "FOOTBALL_HINT_START_TOUCH" if football_pad.touch_mode else "FOOTBALL_HINT_START_KEYS"
+	if game.stopped():
+		return ""
+	if Minigame.walking:
+		return "FOOTBALL_HINT_JOG"
+	if game.has_ball():
+		if game.in_shot_range():
+			return "FOOTBALL_HINT_SHOOT"
+		return "FOOTBALL_HINT_PASS" if game.under_pressure() else "FOOTBALL_HINT_RUN"
+	if game.team_mate_has_ball():
+		return "FOOTBALL_HINT_ASK"
+	if game.defending():
+		return "FOOTBALL_HINT_TACKLE" if game.in_tackle_reach() else "FOOTBALL_HINT_CHASE"
+	return "FOOTBALL_HINT_BALL"
 
 
 func _refresh_strength() -> void:

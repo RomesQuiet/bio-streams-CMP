@@ -70,6 +70,45 @@ MINIGAME_PASS,Pass,Passe
 MINIGAME_SHOOT,Shoot,Rematar
 MINIGAME_TACKLE,Tackle,Desarmar
 SPEECH_MATCH_RESULT,Final score: %d – %d,Resultado final: %d – %d
+MINIGAME_ASK,Ask for ball,Pedir bola
+FOOTBALL_YOU,YOU,TU
+FOOTBALL_PAUSED,Paused,Em pausa
+FOOTBALL_KEYS,"Move: arrows or WASD
+Shoot: X, K or Space
+Pause: P   Help: H","Mover: setas ou WASD
+Rematar: X, K ou Espaço
+Pausa: P   Ajuda: H"
+FOOTBALL_HINT_START_KEYS,Press an arrow key or WASD to start,Carrega numa seta ou em WASD para começar
+FOOTBALL_HINT_START_TOUCH,Move the joystick to start,Mexe o joystick para começar
+FOOTBALL_HINT_RUN,Run up towards the red goal,"Corre para cima, até à baliza vermelha"
+FOOTBALL_HINT_SHOOT,In the green zone: shoot now!,Na zona verde: remata agora!
+FOOTBALL_HINT_PASS,Under pressure: pass the ball,Sob pressão: passa a bola
+FOOTBALL_HINT_ASK,"Run forward, or ask for the ball",Corre para a frente ou pede a bola
+FOOTBALL_HINT_CHASE,Run at the red player with the ball,Corre para o jogador vermelho com a bola
+FOOTBALL_HINT_TACKLE,Close enough: tackle now!,Já estás perto: desarma agora!
+FOOTBALL_HINT_BALL,Get to the ball!,Vai à bola!
+FOOTBALL_HINT_JOG,Out of breath: you can only jog for now,Sem fôlego: por agora só consegues trotar
+FOOTBALL_GOAL,GOAL!,GOLO!
+FOOTBALL_GOAL_THEM,They scored,Eles marcaram
+FOOTBALL_MISSED,Missed!,Falhou!
+FOOTBALL_SHOT_FAR,Too far from goal,Longe de mais da baliza
+FOOTBALL_PASS_GOOD,Good pass!,Bom passe!
+FOOTBALL_PASS_MARKED,That team-mate was marked,Esse colega estava marcado
+FOOTBALL_INTERCEPTED,Pass intercepted,Passe intercetado
+FOOTBALL_TACKLE_WON,Ball won!,Bola ganha!
+FOOTBALL_TACKLE_MISSED,Tackle missed,Desarme falhado
+FOOTBALL_TACKLE_FAR,Too far to tackle,Longe de mais para desarmar
+FOOTBALL_LOST_BALL,You lost the ball,Perdeste a bola
+FOOTBALL_HELP_TITLE,How to play football,Como jogar futebol
+FOOTBALL_HELP_YOU,You are the yellow player. Your team is blue and attacks up the screen.,Tu és o jogador amarelo. A tua equipa é azul e ataca para cima no ecrã.
+FOOTBALL_HELP_GOAL,"Run to the green zone by the red goal, then shoot. Shots from farther away rarely score.",Corre até à zona verde junto à baliza vermelha e remata. De mais longe raramente dá golo.
+FOOTBALL_HELP_PASS,"A green ring means a team-mate is free. Pass to them, or ask for the ball when they have it.","Um anel verde indica um colega livre. Passa-lhe a bola, ou pede-a quando for ele a tê-la."
+FOOTBALL_HELP_TACKLE,"When a red player has the ball, run to them. When their ring turns green, tackle.","Quando um jogador vermelho tiver a bola, corre para ele. Quando o anel ficar verde, desarma."
+FOOTBALL_HELP_BREATH,Moving uses Breath and standing still refills it. With no Breath you can only jog.,Mexer gasta fôlego e ficar parado recupera-o. Sem fôlego só consegues trotar.
+FOOTBALL_HELP_TIME,Well-timed moves and staying active make the exercise count. Winning does not change health. Time runs %d times slower while you play.,Jogadas no momento certo e manter-te ativo fazem o exercício contar. Ganhar não muda a saúde. O tempo passa %d vezes mais devagar enquanto jogas.
+FOOTBALL_HELP_KEYS,"Move: arrow keys or WASD. Pass: Z or J. Shoot or tackle: X, K or Space. Pause: P. Help: H.","Mover: setas ou WASD. Passar: Z ou J. Rematar ou desarmar: X, K ou Espaço. Pausa: P. Ajuda: H."
+FOOTBALL_HELP_TOUCH,Move with the joystick on the left. Use the two buttons on the right to play the ball.,Move-te com o joystick à esquerda. Usa os dois botões à direita para jogar a bola.
+FOOTBALL_HELP_PLAY,Play!,Jogar!
 CREATION_TITLE,Create your avatar,Cria o teu avatar
 CREATION_NAME,Name,Nome
 CREATION_NAME_HINT,Type a name,Escreve um nome

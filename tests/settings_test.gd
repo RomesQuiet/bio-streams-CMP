@@ -25,6 +25,14 @@ func _process(_delta: float) -> bool:
 			settings.language == settings.language_for_locale(OS.get_locale_language()))
 	_check("...and nothing is saved", not FileAccess.file_exists(TEST_PATH))
 
+	settings.mark_football_help_seen()
+	settings.load_settings()
+	_check("the football explanation is remembered", settings.football_help_seen)
+	_check("...and the game still follows the system language",
+			not FileAccess.get_file_as_string(TEST_PATH).contains("language"))
+	DirAccess.remove_absolute(TEST_PATH)
+	settings.football_help_seen = false
+
 	settings.set_language("pt")
 	_check("a chosen language is used at once", settings.language == "pt" and TranslationServer.get_locale() == "pt")
 	_check("...in the translations too", tr("FORMAT_DECIMAL_MARK") == ",")

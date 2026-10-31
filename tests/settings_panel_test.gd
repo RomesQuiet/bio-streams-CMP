@@ -39,6 +39,7 @@ func _process(_delta: float) -> bool:
 	root.add_child(main)
 
 	_test_open_and_close()
+	_test_football_help()
 	_test_language()
 	_test_new_avatar(save_game)
 	_frames_after_confirm = 0
@@ -54,6 +55,26 @@ func _finish() -> bool:
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
 	quit(1 if _failures > 0 else 0)
 	return true
+
+
+## The first time someone plays football the explanation opens, and the day waits for it.
+func _test_football_help() -> void:
+	var help: Control = main.get_node("%FootballHelp")
+	var minigame: Node = root.get_node("Minigame")
+	settings.football_help_seen = false
+	activities.start("entertainment", "football")
+	_check("the first football opens the explanation", help.visible)
+	_check("the day waits", clock.paused)
+	help._on_play()
+	_check("Play closes it and the day goes on", not help.visible and not clock.paused)
+	_check("it is remembered", settings.football_help_seen)
+	activities.stop()
+	activities.start("entertainment", "football")
+	_check("the next football does not open it", not help.visible and minigame.kind == "football")
+	main.get_node("%HelpButton").pressed.emit()
+	_check("the ? button opens it again", help.visible)
+	help._on_play()
+	activities.stop()
 
 
 func _test_open_and_close() -> void:

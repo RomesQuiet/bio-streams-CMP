@@ -4,7 +4,7 @@ Last updated: 31 October 2026, in Milestone 12. Read this after `CLAUDE.md` when
 
 ## 1. Where the work stands
 
-- **Milestone 14 (the football minigame, `MILESTONE_14.md`) is built and committed, not pushed.** Waiting on the user: play it, then push from GitHub Desktop. The touches in the web check were scripted.
+- **Milestone 14 (the football minigame, `MILESTONE_14.md`) is built and committed, not pushed.** The user played the first version; the second round (decisions 47 and 48, `MILESTONE_14.md`) waits for them to play it and push from GitHub Desktop. The touches and keys in the web check were scripted.
 - **Milestone 13 (the strength minigame, `MILESTONE_13.md`) is built and committed, not pushed.** The user played it and is happy with it (31 Oct 2026). Waiting on the user: push from GitHub Desktop. A real phone is not confirmed.
 - **Milestone 12 (minutes slider and the cardio minigame, `MILESTONE_12.md`) is complete, pushed up to `839cd05`.** The taps in the web check were sent by a script, so how it feels for a person, and on a real phone, is not checked.
 - **Milestone 11 (settings panel and European Portuguese, `MILESTONE_11.md`) is complete and pushed (`25aada7`).** Still to do: the team checks the Portuguese (Claude's draft, above all the health terms), and someone tries it on a real phone (the pop-up name box in Portuguese was not tried there).
@@ -103,7 +103,7 @@ Recorded in `MILESTONE_10.md` ("Decisions") and `documentation/milestone10_plan.
 
 Other team decisions that still hold: k = 10 (applies to sleep debt too); there is no death, only failure; p = 0.5 for health. The team's review (27 Oct 2026) added the 36-hour strength gap, the danger state (z −3, 72 h, z −4) and the thinness risk term (placeholders).
 
-Decisions 39 to 46 (Milestone 14, football) are in `MILESTONE_14.md`. Decision 39 replaces decision 29.
+Decisions 39 to 48 (Milestone 14, football) are in `MILESTONE_14.md`. Decision 39 replaces decision 29.
 
 ## 3. What is still open
 
@@ -164,6 +164,9 @@ Decisions 39 to 46 (Milestone 14, football) are in `MILESTONE_14.md`. Decision 3
 
 - A test whose autoloads load a real save starts from that save. Reset `Simulation` with the others, or its pending minutes run into the new state (Milestone 14: `difficulty_test.gd`). Running tests with `HOME` set to an empty folder shows whether a failure comes from a save.
 - In `football_match.gd` y grows towards the other goal, the opposite of the screen, so a stick up is `Vector2(0, 1)`.
+
+- A test player must be human-like to judge a match: the perfect one won 8 to 0 while one with human reactions lost 2 to 23 against the same values (`_human_match` in `tests/football_test.gd`).
+- `Activities.start()` now unpauses before `started`, so a screen opening at the start can pause the day.
 
 ## 6. Commands
 

@@ -31,6 +31,9 @@ func _process(_delta: float) -> bool:
 	_test_score()
 	_test_stopping()
 	_test_saving(save_game)
+	_test_slow_time()
+	_test_events()
+	_test_asking_for_the_ball()
 	print("ALL PASSED (0 failed)" if _failures == 0 else "SOME FAILED (%d failed)" % _failures)
 	quit(1 if _failures > 0 else 0)
 	return true
@@ -334,6 +337,58 @@ func _test_stopping() -> void:
 	minigame.game.goals_them = 1
 	activities.stop()
 	_check("the end of a match gives its score", scores == [[2, 1]])
+
+
+func _test_slow_time() -> void:
+	var minigame: Node = root.get_node("Minigame")
+	var clock: Node = root.get_node("Clock")
+	var activities: Node = root.get_node("Activities")
+	_start("normal", false)
+	var waiting_share: float = minigame.time_share()
+	minigame.set_stick(Vector2(0, 1))
+	_check("time only slows while the avatar plays", is_equal_approx(waiting_share, 1.0) and is_equal_approx(minigame.time_share(), 0.2))
+	var before: float = clock.minute_of_day
+	_pass_time(10.0)
+	var minutes: float = clock.minute_of_day - before
+	print("  10 real seconds of football: %.2f avatar minutes" % minutes)
+	_check("10 real seconds are 1.4 avatar minutes (5 times slower)", absf(minutes - 1.4) < 0.05)
+	_check("the activity counts the same slower time", absf(activities.elapsed_hours * 60.0 - minutes) < 0.05)
+	activities.stop()
+	_check("after the match time runs normally", is_equal_approx(minigame.time_share(), 1.0))
+
+
+func _test_events() -> void:
+	var game := _new_match()
+	var seen := []
+	game.happened.connect(func(key: String) -> void: seen.append(key))
+	game.shoot()
+	_check("a far shot says so", seen.has("FOOTBALL_SHOT_FAR"))
+	for _i in 100:
+		game.advance(STEP)
+		if not game.stopped() and game.flight == 0:
+			break
+	_check("a shot ends in a message and a kick-off for the other team", (seen.has("FOOTBALL_MISSED") or seen.has("FOOTBALL_GOAL")) and game.defending())
+	game.kick_off(true, true)
+	var before: Vector2 = game.positions[1]
+	game.advance(1.0)
+	_check("the match stops for a moment after a restart", game.stopped() and game.positions[1] == before)
+	game.advance(1.5)
+	_check("then it goes on", not game.stopped())
+
+
+func _test_asking_for_the_ball() -> void:
+	var game := _new_match()
+	game.owner = 1
+	game.ball = game.positions[1]
+	_check("a team-mate has the ball", game.team_mate_has_ball())
+	for i in range(4, 8):
+		game.positions[i] = Vector2(0, 45)
+	game.call_for_ball()
+	for _i in 200:
+		game.advance(STEP)
+		if game.flight == 0:
+			break
+	_check("asking for the ball brings it to the avatar", game.has_ball())
 
 
 func _test_saving(save_game: Node) -> void:

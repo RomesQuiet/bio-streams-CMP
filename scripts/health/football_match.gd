@@ -104,6 +104,11 @@ func team_mate_has_ball() -> bool:
 	return owner > 0 and owner < team_size
 
 
+## An opponent is close to the avatar.
+func under_pressure() -> bool:
+	return _nearest_distance(0, 1) < _value("cpu_press_radius")
+
+
 ## The match is stopped for a moment after a goal or a miss.
 func stopped() -> bool:
 	return _pause_left > 0.0

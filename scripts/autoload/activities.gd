@@ -90,14 +90,15 @@ func start(activity_id: String, option_id: String, hours := -1.0) -> bool:
 	changing.emit()
 	current_activity = activity_id
 	current_option = option_id
+	# Before started, so a screen that opens at the start can pause the day again.
+	if not uses_sleep_time(activity_id):
+		Clock.set_paused(false)
 	started.emit(activity_id, option_id)
 	if uses_sleep_time(activity_id):
 		Clock.start_sleep(target_hours)
 		if Clock.phase != Clock.Phase.SLEEPING and Clock.phase != Clock.Phase.SLEEP_OVER:
 			_end()
 			return false
-	else:
-		Clock.set_paused(false)
 	return true
 
 
