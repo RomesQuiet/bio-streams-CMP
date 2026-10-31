@@ -1,6 +1,6 @@
 # Milestone 14 — The football minigame
 
-**Status: built and committed (31 October 2026), not pushed.** The user plays it and pushes.
+**Status: built and committed (31 October 2026), not pushed.** The user played the second round and is happy with it, and pushes next.
 
 **Changes made while building (beyond the plan):**
 
@@ -28,7 +28,7 @@ Choices Claude made for "work for it", to confirm:
 
 **Checked in the web build (31 Oct 2026, computer size, after the second round):** the explanation, Play, WASD, X, P, the field, messages, Ask for ball. Keys were sent by a script.
 
-**Checked in the web build (browser pane, 31 Oct 2026, phone size):** the field, waiting, the joystick and a second finger on Pass at the same time (scripted touches), and Tackle replacing Shoot. **Not checked:** a real person playing, a real phone, how hard the match feels. Difficulty still needs people: a perfect test player wins about 8 to 0, and the human-like one above loses.
+**Checked in the web build (browser pane, 31 Oct 2026, phone size):** the field, waiting, the joystick and a second finger on Pass at the same time (scripted touches), and Tackle replacing Shoot. The user then played it by hand on 31 Oct. **Not confirmed:** a real phone. Difficulty still needs people: a perfect test player wins about 8 to 0, and the human-like one above loses.
 
 Goal: football becomes a real arcade match, with the core loop of Nintendo World Cup seen from above and played from bottom to top. Only the idea is used: the art, names, characters and code are original (concept document).
 
