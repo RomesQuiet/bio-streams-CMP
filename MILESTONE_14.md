@@ -1,6 +1,17 @@
 # Milestone 14 — The football minigame
 
-**Status: planned (31 October 2026), not built.**
+**Status: built and committed (31 October 2026), not pushed.** The user plays it and pushes.
+
+**Changes made while building (beyond the plan):**
+
+- A missed or saved shot restarts play like a goal does (the other team kicks off). Without this a strong player kept the ball at the goal and scored 18 times a match.
+- The avatar's tackles have a wait and a chance to win the ball, for the same reason (`tackle_seconds`, `tackle_chance`).
+- The match stops completely while the avatar waits, so nobody scores against a player who stopped.
+- A saved match keeps its score, Breath and timing, but restarts from a kick-off.
+- The pad reads touches itself (`scripts/ui/football_pad.gd`), because Godot's Button only hears the first finger.
+- The speech bubble is hidden during a match, so the minutes are in the status line.
+
+**Checked in the web build (browser pane, 31 Oct 2026, phone size):** the field, waiting, the joystick and a second finger on Pass at the same time (scripted touches), and Tackle replacing Shoot. **Not checked:** a real person playing, a real phone, how hard the match feels. A test player that is perfect and fast wins about 8 to 1, so the difficulty is a guess.
 
 Goal: football becomes a real arcade match, with the core loop of Nintendo World Cup seen from above and played from bottom to top. Only the idea is used: the art, names, characters and code are original (concept document).
 

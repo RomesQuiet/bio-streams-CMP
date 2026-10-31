@@ -4,6 +4,7 @@ Last updated: 31 October 2026, in Milestone 12. Read this after `CLAUDE.md` when
 
 ## 1. Where the work stands
 
+- **Milestone 14 (the football minigame, `MILESTONE_14.md`) is built and committed, not pushed.** Waiting on the user: play it, then push from GitHub Desktop. The touches in the web check were scripted.
 - **Milestone 13 (the strength minigame, `MILESTONE_13.md`) is built and committed, not pushed.** The user played it and is happy with it (31 Oct 2026). Waiting on the user: push from GitHub Desktop. A real phone is not confirmed.
 - **Milestone 12 (minutes slider and the cardio minigame, `MILESTONE_12.md`) is complete, pushed up to `839cd05`.** The taps in the web check were sent by a script, so how it feels for a person, and on a real phone, is not checked.
 - **Milestone 11 (settings panel and European Portuguese, `MILESTONE_11.md`) is complete and pushed (`25aada7`).** Still to do: the team checks the Portuguese (Claude's draft, above all the health terms), and someone tries it on a real phone (the pop-up name box in Portuguese was not tried there).
@@ -102,6 +103,8 @@ Recorded in `MILESTONE_10.md` ("Decisions") and `documentation/milestone10_plan.
 
 Other team decisions that still hold: k = 10 (applies to sleep debt too); there is no death, only failure; p = 0.5 for health. The team's review (27 Oct 2026) added the 36-hour strength gap, the danger state (z −3, 72 h, z −4) and the thinness risk term (placeholders).
 
+Decisions 39 to 46 (Milestone 14, football) are in `MILESTONE_14.md`. Decision 39 replaces decision 29.
+
 ## 3. What is still open
 
 **For the team** (with numbers and proposals in `documentation/milestone10_calibration.md`, Milestone 10.5): the causes of the six differences are found. (1) The severe diet: the scenario's screens hour blocks one hungry moment a day (without it the game eats exactly v1's 2.33 meals and 1,145 kcal); not a model difference. (2) Happiness: mostly plan details v1 does not describe (30 min of football in the guideline activity, 2 h of screens without sport), plus half-hour meals and the hunger penalty for 4 h of cardio. (3) Resolved by the review. (4) Guideline strength: the 24-hour training window makes strength rise and fall through the week; a one-week window gives 0.76. (5) Decision 1 only. (6) Compared with the wrong row. To decide: the plan guesses, `train.average_window_h`, eating time and METy, the hunger penalty with fixed portions, the danger-state and gap values.
@@ -110,7 +113,7 @@ Other team decisions that still hold: k = 10 (applies to sleep debt too); there 
 
 **Proposed in Milestone 11, not confirmed by the user or team:** European Portuguese for all browsers, wording that does not depend on the avatar's sex, the decimal comma, the pause while settings are open, English in the debug panel and logs.
 
-**Likely after Milestone 13** (ask the user): the team's answers to the Milestone 10.5 proposals; failure effect and screen; the other minigames; menus; the lobby screen; plasticine art. (A 45-minute strength option would not raise strength: Milestone 10.5 parity run.)
+**Likely after Milestone 14** (ask the user): the team's answers to the Milestone 10.5 proposals; failure effect and screen; the other minigames; menus; the lobby screen; plasticine art. (A 45-minute strength option would not raise strength: Milestone 10.5 parity run.)
 
 **Placeholders added in Milestone 10.5:** the Ill look (pale, greenish body), the health bar warning (red bar, "Health: danger") and the failure messages by cause; the review's numbers (`train.strength_min_gap_h` 36, `fail.danger_z` −3, `fail.danger_hours` 72, `fail.danger_failure_z` −4, `risk.thin_weight` 0.4, `risk.thin_from` −2, `risk.thin_range` 2).
 
@@ -158,6 +161,9 @@ Other team decisions that still hold: k = 10 (applies to sleep debt too); there 
 - **Shell:** macOS `sed` has no `\b`; use `perl -pi -e`. The Edit tool needs the file read first with the Read tool.
 - **Text fields on phones (web):** any new text field needs the pop-up box of `scripts/ui/creation.gd` (web + touch screen: the field never takes focus, a tap calls `window.prompt` through `JavaScriptBridge.eval`). Without it the keyboard opens but no letters arrive. The alternative, the export option `html/experimental_virtual_keyboard`, worked in phone emulation but was never tried on a real phone; if it is ever used, its text arrives through `set_text`, which does not emit `text_changed`, and the option is stored in `index.html`, not the .pck. GitHub Pages lets phones keep old files for up to 10 minutes.
 - **Testing phone input in the browser pane:** `resize_window` preset mobile (the page then reports a touch screen), a fresh origin (a new port such as `127.0.0.1:8062`; the game re-saves when the page closes, so an origin with a save skips the creation screen), refresh cached files with `fetch(url, {cache: 'reload'})` for `'/'`, `index.html` and `index.pck`, then check `GODOT_CONFIG` really says `experimentalVK: true`. Send a real touch (`new TouchEvent('touchstart'/'touchend')` with a `Touch` on the canvas), check that a hidden `INPUT` is the `document.activeElement`, and type with the `computer` tool. A real Android phone is still the only full test.
+
+- A test whose autoloads load a real save starts from that save. Reset `Simulation` with the others, or its pending minutes run into the new state (Milestone 14: `difficulty_test.gd`). Running tests with `HOME` set to an empty folder shows whether a failure comes from a save.
+- In `football_match.gd` y grows towards the other goal, the opposite of the screen, so a stick up is `Vector2(0, 1)`.
 
 ## 6. Commands
 

@@ -9,7 +9,7 @@ The player looks after an avatar who is a school student and tries to raise its 
 Play in the browser (computer, Android or iOS):
 **https://romesquiet.github.io/bio-streams-game-Porto-Portugal-Conservat-rio-de-M-sica-do-Porto/**
 
-Cardio and muscle strength are minigames. Cardio: tap on the beat for the whole session. Strength: press Down and Up at a controlled pace, in sets with a rest between them. What the avatar can do depends on its fitness or strength, weight and sleep.
+Cardio, muscle strength and football are minigames. Football: a 4-a-side match seen from above, with a joystick, Pass, and Shoot or Tackle. Cardio: tap on the beat for the whole session. Strength: press Down and Up at a controlled pace, in sets with a rest between them. What the avatar can do depends on its fitness or strength, weight and sleep.
 
 The game saves on your device. Nothing is sent to a server. A new game starts on the avatar creation screen. Saves from before Milestone 10 do not load: you create a new avatar. The game opens in Portuguese if your browser is in Portuguese, otherwise in English; you can change the language on the creation screen and in the settings, where you can also start a new avatar.
 

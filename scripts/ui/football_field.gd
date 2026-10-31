@@ -27,7 +27,8 @@ func _draw() -> void:
 	var scale_x: float = size.x / game.width
 	var offset := _view_offset(scale_x)
 	_draw_lines(scale_x, offset)
-	for i in game.positions.size():
+	# Backwards, so the avatar (player 0) is drawn on top.
+	for i in range(game.positions.size() - 1, -1, -1):
 		var point: Vector2 = _screen(game.positions[i], scale_x, offset)
 		var ours: bool = i < game.team_size
 		draw_circle(point, player_radius, avatar_color if i == 0 else (team_color if ours else other_color))

@@ -61,6 +61,7 @@ const HEALTH_TEXT := "MEASURE_HEALTH"
 @onready var football_pad: Control = %FootballPad
 @onready var wake_button: Button = %WakeButton
 @onready var speech_label: Label = %SpeechLabel
+@onready var speech_bubble: PanelContainer = %SpeechBubble
 @onready var stop_button: Button = %StopButton
 @onready var action_buttons: Array[Button] = [%ExerciseButton, %SleepButton, %EatButton, %EntertainmentButton]
 @onready var sleep_button: Button = %SleepButton
@@ -445,6 +446,8 @@ func _refresh_minigame() -> void:
 	var football := Minigame.running and Minigame.kind == Minigame.FOOTBALL
 	football_field.visible = football
 	avatar.visible = not football
+	# The bubble would cover the match: it only comes back for a short message.
+	speech_bubble.visible = not football or not _flash_key.is_empty()
 	if not Minigame.running:
 		return
 	var strength := Minigame.kind == Minigame.STRENGTH
@@ -471,7 +474,8 @@ func _refresh_minigame() -> void:
 func _refresh_football() -> void:
 	var game: RefCounted = Minigame.game
 	var status := "MINIGAME_PLAY_WAITING" if Minigame.waiting else ("MINIGAME_JOGGING" if Minigame.walking else "MINIGAME_PLAYING")
-	minigame_status.text = tr(status)
+	minigame_status.text = tr("SPEECH_PROGRESS_MINUTES") % [tr(status), roundi(Activities.elapsed_hours * Clock.MINUTES_PER_HOUR),
+			roundi(Activities.target_hours * Clock.MINUTES_PER_HOUR)]
 	minigame_steps.text = tr("MINIGAME_SCORE") % [game.goals_us, game.goals_them]
 	football_field.game = game
 	football_field.queue_redraw()
