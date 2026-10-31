@@ -180,8 +180,8 @@ func advance(seconds: float) -> void:
 func _start_moving() -> void:
 	waiting = false
 	_effort = 1.0
-	_stride(true)
 	session_changed.emit()
+	_stride(true)
 	if not _moved:
 		_moved = true
 		first_stride.emit()

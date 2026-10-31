@@ -51,6 +51,10 @@ func _refresh() -> void:
 			gs.strength, gs.overreach, Training.capacity_min(), gs.exercise_minutes_today])
 	lines.append("  recovery: cardio %.2f  strength %.2f  last strength start %.1f h ago (gap %.0f h)" % [gs.cardio_recovery,
 			gs.strength_recovery, gs.hours_since_strength, Config.get_float("train.strength_min_gap_h")])
+	if Minigame.running:
+		lines.append("  minigame: score %.2f (rhythm %.2f, pace %.2f)  breath %.2f  interval %.2f s  %s" % [Minigame.score(),
+				Minigame.rhythm, Minigame.pace, Minigame.breath, Minigame.interval(),
+				"waiting" if Minigame.waiting else ("walking" if Minigame.walking else "running")])
 	lines.append("  sleep debt %.2f h  tiredness %.2f  %.1f h awake  last sleep %.1f h (night quality %.2f)" % [gs.sleep_debt,
 			SleepModel.tiredness(), gs.hours_awake, gs.last_sleep_hours, gs.night_quality])
 	lines.append("  calories spent while exercising (record) %.0f kcal%s" % [gs.calories_spent,

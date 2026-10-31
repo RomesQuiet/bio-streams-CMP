@@ -3,7 +3,7 @@ extends SceneTree
 ##   Godot --headless --path . -s res://tests/minigame_test.gd
 ## The avatar's pace and how long it can run, then a session played tap by tap: rhythm, steps,
 ## the Breath bar, walking and waiting, and how a session reaches the health system. Time is
-## passed in by the test. Nothing is saved.
+## passed in by the test, and the panel on the main screen. Nothing is saved.
 
 const TOLERANCE := 0.001
 
@@ -46,6 +46,7 @@ func _process(_delta: float) -> bool:
 	_test_score_reaches_training()
 	_test_walking_energy()
 	minigame.detach()
+	_test_screen()
 
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
 	quit(1 if _failures > 0 else 0)
@@ -334,6 +335,56 @@ func _test_walking_energy() -> void:
 	_check("walking uses walk_mety", is_equal_approx(energy.mety_now(), root.get_node("Config").get_float("minigame.walk_mety"))
 			and energy.mety_now() < running_mety)
 	activities.stop()
+
+
+## Task 5: the panel takes the place of the four buttons, in both languages.
+func _test_screen() -> void:
+	var settings: Node = root.get_node("Settings")
+	settings.settings_path = "user://test_settings.json"
+	settings.use_web_storage = false
+	settings.set_language("en")
+	_new_avatar("normal")
+	var main: Node = load("res://scenes/main.tscn").instantiate()
+	root.add_child(main)
+	_check("no session: the four buttons show", main.action_grid.visible and not main.minigame_panel.visible)
+	activities.start("exercise", "strength")
+	_check("strength keeps the four buttons", main.action_grid.visible)
+	activities.stop()
+	activities.start("exercise", "cardio")
+	_check("cardio: the panel takes their place", main.minigame_panel.visible and not main.action_grid.visible)
+	_check("it asks for the first tap", main.minigame_status.text == "Tap to start!")
+	var stood_still: bool = main.avatar.hop_offset == 0.0 and main.avatar._animation == null
+	_check("the avatar stands still while it waits", stood_still)
+	main.get_node("%TapButton").button_down.emit()
+	main._refresh_minigame()
+	_check("the tap button starts it", minigame.strides == 1 and main.minigame_status.text == "Running")
+	_check("the avatar hops with the stride", main.avatar._animation != null)
+	_check("the steps are shown", main.minigame_steps.text == "Steps: 2 / %d" % minigame.steps_goal())
+	var space := InputEventKey.new()
+	space.keycode = KEY_SPACE
+	space.pressed = true
+	minigame.seconds_since_tap = minigame.interval()
+	main._unhandled_key_input(space)
+	_check("Space is a tap on a computer", minigame.strides == 2)
+	minigame.walking = true
+	main._refresh_minigame()
+	_check("the status says it is walking", main.minigame_status.text == "Walking: catching my breath")
+	settings.set_language("pt")
+	main._refresh_minigame()
+	_check("the texts change language", main.minigame_status.text == "A andar: a recuperar o fôlego"
+			and main.minigame_steps.text.begins_with("Passos: 4"))
+	settings.set_language("en")
+	minigame.walking = false
+	activities.stop()
+	_check("Stop brings the four buttons back", main.action_grid.visible and not main.minigame_panel.visible)
+	activities.start("exercise", "cardio")
+	_pass_time(21.0)
+	_check("after the wait the buttons are back, with a message", main.action_grid.visible
+			and main.speech_label.text == "You stopped tapping, so I stopped.")
+	root.remove_child(main)
+	main.free()
+	_check("closing the main screen ends the player's presence", not minigame._player_present)
+	DirAccess.remove_absolute("user://test_settings.json")
 
 
 func _new_avatar(difficulty: String) -> void:

@@ -40,6 +40,7 @@ SPEECH_SAD,I'm sad.,Estou triste.
 SPEECH_LEVEL_UP,Level up! Level %d,Subiste de nível! Nível %d
 SPEECH_PROGRESS,%s (%s of %s h),%s (%s de %s h)
 SPEECH_PROGRESS_MINUTES,%s (%d of %d min),%s (%d de %d min)
+SPEECH_GAVE_UP,"You stopped tapping, so I stopped.","Deixaste de tocar, por isso parei."
 SPEECH_SLEPT,I slept %s h. Press the wake button to start the day.,Dormi %s h. Carrega no botão Acordar para começar o dia.
 SLEEP_INFO,%s h of sleep (%d real min)\nNext day: %s h (%s real min),%s h de sono (%d min reais)\nPróximo dia: %s h (%s min reais)
 SLEEP_AT_MOST,At most %s h now.,No máximo %s h agora.
@@ -47,6 +48,12 @@ SLEEP_ENDS_DAY,Sleeping now ends the current day.,Dormir agora termina o dia atu
 FAILURE_THINNESS,Failure: I have been severely thin for too long.,Falha: estive demasiado tempo em magreza grave.
 FAILURE_HEALTH,Failure: my health has stayed too low for too long.,Falha: a minha saúde esteve demasiado baixa durante demasiado tempo.
 FAILURE_HAPPINESS,Failure: my happiness has stayed too low for too long.,Falha: a minha felicidade esteve demasiado baixa durante demasiado tempo.
+MINIGAME_TAP,Tap to run,Toca para correr
+MINIGAME_WAITING,Tap to start!,Toca para começar!
+MINIGAME_RUNNING,Running,A correr
+MINIGAME_WALKING,Walking: catching my breath,A andar: a recuperar o fôlego
+MINIGAME_BREATH,Breath,Fôlego
+MINIGAME_STEPS,Steps: %d / %d,Passos: %d / %d
 CREATION_TITLE,Create your avatar,Cria o teu avatar
 CREATION_NAME,Name,Nome
 CREATION_NAME_HINT,Type a name,Escreve um nome

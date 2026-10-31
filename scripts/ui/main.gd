@@ -77,6 +77,12 @@ const HEALTH_TEXT := "MEASURE_HEALTH"
 @onready var portuguese_button: Button = %PortugueseButton
 @onready var english_button: Button = %EnglishButton
 @onready var new_avatar_button: Button = %NewAvatarButton
+@onready var action_grid: Control = %ActionGrid
+@onready var minigame_panel: Control = %MinigamePanel
+@onready var minigame_status: Label = %MinigameStatus
+@onready var minigame_steps: Label = %MinigameSteps
+@onready var breath_bar: ProgressBar = %BreathBar
+@onready var beat_bar: Control = %BeatBar
 @onready var confirm_box: Control = %ConfirmBox
 
 var _backdrop_tween: Tween
@@ -144,12 +150,33 @@ func _ready() -> void:
 	Activities.started.connect(_refresh_activity.unbind(2))
 	Activities.ended.connect(_refresh_activity.unbind(3))
 	Activities.progressed.connect(_refresh_activity_speech)
+	%TapButton.button_down.connect(Minigame.tap)
+	Minigame.strode.connect(_on_stride.unbind(1))
+	Minigame.session_changed.connect(_on_session_changed)
+	Minigame.gave_up.connect(_flash.bind("SPEECH_GAVE_UP"))
+	# A game loaded in the middle of cardio goes on as a session.
+	Minigame.attach()
 
 	# The game may have been loaded mid-activity, so show it at once.
 	_refresh_activity(true)
 	_refresh()
 	_refresh_clock()
 	_refresh_sleep_info()
+
+
+func _exit_tree() -> void:
+	Minigame.detach()
+
+
+func _process(_delta: float) -> void:
+	if Minigame.running:
+		_refresh_minigame()
+
+
+## Space plays the cardio minigame on a computer.
+func _unhandled_key_input(event: InputEvent) -> void:
+	if Minigame.running and event.is_action_pressed("ui_accept"):
+		Minigame.tap()
 
 
 ## Clicking the health level or the health bar shows or hides the three measures.
@@ -319,11 +346,10 @@ func _refresh_activity(instant := false) -> void:
 	var option := Activities.current_option_data()
 	var alpha := 0.0
 	if Activities.is_running():
-		avatar.play_animation(str(option.get("animation", "")))
 		activity_backdrop.color = Color.html(str(option.get("background_color", "#000000")))
 		alpha = activity_backdrop_alpha
-	else:
-		avatar.stop_animation()
+	_refresh_animation()
+	_refresh_minigame()
 	if _backdrop_tween:
 		_backdrop_tween.kill()
 	if instant:
@@ -332,6 +358,38 @@ func _refresh_activity(instant := false) -> void:
 		_backdrop_tween = create_tween()
 		_backdrop_tween.tween_property(activity_backdrop, "modulate:a", alpha, backdrop_fade_seconds)
 	_refresh_phase()
+
+
+## The running activity's repeating animation. In the cardio minigame the avatar moves only with
+## the taps: it hops once per stride and stands still while it waits.
+func _refresh_animation() -> void:
+	if Activities.is_running() and not Minigame.running:
+		avatar.play_animation(str(Activities.current_option_data().get("animation", "")))
+	else:
+		avatar.stop_animation()
+
+
+func _on_session_changed() -> void:
+	_refresh_animation()
+	_refresh_minigame()
+
+
+func _on_stride() -> void:
+	avatar.stride(Minigame.walking)
+
+
+## The minigame takes the place of the four buttons while a session runs.
+func _refresh_minigame() -> void:
+	minigame_panel.visible = Minigame.running
+	action_grid.visible = not Minigame.running
+	if not Minigame.running:
+		return
+	var status := "MINIGAME_WAITING" if Minigame.waiting else ("MINIGAME_WALKING" if Minigame.walking else "MINIGAME_RUNNING")
+	minigame_status.text = tr(status)
+	minigame_steps.text = tr("MINIGAME_STEPS") % [Minigame.steps(), Minigame.steps_goal()]
+	breath_bar.value = Minigame.breath
+	var elapsed := 0.0 if Minigame.waiting else Minigame.seconds_since_tap / Minigame.interval()
+	beat_bar.show_time(elapsed, Config.get_float("minigame.on_beat_share"), Minigame.last_on_beat)
 
 
 func _refresh_sky() -> void:

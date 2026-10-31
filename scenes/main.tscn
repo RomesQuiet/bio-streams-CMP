@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" path="res://assets/art/ui/pause.svg" id="3_pause"]
 [ext_resource type="Texture2D" path="res://assets/art/ui/settings.svg" id="5_settings"]
 [ext_resource type="PackedScene" path="res://scenes/ui/debug_panel.tscn" id="6_debug"]
+[ext_resource type="Script" path="res://scripts/ui/beat_bar.gd" id="7_beat"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -131,6 +132,7 @@ grow_vertical = 2
 text = "UI_STOP"
 
 [node name="ActionGrid" type="GridContainer" parent="Margin/Layout"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/h_separation = 16
 theme_override_constants/v_separation = 16
@@ -163,6 +165,61 @@ custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "UI_ENTERTAINMENT"
+
+[node name="MinigamePanel" type="VBoxContainer" parent="Margin/Layout"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 256)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="InfoRow" type="HBoxContainer" parent="Margin/Layout/MinigamePanel"]
+layout_mode = 2
+
+[node name="MinigameStatus" type="Label" parent="Margin/Layout/MinigamePanel/InfoRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+
+[node name="MinigameSteps" type="Label" parent="Margin/Layout/MinigamePanel/InfoRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+
+[node name="BreathRow" type="HBoxContainer" parent="Margin/Layout/MinigamePanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BreathLabel" type="Label" parent="Margin/Layout/MinigamePanel/BreathRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "MINIGAME_BREATH"
+
+[node name="BreathBar" type="ProgressBar" parent="Margin/Layout/MinigamePanel/BreathRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.0
+show_percentage = false
+
+[node name="BeatBar" type="Control" parent="Margin/Layout/MinigamePanel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("7_beat")
+
+[node name="TapButton" type="Button" parent="Margin/Layout/MinigamePanel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+size_flags_vertical = 3
+focus_mode = 0
+text = "MINIGAME_TAP"
 
 [node name="HealthLevelButton" type="Button" parent="."]
 unique_name_in_owner = true

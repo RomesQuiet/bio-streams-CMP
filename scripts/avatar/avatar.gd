@@ -17,6 +17,8 @@ extends Control
 ## squat (squash and stretch).
 @export var cardio_seconds := 0.35
 @export var cardio_height := 36.0
+## One stride of the cardio minigame while walking.
+@export var walk_height := 12.0
 @export var strength_seconds := 1.4
 @export var strength_squash := Vector2(1.08, 0.88)
 ## Eating: a quick, small squash (chewing).
@@ -89,6 +91,14 @@ func play_animation(animation_name: String) -> void:
 		_:
 			_animation.tween_property(self, "hop_offset", hop_height, hop_seconds * 0.5)
 			_animation.tween_property(self, "hop_offset", 0.0, hop_seconds * 0.5)
+
+
+## One hop for one stride of the cardio minigame.
+func stride(walking: bool) -> void:
+	stop_animation()
+	_animation = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_animation.tween_property(self, "hop_offset", walk_height if walking else cardio_height, cardio_seconds * 0.5)
+	_animation.tween_property(self, "hop_offset", 0.0, cardio_seconds * 0.5)
 
 
 func stop_animation() -> void:
