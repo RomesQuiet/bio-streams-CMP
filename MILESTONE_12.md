@@ -1,6 +1,14 @@
 # Milestone 12 — Minutes slider and the cardio minigame
 
-**Status: Task 1 done (`c892ecb`). Tasks 2 to 6 in progress (31 October 2026).**
+**Status: complete (31 October 2026).** Task 1 `c892ecb`, Task 2 `2fdf35e`, Task 3 `096ef99`, Task 4 `fba7c68`, Task 5 `6912989`, Task 6 `839cd05` and the docs commit. Pushed up to `839cd05` by the user; the final web export is in the docs commit. All 25 tests pass, and the scenario test gives exactly the same output as before the minigame, so without a player nothing changed.
+
+**Changes made while building (beyond the plan):**
+
+- `Minigame.changing`: found in the code review. A change between running, walking and waiting in the middle of a 5-minute step gave those minutes to the new state; Simulation now runs the pending minutes first.
+- The Beat bar marker turns red after a tap off the beat.
+- A message when the wait runs out ("You stopped tapping, so I stopped.").
+
+**Checked in the web build (browser pane, 31 Oct 2026):** waiting holds the activity at 0 minutes; steady taps run it; the Breath bar empties at about 40 minutes on Normal and the avatar walks; after stopping the avatar stands still and the activity ends after 20 seconds; a second session starts tired; touch events work at phone width. The taps were sent by a script. **Not checked:** a real person playing it, and a real phone.
 
 Goal: the player chooses the minutes of an activity on a slider, as the concept has said for a while, and then the first minigame: **cardio**.
 
@@ -82,6 +90,7 @@ Read `CLAUDE.md` and `documentation/handoff.md` first. The concept's ideas for t
 ## Still open (for the team)
 
 - All the new numbers are placeholders, except the cadences, which are from the study.
+- **The time between taps hardly changes with the avatar:** 0.97 s on Easy to 1.04 s on Very hard, because the two cadence thresholds of the study are close. The big difference is how long it can run (76 against 12 avatar minutes). A wider range would need a source for running cadences above the vigorous threshold.
 - `minigame.min_performance` (0.7) now only applies while the player is tapping.
 - Severe thinness also limits exercise, but it is not in capacity: no source was read for it.
 - Football trains with a perfect score and no tapping (decision 29), so it can beat cardio.

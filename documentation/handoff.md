@@ -4,12 +4,12 @@ Last updated: 31 October 2026, in Milestone 12. Read this after `CLAUDE.md` when
 
 ## 1. Where the work stands
 
-- **Next: Milestone 12, minutes slider and the cardio minigame (`MILESTONE_12.md`).** Task 1 (slider) is built; the cardio minigame waits for the user's choices (decision 21).
+- **Milestone 12 (minutes slider and the cardio minigame, `MILESTONE_12.md`) is complete, pushed up to `839cd05`.** The taps in the web check were sent by a script, so how it feels for a person, and on a real phone, is not checked.
 - **Milestone 11 (settings panel and European Portuguese, `MILESTONE_11.md`) is complete and pushed (`25aada7`).** Still to do: the team checks the Portuguese (Claude's draft, above all the health terms), and someone tries it on a real phone (the pop-up name box in Portuguese was not tried there).
 - **Name on phones: the pop-up box stays (user, 30 Oct 2026).** `fe5c4c3` (`window.prompt`) is confirmed on a real Android phone. The virtual keyboard attempt `adfe369` never reached GitHub and was reverted untested on a real phone. The pop-up box was reported as doing nothing on 28 Oct, for an unknown reason (a cached old page is possible). Always confirm a push with `git ls-remote origin refs/heads/main` and the published file size: that push from GitHub Desktop failed silently.
 - **Milestone 10.5 is complete and pushed** (27 Oct 2026, published on GitHub Pages; the user checked the game in the Godot editor first; `MILESTONE_10_5.md`). It acts on the team's review of the Milestone 10 differences (`documentation/milestone10_review.md`): failure reads the target health, a 36-hour gap between strength sessions, a danger state for severe thinness, a better scenario test and a parity test that found the causes of the differences (`documentation/milestone10_calibration.md`).
 - **Milestone 10** (food as an activity + the whole health system rebuilt to Health Calculation Architecture v1) is pushed (`e3e6a89`, plus the handoff commit `6d3639b`).
-- **All 24 tests pass** (`tests/*_test.gd`; `calibration_test.gd` takes about 2.5 minutes and `parity_test.gd` about 5; the parity test prints numbers for the team and only fails if it crashes).
+- **All 25 tests pass** (`tests/*_test.gd`; `calibration_test.gd` takes about 2.5 minutes and `parity_test.gd` about 5; the parity test prints numbers for the team and only fails if it crashes).
 - **Waiting on the team:** the plan guesses, the training window, eating time and the hunger penalty, the danger-state and gap values (`documentation/milestone10_calibration.md`, "Proposals for the team"). No value was changed to fit the tests.
 
 ### Commit history of Milestone 11
@@ -80,7 +80,16 @@ Recorded in `MILESTONE_10.md` ("Decisions") and `documentation/milestone10_plan.
 | 18 | (Milestone 12) The minutes slider is built before the minigame. |
 | 19 | (Milestone 12) If the player does not tap, the activity is not done: the avatar does not do it and returns to normal after some seconds. |
 | 20 | (Milestone 12) The minigame score counts as the player goes, not once per session. |
-| 21 | (Milestone 12) How the player scores well and how long they tap are decided during development, by messaging. |
+| 21 | (Milestone 12) How the player scores well and how long they tap are decided during development (answered by 22 and 27). |
+| 22 | (Milestone 12) Cardio scores both rhythm and steps; the time between steps and their number depend on the avatar, and it tires. Follow the science. |
+| 23 | (Milestone 12) Those values come from fitness, BMI-for-age z and sleepiness, not the Physical bar. |
+| 24 | (Milestone 12) One tap is one stride, two steps (replaces the concept's "each click is one step"). |
+| 25 | (Milestone 12) The new fatigue applies inside each session only (replaces the concept's "no separate fatigue system"). |
+| 26 | (Milestone 12) When the Breath bar is empty the avatar walks until it refills. |
+| 27 | (Milestone 12) The player taps for the whole session. |
+| 28 | (Milestone 12) With no tap the avatar stands still and waits up to 20 seconds, then the activity ends. |
+| 29 | (Milestone 12) Football has no minigame for now and keeps the fixed score. |
+| 30 | (Milestone 12) All steps in a row, each reviewed and committed; no push; the user reviews at the end. |
 
 Other team decisions that still hold: k = 10 (applies to sleep debt too); there is no death, only failure; p = 0.5 for health. The team's review (27 Oct 2026) added the 36-hour strength gap, the danger state (z −3, 72 h, z −4) and the thinness risk term (placeholders).
 
@@ -129,6 +138,10 @@ Other team decisions that still hold: k = 10 (applies to sleep debt too); there 
 - **Activities must not run into the end of the awake period** in tests: the 0-hour rule starts a new day. The scenario test cuts an activity 0.01 h before the end.
 - **New test scripts get their `.uid` file only when the Godot editor scans the project**; commit the `.uid` files it creates.
 - **Translations:** after changing `translations/strings.csv`, run `Godot --headless --path . --import` before headless tests; the `.translation` files are ignored by git (`MILESTONE_11.md`). `tests/translation_test.gd` checks both languages, the formats, that every key exists and is used, and that no scene holds plain text. Tests that read text call `TranslationServer.set_locale("en")` or `Settings.set_language()` first, because the game follows the computer's language.
+- **Never trust an empty diff of two runs:** check first that both really finished. In Milestone 12 a before-and-after comparison of the scenario test was empty because both runs had been killed by the time limit, with the game open in the browser pane using the CPU. Count the PASS lines first.
+- **Comparing two versions of the project:** `git archive <commit> | tar -x -C <folder>` in the scratchpad gives a clean copy with no git link. It needs its own `--import`.
+- **Sending keys or touches to the web build from a script:** `new KeyboardEvent` or `new TouchEvent` dispatched on the canvas reach Godot, so a session can be played from `setInterval`.
+- **Reading the cadence paper:** PMC shows a reCAPTCHA to scripts and Springer asks for a login. The public Europe PMC API has the full text: `https://www.ebi.ac.uk/europepmc/webservices/rest/PMC5828000/fullTextXML`.
 - **Deleting on the web is not immediate.** `DirAccess.remove_absolute` on `user://` does not reach IndexedDB at once, so a deleted save can return after a reload, and a headless test cannot see this. Use something written to localStorage, which is immediate (`WEB_DELETED_KEY` in `save_game.gd`), and test with a real reload in the browser.
 - **The web build takes about 20 seconds to boot in the browser pane.** Do not read the Godot splash as a hang: check the console log first. To try another browser language, open a file on the fresh origin `127.0.0.1:8060`, override `navigator.language` on `Navigator.prototype`, load `/index.js` and call `new Engine(config).startGame()`; rewriting the page with `document.write` does not work.
 - **Shell:** macOS `sed` has no `\b`; use `perl -pi -e`. The Edit tool needs the file read first with the Read tool.
