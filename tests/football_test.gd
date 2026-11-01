@@ -34,6 +34,9 @@ func _process(_delta: float) -> bool:
 	_test_slow_time()
 	_test_events()
 	_test_asking_for_the_ball()
+	_test_tackles()
+	_test_blue_waits_for_the_button()
+	_test_computer_team()
 	print("ALL PASSED (0 failed)" if _failures == 0 else "SOME FAILED (%d failed)" % _failures)
 	quit(1 if _failures > 0 else 0)
 	return true
@@ -110,18 +113,11 @@ func _test_actions() -> void:
 	game.positions[0] = game.positions[4] + Vector2(10, 0)
 	_check("a tackle out of reach fails", not game.tackle() and game.defending())
 	game.positions[0] = game.positions[4] + Vector2(1, 0)
-	game.advance(1.1)
+	game = _new_match()
+	game.kick_off(false)
 	game.positions[0] = game.positions[4] + Vector2(1, 0)
-	var won := false
-	for _i in 20:
-		if game.can_tackle() and game.tackle():
-			won = game.has_ball()
-		if won:
-			break
-		game.advance(1.1)
-		if game.defending():
-			game.positions[0] = game.positions[game.owner] + Vector2(1, 0)
-	_check("tackles within reach win the ball", won)
+	game._values["tackle_chance"] = 1.0
+	_check("tackles within reach win the ball", game.tackle() and game.has_ball())
 	_check("no second tackle at once", not game.can_tackle())
 
 	game = _new_match()
@@ -169,17 +165,30 @@ func _bot_match(seed_value: int, seconds: float) -> RefCounted:
 ## A human-like player: the normal speed, reacts late, misjudges a little. Prints how the match
 ## goes, so the computer team's values can be chosen by people and not by a perfect player.
 func _human_match(seed_value: int, seconds: float, speed: float) -> Dictionary:
+	var last_time := [0.0]
+	var worst := [0]
 	var random := RandomNumberGenerator.new()
 	random.seed = seed_value
 	var game: RefCounted = _match_script.new(seed_value)
 	game.avatar_speed = speed
 	game.free_distance = 6.0
 	game.shot_range = 14.0
+	var recent := {}
+	game.tackled.connect(func(tackler: int, carrier: int, won: bool) -> void:
+		# A player who keeps trying and failing is not a loop; two who keep taking the ball are.
+		# Failed tackles end by themselves: the tackler is beaten or has to wait.
+		if not won:
+			return
+		var pair := "%d-%d" % [mini(tackler, carrier), maxi(tackler, carrier)]
+		var last: Array = recent.get(pair, [-100.0, 0])
+		recent[pair] = [last_time[0], last[1] + 1 if last_time[0] - last[0] < 3.0 else 1]
+		worst[0] = maxi(worst[0], recent[pair][1]))
 	var left := 0.0
 	var think := 0.0
 	var owned := 0.0
 	while left < seconds:
 		left += STEP
+		last_time[0] = left
 		think -= STEP
 		owned += STEP if game.has_ball() else 0.0
 		if think <= 0.0:
@@ -193,26 +202,32 @@ func _human_match(seed_value: int, seconds: float, speed: float) -> Dictionary:
 					game.pass_ball()
 			else:
 				game.stick = (game.ball - game.positions[0]).normalized()
-				if game.team_mate_has_ball() and random.randf() < 0.2:
+				if game.team_mate_in_shot_range():
+					game.team_mate_shoot()
+				elif game.team_mate_has_ball() and random.randf() < 0.2:
 					game.call_for_ball()
 				if game.in_tackle_reach() and game.can_tackle():
 					game.tackle()
 		game.advance(STEP)
-	return {"us": game.goals_us, "them": game.goals_them, "owned": owned / seconds}
+	return {"us": game.goals_us, "them": game.goals_them, "owned": owned / seconds, "worst": worst[0]}
 
 
 func _test_human_match() -> void:
 	var total := {"us": 0.0, "them": 0.0, "owned": 0.0}
 	var slow := {"us": 0.0, "them": 0.0, "owned": 0.0}
+	var worst := 0
 	for i in 8:
 		var one := _human_match(i + 1, 430.0, 7.4)
 		var two := _human_match(i + 1, 430.0, 6.1)
+		worst = maxi(worst, maxi(one["worst"], two["worst"]))
 		for key in total:
 			total[key] += one[key] / 8.0
 			slow[key] += two[key] / 8.0
 	print("  human-like player, 7 minutes, Normal speed: %.1f to %.1f, has the ball %.0f%% of the time" % [total["us"], total["them"], total["owned"] * 100.0])
 	print("  human-like player, 7 minutes, Very hard speed: %.1f to %.1f, has the ball %.0f%% of the time" % [slow["us"], slow["them"], slow["owned"] * 100.0])
 	_check("a human-like player scores and concedes", total["us"] > 0.0 and total["them"] > 0.0)
+	print("  most tackles in a row between the same two players: %d" % worst)
+	_check("two players never keep tackling each other", worst <= 2)
 
 
 func _test_whole_match() -> void:
@@ -372,7 +387,7 @@ func _test_events() -> void:
 	var before: Vector2 = game.positions[1]
 	game.advance(1.0)
 	_check("the match stops for a moment after a restart", game.stopped() and game.positions[1] == before)
-	game.advance(1.5)
+	game.advance(2.0)
 	_check("then it goes on", not game.stopped())
 
 
@@ -389,6 +404,110 @@ func _test_asking_for_the_ball() -> void:
 		if game.flight == 0:
 			break
 	_check("asking for the ball brings it to the avatar", game.has_ball())
+
+
+func _clear_field(game: RefCounted) -> void:
+	for i in game.positions.size():
+		game.positions[i] = Vector2(1, 1)
+
+
+func _test_tackles() -> void:
+	var game := _new_match()
+	var seen := []
+	game.tackled.connect(func(tackler: int, _carrier: int, won: bool) -> void: seen.append([tackler, won]))
+	game.kick_off(false)
+	_clear_field(game)
+	game.positions[4] = Vector2(15, 20)
+	game.positions[1] = Vector2(16, 20)
+	game.positions[0] = Vector2(2, 2)
+	_check("a blue player in reach counts when the avatar is far", game.tackler_in_reach() == 1)
+	game._values["tackle_chance"] = 0.0
+	_check("the button makes the blue player tackle", game.tackle() and game.last_tackler == 1)
+	_check("a failed tackle ends: the red player keeps the ball", seen == [[1, false]] and game.owner == 4)
+	var beaten: Vector2 = game.positions[1]
+	game.advance(0.5)
+	_check("the loser is pushed back and stands still", game.is_beaten(1) and game.positions[1] == beaten)
+	game = _new_match()
+	seen = []
+	game.tackled.connect(func(tackler: int, _carrier: int, won: bool) -> void: seen.append([tackler, won]))
+	game.kick_off(false)
+	game.positions[4] = Vector2(15, 20)
+	game.positions[0] = Vector2(16, 20)
+	game._values["tackle_chance"] = 1.0
+	_check("a won tackle gives the ball to the tackler", game.tackle() and game.has_ball())
+	_check("the red player who lost is beaten", game.is_beaten(4))
+	_check("and is pushed away", game.positions[4].distance_to(game.positions[0]) > 2.0)
+
+
+func _test_blue_waits_for_the_button() -> void:
+	var game := _new_match()
+	var tackles := []
+	game.tackled.connect(func(tackler: int, _carrier: int, _won: bool) -> void: tackles.append(tackler))
+	for _i in roundi(120.0 / STEP):
+		game.advance(STEP)
+	var blue: Array = tackles.filter(func(tackler: int) -> bool: return tackler < 4)
+	print("  2 minutes without pressing: %d tackles, %d by blue" % [tackles.size(), blue.size()])
+	_check("blue players never tackle by themselves", blue.is_empty())
+
+	game = _new_match()
+	_clear_field(game)
+	game.owner = 1
+	game.positions[1] = Vector2(15, 36)
+	game.positions[0] = Vector2(15, 20)
+	game.stick = Vector2.ZERO
+	for i in range(4, 8):
+		game.positions[i] = Vector2(0, 0)
+	game._values["cpu_speed"] = 0.0
+	for _i in 200:
+		game.advance(STEP)
+	_check("a blue player in range waits for the button", game.owner == 1 and game.flight == 0)
+	_check("the hint can see it", game.team_mate_in_shot_range())
+	_check("the button makes it shoot", game.team_mate_shoot() and game.flight == 2)
+
+
+func _test_computer_team() -> void:
+	var game := _new_match()
+	game.kick_off(false)
+	_clear_field(game)
+	game.owner = 4
+	game.positions[4] = Vector2(15, 25)
+	game.positions[1] = Vector2(15, 22)
+	var way: Vector2 = game._target(4)
+	_check("a red player goes around a blue player in its way", absf(way.x - 15.0) > 1.0)
+
+	game = _new_match()
+	game.kick_off(false)
+	_clear_field(game)
+	game.owner = 4
+	game.positions[4] = Vector2(15, 30)
+	game.positions[5] = Vector2(5, 15)
+	game.positions[6] = Vector2(25, 15)
+	game.positions[7] = Vector2(15, 40)
+	game.positions[0] = Vector2(10, 22)
+	game.positions[1] = Vector2(29, 44)
+	game.positions[2] = Vector2(29, 43)
+	game.positions[3] = Vector2(29, 42)
+	_check("a red player does not pass through a blue player", game._best_pass(4) == 6)
+
+	game = _new_match()
+	_clear_field(game)
+	game.owner = 0
+	game.positions[0] = Vector2(15, 30)
+	game.positions[5] = Vector2(15, 33)
+	_check("a defender in the way lowers a shot's chance", game._shot_chance(0, 0.5) < 0.5)
+	game.positions[5] = Vector2(1, 1)
+	_check("a clear shot keeps its chance", is_equal_approx(game._shot_chance(0, 0.5), 0.5))
+
+	game = _new_match()
+	game.owner = 0
+	game.positions[0] = Vector2(15, 20)
+	game.positions[1] = Vector2(5, 30)
+	game.positions[2] = Vector2(25, 30)
+	game._assign_marks()
+	_check("defenders mark the attackers", game._marks.size() >= 1)
+	var defender: int = game._marks.keys()[0]
+	var attacker: Vector2 = game.positions[game._marks[defender]]
+	_check("a marker goes to the side of its goal", game._defend(defender, 0).y > attacker.y)
 
 
 func _test_saving(save_game: Node) -> void:

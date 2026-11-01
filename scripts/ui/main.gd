@@ -543,7 +543,7 @@ func _refresh_football() -> void:
 	football_pad.pass_text = _with_key("MINIGAME_ASK" if ask else "MINIGAME_PASS", "Z", keys)
 	football_pad.shoot_text = _with_key("MINIGAME_TACKLE" if game.defending() else "MINIGAME_SHOOT", "X", keys)
 	football_pad.pass_enabled = game.has_ball() or ask
-	football_pad.shoot_enabled = game.has_ball() or game.in_tackle_reach()
+	football_pad.shoot_enabled = game.has_ball() or ask or game.in_tackle_reach()
 	football_pad.keys_text = tr("FOOTBALL_KEYS")
 	football_pad.queue_redraw()
 
@@ -568,7 +568,7 @@ func _football_hint() -> String:
 			return "FOOTBALL_HINT_SHOOT"
 		return "FOOTBALL_HINT_PASS" if game.under_pressure() else "FOOTBALL_HINT_RUN"
 	if game.team_mate_has_ball():
-		return "FOOTBALL_HINT_ASK"
+		return "FOOTBALL_HINT_MATE_SHOOT" if game.team_mate_in_shot_range() else "FOOTBALL_HINT_ASK"
 	if game.defending():
 		return "FOOTBALL_HINT_TACKLE" if game.in_tackle_reach() else "FOOTBALL_HINT_CHASE"
 	return "FOOTBALL_HINT_BALL"

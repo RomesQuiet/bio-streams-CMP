@@ -270,16 +270,20 @@ func pass_ball() -> void:
 		game.call_for_ball()
 
 
-## The player pressed Shoot, which is Tackle while an opponent has the ball (football).
+## The player pressed Shoot, which is Tackle while an opponent has the ball (football). A
+## team-mate with the ball shoots, and a blue player in reach tackles when the avatar is too far.
 func shoot_or_tackle() -> void:
 	if not _football_ready():
 		return
 	if game.has_ball():
 		_judge(game.shoot())
 		_football_move("minigame.football.shot_cost")
+	elif game.team_mate_has_ball():
+		_judge(game.team_mate_shoot())
+		_football_move("")
 	elif game.can_tackle():
 		_judge(game.tackle())
-		_football_move("minigame.football.tackle_cost")
+		_football_move("minigame.football.tackle_cost" if game.last_tackler < 1 else "")
 
 
 ## Real time passed while the game is not paused.
@@ -356,7 +360,9 @@ func _football_input() -> void:
 func _football_move(cost: String) -> void:
 	strides += 1
 	strode.emit(last_on_beat)
-	_spend_breath(Config.get_float(cost) / Config.get_float("minigame.football.time_slowdown"))
+	# A move a team-mate makes costs the avatar no Breath.
+	if not cost.is_empty():
+		_spend_breath(Config.get_float(cost) / Config.get_float("minigame.football.time_slowdown"))
 
 
 func _spend_breath(amount: float) -> void:

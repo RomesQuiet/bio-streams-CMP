@@ -4,8 +4,8 @@ Last updated: 31 October 2026, in Milestone 12. Read this after `CLAUDE.md` when
 
 ## 1. Where the work stands
 
-- **Milestone 14 (the football minigame, `MILESTONE_14.md`) is built and committed, not pushed.** The user played the second round (decisions 47 and 48, `MILESTONE_14.md`) and is happy with it (31 Oct 2026). Waiting on the user: push from GitHub Desktop. A real phone is not confirmed.
-- **Milestone 13 (the strength minigame, `MILESTONE_13.md`) is built and committed, not pushed.** The user played it and is happy with it (31 Oct 2026). Waiting on the user: push from GitHub Desktop. A real phone is not confirmed.
+- **Milestone 14 (the football minigame, `MILESTONE_14.md`) is pushed up to `b040049`.** The third round (decisions 49 to 51, `MILESTONE_14.md`, 1 Nov 2026) is committed, not pushed: the user plays it and pushes. A real phone is not confirmed.
+- **Milestone 13 (the strength minigame, `MILESTONE_13.md`) is complete and pushed.** The user played it and is happy with it. A real phone is not confirmed.
 - **Milestone 12 (minutes slider and the cardio minigame, `MILESTONE_12.md`) is complete, pushed up to `839cd05`.** The taps in the web check were sent by a script, so how it feels for a person, and on a real phone, is not checked.
 - **Milestone 11 (settings panel and European Portuguese, `MILESTONE_11.md`) is complete and pushed (`25aada7`).** Still to do: the team checks the Portuguese (Claude's draft, above all the health terms), and someone tries it on a real phone (the pop-up name box in Portuguese was not tried there).
 - **Name on phones: the pop-up box stays (user, 30 Oct 2026).** `fe5c4c3` (`window.prompt`) is confirmed on a real Android phone. The virtual keyboard attempt `adfe369` never reached GitHub and was reverted untested on a real phone. The pop-up box was reported as doing nothing on 28 Oct, for an unknown reason (a cached old page is possible). Always confirm a push with `git ls-remote origin refs/heads/main` and the published file size: that push from GitHub Desktop failed silently.
@@ -103,7 +103,7 @@ Recorded in `MILESTONE_10.md` ("Decisions") and `documentation/milestone10_plan.
 
 Other team decisions that still hold: k = 10 (applies to sleep debt too); there is no death, only failure; p = 0.5 for health. The team's review (27 Oct 2026) added the 36-hour strength gap, the danger state (z −3, 72 h, z −4) and the thinness risk term (placeholders).
 
-Decisions 39 to 48 (Milestone 14, football) are in `MILESTONE_14.md`. Decision 39 replaces decision 29.
+Decisions 39 to 51 (Milestone 14, football) are in `MILESTONE_14.md`. Decision 39 replaces decision 29.
 
 ## 3. What is still open
 
@@ -167,6 +167,8 @@ Decisions 39 to 48 (Milestone 14, football) are in `MILESTONE_14.md`. Decision 3
 
 - A test player must be human-like to judge a match: the perfect one won 8 to 0 while one with human reactions lost 2 to 23 against the same values (`_human_match` in `tests/football_test.gd`).
 - `Activities.start()` now unpauses before `started`, so a screen opening at the start can pause the day.
+
+- A match can look healthy and still stall: count who holds the ball and who shoots. Red once passed sideways for ever, and very few goals were the only sign.
 
 ## 6. Commands
 

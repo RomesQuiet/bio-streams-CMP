@@ -1,12 +1,17 @@
 extends RefCounted
-## The football match of the minigame (Milestone 14, decisions 39 to 46): the idea of classic
+## The football match of the minigame (Milestone 14, decisions 39 to 51): the idea of classic
 ## arcade football, seen from above. The avatar's team attacks upwards (y grows). Player 0 is the
 ## avatar; the others are computer players. This script knows nothing about the screen or health.
 ## It runs in fixed steps with its own random generator, so a seed always plays the same match.
 ## Numbers are in Config (group minigame.football).
+## A tackle always ends: the tackler wins the ball or fails, and whoever lost is beaten for a moment
+## (pushed back, standing still), so two players can never keep taking the ball from each other.
+## Blue computer players never tackle or shoot by themselves: they wait for the player's button.
 
 ## What just happened, for the player. Each is a key of translations/strings.csv.
 signal happened(key: String)
+## A tackle ended. won: the tackler has the ball now.
+signal tackled(tackler: int, carrier: int, won: bool)
 
 const NOBODY := -1
 enum Flight {NONE, PASS, SHOT}
@@ -46,6 +51,12 @@ var _shooter_team := 0
 var _pause_left := 0.0
 ## Real seconds in which a player who just got the ball cannot be tackled.
 var _safe_left := 0.0
+## Real seconds each player is still beaten after losing a tackle.
+var _beaten_left: Array[float] = []
+## Defender -> the attacker it marks, worked out every step.
+var _marks := {}
+## Who made the last tackle the button asked for, or NOBODY.
+var last_tackler := NOBODY
 
 
 func _init(seed_value: int) -> void:
@@ -56,6 +67,7 @@ func _init(seed_value: int) -> void:
 	length = _value("field_length")
 	_tick = _value("tick_seconds")
 	positions.resize(team_size + team_size)
+	_beaten_left.resize(positions.size())
 	kick_off(true)
 
 
@@ -65,6 +77,7 @@ func kick_off(ours: bool, stop := false) -> void:
 	_pause_left = _value("restart_seconds") if stop else 0.0
 	for i in positions.size():
 		positions[i] = _home(i, false)
+		_beaten_left[i] = 0.0
 	owner = 0 if ours else team_size
 	ball = positions[owner]
 	flight = Flight.NONE
@@ -76,7 +89,7 @@ func kick_off(ours: bool, stop := false) -> void:
 
 ## Real seconds passed. Runs whole steps, so the frame rate does not change the match.
 func advance(seconds: float) -> void:
-	_left += seconds
+	_left += seconds * _value("match_pace")
 	while _left >= _tick:
 		_left -= _tick
 		_step(_tick)
@@ -95,13 +108,35 @@ func can_tackle() -> bool:
 	return defending() and _own_tackle_left <= 0.0
 
 
+## The player the button would use to tackle: the avatar if it is close enough, or the nearest
+## blue player who is, or NOBODY.
+func tackler_in_reach() -> int:
+	if not defending():
+		return NOBODY
+	var reach := _value("tackle_reach")
+	if positions[0].distance_to(positions[owner]) <= reach:
+		return 0
+	var nearest := _nearest_computer(0, positions[owner])
+	return nearest if positions[nearest].distance_to(positions[owner]) <= reach else NOBODY
+
+
 func in_tackle_reach() -> bool:
-	return defending() and positions[0].distance_to(positions[owner]) <= _value("tackle_reach")
+	return tackler_in_reach() != NOBODY
+
+
+## A player lost a tackle a moment ago.
+func is_beaten(player: int) -> bool:
+	return _beaten_left[player] > 0.0
 
 
 ## A team-mate has the ball: the player can ask for it.
 func team_mate_has_ball() -> bool:
 	return owner > 0 and owner < team_size
+
+
+## A team-mate has the ball close enough to goal for a good shot.
+func team_mate_in_shot_range() -> bool:
+	return team_mate_has_ball() and positions[owner].distance_to(_goal(0)) <= shot_range
 
 
 ## An opponent is close to the avatar.
@@ -161,24 +196,34 @@ func shoot() -> bool:
 	var good := in_shot_range()
 	if not good:
 		happened.emit("FOOTBALL_SHOT_FAR")
-	_shoot(_value("goal_chance_good") if good else _value("goal_chance_far"))
+	_shoot(_shot_chance(0, _value("goal_chance_good") if good else _value("goal_chance_far")))
 	return good
 
 
-## The avatar tries to tackle, at most once per tackle time. Returns true if the opponent was
-## within reach, a good tackle even if it does not always win the ball.
+## The player pressed Shoot while a team-mate has the ball. Returns true for a good shot.
+func team_mate_shoot() -> bool:
+	if not team_mate_has_ball():
+		return false
+	var good := team_mate_in_shot_range()
+	if not good:
+		happened.emit("FOOTBALL_SHOT_FAR")
+	_shoot(_shot_chance(owner, _value("goal_chance_good") if good else _value("goal_chance_far")))
+	return good
+
+
+## The player pressed Tackle, at most once per tackle time. The avatar tackles if it is close
+## enough, otherwise the nearest blue player who is. Returns true if someone was within reach,
+## a good tackle even if it does not always win the ball.
 func tackle() -> bool:
 	if not can_tackle():
 		return false
 	_own_tackle_left = _value("tackle_seconds")
-	if not in_tackle_reach():
+	last_tackler = tackler_in_reach()
+	if last_tackler == NOBODY:
 		happened.emit("FOOTBALL_TACKLE_FAR")
 		return false
-	if _rng.randf() < _value("tackle_chance"):
-		_receive(0)
-		happened.emit("FOOTBALL_TACKLE_WON")
-	else:
-		happened.emit("FOOTBALL_TACKLE_MISSED")
+	var won := _resolve_tackle(last_tackler, _value("tackle_chance"))
+	happened.emit("FOOTBALL_TACKLE_WON" if won else "FOOTBALL_TACKLE_MISSED")
 	return true
 
 
@@ -188,10 +233,14 @@ func _step(seconds: float) -> void:
 		return
 	_own_tackle_left -= seconds
 	_safe_left -= seconds
+	_assign_marks()
 	var move := stick.limit_length(1.0) * avatar_speed * seconds
 	positions[0] = _on_field(positions[0] + move)
 	for i in range(1, positions.size()):
-		positions[i] = _on_field(positions[i].move_toward(_target(i), _value("cpu_speed") * seconds))
+		if is_beaten(i):
+			_beaten_left[i] -= seconds
+		else:
+			positions[i] = _on_field(positions[i].move_toward(_target(i), _value("cpu_speed") * seconds))
 	if flight != Flight.NONE:
 		_move_ball(seconds)
 	elif owner != NOBODY:
@@ -206,7 +255,7 @@ func _move_ball(seconds: float) -> void:
 	if flight == Flight.PASS:
 		_ball_target = positions[_receiver]
 		for i in positions.size():
-			if _team(i) != _team(_receiver) and positions[i].distance_to(ball) <= _value("intercept_radius"):
+			if _team(i) != _team(_receiver) and not is_beaten(i) and positions[i].distance_to(ball) <= _value("intercept_radius"):
 				if _team(i) == 1:
 					happened.emit("FOOTBALL_INTERCEPTED")
 				_receive(i)
@@ -263,33 +312,144 @@ func _shoot(chance: float) -> void:
 	_shot_scores = _rng.randf() < chance
 
 
+## Who has the ball, or will have it when the pass lands, or NOBODY.
+func _holder() -> int:
+	return owner if owner != NOBODY else _receiver
+
+
 ## Where a computer player wants to go.
 func _target(player: int) -> Vector2:
 	var team := _team(player)
 	if player == owner:
-		return _goal(team)
-	if owner == NOBODY:
-		return ball if player == _nearest_computer(team, ball) else _home(player, true)
-	if _team(owner) != team and player == _nearest_computer(team, positions[owner]):
-		return positions[owner]
+		return _carrier_target(player)
+	var holder := _holder()
+	if holder == NOBODY:
+		return ball if player == _nearest_computer(team, ball) else _support(player)
+	return _support(player) if _team(holder) == team else _defend(player, holder)
+
+
+## With the ball: towards goal, going around an opponent in the way. A blue player stops in
+## shooting distance and waits for the player's button.
+func _carrier_target(player: int) -> Vector2:
+	var team := _team(player)
+	var here := positions[player]
+	if team == 0 and here.distance_to(_goal(team)) <= _value("mate_hold_range"):
+		return here
+	var way := here.direction_to(_goal(team))
+	var rival := positions[_nearest_of(1 - team, here)] - here
+	if rival.length() < _value("dodge_radius") and rival.dot(way) > 0.0:
+		var side := way.orthogonal()
+		way = (way + (-side if side.dot(rival) > 0.0 else side) * _value("dodge_share")).normalized()
+	return here + way * length
+
+
+## Attacking without the ball: ahead of the formation, away from the nearest opponent.
+func _support(player: int) -> Vector2:
+	var team := _team(player)
+	var spot := _home(player, true)
+	var holder := _holder()
+	if holder != NOBODY and _team(holder) == team:
+		spot.y += _up(team) * _value("support_push")
+	var away := spot - positions[_nearest_of(1 - team, spot)]
+	var room := _value("support_room")
+	if away.length() < room:
+		spot += away.normalized() * (room - away.length())
+	return _on_field(spot)
+
+
+## Defending, blue: the nearest player runs close to whoever has the ball, so the button can use
+## it to tackle. Red defends better: the nearest player goes to the side of its goal, the last
+## player guards the goal, and the others mark the attackers.
+func _defend(player: int, holder: int) -> Vector2:
+	var team := _team(player)
+	if team == 0:
+		var closest := player == _nearest_computer(team, positions[holder])
+		return positions[holder] + positions[holder].direction_to(positions[player]) * _value("press_gap") if closest else _home(player, true)
+	var own_goal := _goal(1 - team)
+	if player == _nearest_computer(team, positions[holder]):
+		return positions[holder] + positions[holder].direction_to(own_goal) * _value("press_gap")
+	if player == _keeper():
+		return own_goal + own_goal.direction_to(ball) * _value("keeper_depth")
+	if _marks.has(player):
+		var mark: Vector2 = positions[_marks[player]]
+		return mark + mark.direction_to(own_goal) * _value("mark_gap")
 	return _home(player, true)
 
 
-## A computer player tries to take the ball from a close opponent, at most once per tackle time.
+## Red's last defender.
+func _keeper() -> int:
+	return team_size + team_size - 1
+
+
+## Each free red defender takes the most dangerous blue attacker left: the one nearest its goal.
+func _assign_marks() -> void:
+	_marks.clear()
+	var holder := _holder()
+	if holder == NOBODY or _team(holder) == 1:
+		return
+	var own_goal := _goal(0)
+	var attackers: Array[int] = []
+	for i in _members(0, 0):
+		if i != holder:
+			attackers.append(i)
+	attackers.sort_custom(func(a: int, b: int) -> bool:
+		return positions[a].distance_to(own_goal) < positions[b].distance_to(own_goal))
+	var presser := _nearest_computer(1, positions[holder])
+	var spare: Array[int] = []
+	for i in _members(1, 0):
+		if i != presser and i != _keeper() and not is_beaten(i):
+			spare.append(i)
+	for attacker in attackers:
+		var best := NOBODY
+		for defender in spare:
+			if best == NOBODY or positions[defender].distance_to(positions[attacker]) < positions[best].distance_to(positions[attacker]):
+				best = defender
+		if best != NOBODY:
+			_marks[best] = attacker
+			spare.erase(best)
+
+
+## A red player tries to take the ball from a close blue player, at most once per tackle time.
+## Blue computer players only tackle when the player presses the button.
 func _computer_tackle(seconds: float) -> void:
 	_tackle_left -= seconds
-	if _tackle_left > 0.0 or owner == NOBODY or _safe_left > 0.0:
+	if _tackle_left > 0.0 or owner == NOBODY or _team(owner) == 1 or _safe_left > 0.0:
+		return
+	var tackler := _nearest_computer(1, positions[owner])
+	if positions[tackler].distance_to(positions[owner]) > _value("cpu_tackle_reach"):
 		return
 	_tackle_left = _value("cpu_tackle_seconds")
-	var tackler := _nearest_computer(1 - _team(owner), positions[owner])
-	if positions[tackler].distance_to(positions[owner]) <= _value("cpu_tackle_reach") \
-			and _rng.randf() < _value("cpu_tackle_chance"):
-		if owner == 0:
-			happened.emit("FOOTBALL_LOST_BALL")
+	var carrier := owner
+	if _resolve_tackle(tackler, _value("cpu_tackle_chance")) and carrier == 0:
+		happened.emit("FOOTBALL_LOST_BALL")
+
+
+## A tackle always ends here: the tackler wins the ball or fails, and the loser is beaten.
+## Returns true if the tackler won.
+func _resolve_tackle(tackler: int, chance: float) -> bool:
+	var carrier := owner
+	var won := _rng.randf() < chance
+	_beat(carrier if won else tackler, tackler if won else carrier)
+	if won:
 		_receive(tackler)
+	tackled.emit(tackler, carrier, won)
+	return won
 
 
-## A computer player with the ball decides from time to time: shoot, pass or keep running.
+## The loser of a tackle is pushed back and stands still for a moment. The player's avatar always
+## keeps moving, but it cannot tackle back at once.
+func _beat(loser: int, winner: int) -> void:
+	if loser == 0:
+		_own_tackle_left = _value("tackle_seconds")
+		return
+	var away := positions[winner].direction_to(positions[loser])
+	positions[loser] = _on_field(positions[loser] + (away if away != Vector2.ZERO else Vector2.RIGHT) * _value("knockback"))
+	_beaten_left[loser] = _value("beaten_seconds")
+
+
+## A computer player with the ball decides from time to time. Red shoots when it has a clear
+## chance and only passes forward, so it keeps attacking. Blue only passes to escape pressure:
+## its shots wait for the player's button.
 func _computer_carrier(seconds: float) -> void:
 	if owner == NOBODY or owner == 0:
 		return
@@ -298,19 +458,58 @@ func _computer_carrier(seconds: float) -> void:
 		return
 	_decide_left = _value("cpu_decide_seconds")
 	var team := _team(owner)
-	if positions[owner].distance_to(_goal(team)) <= _value("cpu_shot_range"):
-		_shoot(_value("cpu_goal_chance"))
-	elif _nearest_distance(owner, 1 - team) < _value("cpu_press_radius") or _rng.randf() < _value("cpu_pass_chance"):
-		_pass_to(_freest_team_mate(owner))
+	if team == 1 and _wants_to_shoot(owner):
+		_shoot(_shot_chance(owner, _value("cpu_goal_chance")))
+		return
+	var mate := _best_pass(owner)
+	if mate == NOBODY:
+		return
+	var pressed := _nearest_distance(owner, 1 - team) < _value("cpu_press_radius")
+	var forward := (positions[mate].y - positions[owner].y) * _up(team)
+	if team == 0:
+		if pressed:
+			_pass_to(mate)
+	elif (pressed and forward >= 0.0) or (forward >= _value("pass_gain") and _rng.randf() < _value("cpu_pass_chance")):
+		_pass_to(mate)
 
 
-func _freest_team_mate(player: int) -> int:
+## In range with a clear view of the goal, or so close that it does not matter.
+func _wants_to_shoot(player: int) -> bool:
+	var distance := positions[player].distance_to(_goal(_team(player)))
+	if distance > _value("cpu_shot_range"):
+		return false
+	return distance <= _value("close_range") or not _shot_blocked(player)
+
+
+## The goal chance of a shot, lower when a defender stands in its way.
+func _shot_chance(player: int, chance: float) -> float:
+	return chance * _value("block_share") if _shot_blocked(player) else chance
+
+
+func _shot_blocked(player: int) -> bool:
+	var team := _team(player)
+	return _lane_blocked(positions[player], _goal(team), 1 - team, _value("block_radius"))
+
+
+func _lane_blocked(from: Vector2, to: Vector2, team: int, radius: float) -> bool:
+	for i in _members(team, 0):
+		if not is_beaten(i) and Geometry2D.get_closest_point_to_segment(positions[i], from, to).distance_to(positions[i]) <= radius:
+			return true
+	return false
+
+
+## The team-mate worth passing to: free, further forward, and with no opponent in the way.
+func _best_pass(player: int) -> int:
 	var team := _team(player)
 	var best := NOBODY
-	var best_distance := -INF
-	for i in positions.size():
-		if i != player and _team(i) == team and _nearest_distance(i, 1 - team) > best_distance:
-			best_distance = _nearest_distance(i, 1 - team)
+	var best_value := -INF
+	for i in _members(team, 0):
+		if i == player or _lane_blocked(positions[player], positions[i], 1 - team, _value("lane_radius")):
+			continue
+		var forward := (positions[i].y - positions[player].y) * _up(team)
+		var value := _nearest_distance(i, 1 - team) + forward * _value("forward_weight")
+		if value > best_value:
+			best_value = value
 			best = i
 	return best
 
@@ -335,6 +534,15 @@ func _team(player: int) -> int:
 	return 0 if player < team_size else 1
 
 
+## +1 for the team attacking up the field, -1 for the other.
+func _up(team: int) -> float:
+	return 1.0 if team == 0 else -1.0
+
+
+func _members(team: int, first: int) -> Array:
+	return range(team * team_size + first, team * team_size + team_size)
+
+
 func _on_field(point: Vector2) -> Vector2:
 	return point.clamp(Vector2.ZERO, Vector2(width, length))
 
@@ -343,16 +551,18 @@ func _nearest_of(team: int, point: Vector2) -> int:
 	return _nearest(team, point, 0)
 
 
-## The avatar is left out: the player moves it.
+## The avatar is left out: the player moves it. For the other team, nobody is left out, because
+## first only skips a player of the avatar's team.
 func _nearest_computer(team: int, point: Vector2) -> int:
-	return _nearest(team, point, 1)
+	return _nearest(team, point, 1 - team)
 
 
+## The nearest player who is not beaten.
 func _nearest(team: int, point: Vector2, first: int) -> int:
 	var best := NOBODY
 	var best_distance := INF
-	for i in range(team * team_size + first if team == 0 else team_size, team_size + team * team_size):
-		if positions[i].distance_to(point) < best_distance:
+	for i in _members(team, first):
+		if not is_beaten(i) and positions[i].distance_to(point) < best_distance:
 			best_distance = positions[i].distance_to(point)
 			best = i
 	return best

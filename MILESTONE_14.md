@@ -1,6 +1,20 @@
 # Milestone 14 — The football minigame
 
-**Status: built and committed (31 October 2026), not pushed.** The user played the second round and is happy with it, and pushes next.
+**Status: pushed up to `b040049`. The third round (1 November 2026) is committed, not pushed:** the user plays it and pushes.
+
+**Third round, after the user played the second (1 Nov 2026):** "a little bit easy", 80% of the pace, a smarter enemy, and the tackle loop.
+
+| # | Question | Decision |
+|---|---|---|
+| 49 | How fast is the match? | **80% of the speed it had** (`match_pace`): players, ball and timers. |
+| 50 | Who decides for blue? | **The player.** Blue computer players never tackle or shoot by themselves. Shoot makes a team-mate with the ball shoot. Tackle uses the avatar if it is close enough, otherwise the nearest blue player in reach. Blue still passes alone to escape pressure, and stops near goal to wait for the button (Claude's choice). |
+| 51 | How does a tackle end? | **Always, in one try:** the tackler wins the ball or fails. The loser is pushed back and stands still for 1.5 s. The avatar is never frozen; it just cannot tackle back at once. |
+
+**The loop:** a tackler stood on top of the player it took the ball from, so a second later that player tackled back, for ever. Decision 51 ends it; `tests/football_test.gd` plays 16 matches and the same two players never exchange the ball more than twice in a row.
+
+**The smarter red team (Claude's choices, placeholders):** the nearest defender stands on the side of its goal, the last one guards the goal, and the others mark the blue attackers, so fewer team-mates are free. With the ball, red goes around a blue player, passes only forward and never through a blue player, and shoots when it has a clear view. A defender on the line of a shot halves its chance, for both teams. Blue computer players defend more simply, on purpose.
+
+**Retuned:** the player's tackle was too strong (it won 0.6 of the time from 2.5 away, every second): now 0.4, 2 away, every 1.2 s. The human-like test player now loses about 2 to 7.6 at Normal speed and 1.4 to 6.4 at Very hard speed (it lost 2.5 to 5 before, and the user found that a little easy).
 
 **Changes made while building (beyond the plan):**
 

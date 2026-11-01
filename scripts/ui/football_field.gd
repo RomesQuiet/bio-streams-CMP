@@ -127,7 +127,7 @@ func _draw_goal(centre: Vector2, scale_x: float, color: Color, side: float) -> v
 func _draw_shot_zone(scale_x: float, ground: float) -> void:
 	var goal := _screen(Vector2(game.width * 0.5, game.length), scale_x, ground)
 	var radius: float = game.shot_range * scale_x
-	var inside: bool = game.has_ball() and game.in_shot_range()
+	var inside: bool = (game.has_ball() and game.in_shot_range()) or game.team_mate_in_shot_range()
 	var points := PackedVector2Array([goal])
 	for i in 33:
 		var angle := PI * i / 32.0
@@ -151,12 +151,14 @@ func _draw_players(scale_x: float, ground: float) -> void:
 	for i in range(game.positions.size() - 1, 0, -1):
 		var point := _screen(game.positions[i], scale_x, ground)
 		var ours: bool = i < game.team_size
-		_draw_egg(point, PLAYER_RADIUS, TEAM_COLOR if ours else OTHER_COLOR)
+		var color: Color = TEAM_COLOR if ours else OTHER_COLOR
+		# A player who lost a tackle looks faded until it can move again.
+		_draw_egg(point, PLAYER_RADIUS, color.lerp(Color.GRAY, 0.6) if game.is_beaten(i) else color)
 		if ours and game.is_free(i):
 			draw_arc(point, PLAYER_RADIUS * 1.6, 0.0, TAU, 32, GOOD_COLOR, LINE_WIDTH)
 		if i == game.owner and not ours:
-			var color: Color = GOOD_COLOR if game.in_tackle_reach() else WARN_COLOR
-			draw_arc(point, PLAYER_RADIUS * 1.6, 0.0, TAU, 32, color, LINE_WIDTH + 2.0)
+			var ring: Color = GOOD_COLOR if game.in_tackle_reach() else WARN_COLOR
+			draw_arc(point, PLAYER_RADIUS * 1.6, 0.0, TAU, 32, ring, LINE_WIDTH + 2.0)
 	var you := _screen(game.positions[0], scale_x, ground)
 	_draw_egg(you, YOU_RADIUS, YOU_COLOR)
 	# A bouncing marker and a name, so the player finds the avatar at once.

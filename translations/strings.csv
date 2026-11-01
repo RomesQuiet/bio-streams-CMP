@@ -83,9 +83,10 @@ FOOTBALL_HINT_START_TOUCH,Move the joystick to start,Mexe o joystick para começ
 FOOTBALL_HINT_RUN,Run up towards the red goal,"Corre para cima, até à baliza vermelha"
 FOOTBALL_HINT_SHOOT,In the green zone: shoot now!,Na zona verde: remata agora!
 FOOTBALL_HINT_PASS,Under pressure: pass the ball,Sob pressão: passa a bola
-FOOTBALL_HINT_ASK,"Run forward, or ask for the ball",Corre para a frente ou pede a bola
+FOOTBALL_HINT_ASK,"Press Pass to ask for the ball, or run forward","Carrega em Passe para pedir a bola, ou corre para a frente"
+FOOTBALL_HINT_MATE_SHOOT,Your team-mate is in range: press Shoot!,O teu colega está perto da baliza: carrega em Rematar!
 FOOTBALL_HINT_CHASE,Run at the red player with the ball,Corre para o jogador vermelho com a bola
-FOOTBALL_HINT_TACKLE,Close enough: tackle now!,Já estás perto: desarma agora!
+FOOTBALL_HINT_TACKLE,A blue player is close: press Tackle!,Há um jogador azul perto: carrega em Desarmar!
 FOOTBALL_HINT_BALL,Get to the ball!,Vai à bola!
 FOOTBALL_HINT_JOG,Out of breath: you can only jog for now,Sem fôlego: por agora só consegues trotar
 FOOTBALL_GOAL,GOAL!,GOLO!
@@ -102,8 +103,8 @@ FOOTBALL_LOST_BALL,You lost the ball,Perdeste a bola
 FOOTBALL_HELP_TITLE,How to play football,Como jogar futebol
 FOOTBALL_HELP_YOU,You are the yellow player. Your team is blue and attacks up the screen.,Tu és o jogador amarelo. A tua equipa é azul e ataca para cima no ecrã.
 FOOTBALL_HELP_GOAL,"Run to the green zone by the red goal, then shoot. Shots from farther away rarely score.",Corre até à zona verde junto à baliza vermelha e remata. De mais longe raramente dá golo.
-FOOTBALL_HELP_PASS,"A green ring means a team-mate is free. Pass to them, or ask for the ball when they have it.","Um anel verde indica um colega livre. Passa-lhe a bola, ou pede-a quando for ele a tê-la."
-FOOTBALL_HELP_TACKLE,"When a red player has the ball, run to them. When their ring turns green, tackle.","Quando um jogador vermelho tiver a bola, corre para ele. Quando o anel ficar verde, desarma."
+FOOTBALL_HELP_PASS,"A green ring means a team-mate is free: pass to them. When a team-mate has the ball you decide: Pass brings it to you, and Shoot makes them shoot.","Um anel verde indica um colega livre: passa-lhe a bola. Quando um colega tem a bola, decides tu: Passe trá-la até ti e Rematar fá-lo rematar."
+FOOTBALL_HELP_TACKLE,"Blue players only tackle when you press the button. When the ring on the red player with the ball turns green, someone is close enough: press Tackle.","Os jogadores azuis só desarmam quando carregas no botão. Quando o anel do jogador vermelho com a bola ficar verde, há alguém perto: carrega em Desarmar."
 FOOTBALL_HELP_BREATH,Moving uses Breath and standing still refills it. With no Breath you can only jog.,Mexer gasta fôlego e ficar parado recupera-o. Sem fôlego só consegues trotar.
 FOOTBALL_HELP_TIME,Well-timed moves and staying active make the exercise count. Winning does not change health. Time runs %d times slower while you play.,Jogadas no momento certo e manter-te ativo fazem o exercício contar. Ganhar não muda a saúde. O tempo passa %d vezes mais devagar enquanto jogas.
 FOOTBALL_HELP_KEYS,"Move: arrow keys or WASD. Pass: Z or J. Shoot or tackle: X, K or Space. Pause: P. Help: H.","Mover: setas ou WASD. Passar: Z ou J. Rematar ou desarmar: X, K ou Espaço. Pausa: P. Ajuda: H."
