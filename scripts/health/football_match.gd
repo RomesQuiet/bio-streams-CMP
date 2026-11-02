@@ -343,13 +343,15 @@ func _carrier_target(player: int) -> Vector2:
 	return here + way * length
 
 
-## Attacking without the ball: ahead of the formation, away from the nearest opponent.
+## Attacking without the ball: ahead of the ball, away from the nearest opponent.
 func _support(player: int) -> Vector2:
 	var team := _team(player)
 	var spot := _home(player, true)
 	var holder := _holder()
-	if holder != NOBODY and _team(holder) == team:
-		spot.y += _up(team) * _value("support_push")
+	# Attackers run ahead of the ball, so a forward pass is possible. The last player stays back.
+	if holder != NOBODY and _team(holder) == team and player != team * team_size + team_size - 1:
+		var ahead := positions[holder].y + _up(team) * _value("support_push")
+		spot.y = maxf(spot.y, ahead) if team == 0 else minf(spot.y, ahead)
 	var away := spot - positions[_nearest_of(1 - team, spot)]
 	var room := _value("support_room")
 	if away.length() < room:
@@ -357,14 +359,14 @@ func _support(player: int) -> Vector2:
 	return _on_field(spot)
 
 
-## Defending, blue: the nearest player runs close to whoever has the ball, so the button can use
-## it to tackle. Red defends better: the nearest player goes to the side of its goal, the last
+## Defending, blue: the nearest player follows whoever has the ball from behind, close enough for
+## the button to use it to tackle but never in its way. Red defends better: the nearest player goes to the side of its goal, the last
 ## player guards the goal, and the others mark the attackers.
 func _defend(player: int, holder: int) -> Vector2:
 	var team := _team(player)
 	if team == 0:
 		var closest := player == _nearest_computer(team, positions[holder])
-		return positions[holder] + positions[holder].direction_to(positions[player]) * _value("press_gap") if closest else _home(player, true)
+		return positions[holder] - positions[holder].direction_to(_goal(1)) * _value("press_gap") if closest else _home(player, true)
 	var own_goal := _goal(1 - team)
 	if player == _nearest_computer(team, positions[holder]):
 		return positions[holder] + positions[holder].direction_to(own_goal) * _value("press_gap")
@@ -486,14 +488,21 @@ func _shot_chance(player: int, chance: float) -> float:
 	return chance * _value("block_share") if _shot_blocked(player) else chance
 
 
+## A defender stands on the line of the shot. Red's last defender does not count: the goal
+## chance already includes a goalkeeper, and it always stands on that line.
 func _shot_blocked(player: int) -> bool:
 	var team := _team(player)
-	return _lane_blocked(positions[player], _goal(team), 1 - team, _value("block_radius"))
+	return _lane_blocked(positions[player], _goal(team), 1 - team, _value("block_radius"), _keeper())
 
 
-func _lane_blocked(from: Vector2, to: Vector2, team: int, radius: float) -> bool:
+## A player of team stands within radius of the line from from to to. A player behind the start
+## (its nearest point on the line is the start itself) is not in the way.
+func _lane_blocked(from: Vector2, to: Vector2, team: int, radius: float, ignored := NOBODY) -> bool:
 	for i in _members(team, 0):
-		if not is_beaten(i) and Geometry2D.get_closest_point_to_segment(positions[i], from, to).distance_to(positions[i]) <= radius:
+		if i == ignored or is_beaten(i):
+			continue
+		var closest := Geometry2D.get_closest_point_to_segment(positions[i], from, to)
+		if not closest.is_equal_approx(from) and closest.distance_to(positions[i]) <= radius:
 			return true
 	return false
 

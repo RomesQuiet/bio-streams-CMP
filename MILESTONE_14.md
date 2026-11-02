@@ -1,6 +1,6 @@
 # Milestone 14 — The football minigame
 
-**Status: pushed up to `b040049`. The third round (1 November 2026) is committed, not pushed:** the user plays it and pushes.
+**Status: pushed up to `b040049`. The third and fourth rounds (1 and 2 November 2026) are committed, not pushed:** the user plays it and pushes.
 
 **Third round, after the user played the second (1 Nov 2026):** "a little bit easy", 80% of the pace, a smarter enemy, and the tackle loop.
 
@@ -13,6 +13,13 @@
 **The loop:** a tackler stood on top of the player it took the ball from, so a second later that player tackled back, for ever. Decision 51 ends it; `tests/football_test.gd` plays 16 matches and the same two players never exchange the ball more than twice in a row.
 
 **The smarter red team (Claude's choices, placeholders):** the nearest defender stands on the side of its goal, the last one guards the goal, and the others mark the blue attackers, so fewer team-mates are free. With the ball, red goes around a blue player, passes only forward and never through a blue player, and shoots when it has a clear view. A defender on the line of a shot halves its chance, for both teams. Blue computer players defend more simply, on purpose.
+
+**Fourth round (2 Nov 2026), after the user played the third:** "goals are too rare, almost never", and red "almost never passes or approaches the area".
+
+- **Why goals were rare:** red's last defender always stands on the line between the ball and the goal, so every shot counted as blocked and kept half of a 45% chance. The last defender no longer blocks (the goal chance already includes a goalkeeper), and a good shot now scores 60% of the time when clear.
+- **Why red stalled:** the blue computer player nearest the ball stood in front of the red carrier and followed it at the same speed. It now follows from behind, still close enough for the Tackle button.
+- **Why red rarely passed:** a blue player right behind the passer counted as being in the way of every pass, and red's attackers stayed level with the ball. Players behind the passer no longer count, and attackers now run ahead of the ball (`support_push` 7), so forward passes are possible. Red passes forward more often (`pass_gain` 2, `cpu_pass_chance` 0.6, `cpu_press_radius` 4, `forward_weight` 1).
+- **Result with the human-like test player at Normal speed:** about 6 to 8 in 7 minutes (it was 2 to 7.6). Red makes about 15 passes and 35 shots and has the ball near the blue goal for about a minute. The test now checks that red passes and reaches the area.
 
 **Retuned:** the player's tackle was too strong (it won 0.6 of the time from 2.5 away, every second): now 0.4, 2 away, every 1.2 s. The human-like test player now loses about 2 to 7.6 at Normal speed and 1.4 to 6.4 at Very hard speed (it lost 2.5 to 5 before, and the user found that a little easy).
 

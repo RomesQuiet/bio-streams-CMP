@@ -183,6 +183,7 @@ func _human_match(seed_value: int, seconds: float, speed: float) -> Dictionary:
 		var last: Array = recent.get(pair, [-100.0, 0])
 		recent[pair] = [last_time[0], last[1] + 1 if last_time[0] - last[0] < 3.0 else 1]
 		worst[0] = maxi(worst[0], recent[pair][1]))
+	var red := {"passes": 0, "shots": 0, "near": 0.0}
 	var left := 0.0
 	var think := 0.0
 	var owned := 0.0
@@ -208,13 +209,19 @@ func _human_match(seed_value: int, seconds: float, speed: float) -> Dictionary:
 					game.call_for_ball()
 				if game.in_tackle_reach() and game.can_tackle():
 					game.tackle()
+		var before: int = game.owner
 		game.advance(STEP)
-	return {"us": game.goals_us, "them": game.goals_them, "owned": owned / seconds, "worst": worst[0]}
+		if before >= 4 and game.owner == -1:
+			red["passes" if game.flight == 1 else "shots"] += 1
+		if game.owner >= 4 and game.positions[game.owner].y < 15.0:
+			red["near"] += STEP
+	return {"us": game.goals_us, "them": game.goals_them, "owned": owned / seconds, "worst": worst[0],
+			"passes": red["passes"], "shots": red["shots"], "near": red["near"]}
 
 
 func _test_human_match() -> void:
-	var total := {"us": 0.0, "them": 0.0, "owned": 0.0}
-	var slow := {"us": 0.0, "them": 0.0, "owned": 0.0}
+	var total := {"us": 0.0, "them": 0.0, "owned": 0.0, "passes": 0.0, "shots": 0.0, "near": 0.0}
+	var slow := {"us": 0.0, "them": 0.0, "owned": 0.0, "passes": 0.0, "shots": 0.0, "near": 0.0}
 	var worst := 0
 	for i in 8:
 		var one := _human_match(i + 1, 430.0, 7.4)
@@ -224,6 +231,8 @@ func _test_human_match() -> void:
 			total[key] += one[key] / 8.0
 			slow[key] += two[key] / 8.0
 	print("  human-like player, 7 minutes, Normal speed: %.1f to %.1f, has the ball %.0f%% of the time" % [total["us"], total["them"], total["owned"] * 100.0])
+	print("  red at Normal speed: %.0f passes, %.0f shots, %.0f s with the ball near our goal" % [total["passes"], total["shots"], total["near"]])
+	_check("red passes and reaches our goal area", total["passes"] >= 10.0 and total["near"] >= 20.0)
 	print("  human-like player, 7 minutes, Very hard speed: %.1f to %.1f, has the ball %.0f%% of the time" % [slow["us"], slow["them"], slow["owned"] * 100.0])
 	_check("a human-like player scores and concedes", total["us"] > 0.0 and total["them"] > 0.0)
 	print("  most tackles in a row between the same two players: %d" % worst)
