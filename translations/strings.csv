@@ -70,6 +70,16 @@ MINIGAME_PASS,Pass,Passe
 MINIGAME_SHOOT,Shoot,Rematar
 MINIGAME_TACKLE,Tackle,Desarmar
 SPEECH_MATCH_RESULT,Final score: %d – %d,Resultado final: %d – %d
+MINIGAME_BITE,Bite!,Morder!
+MINIGAME_DONE,Done,Já chega
+MEAL_WAITING,Tap when the fork reaches the mouth!,Toca quando o garfo chegar à boca!
+MEAL_EATING,Tap when the fork is at the mouth,Toca quando o garfo estiver na boca
+MEAL_FULL,Full! Press Done,Barriga cheia! Carrega em Já chega
+MEAL_TUMMY,Tummy: %d / %d,Barriga: %d / %d
+MEAL_YUM,Yum!,Que bom!
+MEAL_MISSED,Missed! The food fell.,Falhou! A comida caiu.
+MEAL_TOO_MUCH,Too much!,Demasiado!
+SPEECH_FULL,I'm full!,Barriga cheia!
 MINIGAME_ASK,Ask for ball,Pedir bola
 FOOTBALL_YOU,YOU,TU
 FOOTBALL_PAUSED,Paused,Em pausa

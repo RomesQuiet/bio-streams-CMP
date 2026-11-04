@@ -102,6 +102,23 @@ func stride(walking: bool) -> void:
 
 
 ## Down or up for one press of the strength minigame.
+## Meal minigame: the mouth opens when the fork is close.
+var mouth_open := false:
+	set(value):
+		if mouth_open != value:
+			mouth_open = value
+			queue_redraw()
+
+
+## Meal minigame: a quick squash for a bite.
+func chew() -> void:
+	if _animation:
+		_animation.kill()
+	_animation = create_tween()
+	_animation.tween_property(self, "scale", eat_squash, eat_seconds * 0.5)
+	_animation.tween_property(self, "scale", Vector2.ONE, eat_seconds * 0.5)
+
+
 func squat(down: bool) -> void:
 	if _animation:
 		_animation.kill()
@@ -145,6 +162,9 @@ func _draw() -> void:
 func _draw_mouth(sad: bool) -> void:
 	var center := Vector2(size.x * 0.5, size.y * 0.55)
 	var half := size.x * mouth_width * 0.5
+	if mouth_open:
+		draw_circle(center, half * 0.7, outline_color)
+		return
 	var bend := size.y * mouth_curve * (-1.0 if sad else 1.0)
 	var mouth := PackedVector2Array()
 	for i in 9:

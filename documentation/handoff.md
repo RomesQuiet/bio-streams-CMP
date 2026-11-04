@@ -4,6 +4,7 @@ Last updated: 31 October 2026, in Milestone 12. Read this after `CLAUDE.md` when
 
 ## 1. Where the work stands
 
+- **Milestone 15 (the meal minigame, `MILESTONE_15.md`) is built and committed, not pushed.** Waiting on the user: play it, then push. Decisions 52 to 56 are in `MILESTONE_15.md`; the user asked for it "fun, not too much science".
 - **Milestone 14 (the football minigame, `MILESTONE_14.md`) is pushed up to `b040049`.** The third and fourth rounds (decisions 49 to 51 and more goals, `MILESTONE_14.md`, 1 and 2 Nov 2026) are pushed up to `2ce404d`; the user played them and is happy with them (4 Nov 2026). A real phone is not confirmed.
 - **Milestone 13 (the strength minigame, `MILESTONE_13.md`) is complete and pushed.** The user played it and is happy with it. A real phone is not confirmed.
 - **Milestone 12 (minutes slider and the cardio minigame, `MILESTONE_12.md`) is complete, pushed up to `839cd05`.** The taps in the web check were sent by a script, so how it feels for a person, and on a real phone, is not checked.
@@ -171,6 +172,9 @@ Decisions 39 to 51 (Milestone 14, football) are in `MILESTONE_14.md`. Decision 3
 - A match can look healthy and still stall: count who holds the ball and who shoots. Red once passed sideways for ever, and very few goals were the only sign.
 
 - A rule can quietly apply to every case: the last defender always stood on the shot line, so every shot was "blocked". When a number is far from what players see, look for a condition that is always true.
+
+- Running tests with `HOME` set to an empty folder hides Godot's export templates too: export with the normal `HOME`.
+- The user wants minigames fun first. Keep the science to one idea and one line; do not lead with studies.
 
 ## 6. Commands
 

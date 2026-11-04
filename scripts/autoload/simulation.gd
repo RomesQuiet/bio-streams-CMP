@@ -146,10 +146,17 @@ func _on_activity_ended(_activity_id: String, option_id: String, hours_done: flo
 	if Hunger.is_food(option_id):
 		var duration := float(Activities.find_option(option_id).get("duration_hours", 0.0))
 		var share := hours_done / duration if duration > 0.0 else 1.0
-		Energy.add_eaten(Hunger.eat(option_id, share))
-		# The meal's happiness uses C and A from before it; then Q, C and A move.
-		Happiness.on_meal(option_id, share)
-		Diet.on_meal(option_id, share)
+		var full := 1.0
+		# A meal the player played (Milestone 15): its bites, not its time, say how much was eaten.
+		var played: Dictionary = Minigame.take_meal_result(option_id)
+		if not played.is_empty():
+			share = played["share"]
+			full = played["full_share"]
+		if played.is_empty() or share > 0.0:
+			Energy.add_eaten(Hunger.eat(option_id, share, full))
+			# The meal's happiness uses C and A from before it; then Q, C and A move.
+			Happiness.on_meal(option_id, share)
+			Diet.on_meal(option_id, share)
 	# The rest of the frame, after the activity.
 	if _after_activity_hours > 0.0:
 		var hours := _after_activity_hours

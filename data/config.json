@@ -190,6 +190,14 @@
 		"reps_margin": {"value": 1.25, "status": "placeholder", "owner": "Pessoa 3", "comment": "A rested avatar could do this many times its repetitions: the set ends without undue fatigue (AAP 2020)."},
 		"rest_seconds": {"value": 6, "status": "placeholder", "owner": "Pessoa 3", "comment": "Real seconds of rest between sets, about 4 avatar minutes. The AAP's 1 minute would be 86 real seconds at this time scale."},
 		"rest_refill": {"value": 0.6, "status": "placeholder", "owner": "Pessoa 3", "comment": "Share of the Muscle bar that one rest refills, so later sets are shorter."},
+		"meal": {
+			"_comment": "Meal minigame (Milestone 15, decisions 52 to 55, MILESTONE_15.md). A fork swings left and right; a tap with the fork at the mouth is a bite. Fun first: every number is a placeholder.",
+			"bites": {"value": 10, "status": "placeholder", "owner": "Pessoa 4", "comment": "Bites in a whole portion."},
+			"full_bites": {"value": 8, "status": "placeholder", "owner": "Pessoa 1", "comment": "The green zone of the Tummy bar starts here: the avatar is full, and hunger falls as if it ate the whole portion (decision 55)."},
+			"fork_hz": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 4", "comment": "Swings per real second at the first bite."},
+			"fork_hz_gain": {"value": 0.06, "status": "placeholder", "owner": "Pessoa 4", "comment": "Added for every bite, so the fork gets faster."},
+			"hit_share": {"value": 0.18, "status": "placeholder", "owner": "Pessoa 4", "comment": "A tap is a bite when the fork is this close to the mouth, as a share of its swing."}
+		},
 		"football": {
 			"_comment": "Football minigame (Milestone 14, decisions 39 to 46, MILESTONE_14.md). No study gives these numbers: all are placeholders. Distances are field units, about metres. Time is real seconds.",
 			"team_size": {"value": 4, "status": "team decision", "owner": "team", "comment": "Decision 41: 4 a side."},

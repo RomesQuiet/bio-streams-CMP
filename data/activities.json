@@ -55,6 +55,7 @@
 		"options": {
 			"healthy_meal": {
 				"name": "ACTIVITY_HEALTHY_MEAL",
+				"minigame": "meal",
 				"duration_hours": 0.5,
 				"effects_per_hour": {},
 				"mety": { "value": 1.5, "status": "placeholder", "owner": "Pessoa 3", "comment": "Eating while sitting. Not in v1." },
@@ -64,6 +65,7 @@
 			},
 			"fast_food_meal": {
 				"name": "ACTIVITY_FAST_FOOD_MEAL",
+				"minigame": "meal",
 				"duration_hours": 0.5,
 				"effects_per_hour": {},
 				"mety": { "value": 1.5, "status": "placeholder", "owner": "Pessoa 3", "comment": "Eating while sitting. Not in v1." },

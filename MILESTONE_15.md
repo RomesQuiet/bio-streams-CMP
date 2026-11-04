@@ -1,6 +1,8 @@
 # Milestone 15 — The meal minigame
 
-**Status: in progress (4 November 2026).**
+**Status: built and committed (4 November 2026), not pushed.** The user plays it, then pushes.
+
+**Checked in the web build (4 Nov 2026):** a healthy meal started, the fork swings over the avatar, the first bite counts, and the Tummy bar fills toward its green zone. Keys were sent by a script. **Not checked:** a real person playing it, a real phone, and whether the fork's speed is fun. The speech bubble is hidden during a meal so it does not cover the fork, as in football.
 
 Goal: meals become a fun minigame. The rules of the earlier minigames still hold: a session only exists with a player, so the scenario tests and every health number stay as they are.
 
@@ -24,6 +26,7 @@ The idea that eating less of a meal can still leave you full comes from studies 
 - With no tap the avatar waits, and the meal ends after 20 seconds, as in the other minigames.
 - Effect when the meal ends: kcal = bites / 10 x the portion. Hunger falls as if the avatar had eaten bites / 8 of the portion, at most a whole one. Stopping in the green zone: full for fewer kcal. Eating on to 10 bites: 25% more kcal and no fuller.
 - On a computer: Space bites, D is Done.
+- Scoring meals does not exist: the result is only how many bites were eaten. Missed bites cost nothing but time.
 
 ## The tasks
 

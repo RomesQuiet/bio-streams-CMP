@@ -7,6 +7,9 @@ const CREATION_SCENE := "res://scenes/ui/creation.tscn"
 const MINIGAME_PANEL_HEIGHT := 256.0
 const FOOTBALL_PAD_TOUCH := 170.0
 const FOOTBALL_PAD_KEYS := 104.0
+## The food on the fork in the meal minigame.
+const MEAL_HEALTHY_COLOR := Color(0.4, 0.75, 0.35)
+const MEAL_FAST_FOOD_COLOR := Color(0.85, 0.55, 0.25)
 const Hunger := preload("res://scripts/health/hunger.gd")
 const AvatarStates := preload("res://scripts/health/avatar_states.gd")
 const HealthModel := preload("res://scripts/health/health_model.gd")
@@ -64,6 +67,10 @@ const HEALTH_TEXT := "MEASURE_HEALTH"
 @onready var football_field: Control = %FootballField
 @onready var football_pad: Control = %FootballPad
 @onready var football_help: Control = %FootballHelp
+@onready var meal_fork: Control = %MealFork
+@onready var meal_buttons: Control = %MealButtons
+@onready var bite_button: Button = %BiteButton
+@onready var done_button: Button = %DoneButton
 @onready var help_button: Button = %HelpButton
 @onready var wake_button: Button = %WakeButton
 @onready var speech_label: Label = %SpeechLabel
@@ -183,6 +190,9 @@ func _ready() -> void:
 	football_pad.touch_seen.connect(_refresh_minigame)
 	Minigame.football_event.connect(_on_football_event)
 	help_button.pressed.connect(_open_football_help)
+	bite_button.button_down.connect(Minigame.tap)
+	done_button.pressed.connect(Minigame.done)
+	Minigame.meal_event.connect(func(key: String) -> void: meal_fork.show_event(tr(key)))
 	football_help.closed.connect(_close_football_help)
 	Activities.started.connect(_open_football_help_first_time.unbind(2))
 	# A game loaded in the middle of cardio goes on as a session.
@@ -258,11 +268,15 @@ func _close_football_help() -> void:
 
 ## On a computer Space plays cardio, the arrow keys Down and Up play strength, and in football
 ## arrow keys or WASD move, Z or J passes, X, K or Space shoots or tackles, P pauses and H helps.
+## In a meal Space bites and D is Done.
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not Minigame.running:
 		return
 	if Minigame.kind == Minigame.FOOTBALL and event is InputEventKey and event.pressed and not event.echo:
 		_on_football_key(event.physical_keycode)
+	if Minigame.kind == Minigame.MEAL and event is InputEventKey and event.pressed and not event.echo \
+			and event.physical_keycode == KEY_D:
+		Minigame.done()
 	if event.is_action_pressed("ui_accept"):
 		Minigame.tap()
 		Minigame.shoot_or_tackle()
@@ -484,6 +498,8 @@ func _on_stride() -> void:
 		avatar.squat(not Minigame.next_down)
 	elif Minigame.kind == Minigame.CARDIO:
 		avatar.stride(Minigame.walking)
+	elif Minigame.kind == Minigame.MEAL and Minigame.last_on_beat:
+		avatar.chew()
 
 
 ## The avatar says so, and the player can still train (decision 35).
@@ -499,13 +515,19 @@ func _refresh_minigame() -> void:
 	var football := Minigame.running and Minigame.kind == Minigame.FOOTBALL
 	football_field.visible = football
 	avatar.visible = not football
-	# The bubble would cover the match: it only comes back for a short message.
-	speech_bubble.visible = not football or not _flash_key.is_empty()
+	# The bubble would cover the match or the fork: it only comes back for a short message.
+	var meal := Minigame.running and Minigame.kind == Minigame.MEAL
+	speech_bubble.visible = not (football or meal) or not _flash_key.is_empty()
 	if not Minigame.running:
 		return
 	var strength := Minigame.kind == Minigame.STRENGTH
 	tap_button.visible = Minigame.kind == Minigame.CARDIO
 	help_button.visible = football
+	meal_buttons.visible = meal
+	meal_fork.visible = meal
+	reserve_label.get_parent().visible = not meal
+	if not meal:
+		avatar.mouth_open = false
 	strength_buttons.visible = strength
 	football_pad.visible = football
 	beat_bar.visible = not football
@@ -517,6 +539,9 @@ func _refresh_minigame() -> void:
 	reserve_bar.value = Minigame.reserve
 	if football:
 		_refresh_football()
+		return
+	if meal:
+		_refresh_meal()
 		return
 	if strength:
 		_refresh_strength()
@@ -546,6 +571,25 @@ func _refresh_football() -> void:
 	football_pad.shoot_enabled = game.has_ball() or ask or game.in_tackle_reach()
 	football_pad.keys_text = tr("FOOTBALL_KEYS")
 	football_pad.queue_redraw()
+
+
+## The meal minigame (Milestone 15): the fork, the mouth, the Tummy bar and the buttons.
+func _refresh_meal() -> void:
+	var full := Minigame.bites >= roundi(Minigame.full_share() * Config.get_float("minigame.meal.bites"))
+	var status := "MEAL_WAITING" if Minigame.waiting else ("MEAL_FULL" if full else "MEAL_EATING")
+	minigame_status.text = tr(status)
+	minigame_steps.text = tr("MEAL_TUMMY") % [Minigame.bites, Config.get_int("minigame.meal.bites")]
+	beat_bar.show_level(Minigame.meal_share(), Minigame.full_share(), 1.0)
+	var keys: bool = not football_pad.touch_mode
+	bite_button.text = _with_key("MINIGAME_BITE", "Space", keys)
+	done_button.text = _with_key("MINIGAME_DONE", "D", keys)
+	avatar.mouth_open = Minigame.at_mouth()
+	meal_fork.fork = Minigame.fork_position()
+	meal_fork.at_mouth = Minigame.at_mouth()
+	meal_fork.mouth = meal_fork.get_global_transform().affine_inverse() * avatar.get_global_transform() \
+			* Vector2(avatar.size.x * 0.5, avatar.size.y * 0.55)
+	var healthy := Activities.current_option == "healthy_meal"
+	meal_fork.food_color = MEAL_HEALTHY_COLOR if healthy else MEAL_FAST_FOOD_COLOR
 
 
 func _with_key(key: String, keyboard_key: String, keys: bool) -> String:

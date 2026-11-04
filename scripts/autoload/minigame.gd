@@ -15,6 +15,9 @@ extends Node
 ## moments. At 0 the avatar jogs until it has partly refilled. The match stops while it waits.
 ## Avatar time runs time_slowdown times slower while the avatar plays (decision 47), so a match
 ## lasts longer on screen. Breath is counted in avatar time, so a move costs that much less.
+## Meal (decisions 52 to 55): a fork swings left and right, faster with every bite; a tap with
+## the fork at the mouth is a bite, a miss drops the food. Done ends the meal; at full_bites the
+## avatar is full. Simulation reads the result when the meal ends (take_meal_result()).
 ## With no tap or press the avatar stands still and waits, nothing counts, and the activity ends
 ## after minigame.wait_seconds. The rest between sets is not waiting.
 ## A session only exists with the main screen open (attach()), at normal speed, for an option
@@ -30,6 +33,7 @@ const FootballMatch := preload("res://scripts/health/football_match.gd")
 const CARDIO := "cardio"
 const STRENGTH := "strength"
 const FOOTBALL := "football"
+const MEAL := "meal"
 
 ## A stride or a press was made. on_beat: it came at the right time.
 signal strode(on_beat: bool)
@@ -41,6 +45,8 @@ signal gave_up
 signal session_changed
 ## Something happened in the match. key: a key of translations/strings.csv.
 signal football_event(key: String)
+## Something happened in a meal. key: a key of translations/strings.csv.
+signal meal_event(key: String)
 ## A football match the player played ended, with this score.
 signal match_ended(goals_us: int, goals_them: int)
 ## Emitted just before the avatar stops, starts, walks or runs, so Simulation can first run the
@@ -48,7 +54,7 @@ signal match_ended(goals_us: int, goals_them: int)
 signal changing
 
 var running := false
-## CARDIO, STRENGTH or FOOTBALL while a session runs.
+## CARDIO, STRENGTH, FOOTBALL or MEAL while a session runs.
 var kind := ""
 ## True while the avatar stands still, waiting for a tap or press.
 var waiting := false
@@ -78,6 +84,9 @@ var set_reps := 0
 var game: RefCounted = null
 ## Football: the seed of the next match. 0 picks a new one.
 var match_seed := 0
+## Meal: bites eaten and food dropped.
+var bites := 0
+var misses := 0
 
 var _player_present := false
 ## The session comes from a save: its values stay when it starts.
@@ -96,11 +105,14 @@ var _untimed := true
 ## Football: the score restored from a save.
 var _goals_us := 0
 var _goals_them := 0
+## Meal: swings of the fork so far, and the result of the last meal for Simulation.
+var _fork_time := 0.0
+var _meal_result := {}
 
 
 func _ready() -> void:
 	Activities.started.connect(_on_activity_started)
-	Activities.ended.connect(_on_activity_ended.unbind(3))
+	Activities.ended.connect(_on_activity_ended.unbind(1))
 
 
 func _process(delta: float) -> void:
@@ -137,7 +149,8 @@ func to_dict() -> Dictionary:
 			"strides": strides, "moved": _moved, "judged": _judged, "next_down": next_down,
 			"sets_started": sets_started, "sets_goal": sets_goal, "reps_in_set": reps_in_set,
 			"set_reps": set_reps, "rest_left": _rest_left, "reps_planned": _reps_planned,
-			"goals_us": game.goals_us if game else 0, "goals_them": game.goals_them if game else 0}
+			"goals_us": game.goals_us if game else 0, "goals_them": game.goals_them if game else 0,
+			"bites": bites, "misses": misses, "fork_time": _fork_time}
 
 
 ## Restores values from to_dict(). Call after Activities.from_dict(); the session itself starts
@@ -162,6 +175,9 @@ func from_dict(data: Dictionary) -> void:
 	_reps_planned = int(data.get("reps_planned", _reps_planned))
 	_goals_us = int(data.get("goals_us", _goals_us))
 	_goals_them = int(data.get("goals_them", _goals_them))
+	bites = int(data.get("bites", bites))
+	misses = int(data.get("misses", misses))
+	_fork_time = float(data.get("fork_time", _fork_time))
 
 
 ## True while a session is waiting for the player: the avatar is not doing the activity.
@@ -206,9 +222,48 @@ func steps_goal() -> int:
 			* Config.get_float("minigame.steps_per_tap"))
 
 
-## The player tapped (cardio).
+## Meal: where the fork is, from -1 (left) through 0 (the mouth) to 1 (right).
+func fork_position() -> float:
+	return sin(TAU * _fork_time) if running and kind == MEAL else 0.0
+
+
+## Meal: the fork is close enough to the mouth for a bite.
+func at_mouth() -> bool:
+	return absf(fork_position()) <= _meal_value("hit_share")
+
+
+## Meal: the share of the portion eaten so far, and the share at which the avatar is full.
+func meal_share() -> float:
+	return float(bites) / _meal_value("bites")
+
+
+func full_share() -> float:
+	return _meal_value("full_bites") / _meal_value("bites")
+
+
+## Meal: the result of the meal that just ended with this option, once, or {}.
+func take_meal_result(option_id: String) -> Dictionary:
+	if str(_meal_result.get("option", "")) != option_id:
+		return {}
+	var result := _meal_result
+	_meal_result = {}
+	return result
+
+
+## The player pressed Done (meal).
+func done() -> void:
+	if running and kind == MEAL and not Clock.paused:
+		Activities.stop()
+
+
+## The player tapped (cardio), or pressed Bite (meal).
 func tap() -> void:
-	if not running or kind != CARDIO or Clock.paused:
+	if not running or Clock.paused:
+		return
+	if kind == MEAL:
+		_bite()
+		return
+	if kind != CARDIO:
 		return
 	if waiting:
 		_start_moving()
@@ -311,6 +366,8 @@ func advance(seconds: float) -> void:
 		_update_breath(minutes)
 	elif kind == FOOTBALL:
 		_play_football(seconds, minutes)
+	elif kind == MEAL:
+		_fork_time += seconds * _meal_value("fork_hz")
 
 
 func _start_moving() -> void:
@@ -341,6 +398,32 @@ func _update_breath(minutes: float) -> void:
 		if reserve <= 0.0:
 			changing.emit()
 			walking = true
+
+
+## A bite with the fork at the mouth fills the Tummy bar; a miss drops the food. The fork swings
+## faster after each bite. The meal ends by itself when the portion is eaten.
+func _bite() -> void:
+	if waiting:
+		_start_moving()
+	seconds_since_tap = 0.0
+	var hit := at_mouth()
+	_judge(hit)
+	if hit:
+		bites += 1
+		strides = bites
+		var full := _meal_value("full_bites")
+		meal_event.emit("SPEECH_FULL" if bites == int(full) else ("MEAL_TOO_MUCH" if bites > full else "MEAL_YUM"))
+	else:
+		misses += 1
+		meal_event.emit("MEAL_MISSED")
+	strode.emit(hit)
+	if bites >= int(_meal_value("bites")):
+		Activities.stop()
+
+
+func _meal_value(key: String) -> float:
+	var value := Config.get_float("minigame.meal." + key)
+	return value + Config.get_float("minigame.meal.fork_hz_gain") * bites if key == "fork_hz" else value
 
 
 ## Football: true if the session can take a move now. A move starts or wakes the session.
@@ -475,9 +558,11 @@ func _on_activity_started(_activity_id: String, option_id: String) -> void:
 	session_changed.emit()
 
 
-func _on_activity_ended() -> void:
+func _on_activity_ended(_activity_id: String, option_id: String) -> void:
 	if running and kind == FOOTBALL and _moved:
 		match_ended.emit(game.goals_us, game.goals_them)
+	if running and kind == MEAL:
+		_meal_result = {"option": option_id, "share": meal_share(), "full_share": full_share()}
 	_end_session()
 
 
@@ -516,3 +601,6 @@ func _clear() -> void:
 	_goals_us = 0
 	_goals_them = 0
 	game = null
+	bites = 0
+	misses = 0
+	_fork_time = 0.0

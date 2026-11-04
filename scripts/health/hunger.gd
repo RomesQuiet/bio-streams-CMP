@@ -50,11 +50,14 @@ static func meal_kcal(food_id: String, share: float) -> float:
 	return food_value(food_id, "portion_factor") * healthy_portion_kcal() * clampf(share, 0.0, 1.0)
 
 
-## Eats this share of a meal: takes kcal x satiety off hunger and starts the meal gap again.
-## Returns the kcal eaten.
-static func eat(food_id: String, share: float) -> float:
+## Eats this share of a meal and starts the meal gap again. Returns the kcal eaten.
+## full_share: the share of the portion that already fills the avatar (the meal minigame,
+## Milestone 15). Hunger falls as if share / full_share of the portion was eaten, at most a whole
+## one, x satiety. With the default 1 it is the eaten kcal x satiety, as without a minigame.
+static func eat(food_id: String, share: float, full_share := 1.0) -> float:
 	var kcal := meal_kcal(food_id, share)
-	GameState.hunger -= kcal * food_value(food_id, "satiety")
+	var filled := minf(share / full_share, 1.0) if full_share > 0.0 else share
+	GameState.hunger -= meal_kcal(food_id, filled) * food_value(food_id, "satiety")
 	GameState.hours_since_meal = 0.0
 	GameState.changed.emit()
 	return kcal

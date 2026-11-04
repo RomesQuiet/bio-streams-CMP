@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scripts/ui/football_field.gd" id="8_field"]
 [ext_resource type="Script" path="res://scripts/ui/football_pad.gd" id="9_pad"]
 [ext_resource type="Script" path="res://scripts/ui/football_help.gd" id="10_help"]
+[ext_resource type="Script" path="res://scripts/ui/meal_fork.gd" id="11_fork"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -107,6 +108,18 @@ grow_vertical = 2
 mouse_filter = 2
 clip_contents = true
 script = ExtResource("8_field")
+
+[node name="MealFork" type="Control" parent="Margin/Layout/Stage"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("11_fork")
 
 [node name="SpeechBubble" type="PanelContainer" parent="Margin/Layout/Stage"]
 unique_name_in_owner = true
@@ -255,6 +268,30 @@ layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
 script = ExtResource("9_pad")
+
+[node name="MealButtons" type="HBoxContainer" parent="Margin/Layout/MinigamePanel"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="BiteButton" type="Button" parent="Margin/Layout/MinigamePanel/MealButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+focus_mode = 0
+text = "MINIGAME_BITE"
+
+[node name="DoneButton" type="Button" parent="Margin/Layout/MinigamePanel/MealButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+text = "MINIGAME_DONE"
 
 [node name="StrengthButtons" type="HBoxContainer" parent="Margin/Layout/MinigamePanel"]
 unique_name_in_owner = true
