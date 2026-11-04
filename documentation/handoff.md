@@ -4,7 +4,7 @@ Last updated: 31 October 2026, in Milestone 12. Read this after `CLAUDE.md` when
 
 ## 1. Where the work stands
 
-- **Milestone 14 (the football minigame, `MILESTONE_14.md`) is pushed up to `b040049`.** The third and fourth rounds (decisions 49 to 51 and more goals, `MILESTONE_14.md`, 1 and 2 Nov 2026) are committed, not pushed: the user plays it and pushes. A real phone is not confirmed.
+- **Milestone 14 (the football minigame, `MILESTONE_14.md`) is pushed up to `b040049`.** The third and fourth rounds (decisions 49 to 51 and more goals, `MILESTONE_14.md`, 1 and 2 Nov 2026) are pushed up to `2ce404d`; the user played them and is happy with them (4 Nov 2026). A real phone is not confirmed.
 - **Milestone 13 (the strength minigame, `MILESTONE_13.md`) is complete and pushed.** The user played it and is happy with it. A real phone is not confirmed.
 - **Milestone 12 (minutes slider and the cardio minigame, `MILESTONE_12.md`) is complete, pushed up to `839cd05`.** The taps in the web check were sent by a script, so how it feels for a person, and on a real phone, is not checked.
 - **Milestone 11 (settings panel and European Portuguese, `MILESTONE_11.md`) is complete and pushed (`25aada7`).** Still to do: the team checks the Portuguese (Claude's draft, above all the health terms), and someone tries it on a real phone (the pop-up name box in Portuguese was not tried there).

@@ -1,6 +1,6 @@
 # Milestone 14 — The football minigame
 
-**Status: pushed up to `b040049`. The third and fourth rounds (1 and 2 November 2026) are committed, not pushed:** the user plays it and pushes.
+**Status: pushed up to `2ce404d`, with the third and fourth rounds (1 and 2 November 2026).** The user played them and is happy with them (4 Nov 2026). A real phone is not confirmed.
 
 **Third round, after the user played the second (1 Nov 2026):** "a little bit easy", 80% of the pace, a smarter enemy, and the tackle loop.
 
