@@ -28,6 +28,10 @@ The idea that eating less of a meal can still leave you full comes from studies 
 - On a computer: Space bites, D is Done.
 - Scoring meals does not exist: the result is only how many bites were eaten. Missed bites cost nothing but time.
 
+## Easier (5 Nov 2026)
+
+The user found it too difficult. The fork now swings slower (0.3 swings a second instead of 0.5) and speeds up less (+0.02 a bite instead of +0.06), and the target is twice as wide (35% of the swing instead of 18%). A green band at the mouth shows the target and lights up when the fork is in it. At the first bite the fork is in the target about 23% of the time, and still about 23% of a slower swing at the last bite (it was 12% before).
+
 ## The tasks
 
 1. **Tummy model** in `Hunger.eat()`: a meal can fill the avatar before the whole portion.

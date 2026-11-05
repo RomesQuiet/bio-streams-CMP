@@ -586,6 +586,7 @@ func _refresh_meal() -> void:
 	avatar.mouth_open = Minigame.at_mouth()
 	meal_fork.fork = Minigame.fork_position()
 	meal_fork.at_mouth = Minigame.at_mouth()
+	meal_fork.hit_share = Config.get_float("minigame.meal.hit_share")
 	meal_fork.mouth = meal_fork.get_global_transform().affine_inverse() * avatar.get_global_transform() \
 			* Vector2(avatar.size.x * 0.5, avatar.size.y * 0.55)
 	var healthy := Activities.current_option == "healthy_meal"
