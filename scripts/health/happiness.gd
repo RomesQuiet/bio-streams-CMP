@@ -83,6 +83,7 @@ static func step(hours: float, asleep: bool) -> void:
 		if gs.hours_without_screens >= Config.get_float(events + "no_screens_after_h"):
 			gs.hours_without_screens -= Config.get_float(events + "no_screens_after_h")
 			change += Config.get_float(events + "no_screens")
+			gs.wish_refused.emit("screens")
 		if gs.hunger > Config.get_float(events + "hungry_at_meals") * Hunger.healthy_portion_kcal():
 			change += Config.get_float(events + "hungry_per_h") * hours
 		if SleepModel.tiredness() >= 1.0:

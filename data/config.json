@@ -407,6 +407,15 @@
 		"muscular_strength": {"value": 0.7, "status": "placeholder", "owner": "Pessoa 4"}
 	},
 
+	"requests": {
+		"_comment": "The avatar's requests (Milestone 16, decisions 57 to 60, MILESTONE_16.md). These only decide when the speech bubble shows a wish the model already has; they change no value.",
+		"fast_food_craving": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 4", "comment": "Hungry with craving C at least this: \"I want fast food!\"."},
+		"healthy_craving": {"value": 0.15, "status": "placeholder", "owner": "Pessoa 4", "comment": "Hungry with craving C at most this: \"I'd like a healthy meal.\" A healthy meal gives happiness when C is below mood.events.meal / meal_craving (0.17)."},
+		"screens_after_h": {"value": 3, "status": "placeholder", "owner": "Pessoa 4", "comment": "Awake hours without screens before it asks; at mood.events.no_screens_after_h the wish counts as refused."},
+		"football_fun_below": {"value": 0.25, "status": "placeholder", "owner": "Pessoa 4", "comment": "Fun (mood.fun) below this: it asks to play football."},
+		"keen_fitness": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 4", "comment": "Starting exercise with fitness at least this: \"Let's go!\"; below: \"Do I have to?\"."}
+	},
+
 	"log": {
 		"_comment": "Action log (Milestone 4 Task 2; moved out of the Milestone 4 health block in Milestone 10 Task 8). An avatar day runs from one wake-up to the next. The types are the activity option ids in data/activities.json. Used for the day totals in the CSV log.",
 		"log_days": {"value": 7, "status": "from source", "owner": "Pessoa 3", "comment": "Scoring days kept in the log; strength days are counted over this many (CDC: per week)."},

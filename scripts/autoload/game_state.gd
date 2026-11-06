@@ -5,6 +5,9 @@ extends Node
 signal changed
 ## Emitted when XP reaches a new level.
 signal leveled_up(new_level: int)
+## Emitted when the model counts a wish as refused (Milestone 16): "screens" after
+## mood.events.no_screens_after_h awake hours without screens. Only the speech bubble listens.
+signal wish_refused(wish: String)
 
 ## Values that always stay between 0 and 1.
 const MEASURES_0_TO_1 := ["physical", "happiness", "sleep", "strength", "fitness"]
