@@ -32,6 +32,10 @@ The idea that eating less of a meal can still leave you full comes from studies 
 
 The user found it too difficult. The fork now swings slower (0.3 swings a second instead of 0.5) and speeds up less (+0.02 a bite instead of +0.06), and the target is twice as wide (35% of the swing instead of 18%). A green band at the mouth shows the target and lights up when the fork is in it. At the first bite the fork is in the target about 23% of the time, and still about 23% of a slower swing at the last bite (it was 12% before).
 
+## In between (6 Nov 2026)
+
+The user then found it too easy. The values are now between the two versions: 0.4 swings a second, +0.04 a bite, and a target of 25% of the swing. Each pass of the fork stays in the target about 0.2 s at the first bite and about 0.1 s at the last (hard: 0.12 and 0.06 s; easy: 0.38 and 0.24 s).
+
 ## The tasks
 
 1. **Tummy model** in `Hunger.eat()`: a meal can fill the avatar before the whole portion.

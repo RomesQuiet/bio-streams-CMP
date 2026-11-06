@@ -194,9 +194,9 @@
 			"_comment": "Meal minigame (Milestone 15, decisions 52 to 55, MILESTONE_15.md). A fork swings left and right; a tap with the fork at the mouth is a bite. Fun first: every number is a placeholder.",
 			"bites": {"value": 10, "status": "placeholder", "owner": "Pessoa 4", "comment": "Bites in a whole portion."},
 			"full_bites": {"value": 8, "status": "placeholder", "owner": "Pessoa 1", "comment": "The green zone of the Tummy bar starts here: the avatar is full, and hunger falls as if it ate the whole portion (decision 55)."},
-			"fork_hz": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 4", "comment": "Swings per real second at the first bite."},
-			"fork_hz_gain": {"value": 0.02, "status": "placeholder", "owner": "Pessoa 4", "comment": "Added for every bite, so the fork gets faster."},
-			"hit_share": {"value": 0.35, "status": "placeholder", "owner": "Pessoa 4", "comment": "A tap is a bite when the fork is this close to the mouth, as a share of its swing."}
+			"fork_hz": {"value": 0.4, "status": "placeholder", "owner": "Pessoa 4", "comment": "Swings per real second at the first bite."},
+			"fork_hz_gain": {"value": 0.04, "status": "placeholder", "owner": "Pessoa 4", "comment": "Added for every bite, so the fork gets faster."},
+			"hit_share": {"value": 0.25, "status": "placeholder", "owner": "Pessoa 4", "comment": "A tap is a bite when the fork is this close to the mouth, as a share of its swing."}
 		},
 		"football": {
 			"_comment": "Football minigame (Milestone 14, decisions 39 to 46, MILESTONE_14.md). No study gives these numbers: all are placeholders. Distances are field units, about metres. Time is real seconds.",
