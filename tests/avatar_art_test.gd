@@ -11,6 +11,7 @@ func _process(_delta: float) -> bool:
 	avatar.size = avatar.custom_minimum_size
 	_test_sheets(avatar)
 	_test_frames(avatar)
+	_test_no_animation(avatar)
 	_test_states()
 	avatar.queue_free()
 	print("ALL PASSED (0 failed)" if _failures == 0 else "SOME FAILED (%d failed)" % _failures)
@@ -61,6 +62,23 @@ func _test_frames(avatar: Control) -> void:
 	avatar.eyes_closed = true
 	_check("asleep wins over everything", avatar.frame() == Vector2i(2, 4))
 	avatar.eyes_closed = false
+
+
+## The art does not move like the egg (user, 6 Nov 2026); it only sleeps.
+func _test_no_animation(avatar: Control) -> void:
+	avatar.sheet = "teenager_female"
+	for animation in ["cardio", "strength", "eat", "hop"]:
+		avatar.play_animation(animation)
+		_check("no %s animation" % animation, avatar.scale == Vector2.ONE and avatar.hop_offset == 0.0
+				and not avatar.eyes_closed)
+	avatar.stride(false)
+	avatar.squat(true)
+	avatar.chew()
+	_check("no stride, squat or chew", avatar.scale == Vector2.ONE and avatar.hop_offset == 0.0)
+	avatar.play_animation("sleep")
+	_check("asleep: eyes closed, no breathing", avatar.eyes_closed and avatar.scale == Vector2.ONE)
+	avatar.stop_animation()
+	_check("awake again", not avatar.eyes_closed)
 
 
 func _test_states() -> void:

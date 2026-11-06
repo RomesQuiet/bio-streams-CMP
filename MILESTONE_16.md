@@ -18,8 +18,9 @@ The user asked to add the team's four sprite sheets to the game before playing t
 - The originals moved to `assets/art/avatar/source/` (ignored by Godot). `tools/cut_avatar_sheets.py` finds each figure by its transparency, splits each column at its emptiest line near each fifth (some figures touch the one above), scales each sheet by one factor and puts the feet on the bottom of 220 x 300 cells.
 - `data/avatar_art.json`: the sheets, the order of bodies and faces, and the mouth height of each sheet (measured on the happy faces), where the meal fork aims.
 - New avatar states: `obese` (z above +2, WHO cut-off, from source) and `happy` (`avatar_states.happy_from` 0.6, placeholder).
-- Lossy WebP import (quality 0.85): the sheets add about 1.75 MB to the web game instead of 4.7 MB. The published `index.pck` is now about 2.1 MB.
-- **Checked:** `tests/avatar_art_test.gd` (each sheet, the cell for every state, the mouth, the egg without a sheet); in the web build, the tired boy and the meal fork at his mouth. **Not checked:** the other sheets and faces in play (the test covers them), a real phone.
+- Lossy WebP import (quality 0.85) keeps the web game small.
+- **Second round (user, 6 Nov 2026): "1.5x its size and don't have the animations of the egg".** The avatar is now 330 x 450 (the sheets are cut again at that size, so the drawing is not stretched), and the speech bubble moved up by 150. The drawing no longer hops, squashes or breathes in activities and minigames; it only shows the asleep face while sleeping. The egg (without art) still moves. `tests/minigame_test.gd` now checks that the art stays still where it checked the hop and the squat. The published `index.pck` is now about 3.3 MB (it was 0.3 MB before the art).
+- **Checked:** `tests/avatar_art_test.gd` (each sheet, the cell for every state, the mouth, the egg without a sheet, no animation); in the web build at 1.5x, the tired boy, standing still while running cardio, and the meal fork at his mouth, with no console errors. **Not checked:** the other sheets and faces in play (the test covers them), a real phone.
 
 Read `CLAUDE.md` and `documentation/handoff.md` first.
 

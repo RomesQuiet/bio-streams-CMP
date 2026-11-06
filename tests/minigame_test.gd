@@ -604,7 +604,8 @@ func _test_screen() -> void:
 	main.get_node("%TapButton").button_down.emit()
 	main._refresh_minigame()
 	_check("the tap button starts it", minigame.strides == 1 and main.minigame_status.text == "Running")
-	_check("the avatar hops with the stride", main.avatar._animation != null)
+	# The avatar art does not move (user, 6 Nov 2026); the egg (no art) still hops.
+	_check("the avatar art stays still with the stride", main.avatar.has_art() and main.avatar.hop_offset == 0.0)
 	_check("the steps are shown", main.minigame_steps.text == "Steps: 2 / %d" % minigame.steps_goal())
 	var space := InputEventKey.new()
 	space.keycode = KEY_SPACE
@@ -646,7 +647,7 @@ func _test_strength_screen(main: Node, settings: Node) -> void:
 	_check("it asks for the first press", main.minigame_status.text == "Tap to start!")
 	down.button_down.emit()
 	main._refresh_minigame()
-	_check("Down moves the avatar down", main.avatar._animation != null)
+	_check("Down leaves the avatar art still", main.avatar.has_art() and main.avatar.scale == Vector2.ONE)
 	_check("the set is shown", main.minigame_status.text == "Set 1 of %d" % minigame.sets_goal)
 	_check("now Up is the expected one", down.disabled and not up.disabled)
 	_pass_time(1.0)

@@ -91,9 +91,13 @@ func _on_resized() -> void:
 
 
 ## Plays a repeating placeholder animation by name (from data/activities.json)
-## until stop_animation() is called. Unknown names use a simple hop.
+## until stop_animation() is called. Unknown names use a simple hop. The art does not move
+## (user, 6 Nov 2026): it only closes its eyes to sleep.
 func play_animation(animation_name: String) -> void:
 	stop_animation()
+	if has_art():
+		eyes_closed = animation_name == "sleep"
+		return
 	_animation = create_tween().set_loops()
 	_animation.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	match animation_name:
@@ -117,6 +121,8 @@ func play_animation(animation_name: String) -> void:
 
 ## One hop for one stride of the cardio minigame.
 func stride(walking: bool) -> void:
+	if has_art():
+		return
 	stop_animation()
 	_animation = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	_animation.tween_property(self, "hop_offset", walk_height if walking else cardio_height, cardio_seconds * 0.5)
@@ -134,6 +140,8 @@ var mouth_open := false:
 
 ## Meal minigame: a quick squash for a bite.
 func chew() -> void:
+	if has_art():
+		return
 	if _animation:
 		_animation.kill()
 	_animation = create_tween()
@@ -142,6 +150,8 @@ func chew() -> void:
 
 
 func squat(down: bool) -> void:
+	if has_art():
+		return
 	if _animation:
 		_animation.kill()
 	_animation = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)

@@ -27,9 +27,9 @@ SHEETS = {
 COLUMNS = 5
 ROWS = 5
 # The size of the avatar control in scenes/avatar/avatar.tscn.
-CELL_W = 220
-CELL_H = 300
-MARGIN = 4
+CELL_W = 330
+CELL_H = 450
+MARGIN = 6
 # Pixels at least this opaque belong to a figure.
 SOLID = 40
 # Columns of figures are at least this far apart.
