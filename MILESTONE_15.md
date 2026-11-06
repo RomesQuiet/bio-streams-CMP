@@ -21,10 +21,10 @@ The idea that eating less of a meal can still leave you full comes from studies 
 ## How it plays
 
 - A meal is 10 bites. The fork swings faster with each bite.
-- The Tummy bar shows the share of the meal eaten. Its green zone starts at 8 bites: there the avatar says "I'm full!".
+- The Tummy bar shows the share of the meal eaten. Its green zone starts at 6 bites (8 until 6 Nov 2026): there the avatar says "I'm full!".
 - Done ends the meal. After 10 bites it ends by itself.
 - With no tap the avatar waits, and the meal ends after 20 seconds, as in the other minigames.
-- Effect when the meal ends: kcal = bites / 10 x the portion. Hunger falls as if the avatar had eaten bites / 8 of the portion, at most a whole one. Stopping in the green zone: full for fewer kcal. Eating on to 10 bites: 25% more kcal and no fuller.
+- Effect when the meal ends: kcal = bites / 10 x the portion. Hunger falls as if the avatar had eaten bites / 6 of the portion, at most a whole one. Stopping in the green zone: full for fewer kcal. Eating on to 10 bites: up to 67% more kcal and no fuller.
 - On a computer: Space bites, D is Done.
 - Scoring meals does not exist: the result is only how many bites were eaten. Missed bites cost nothing but time.
 
@@ -35,6 +35,10 @@ The user found it too difficult. The fork now swings slower (0.3 swings a second
 ## In between (6 Nov 2026)
 
 The user then found it too easy. The values are now between the two versions: 0.4 swings a second, +0.04 a bite, and a target of 25% of the swing. Each pass of the fork stays in the target about 0.2 s at the first bite and about 0.1 s at the last (hard: 0.12 and 0.06 s; easy: 0.38 and 0.24 s).
+
+## A larger full zone (6 Nov 2026)
+
+The user asked for a larger green zone, to be more realistic: the avatar is now full from 6 bites of 10 (`full_bites`, was 8), so the green zone covers 6 to 10 bites, twice as much of the bar. Stopping at 6 bites gives 60% of the portion's kcal and leaves the avatar as full as a whole portion.
 
 ## The tasks
 
