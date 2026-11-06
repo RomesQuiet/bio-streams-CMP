@@ -146,7 +146,7 @@ theme_override_constants/separation = 8
 [node name="RequestIcon" type="Control" parent="Margin/Layout/Stage/SpeechBubble/SpeechRow"]
 unique_name_in_owner = true
 visible = false
-custom_minimum_size = Vector2(44, 44)
+custom_minimum_size = Vector2(60, 60)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2

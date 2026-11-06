@@ -20,8 +20,13 @@ var kind := "":
 		queue_redraw()
 
 
+## The pictures are drawn for a 44-pixel box, then scaled to fit the real one.
+const DRAWN_SIZE := 44.0
+
+
 func _draw() -> void:
-	var c := size * 0.5
+	draw_set_transform(size * 0.5, 0.0, Vector2.ONE * minf(size.x, size.y) / DRAWN_SIZE)
+	var c := Vector2.ZERO
 	match kind:
 		"tired":
 			draw_rect(Rect2(c + Vector2(-18, 0), Vector2(36, 8)), BED_COLOR)

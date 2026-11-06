@@ -108,6 +108,9 @@ func _test_physical_formula(gs: Node) -> void:
 ## the slow bar), or happiness below 0.10 for 12 avatar hours. Only a placeholder message is shown.
 func _test_failure(gs: Node, main: Node) -> void:
 	var config: Node = root.get_node("Config")
+	# A short message from the days above (such as a meal's reaction, Milestone 16) ends after
+	# a few real seconds in the game; no real time passes here, so end it.
+	main._end_flash()
 	_check("there is no death", config.get_value("health.death_enabled") == false)
 	# Physical and Sleep 0 with happiness 0.5: target health 1.22; the bar still shows 3.
 	gs.physical = 0.0

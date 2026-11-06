@@ -4,7 +4,8 @@ Last updated: 31 October 2026, in Milestone 12. Read this after `CLAUDE.md` when
 
 ## 1. Where the work stands
 
-- **Milestone 15 (the meal minigame, `MILESTONE_15.md`) is complete: the user played it and is happy with it (6 Nov 2026).** Tuned twice (fork speed and target between the first and the easy version; full from 6 bites). Waiting on the user to push. Decisions 52 to 56 are in `MILESTONE_15.md`; the user asked for it "fun, not too much science".
+- **Milestone 16 (the avatar's requests, `MILESTONE_16.md`) is built and committed, not pushed (6 Nov 2026).** Decisions 57 to 60: requests only show what the model already does, the player answers by acting, every wish tied to our activities, hungry and tired in the same style. Waiting on the user: play it, then push.
+- **Milestone 15 (the meal minigame, `MILESTONE_15.md`) is complete: the user played it and is happy with it (6 Nov 2026).** Tuned twice (fork speed and target between the first and the easy version; full from 6 bites). Pushed (`adb0ffe`, 6 Nov 2026). Decisions 52 to 56 are in `MILESTONE_15.md`; the user asked for it "fun, not too much science".
 - **Milestone 14 (the football minigame, `MILESTONE_14.md`) is pushed up to `b040049`.** The third and fourth rounds (decisions 49 to 51 and more goals, `MILESTONE_14.md`, 1 and 2 Nov 2026) are pushed up to `2ce404d`; the user played them and is happy with them (4 Nov 2026). A real phone is not confirmed.
 - **Milestone 13 (the strength minigame, `MILESTONE_13.md`) is complete and pushed.** The user played it and is happy with it. A real phone is not confirmed.
 - **Milestone 12 (minutes slider and the cardio minigame, `MILESTONE_12.md`) is complete, pushed up to `839cd05`.** The taps in the web check were sent by a script, so how it feels for a person, and on a real phone, is not checked.
@@ -12,7 +13,7 @@ Last updated: 31 October 2026, in Milestone 12. Read this after `CLAUDE.md` when
 - **Name on phones: the pop-up box stays (user, 30 Oct 2026).** `fe5c4c3` (`window.prompt`) is confirmed on a real Android phone. The virtual keyboard attempt `adfe369` never reached GitHub and was reverted untested on a real phone. The pop-up box was reported as doing nothing on 28 Oct, for an unknown reason (a cached old page is possible). Always confirm a push with `git ls-remote origin refs/heads/main` and the published file size: that push from GitHub Desktop failed silently.
 - **Milestone 10.5 is complete and pushed** (27 Oct 2026, published on GitHub Pages; the user checked the game in the Godot editor first; `MILESTONE_10_5.md`). It acts on the team's review of the Milestone 10 differences (`documentation/milestone10_review.md`): failure reads the target health, a 36-hour gap between strength sessions, a danger state for severe thinness, a better scenario test and a parity test that found the causes of the differences (`documentation/milestone10_calibration.md`).
 - **Milestone 10** (food as an activity + the whole health system rebuilt to Health Calculation Architecture v1) is pushed (`e3e6a89`, plus the handoff commit `6d3639b`).
-- **All 25 tests pass** (`tests/*_test.gd`; `calibration_test.gd` takes about 2.5 minutes and `parity_test.gd` about 5; the parity test prints numbers for the team and only fails if it crashes).
+- **All 28 tests pass** (6 Nov 2026, Milestone 16) (`tests/*_test.gd`; `calibration_test.gd` takes about 2.5 minutes and `parity_test.gd` about 5; the parity test prints numbers for the team and only fails if it crashes).
 - **Waiting on the team:** the plan guesses, the training window, eating time and the hunger penalty, the danger-state and gap values (`documentation/milestone10_calibration.md`, "Proposals for the team"). No value was changed to fit the tests.
 
 ### Commit history of Milestone 11
@@ -104,7 +105,7 @@ Recorded in `MILESTONE_10.md` ("Decisions") and `documentation/milestone10_plan.
 
 Other team decisions that still hold: k = 10 (applies to sleep debt too); there is no death, only failure; p = 0.5 for health. The team's review (27 Oct 2026) added the 36-hour strength gap, the danger state (z −3, 72 h, z −4) and the thinness risk term (placeholders).
 
-Decisions 39 to 51 (Milestone 14, football) are in `MILESTONE_14.md`. Decision 39 replaces decision 29.
+Decisions 39 to 51 (Milestone 14, football) are in `MILESTONE_14.md`. Decision 39 replaces decision 29. Decisions 52 to 56 (meals) are in `MILESTONE_15.md`, and 57 to 60 (the avatar's requests) in `MILESTONE_16.md`.
 
 ## 3. What is still open
 

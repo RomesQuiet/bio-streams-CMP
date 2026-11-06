@@ -1,6 +1,15 @@
 # Milestone 16 — The avatar's requests
 
-**Status: plan (6 November 2026), not started.** Decision 56 said "the avatar will ask for things throughout the day"; the user chose to build it after the minigames.
+**Status: built and committed (6 November 2026), not pushed.** The user plays it, then pushes. Decision 56 said "the avatar will ask for things throughout the day"; the user chose to build it after the minigames, and approved the list below ("Yes, start").
+
+**Built:** `scripts/health/requests.gd` (the request to show and the reactions), the config group `requests` (placeholders, display only), `GameState.wish_refused` (emitted by `happiness.gd` when four hours without screens count as a refused wish; nothing else listens), `scripts/ui/request_icon.gd` (the picture in the bubble), and `tests/requests_test.gd`. Choices Claude made while building, to confirm:
+
+- When the avatar wants both, screens come before football (the screens wish has a cost soon).
+- A healthy meal while the craving is low also gets a reaction, "Just what I wanted!", because the model gives it happiness then.
+- A meal's reaction appears over the fork, as the meal messages do. "You never let me watch anything." is not shown over the football field or the fork.
+- "Do I have to?" or "Let's go!" comes at the first tap or press, when the model takes the happiness cost of starting.
+
+**Checked (6 Nov 2026):** all 28 tests pass, and the scenario test prints exactly the same as before Milestone 16. `tests/measures_test.gd` now ends the short message left by a meal's reaction before it checks the failure message: the test plays days without real seconds passing, so a 3-second message never ended there. In the web build: "I'm tired." with the bed picture, "Do I have to?" at the first cardio tap, "Yes, fast food!" over the fork, and no console errors. All six pictures were drawn in a Godot window. Taps were sent by a script. **Not checked:** a real person playing it, a real phone, and the screens and football requests during play (`tests/requests_test.gd` covers them).
 
 Read `CLAUDE.md` and `documentation/handoff.md` first.
 
