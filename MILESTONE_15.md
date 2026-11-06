@@ -1,6 +1,6 @@
 # Milestone 15 — The meal minigame
 
-**Status: built and committed (4 November 2026), not pushed.** The user plays it, then pushes.
+**Status: built (4 November 2026) and tuned (5 and 6 November 2026). The user played it and is happy with it (6 Nov 2026).** Ready to push. A real phone is not confirmed.
 
 **Checked in the web build (4 Nov 2026):** a healthy meal started, the fork swings over the avatar, the first bite counts, and the Tummy bar fills toward its green zone. Keys were sent by a script. **Not checked:** a real person playing it, a real phone, and whether the fork's speed is fun. The speech bubble is hidden during a meal so it does not cover the fork, as in football.
 

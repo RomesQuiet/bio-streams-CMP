@@ -4,7 +4,7 @@ Last updated: 31 October 2026, in Milestone 12. Read this after `CLAUDE.md` when
 
 ## 1. Where the work stands
 
-- **Milestone 15 (the meal minigame, `MILESTONE_15.md`) is built and committed, not pushed.** Waiting on the user: play it, then push. Decisions 52 to 56 are in `MILESTONE_15.md`; the user asked for it "fun, not too much science".
+- **Milestone 15 (the meal minigame, `MILESTONE_15.md`) is complete: the user played it and is happy with it (6 Nov 2026).** Tuned twice (fork speed and target between the first and the easy version; full from 6 bites). Waiting on the user to push. Decisions 52 to 56 are in `MILESTONE_15.md`; the user asked for it "fun, not too much science".
 - **Milestone 14 (the football minigame, `MILESTONE_14.md`) is pushed up to `b040049`.** The third and fourth rounds (decisions 49 to 51 and more goals, `MILESTONE_14.md`, 1 and 2 Nov 2026) are pushed up to `2ce404d`; the user played them and is happy with them (4 Nov 2026). A real phone is not confirmed.
 - **Milestone 13 (the strength minigame, `MILESTONE_13.md`) is complete and pushed.** The user played it and is happy with it. A real phone is not confirmed.
 - **Milestone 12 (minutes slider and the cardio minigame, `MILESTONE_12.md`) is complete, pushed up to `839cd05`.** The taps in the web check were sent by a script, so how it feels for a person, and on a real phone, is not checked.
