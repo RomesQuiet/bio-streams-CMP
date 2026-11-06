@@ -11,6 +11,16 @@
 
 **Checked (6 Nov 2026):** all 28 tests pass, and the scenario test prints exactly the same as before Milestone 16. `tests/measures_test.gd` now ends the short message left by a meal's reaction before it checks the failure message: the test plays days without real seconds passing, so a 3-second message never ended there. In the web build: "I'm tired." with the bed picture, "Do I have to?" at the first cardio tap, "Yes, fast food!" over the fork, and no console errors. All six pictures were drawn in a Godot window. Taps were sent by a script. **Not checked:** a real person playing it, a real phone, and the screens and football requests during play (`tests/requests_test.gd` covers them).
 
+## Avatar art (added 6 Nov 2026, user)
+
+The user asked to add the team's four sprite sheets to the game before playing the requests. Answers (user, 6 Nov 2026): made by the team with an AI image tool, CC BY 4.0; muscular with fat shows the overweight or obese body; the happy face from happiness 0.6 (placeholder); every sheet the same size on screen.
+
+- The originals moved to `assets/art/avatar/source/` (ignored by Godot). `tools/cut_avatar_sheets.py` finds each figure by its transparency, splits each column at its emptiest line near each fifth (some figures touch the one above), scales each sheet by one factor and puts the feet on the bottom of 220 x 300 cells.
+- `data/avatar_art.json`: the sheets, the order of bodies and faces, and the mouth height of each sheet (measured on the happy faces), where the meal fork aims.
+- New avatar states: `obese` (z above +2, WHO cut-off, from source) and `happy` (`avatar_states.happy_from` 0.6, placeholder).
+- Lossy WebP import (quality 0.85): the sheets add about 1.75 MB to the web game instead of 4.7 MB. The published `index.pck` is now about 2.1 MB.
+- **Checked:** `tests/avatar_art_test.gd` (each sheet, the cell for every state, the mouth, the egg without a sheet); in the web build, the tired boy and the meal fork at his mouth. **Not checked:** the other sheets and faces in play (the test covers them), a real phone.
+
 Read `CLAUDE.md` and `documentation/handoff.md` first.
 
 ## Decisions (user, 6 Nov 2026)

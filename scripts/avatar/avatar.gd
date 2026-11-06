@@ -1,7 +1,13 @@
 @tool
 extends Control
-## Placeholder avatar: an egg shape drawn with code, filling this control's rect.
-## The bottom of the rect is where the egg touches the ground.
+## The avatar, filling this control's rect; the bottom of the rect is the ground.
+## With a sheet (Milestone 16, data/avatar_art.json) it draws the team's art: one cell per body
+## and face. Without one (before the avatar is created, in the editor) it draws the placeholder
+## egg.
+
+const ART_PATH := "res://data/avatar_art.json"
+## Where the egg's mouth is, as a share of the height.
+const EGG_MOUTH_Y := 0.55
 
 @export var body_color := Color(0.98, 0.9, 0.75)
 @export var outline_color := Color(0.35, 0.25, 0.2)
@@ -34,9 +40,25 @@ extends Control
 @export var mouth_curve := 0.03
 ## Placeholder Ill look (Milestone 10.5): a pale, greenish body.
 @export var ill_color := Color(0.82, 0.88, 0.7)
+## The Ill look on the art: the drawing is tinted with this colour.
+@export var ill_tint := Color(0.8, 0.95, 0.65)
 
-## Avatar states shown by the looks (AvatarStates.current()): "tired", "sad", "ill", "thin",
-## "overweight", "muscular" (true or false). Muscular with fat is muscular and overweight.
+## The art sheet: "<age group>_<sex>", a key of "sheets" in data/avatar_art.json, or "" (or a key
+## that is not there) for the egg.
+var sheet := "":
+	set(value):
+		if value != sheet:
+			sheet = value
+			_load_sheet()
+			queue_redraw()
+
+static var _art := {}
+var _texture: Texture2D
+var _mouth_y := EGG_MOUTH_Y
+
+## Avatar states shown by the looks (AvatarStates.current()): "tired", "sad", "happy", "ill",
+## "thin", "overweight", "obese", "muscular" (true or false). Muscular with fat is muscular and
+## overweight: the art shows the overweight body (user, 6 Nov 2026).
 var states: Dictionary = {}:
 	set(value):
 		if value != states:
@@ -126,6 +148,53 @@ func squat(down: bool) -> void:
 	_animation.tween_property(self, "scale", strength_squash if down else Vector2.ONE, strength_seconds * 0.5)
 
 
+## Where the mouth is, in this control (the meal fork aims there).
+func mouth_point() -> Vector2:
+	return Vector2(size.x * 0.5, size.y * _mouth_y)
+
+
+## The cell of the art for the current states: x is the body column, y the face row
+## (data/avatar_art.json). Weight wins over muscles; asleep, tired and sad win over happy.
+func frame() -> Vector2i:
+	var art := art_data()
+	var body := "healthy"
+	for state in ["obese", "overweight", "thin", "muscular"]:
+		if states.get(state, false):
+			body = state
+			break
+	var face := "neutral"
+	if eyes_closed:
+		face = "asleep"
+	elif states.get("tired", false):
+		face = "tired"
+	elif states.get("sad", false):
+		face = "sad"
+	elif states.get("happy", false):
+		face = "happy"
+	return Vector2i(art["columns"].find(body), art["rows"].find(face))
+
+
+## Whether the art is drawn (otherwise the egg).
+func has_art() -> bool:
+	return _texture != null
+
+
+static func art_data() -> Dictionary:
+	if _art.is_empty():
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(ART_PATH))
+		_art = parsed if parsed is Dictionary else {"columns": [], "rows": [], "sheets": {}}
+	return _art
+
+
+func _load_sheet() -> void:
+	_texture = null
+	_mouth_y = EGG_MOUTH_Y
+	var entry: Dictionary = art_data()["sheets"].get(sheet, {})
+	if entry.has("path") and ResourceLoader.exists(entry["path"]):
+		_texture = load(entry["path"])
+		_mouth_y = float(entry["mouth_y"])
+
+
 func stop_animation() -> void:
 	if _animation:
 		_animation.kill()
@@ -137,6 +206,9 @@ func stop_animation() -> void:
 
 func _draw() -> void:
 	draw_set_transform(Vector2(0.0, -hop_offset))
+	if _texture:
+		_draw_art()
+		return
 	var points := _egg_points()
 	var fill := ill_color if states.get("ill", false) else body_color
 	draw_colored_polygon(points, fill)
@@ -158,9 +230,20 @@ func _draw() -> void:
 		_draw_mouth(states.get("sad", false))
 
 
+## The cell of the art for the current states, stretched over this control (the cells have its
+## size), and an open mouth for the meal minigame.
+func _draw_art() -> void:
+	var art := art_data()
+	var cell := _texture.get_size() / Vector2(art["columns"].size(), art["rows"].size())
+	var region := Rect2(cell * Vector2(frame()), cell)
+	draw_texture_rect_region(_texture, Rect2(Vector2.ZERO, size), region, ill_tint if states.get("ill", false) else Color.WHITE)
+	if mouth_open and not eyes_closed:
+		draw_circle(mouth_point(), size.x * mouth_width * 0.3, outline_color)
+
+
 ## A small smile, or a frown when sad.
 func _draw_mouth(sad: bool) -> void:
-	var center := Vector2(size.x * 0.5, size.y * 0.55)
+	var center := mouth_point()
 	var half := size.x * mouth_width * 0.5
 	if mouth_open:
 		draw_circle(center, half * 0.7, outline_color)

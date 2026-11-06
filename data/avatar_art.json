@@ -1,0 +1,11 @@
+{
+	"_comment": "The avatar art (Milestone 16, user, 6 Nov 2026): one sheet per age group and sex, made by the team with an AI image tool (CC BY 4.0, README). tools/cut_avatar_sheets.py cuts the originals in assets/art/avatar/source/ into 5 x 5 even cells of the avatar's size. Columns are bodies and rows are faces, in the order below. mouth_y is the height of the mouth as a share of a cell, from the top (where the meal fork aims). Body: obese, overweight (weight wins over muscular), thin, muscular, otherwise healthy. Face: asleep, tired, sad, happy, otherwise neutral.",
+	"columns": ["obese", "overweight", "healthy", "thin", "muscular"],
+	"rows": ["happy", "neutral", "sad", "tired", "asleep"],
+	"sheets": {
+		"child_male": {"path": "res://assets/art/avatar/child_male.png", "mouth_y": 0.4},
+		"child_female": {"path": "res://assets/art/avatar/child_female.png", "mouth_y": 0.49},
+		"teenager_male": {"path": "res://assets/art/avatar/teen_male.png", "mouth_y": 0.42},
+		"teenager_female": {"path": "res://assets/art/avatar/teen_female.png", "mouth_y": 0.3}
+	}
+}

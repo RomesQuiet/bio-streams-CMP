@@ -404,6 +404,8 @@
 		"sad_below": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 4", "comment": "Happiness below this."},
 		"thin_below_z": {"value": -2, "status": "from source", "owner": "Pessoa 1", "comment": "WHO thinness cut-off."},
 		"overweight_above_z": {"value": 1, "status": "from source", "owner": "Pessoa 1", "comment": "WHO overweight cut-off."},
+		"obese_above_z": {"value": 2, "status": "from source", "owner": "Pessoa 1", "comment": "WHO obesity cut-off (BMI-for-age, 5 to 19 years). The avatar art has an obese body (Milestone 16)."},
+		"happy_from": {"value": 0.6, "status": "placeholder", "owner": "Pessoa 4", "comment": "Happiness at least this: the avatar art shows the happy face; from sad_below up to this, the neutral face (user, 6 Nov 2026)."},
 		"muscular_strength": {"value": 0.7, "status": "placeholder", "owner": "Pessoa 4"}
 	},
 

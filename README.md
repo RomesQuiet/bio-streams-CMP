@@ -58,7 +58,8 @@ Godot --headless --path . -s res://tests/health_log_test.gd
 | `scripts/` | GDScript code (`autoload/` holds the global scripts) |
 | `data/` | Game data and tunable numbers (JSON) |
 | `translations/` | Game texts in Portuguese and English (CSV) |
-| `assets/` | Art and audio |
+| `assets/` | Art and audio (`assets/art/avatar/source/` holds the original avatar sheets) |
+| `tools/` | Helper scripts, such as `cut_avatar_sheets.py`, which cuts the avatar sheets for the game |
 | `documentation/` | Development notes |
 | `docs/` | Web export, published with GitHub Pages |
 
@@ -66,4 +67,5 @@ Godot --headless --path . -s res://tests/health_log_test.gd
 
 - Code: MIT (see `LICENSE`).
 - Texts and art: CC BY 4.0.
+- The avatar art (`assets/art/avatar/`) was made by the project team with an AI image tool, and is shared under CC BY 4.0 like the rest of the art.
 - Original music belongs to its authors (Matilde with Senhor Carlitos), who decide its licence.

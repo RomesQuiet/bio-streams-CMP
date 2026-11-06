@@ -624,7 +624,7 @@ func _refresh_meal() -> void:
 	meal_fork.at_mouth = Minigame.at_mouth()
 	meal_fork.hit_share = Config.get_float("minigame.meal.hit_share")
 	meal_fork.mouth = meal_fork.get_global_transform().affine_inverse() * avatar.get_global_transform() \
-			* Vector2(avatar.size.x * 0.5, avatar.size.y * 0.55)
+			* avatar.mouth_point()
 	var healthy := Activities.current_option == "healthy_meal"
 	meal_fork.food_color = MEAL_HEALTHY_COLOR if healthy else MEAL_FAST_FOOD_COLOR
 
@@ -691,6 +691,7 @@ func _refresh() -> void:
 	bmi_label.text = tr("MEASURE_BMI") % Settings.number(GameState.weight_z, 2, true)
 	diet_label.text = tr("MEASURE_DIET") % Settings.number(GameState.diet_quality, 2)
 	avatar.states = AvatarStates.current()
+	avatar.sheet = "%s_%s" % [GameState.age_group, GameState.sex]
 	level_label.text = tr("UI_LEVEL") % GameState.level
 	xp_bar.value = GameState.level_progress
 	var per_level := Config.get_float("xp.per_level")

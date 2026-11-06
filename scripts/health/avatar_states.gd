@@ -8,8 +8,8 @@ const Hunger := preload("res://scripts/health/hunger.gd")
 const HealthModel := preload("res://scripts/health/health_model.gd")
 
 
-## {"hungry", "tired", "sad", "ill", "thin", "overweight", "muscular"}: true or false.
-## Muscular with fat = muscular and overweight together.
+## {"hungry", "tired", "sad", "happy", "ill", "thin", "overweight", "obese", "muscular"}: true or
+## false. Muscular with fat = muscular and overweight together. Obese is overweight too.
 static func current() -> Dictionary:
 	var gs := GameState
 	var path := "avatar_states."
@@ -17,8 +17,10 @@ static func current() -> Dictionary:
 		"hungry": Hunger.is_hungry(),
 		"tired": gs.tired,
 		"sad": gs.happiness < Config.get_float(path + "sad_below"),
+		"happy": gs.happiness >= Config.get_float(path + "happy_from"),
 		"ill": HealthModel.in_danger(),
 		"thin": gs.weight_z < Config.get_float(path + "thin_below_z"),
 		"overweight": gs.weight_z > Config.get_float(path + "overweight_above_z"),
+		"obese": gs.weight_z > Config.get_float(path + "obese_above_z"),
 		"muscular": gs.strength >= Config.get_float(path + "muscular_strength"),
 	}
