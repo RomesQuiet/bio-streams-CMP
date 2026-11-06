@@ -19,11 +19,11 @@ const FOOTBALL := "football"
 ## The translation key of each request.
 const TEXT_KEYS := {
 	TIRED: "SPEECH_TIRED",
-	FAST_FOOD: "REQUEST_FAST_FOOD",
-	HEALTHY: "REQUEST_HEALTHY",
+	FAST_FOOD: "SPEECH_WANT_FAST_FOOD",
+	HEALTHY: "SPEECH_WANT_HEALTHY",
 	HUNGRY: "SPEECH_HUNGRY",
-	SCREENS: "REQUEST_SCREENS",
-	FOOTBALL: "REQUEST_FOOTBALL",
+	SCREENS: "SPEECH_WANT_SCREENS",
+	FOOTBALL: "SPEECH_WANT_FOOTBALL",
 }
 
 
@@ -60,9 +60,9 @@ static func meal_reaction(option_id: String) -> String:
 	# x of v1 Step 7: 1 for a healthy meal, 0 for fast food.
 	var healthy := Hunger.food_value(option_id, "healthy") >= 1.0
 	if craving >= _value("fast_food_craving"):
-		return "REACTION_NOT_AGAIN" if healthy else "REACTION_FAST_FOOD"
+		return "SPEECH_NOT_AGAIN" if healthy else "SPEECH_YES_FAST_FOOD"
 	if healthy and craving <= _value("healthy_craving"):
-		return "REACTION_HEALTHY"
+		return "SPEECH_JUST_WHAT_I_WANTED"
 	return ""
 
 
@@ -71,7 +71,7 @@ static func meal_reaction(option_id: String) -> String:
 static func exercise_reaction(option_id: String) -> String:
 	if Happiness.kind(option_id) != "exercise":
 		return ""
-	return "REACTION_LETS_GO" if GameState.fitness >= _value("keen_fitness") else "REACTION_DO_I_HAVE_TO"
+	return "SPEECH_LETS_GO" if GameState.fitness >= _value("keen_fitness") else "SPEECH_DO_I_HAVE_TO"
 
 
 static func _value(key: String) -> float:

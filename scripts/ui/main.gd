@@ -14,6 +14,7 @@ const Hunger := preload("res://scripts/health/hunger.gd")
 const AvatarStates := preload("res://scripts/health/avatar_states.gd")
 const HealthModel := preload("res://scripts/health/health_model.gd")
 const Training := preload("res://scripts/health/training.gd")
+const Requests := preload("res://scripts/health/requests.gd")
 ## Placeholder failure messages by cause (HealthModel.failure_cause(); the failure effect is not
 ## decided yet): severe thinness for too long, or target health or happiness below its line for
 ## too long (fail group in config). Translation keys, like every text on this screen.
@@ -75,6 +76,7 @@ const HEALTH_TEXT := "MEASURE_HEALTH"
 @onready var wake_button: Button = %WakeButton
 @onready var speech_label: Label = %SpeechLabel
 @onready var speech_bubble: PanelContainer = %SpeechBubble
+@onready var request_icon: Control = %RequestIcon
 @onready var stop_button: Button = %StopButton
 @onready var action_buttons: Array[Button] = [%ExerciseButton, %SleepButton, %EatButton, %EntertainmentButton]
 @onready var sleep_button: Button = %SleepButton
@@ -177,6 +179,9 @@ func _ready() -> void:
 	Activities.ended.connect(_refresh_activity.unbind(3))
 	Activities.progressed.connect(_refresh_activity_speech)
 	Activities.started.connect(_warn_if_too_soon.unbind(2))
+	Activities.started.connect(func(_activity_id: String, option_id: String) -> void: _on_meal_started(option_id))
+	Minigame.first_stride.connect(_on_first_stride)
+	GameState.wish_refused.connect(_on_wish_refused)
 	tap_button.button_down.connect(Minigame.tap)
 	down_button.button_down.connect(Minigame.press.bind(true))
 	up_button.button_down.connect(Minigame.press.bind(false))
@@ -373,6 +378,7 @@ func _flash(key: String, args := []) -> void:
 
 func _show_flash() -> void:
 	speech_label.text = tr(_flash_key) % _flash_args
+	request_icon.kind = ""
 
 
 func _end_flash() -> void:
@@ -380,10 +386,40 @@ func _end_flash() -> void:
 	_refresh_phase()
 
 
-## Writes to the speech bubble, unless a short message is being shown.
-func _set_speech(text: String) -> void:
+## Writes to the speech bubble, unless a short message is being shown. request: the picture of
+## a request (Requests), or "" for none.
+func _set_speech(text: String, request := "") -> void:
 	if _flash_key.is_empty():
 		speech_label.text = text
+		request_icon.kind = request
+
+
+## The avatar's reactions (Milestone 16): each shows an effect the model already has.
+## A meal: from the craving before it. The meal minigame shows it over the fork.
+func _on_meal_started(option_id: String) -> void:
+	if Simulation.loading:
+		return
+	var key := Requests.meal_reaction(option_id)
+	if key.is_empty():
+		return
+	if Minigame.running and Minigame.kind == Minigame.MEAL:
+		meal_fork.show_event(tr(key))
+	else:
+		_flash(key)
+
+
+## Exercise really starts at the first tap or press, with its happiness cost.
+func _on_first_stride() -> void:
+	var key := Requests.exercise_reaction(Activities.current_option)
+	if not key.is_empty():
+		_flash(key)
+
+
+## A wish the model counted as refused. Not over the football field or the fork.
+func _on_wish_refused(wish: String) -> void:
+	var covered := Minigame.running and Minigame.kind in [Minigame.FOOTBALL, Minigame.MEAL]
+	if wish == Requests.SCREENS and not covered:
+		_flash("SPEECH_NO_SCREENS")
 
 
 ## The avatar can sleep only when it is sleepy (Clock.is_sleepy()); otherwise it says so.
@@ -702,11 +738,10 @@ func _refresh_phase() -> void:
 		Clock.Phase.DAY:
 			if GameState.is_at_failure():
 				_set_speech(failure_text())
-			elif GameState.tired:
-				# Stays visible until the avatar sleeps.
-				_set_speech(tr("SPEECH_TIRED"))
-			elif Hunger.is_hungry():
-				_set_speech(tr("SPEECH_HUNGRY"))
+			elif not Requests.current().is_empty():
+				# A request stays until the avatar gets what it wants (tired: until it sleeps).
+				var request := Requests.current()
+				_set_speech(tr(Requests.text_key(request)), request)
 			elif AvatarStates.current()["sad"]:
 				_set_speech(tr("SPEECH_SAD"))
 			else:

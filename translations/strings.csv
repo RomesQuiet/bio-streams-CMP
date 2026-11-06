@@ -158,3 +158,13 @@ SETTINGS_NEW_AVATAR,Start a new avatar,Criar um novo avatar
 SETTINGS_NEW_AVATAR_WARNING,This avatar will be lost. This cannot be undone.,Este avatar vai perder-se. Isto não pode ser desfeito.
 SETTINGS_NEW_AVATAR_CONFIRM,"Yes, start again","Sim, recomeçar"
 SETTINGS_CLOSE,Close,Fechar
+SPEECH_WANT_FAST_FOOD,I want fast food!,Quero fast food!
+SPEECH_WANT_HEALTHY,I'd like a healthy meal.,Apetece-me uma refeição saudável.
+SPEECH_WANT_SCREENS,Can I watch something?,Posso ver alguma coisa?
+SPEECH_WANT_FOOTBALL,Can I play football with my friends?,Posso ir jogar à bola com os meus amigos?
+SPEECH_YES_FAST_FOOD,"Yes, fast food!","Boa, fast food!"
+SPEECH_NOT_AGAIN,Not this again...,Outra vez isto...
+SPEECH_JUST_WHAT_I_WANTED,Just what I wanted!,Era mesmo isto que me apetecia!
+SPEECH_LETS_GO,Let's go!,Vamos lá!
+SPEECH_DO_I_HAVE_TO,Do I have to?,Tenho mesmo de ir?
+SPEECH_NO_SCREENS,You never let me watch anything.,Nunca me deixas ver nada.

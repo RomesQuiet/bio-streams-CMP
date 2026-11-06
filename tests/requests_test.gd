@@ -79,18 +79,18 @@ func _test_hunger_requests() -> void:
 func _test_reactions() -> void:
 	_new_avatar()
 	gs.craving = 0.8
-	_check("fast food with a high craving", requests.meal_reaction("fast_food_meal") == "REACTION_FAST_FOOD")
-	_check("healthy with a high craving", requests.meal_reaction("healthy_meal") == "REACTION_NOT_AGAIN")
+	_check("fast food with a high craving", requests.meal_reaction("fast_food_meal") == "SPEECH_YES_FAST_FOOD")
+	_check("healthy with a high craving", requests.meal_reaction("healthy_meal") == "SPEECH_NOT_AGAIN")
 	gs.craving = 0.1
-	_check("healthy with a low craving", requests.meal_reaction("healthy_meal") == "REACTION_HEALTHY")
+	_check("healthy with a low craving", requests.meal_reaction("healthy_meal") == "SPEECH_JUST_WHAT_I_WANTED")
 	_check("fast food with a low craving says nothing", requests.meal_reaction("fast_food_meal") == "")
 	gs.craving = 0.3
 	_check("in between says nothing", requests.meal_reaction("healthy_meal") == "")
 	_check("not a meal", requests.meal_reaction("cardio") == "")
 	gs.fitness = 0.2
-	_check("unfit: do I have to?", requests.exercise_reaction("cardio") == "REACTION_DO_I_HAVE_TO")
+	_check("unfit: do I have to?", requests.exercise_reaction("cardio") == "SPEECH_DO_I_HAVE_TO")
 	gs.fitness = 0.8
-	_check("fit: let's go", requests.exercise_reaction("strength") == "REACTION_LETS_GO")
+	_check("fit: let's go", requests.exercise_reaction("strength") == "SPEECH_LETS_GO")
 	_check("football is not exercise here", requests.exercise_reaction("football") == "")
 
 
