@@ -9,4 +9,5 @@ anchors_preset = 0
 offset_right = 330.0
 offset_bottom = 450.0
 mouse_filter = 2
+texture_filter = 4
 script = ExtResource("1_avatar")

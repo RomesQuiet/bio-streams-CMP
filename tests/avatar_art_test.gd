@@ -27,9 +27,15 @@ func _test_sheets(avatar: Control) -> void:
 			var key := "%s_%s" % [age_group, sex]
 			avatar.sheet = key
 			_check("%s has art" % key, avatar.has_art())
-			var texture: Texture2D = load(art["sheets"][key]["path"])
-			_check("%s: each cell has the avatar's size" % key,
-					texture.get_size() == avatar.custom_minimum_size * Vector2(5, 5))
+			var sizes_right := true
+			for body in art["columns"].size():
+				for face in art["rows"].size():
+					var path: String = avatar.picture_path(Vector2i(body, face))
+					var texture: Texture2D = load(path) if ResourceLoader.exists(path) else null
+					# Twice the avatar's size, so it stays sharp on dense screens.
+					if texture == null or texture.get_size() != avatar.custom_minimum_size * 2.0:
+						sizes_right = false
+			_check("%s: all 25 pictures, at twice the avatar's size" % key, sizes_right)
 			var mouth: Vector2 = avatar.mouth_point()
 			_check("%s: the mouth is on the face" % key, mouth.y > avatar.size.y * 0.2 and mouth.y < avatar.size.y * 0.6)
 	avatar.sheet = ""

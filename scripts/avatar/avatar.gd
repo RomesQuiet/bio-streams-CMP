@@ -50,10 +50,15 @@ var sheet := "":
 		if value != sheet:
 			sheet = value
 			_load_sheet()
+			_load_picture()
 			queue_redraw()
 
 static var _art := {}
-var _texture: Texture2D
+## The folder of the current sheet's pictures, or "" for the egg.
+var _folder := ""
+## The picture for the current states. Loaded when they change, never while drawing: a
+## texture loaded inside _draw() is drawn white.
+var _picture: Texture2D
 var _mouth_y := EGG_MOUTH_Y
 
 ## Avatar states shown by the looks (AvatarStates.current()): "tired", "sad", "happy", "ill",
@@ -63,11 +68,13 @@ var states: Dictionary = {}:
 	set(value):
 		if value != states:
 			states = value
+			_load_picture()
 			queue_redraw()
 
 var eyes_closed := false:
 	set(value):
 		eyes_closed = value
+		_load_picture()
 		queue_redraw()
 
 ## How far the avatar is drawn above the ground during hops. Animations change this
@@ -163,7 +170,7 @@ func mouth_point() -> Vector2:
 	return Vector2(size.x * 0.5, size.y * _mouth_y)
 
 
-## The cell of the art for the current states: x is the body column, y the face row
+## The picture for the current states: x is the body column, y the face row
 ## (data/avatar_art.json). Weight wins over muscles; asleep, tired and sad win over happy.
 func frame() -> Vector2i:
 	var art := art_data()
@@ -186,7 +193,13 @@ func frame() -> Vector2i:
 
 ## Whether the art is drawn (otherwise the egg).
 func has_art() -> bool:
-	return _texture != null
+	return not _folder.is_empty()
+
+
+## The picture of a body and face of the current sheet (data/avatar_art.json).
+func picture_path(cell: Vector2i) -> String:
+	var art := art_data()
+	return "%s/%s_%s.png" % [_folder, art["columns"][cell.x], art["rows"][cell.y]]
 
 
 static func art_data() -> Dictionary:
@@ -197,12 +210,19 @@ static func art_data() -> Dictionary:
 
 
 func _load_sheet() -> void:
-	_texture = null
+	_folder = ""
 	_mouth_y = EGG_MOUTH_Y
 	var entry: Dictionary = art_data()["sheets"].get(sheet, {})
-	if entry.has("path") and ResourceLoader.exists(entry["path"]):
-		_texture = load(entry["path"])
-		_mouth_y = float(entry["mouth_y"])
+	if entry.has("folder"):
+		_folder = entry["folder"]
+		if ResourceLoader.exists(picture_path(Vector2i.ZERO)):
+			_mouth_y = float(entry["mouth_y"])
+		else:
+			_folder = ""
+
+
+func _load_picture() -> void:
+	_picture = load(picture_path(frame())) if has_art() else null
 
 
 func stop_animation() -> void:
@@ -216,7 +236,7 @@ func stop_animation() -> void:
 
 func _draw() -> void:
 	draw_set_transform(Vector2(0.0, -hop_offset))
-	if _texture:
+	if has_art():
 		_draw_art()
 		return
 	var points := _egg_points()
@@ -243,10 +263,10 @@ func _draw() -> void:
 ## The cell of the art for the current states, stretched over this control (the cells have its
 ## size), and an open mouth for the meal minigame.
 func _draw_art() -> void:
-	var art := art_data()
-	var cell := _texture.get_size() / Vector2(art["columns"].size(), art["rows"].size())
-	var region := Rect2(cell * Vector2(frame()), cell)
-	draw_texture_rect_region(_texture, Rect2(Vector2.ZERO, size), region, ill_tint if states.get("ill", false) else Color.WHITE)
+	# Each picture is larger than the avatar on screen (sharp on dense screens), scaled down
+	# with mipmaps (texture_filter in scenes/avatar/avatar.tscn).
+	if _picture:
+		draw_texture_rect(_picture, Rect2(Vector2.ZERO, size), false, ill_tint if states.get("ill", false) else Color.WHITE)
 	if mouth_open and not eyes_closed:
 		draw_circle(mouth_point(), size.x * mouth_width * 0.3, outline_color)
 

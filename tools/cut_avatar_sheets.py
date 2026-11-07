@@ -1,23 +1,37 @@
-"""Cuts the team's avatar sprite sheets into even grids for the game.
+"""Makes the avatar pictures for the game from the team's sprite sheets.
 
 Each sheet in assets/art/avatar/source/ (made by the team with an AI image tool, CC BY 4.0)
 has 5 columns (bodies: obese, overweight, healthy, thin, muscular) and 5 rows (faces: happy,
-neutral, sad, tired, asleep), but the figures are not on an even grid. This script finds
-each figure by its transparency, scales every sheet by one factor so its largest figure fits
-a cell of CELL_W x CELL_H pixels, puts each figure's feet on the bottom of its cell and
-centres its column, and writes assets/art/avatar/<name>.png (5 x 5 cells).
+neutral, sad, tired, asleep), but the figures are not on an even grid.
+
+1. cut() finds each figure by its transparency, scales every sheet by one factor so its
+   largest figure fits a cell of CELL_W x CELL_H pixels (the avatar's size on screen), puts
+   each figure's feet on the bottom of its cell and centres its column: an even 5 x 5 grid.
+2. The team upscaled those grids about 3.6 times with an AI tool (7 Nov 2026), on a white
+   background: assets/art/avatar/source/upscaled/<name>-upscaled-4x.png. from_upscaled()
+   turns the white back into transparency: white connected to where the grid was transparent
+   is background (so white inside a figure, such as eyes and socks, stays), and the grey edge
+   of the black outline gets its transparency back.
+3. Each figure is saved on its own at OUT_SCALE times the avatar's size (sharp on phones
+   with dense screens, and below the 4096-pixel limit of many phones) as
+   assets/art/avatar/<name>/<body>_<face>.png, with the names in data/avatar_art.json.
 
 Run from the project folder (needs Pillow and NumPy):
     python3 tools/cut_avatar_sheets.py
 """
 
+import json
 from pathlib import Path
 
 import numpy as np
 from PIL import Image
 
+Image.MAX_IMAGE_PIXELS = None
+
 SOURCE = Path("assets/art/avatar/source")
+UPSCALED = SOURCE / "upscaled"
 OUT = Path("assets/art/avatar")
+ART = Path("data/avatar_art.json")
 SHEETS = {
     "child_female": "criança do gènero feminino 10 anos.png",
     "child_male": "criança sexo masculino 10 anos.png",
@@ -36,6 +50,16 @@ SOLID = 40
 GAP = 15
 # Rows are split within this share of a fifth of the sheet around each fifth.
 SEARCH = 0.25
+# The pictures in the game are this many times the avatar's size on screen.
+OUT_SCALE = 2
+# In the upscaled sheets: a pixel at least this light (all of R, G, B) can be background,
+# and the grid's transparency below this share marks the background for sure.
+LIGHT = 215
+CLEAR = 0.05
+# The grey edge of the outline: this many pixels next to the background, at most this far
+# from grey (largest minus smallest of R, G, B).
+EDGE = 3
+GREY = 40
 
 
 def runs(indexes, gap=GAP):
@@ -97,10 +121,63 @@ def cut(name, filename):
         left = c * CELL_W + round(CELL_W / 2.0 + (x0 - centres[c]) * scale)
         top = r * CELL_H + CELL_H - MARGIN - piece.height
         atlas.alpha_composite(piece, (left, top))
-    atlas.save(OUT / f"{name}.png", optimize=True)
-    print(f"{name}.png: scale {scale:.3f}")
+    print(f"{name}: scale {scale:.3f}")
+    return atlas
+
+
+def dilate(mask):
+    """The mask grown by one pixel in the four directions."""
+    grown = mask.copy()
+    grown[1:, :] |= mask[:-1, :]
+    grown[:-1, :] |= mask[1:, :]
+    grown[:, 1:] |= mask[:, :-1]
+    grown[:, :-1] |= mask[:, 1:]
+    return grown
+
+
+def from_upscaled(atlas, path):
+    """The upscaled grid with its white background made transparent again."""
+    rgb = np.array(Image.open(path).convert("RGB"))
+    height, width = rgb.shape[:2]
+    guide = np.array(atlas.getchannel("A").resize((width, height), Image.BILINEAR)) / 255.0
+    light = rgb.min(axis=2) >= LIGHT
+    background = light & (guide < CLEAR)
+    while True:
+        grown = dilate(background) & light
+        if (grown == background).all():
+            break
+        background = grown
+    alpha = np.where(background, 0, 255).astype(np.uint8)
+    near = background.copy()
+    for _ in range(EDGE):
+        near = dilate(near)
+    spread = rgb.max(axis=2).astype(int) - rgb.min(axis=2)
+    edge = near & ~background & (spread <= GREY)
+    # A grey edge pixel is black outline over white: alpha = 1 - lightness, colour black.
+    alpha[edge] = 255 - rgb.min(axis=2)[edge]
+    rgb[edge] = 0
+    rgb[background] = 0
+    return Image.fromarray(np.dstack([rgb, alpha]), "RGBA")
+
+
+def save_cells(name, sheet):
+    """Each figure of an even 5 x 5 sheet on its own, at OUT_SCALE times the avatar's size."""
+    art = json.loads(ART.read_text())
+    size = (CELL_W * OUT_SCALE * COLUMNS, CELL_H * OUT_SCALE * ROWS)
+    # Premultiplied, so transparent pixels do not darken the edges when scaling.
+    sheet = sheet.convert("RGBa").resize(size, Image.LANCZOS).convert("RGBA")
+    folder = OUT / name
+    folder.mkdir(exist_ok=True)
+    for c, body in enumerate(art["columns"]):
+        for r, face in enumerate(art["rows"]):
+            x, y = c * CELL_W * OUT_SCALE, r * CELL_H * OUT_SCALE
+            cell = sheet.crop((x, y, x + CELL_W * OUT_SCALE, y + CELL_H * OUT_SCALE))
+            cell.save(folder / f"{body}_{face}.png", optimize=True)
+    print(f"{name}: {len(art['columns']) * len(art['rows'])} pictures")
 
 
 if __name__ == "__main__":
     for sheet_name, sheet_file in SHEETS.items():
-        cut(sheet_name, sheet_file)
+        grid = cut(sheet_name, sheet_file)
+        upscaled = UPSCALED / f"{sheet_name}-upscaled-4x.png"
+        save_cells(sheet_name, from_upscaled(grid, upscaled) if upscaled.exists() else grid)

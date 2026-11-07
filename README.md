@@ -58,7 +58,7 @@ Godot --headless --path . -s res://tests/health_log_test.gd
 | `scripts/` | GDScript code (`autoload/` holds the global scripts) |
 | `data/` | Game data and tunable numbers (JSON) |
 | `translations/` | Game texts in Portuguese and English (CSV) |
-| `assets/` | Art and audio (`assets/art/avatar/source/` holds the original avatar sheets) |
+| `assets/` | Art and audio (`assets/art/avatar/source/` holds the original avatar sheets and the team's upscaled versions) |
 | `tools/` | Helper scripts, such as `cut_avatar_sheets.py`, which cuts the avatar sheets for the game |
 | `documentation/` | Development notes |
 | `docs/` | Web export, published with GitHub Pages |

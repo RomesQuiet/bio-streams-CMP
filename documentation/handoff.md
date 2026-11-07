@@ -134,6 +134,9 @@ Decisions 39 to 51 (Milestone 14, football) are in `MILESTONE_14.md`. Decision 3
 ## 5. Lessons learned (technical)
 
 - **Godot binary:** `"/Applications/Godot 2.app/Contents/MacOS/Godot"`. Check scripts: `... --headless --path . --quit`.
+- **Do not `load()` a texture inside `_draw()`.** It is drawn as a white box (seen in the Compatibility renderer on the Mac and on the web); load it when the state changes and keep it in a variable (`scripts/avatar/avatar.gd`, 7 Nov 2026). Headless tests cannot see this: render a frame in a window (`--path . --resolution 720x1280 -s <script>` and `root.get_texture().get_image().save_png()`) to check drawing.
+- **Textures larger than 4096 pixels fail on many phones.** Keep each texture below that (the avatar art is 100 pictures of 660 x 900).
+- **Changing an `.import` file's settings and running `--import` headless re-imports the texture** (lossy WebP and mipmaps were set this way for the avatar art).
 - **Tests hang on script errors.** A test that hits a script error never calls `quit()`, so Godot runs it forever. Always run tests with a time limit:
   `perl -e 'alarm 300; exec @ARGV' "/Applications/Godot 2.app/Contents/MacOS/Godot" --headless --path . -s res://tests/<name>_test.gd`
 - **Scripts in `scripts/health/` use the autoloads (`Config`, `GameState`, …).** A test script is compiled before the autoloads exist, so tests must `load()` these scripts at run time, not `preload` them. Game scripts (autoloads, UI) can preload them.
