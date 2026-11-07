@@ -202,12 +202,12 @@ FAILURE_RECOMMENDED_RANGE,Recommended: %s to %s h,Recomendado: %s a %s h
 FAILURE_RECOMMENDED_AT_LEAST,Recommended: at least %d min,Recomendado: pelo menos %d min
 FAILURE_RECOMMENDED_AT_MOST,Recommended: at most %s h,Recomendado: no máximo %s h
 FAILURE_MEALS_COUNT,"%d healthy, %d fast food","%d saudáveis, %d de fast food"
-MEASURE_VERDICT_BMI,BMI-for-age: %s,IMC para a idade: %s
-MEASURE_VERDICT_Z_SEVERE_THIN,far too thin,magreza grave
-MEASURE_VERDICT_Z_THIN,too thin,magreza
-MEASURE_VERDICT_Z_HEALTHY,healthy weight,peso saudável
-MEASURE_VERDICT_Z_OVER,too heavy,excesso de peso
-MEASURE_VERDICT_Z_OBESE,far too heavy (obesity),obesidade
-MEASURE_VERDICT_LOW,too low,valor muito baixo
-MEASURE_VERDICT_MIDDLE,could be better,a melhorar
-MEASURE_VERDICT_GOOD,good,valor bom
+FAILURE_EXPLAIN_Z,BMI-for-age: %s,IMC para a idade: %s
+FAILURE_EXPLAIN_Z_SEVERE_THIN,far too thin,magreza grave
+FAILURE_EXPLAIN_Z_THIN,too thin,magreza
+FAILURE_EXPLAIN_Z_HEALTHY,healthy weight,peso saudável
+FAILURE_EXPLAIN_Z_OVER,too heavy,excesso de peso
+FAILURE_EXPLAIN_Z_OBESE,far too heavy (obesity),obesidade
+FAILURE_EXPLAIN_LOW,too low,valor demasiado baixo
+FAILURE_EXPLAIN_MIDDLE,could be better,valor que podia ser melhor
+FAILURE_EXPLAIN_GOOD,good,bom valor

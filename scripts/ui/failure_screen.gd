@@ -11,7 +11,6 @@ signal restart_pressed
 const Hunger := preload("res://scripts/health/hunger.gd")
 const AvatarStates := preload("res://scripts/health/avatar_states.gd")
 const HabitGauge := preload("res://scripts/ui/habit_gauge.gd")
-const Verdicts := preload("res://scripts/ui/verdicts.gd")
 const RequestIcon := preload("res://scripts/ui/request_icon.gd")
 ## How far each gauge reaches: sleep in hours, activity and screens as multiples of the
 ## recommendation (display only; the scale grows if the avatar went past it).
@@ -156,14 +155,29 @@ func _tiles(items: Array) -> void:
 	details.add_child(row)
 
 
-## BMI-for-age z in a few words: its WHO 2007 band (scripts/ui/verdicts.gd).
+## BMI-for-age z in a few words: its WHO 2007 band (the same cut-offs as the game).
 func z_explanation(z: float) -> String:
-	return tr("MEASURE_VERDICT_BMI") % tr(Verdicts.z_key(z))
+	var band := "FAILURE_EXPLAIN_Z_HEALTHY"
+	if z < Config.get_float("fail.danger_z"):
+		band = "FAILURE_EXPLAIN_Z_SEVERE_THIN"
+	elif z < Config.get_float("avatar_states.thin_below_z"):
+		band = "FAILURE_EXPLAIN_Z_THIN"
+	elif z > Config.get_float("avatar_states.obese_above_z"):
+		band = "FAILURE_EXPLAIN_Z_OBESE"
+	elif z > Config.get_float("avatar_states.overweight_above_z"):
+		band = "FAILURE_EXPLAIN_Z_OVER"
+	return tr("FAILURE_EXPLAIN_Z") % tr(band)
 
 
-## Physical, Happiness or Sleep in a few words: too low, could be better or good.
+## Physical, Happiness or Sleep in a few words: too low, could be better or good
+## (failure_screen.measure_low_below and measure_good_from).
 func measure_explanation(_key: String, amount: float) -> String:
-	return tr(Verdicts.level_key(amount))
+	var band := "FAILURE_EXPLAIN_MIDDLE"
+	if amount < Config.get_float("failure_screen.measure_low_below"):
+		band = "FAILURE_EXPLAIN_LOW"
+	elif amount >= Config.get_float("failure_screen.measure_good_from"):
+		band = "FAILURE_EXPLAIN_GOOD"
+	return tr(band)
 
 
 ## A measure's name and its bar, as in the measures panel.
