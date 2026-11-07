@@ -119,6 +119,14 @@ func _test_details() -> void:
 	_check("...the life and body as tiles", text.contains("Ana's life") and text.contains("days lived")
 			and text.contains("highest health") and text.contains("BMI-for-age z"))
 	_check("...the last measures as bars", _bars(screen.details) == 3)
+	_check("...with mini explanations: Health (normal start, z +1.20: overweight) and each measure",
+			text.contains("BMI-for-age z +1.20: overweight (above +1)") and text.contains("standard deviation")
+			and text.contains("weight alone says little") and text.contains("Physical 0.60: a middle value.")
+			and text.contains("At this age 9 to 12 h a night"))
+	for case in [[-3.5, "severe thinness"], [-2.5, "thinness (below"], [0.0, "a healthy weight"], [2.5, "obesity"]]:
+		_check("z %+.1f: %s" % case, screen.z_explanation(case[0]).contains(case[1]))
+	_check("happiness 0.1: a low value; 0.8: a good value", screen.measure_explanation("MEASURE_HAPPINESS", 0.1).contains("a low value")
+			and screen.measure_explanation("MEASURE_HAPPINESS", 0.8).contains("a good value"))
 	var gauges: Dictionary = screen.gauges
 	_check("sleep: a gauge at 2 h with the recommended 9 to 12 h in green", is_equal_approx(gauges["sleep"].value, 2.0)
 			and gauges["sleep"].zone_from == 9.0 and gauges["sleep"].zone_to == 12.0 and text.contains("Recommended: 9 to 12 h"))

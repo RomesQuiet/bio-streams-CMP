@@ -202,3 +202,19 @@ FAILURE_RECOMMENDED_RANGE,Recommended: %s to %s h,Recomendado: %s a %s h
 FAILURE_RECOMMENDED_AT_LEAST,Recommended: at least %d min,Recomendado: pelo menos %d min
 FAILURE_RECOMMENDED_AT_MOST,Recommended: at most %s h,Recomendado: no máximo %s h
 FAILURE_MEALS_COUNT,"%d healthy, %d fast food","%d saudáveis, %d de fast food"
+FAILURE_EXPLAIN_Z,BMI-for-age z %s: %s,IMC para a idade z %s: %s
+FAILURE_EXPLAIN_Z_SEVERE_THIN,"severe thinness (below −3). The body is missing energy and nutrients, which harms growth, muscles and the immune system.","magreza grave (abaixo de −3). Faltam ao corpo energia e nutrientes, o que prejudica o crescimento, os músculos e o sistema imunitário."
+FAILURE_EXPLAIN_Z_THIN,"thinness (below −2): too little weight for the height, age and sex.","magreza (abaixo de −2): peso a menos para a altura, a idade e o sexo."
+FAILURE_EXPLAIN_Z_HEALTHY,a healthy weight (from −2 to +1).,peso saudável (de −2 a +1).
+FAILURE_EXPLAIN_Z_OVER,"overweight (above +1): more body fat than is healthy, which raises the risk of disease later in life.","excesso de peso (acima de +1): mais gordura corporal do que é saudável, o que aumenta o risco de doença mais tarde."
+FAILURE_EXPLAIN_Z_OBESE,"obesity (above +2): much more body fat than is healthy; it raises the risk of type 2 diabetes, high blood pressure and joint problems.","obesidade (acima de +2): muito mais gordura corporal do que é saudável; aumenta o risco de diabetes tipo 2, tensão arterial alta e problemas nas articulações."
+FAILURE_EXPLAIN_Z_INFO,"The z compares the BMI (weight ÷ height²) with WHO children of the same age and sex: 0 is the middle, and each step of 1 is one standard deviation.","O z compara o IMC (peso ÷ altura²) com crianças da OMS da mesma idade e sexo: 0 é o meio, e cada passo de 1 é um desvio-padrão."
+FAILURE_EXPLAIN_WEIGHT,"Weight %s kg. In children, weight alone says little, because they are growing; that is why BMI-for-age is used.","Peso %s kg. Nas crianças, o peso sozinho diz pouco, porque estão a crescer; por isso usa-se o IMC para a idade."
+FAILURE_EXPLAIN_HEALTH,"Health %s of 5. It combines Physical, Happiness and Sleep, and one very low measure pulls it down a lot.","Saúde %s em 5. Junta o Físico, a Felicidade e o Sono, e uma medida muito baixa puxa-a muito para baixo."
+FAILURE_EXPLAIN_MEASURE,%s %s: %s,%s %s: %s
+FAILURE_EXPLAIN_LOW,a low value.,um valor baixo.
+FAILURE_EXPLAIN_MIDDLE,a middle value.,um valor médio.
+FAILURE_EXPLAIN_GOOD,a good value.,um bom valor.
+FAILURE_EXPLAIN_PHYSICAL_INFO,"It comes from weight status, fitness, muscle strength and diet quality; regular exercise and healthy food raise it.","Vem do estado do peso, da aptidão física, da força muscular e da qualidade da alimentação; o exercício regular e a comida saudável fazem-no subir."
+FAILURE_EXPLAIN_HAPPINESS_INFO,"Mental well-being is part of health (WHO). Exercise, good sleep, fun and friends raise it; hunger and refused wishes lower it.","O bem-estar mental faz parte da saúde (OMS). O exercício, o bom sono, a diversão e os amigos fazem-na subir; a fome e os desejos recusados fazem-na descer."
+FAILURE_EXPLAIN_SLEEP_INFO,"It falls with sleep debt. At this age %s to %s h a night are recommended (AASM 2016); too little sleep brings more hunger, tiredness and slower fitness gains.","Desce com a dívida de sono. Nesta idade recomendam-se %s a %s h por noite (AASM 2016); dormir pouco traz mais fome, cansaço e ganhos de aptidão física mais lentos."

@@ -378,6 +378,8 @@
 	"failure_screen": {
 		"_comment": "The failure screen (user, 7 Nov 2026): a short phrase, and Details with the cause, the avatar's life, its last measures and its habits over the last summary_days avatar days next to the recommendations (sleep from the sleep group, screens from mood.fun.screen_max_min).",
 		"summary_days": {"value": 3, "status": "placeholder", "owner": "team", "comment": "Avatar days of habits shown in Details (fewer if the avatar lived less)."},
+		"measure_low_below": {"value": 0.3, "status": "placeholder", "owner": "team", "comment": "Details' explanations only: Physical, Happiness or Sleep below this is called low."},
+		"measure_good_from": {"value": 0.7, "status": "placeholder", "owner": "team", "comment": "Details' explanations only: from this it is called good; in between, middle."},
 		"activity_min_per_day": {"value": 60, "status": "from source", "owner": "Pessoa 3", "comment": "WHO 2020: at least 60 minutes a day of moderate-to-vigorous activity for children and adolescents."}
 	},
 
