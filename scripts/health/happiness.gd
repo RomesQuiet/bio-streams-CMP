@@ -1,6 +1,7 @@
 extends RefCounted
 ## Happiness, 0 to 1 (v1 Step 10, Milestone 10 Task 7). It moves toward a baseline with the time
-## constant mood.tau_h (clock time; k does not apply) and jumps with events.
+## constant mood.tau_h when it rises and mood.fall_tau_h when it falls (2 times slower; user,
+## 7 Nov 2026) (clock time; k does not apply) and jumps with events.
 ## Baseline = base + physical x Physical + sleep x Sleep + diet x Q + fun x Fun - deficit x U
 ## - screen_excess x screen excess - overreach x O, from 0 to 1.
 ## - Fun = the minutes of the last 24 avatar hours of football x 1.0, screens x 0.6 (only the
@@ -90,7 +91,8 @@ static func step(hours: float, asleep: bool) -> void:
 			change += Config.get_float(events + "kept_awake_per_h") * hours
 	gs.happiness_baseline = baseline()
 	gs.happiness = clampf(gs.happiness + change, 0.0, 1.0)
-	gs.happiness += (gs.happiness_baseline - gs.happiness) * (1.0 - exp(-hours / Config.get_float("mood.tau_h")))
+	var tau := Config.get_float("mood.tau_h" if gs.happiness_baseline >= gs.happiness else "mood.fall_tau_h")
+	gs.happiness += (gs.happiness_baseline - gs.happiness) * (1.0 - exp(-hours / tau))
 
 
 ## A meal (this share of it): healthy meal + meal - meal_craving x C; fast food + meal +

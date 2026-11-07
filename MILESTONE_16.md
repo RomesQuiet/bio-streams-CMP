@@ -46,6 +46,13 @@ The user asked to "add the xp mechanism". XP already worked (v1 Step 12, Milesto
 - Every `ProgressBar` uses the theme: a rounded frame (radius 18, 3-pixel border, black by day and white at night, like the buttons), a dark empty part and a fill: grey by default, `XPBar` white, `HealthBar` green, `HealthBarDanger` red (the danger warning, which tinted the bar before). The health and physical buttons are flat, so the bar is the frame. Happiness and Sleep are as tall as Physical (30). The Health and XP texts have a black outline.
 - **Checked:** the quick tests (`tests/measures_test.gd` now checks the red fill in the danger state) and renders of the four avatars asleep, by day and at night.
 
+## Happiness falls slower, and the head no longer jumps (added 7 Nov 2026, user)
+
+"Change the placeholder of happiness so happiness is reduced slower, like 2x slower. I've told you to stop making it jump."
+
+- **Happiness:** v1 used one time constant (`mood.tau_h`, 12 avatar hours) for the move toward the baseline. A new placeholder, `mood.fall_tau_h` = 24, is used while happiness falls; rising stays at 12. Event jumps (meals, hunger, refused wishes) are unchanged. Scenario test (`calibration_test.gd`): all rules pass. `happiness_test.gd`: the guideline plan ends at 0.96 (was 0.93) and the abrupt switch at 0.96 (was 0.93), the gradual switch at 0.91 as before, so the rule "both switches end in the same place" (a gap below 0.05) fails at exactly 0.05. The lowest points do not change (0.40 and 0.44): they come from the events. The test was not changed; the user decides.
+- **Jumping:** the only earlier request about movement was "the character moves a little just by changing sprite" (fixed sideways). The figures also had different heights in the team's sheets (the child boy's asleep figure 11% shorter than his sad one), so with the feet on the ground the head jumped up or down by up to 50 screen pixels when the face changed. `tools/cut_avatar_sheets.py` now scales every figure of a sheet to the sheet's median height (feet to the top of the head, not counting the "zZ") on the sharp upscaled pictures, and puts the middle of its feet in the middle; heads now differ by at most 2 pixels.
+
 Read `CLAUDE.md` and `documentation/handoff.md` first.
 
 ## Decisions (user, 6 Nov 2026)

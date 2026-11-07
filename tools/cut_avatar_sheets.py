@@ -12,9 +12,10 @@ neutral, sad, tired, asleep), but the figures are not on an even grid.
    turns the white back into transparency: white connected to where the grid was transparent
    is background (so white inside a figure, such as eyes and socks, stays), and the grey edge
    of the black outline gets its transparency back.
-3. Each figure is moved sideways so its feet are in the middle of its picture: the team's
-   figures do not stand in the same place, so without this the avatar moved a little when
-   its picture changed (user, 7 Nov 2026).
+3. The team's figures do not stand in the same place or have the same height, so the avatar
+   moved and its head jumped up and down when its picture changed (user, 7 Nov 2026). Each
+   figure is scaled to the median height of its sheet (from its feet to the top of its head)
+   and moved so the middle of its feet is the middle of its picture, its feet on the ground.
 4. Each figure is saved on its own at OUT_SCALE times the avatar's size (sharp on phones
    with dense screens, and below the 4096-pixel limit of many phones) as
    assets/art/avatar/<name>/<body>_<face>.png, with the names in data/avatar_art.json.
@@ -65,6 +66,9 @@ EDGE = 3
 GREY = 40
 # The feet: this share of the figure's height, from the bottom.
 FEET = 0.1
+# The head is the highest solid pixel this share of a cell's width either side of the feet
+# (so the "zZ" of the asleep faces does not count).
+HEAD_BAND = 0.12
 
 
 def runs(indexes, gap=GAP):
@@ -165,35 +169,50 @@ def from_upscaled(atlas, path):
     return Image.fromarray(np.dstack([rgb, alpha]), "RGBA")
 
 
-def centre_feet(cell):
-    """The figure moved sideways so the middle of its feet is the middle of the picture."""
-    solid = np.array(cell.getchannel("A")) >= SOLID
+def measure(alpha):
+    """(middle of the feet, bottom, height from the feet to the top of the head) of one cell."""
+    solid = alpha >= SOLID
     ys, xs = np.where(solid)
-    feet = ys >= ys.max() - FEET * (ys.max() - ys.min())
-    shift = round(cell.width / 2.0 - xs[feet].mean())
-    assert xs.min() + shift >= 0 and xs.max() + shift < cell.width, "a figure would leave its picture"
-    moved = Image.new("RGBA", cell.size, (0, 0, 0, 0))
-    moved.paste(cell, (shift, 0))
-    return moved, shift
+    bottom = ys.max()
+    feet_x = xs[ys >= bottom - FEET * (bottom - ys.min())].mean()
+    band = solid[:, max(0, round(feet_x - HEAD_BAND * alpha.shape[1])) : round(feet_x + HEAD_BAND * alpha.shape[1])]
+    top = np.where(band.any(axis=1))[0].min()
+    return feet_x, bottom, bottom - top
 
 
 def save_cells(name, sheet):
-    """Each figure of an even 5 x 5 sheet on its own, at OUT_SCALE times the avatar's size."""
+    """Each figure of an even 5 x 5 sheet on its own, at OUT_SCALE times the avatar's size, all at
+    the same height, with the middle of the feet in the middle of the picture."""
     art = json.loads(ART.read_text())
-    size = (CELL_W * OUT_SCALE * COLUMNS, CELL_H * OUT_SCALE * ROWS)
+    out_w, out_h = CELL_W * OUT_SCALE, CELL_H * OUT_SCALE
+    cell_w, cell_h = sheet.width / COLUMNS, sheet.height / ROWS
+    alpha = np.array(sheet.getchannel("A"))
     # Premultiplied, so transparent pixels do not darken the edges when scaling.
-    sheet = sheet.convert("RGBa").resize(size, Image.LANCZOS).convert("RGBA")
+    sheet = sheet.convert("RGBa")
+    cells = {}
+    for c in range(COLUMNS):
+        for r in range(ROWS):
+            box = (round(c * cell_w), round(r * cell_h), round((c + 1) * cell_w), round((r + 1) * cell_h))
+            cells[(c, r)] = (box, measure(alpha[box[1] : box[3], box[0] : box[2]]))
+    height = float(np.median([m[2] for _, m in cells.values()]))
+    base = out_w / cell_w
     folder = OUT / name
     folder.mkdir(exist_ok=True)
-    shifts = []
-    for c, body in enumerate(art["columns"]):
-        for r, face in enumerate(art["rows"]):
-            x, y = c * CELL_W * OUT_SCALE, r * CELL_H * OUT_SCALE
-            cell = sheet.crop((x, y, x + CELL_W * OUT_SCALE, y + CELL_H * OUT_SCALE))
-            cell, shift = centre_feet(cell)
-            shifts.append(abs(shift))
-            cell.save(folder / f"{body}_{face}.png", optimize=True)
-    print(f"{name}: {len(art['columns']) * len(art['rows'])} pictures, feet moved up to {max(shifts)} pixels")
+    changes = []
+    for (c, r), (box, (feet_x, bottom, figure_h)) in cells.items():
+        scale = base * height / figure_h
+        changes.append(abs(height / figure_h - 1.0))
+        piece = sheet.crop(box)
+        piece = piece.resize((round(piece.width * scale), round(piece.height * scale)), Image.LANCZOS)
+        left = round(out_w / 2.0 - feet_x * scale)
+        top = round(out_h - MARGIN * OUT_SCALE - bottom * scale)
+        cell = Image.new("RGBa", (out_w, out_h), (0, 0, 0, 0))
+        cell.paste(piece, (left, top))
+        cell = cell.convert("RGBA")
+        kept = (np.array(cell.getchannel("A")) >= SOLID).sum()
+        assert kept >= (np.array(piece.convert("RGBA").getchannel("A")) >= SOLID).sum() * 0.999, f"{name} {c},{r}: a figure would leave its picture"
+        cell.save(folder / f"{art['columns'][c]}_{art['rows'][r]}.png", optimize=True)
+    print(f"{name}: {len(cells)} pictures, heights changed up to {max(changes) * 100:.0f}%")
 
 
 if __name__ == "__main__":
