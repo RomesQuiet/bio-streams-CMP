@@ -82,14 +82,12 @@ func _build_details(cause: String) -> void:
 			[Settings.number(gs.best_health, 1), "FAILURE_TILE_BEST"]])
 	_tiles([[Settings.number(gs.weight_kg, 1) + " kg", "FAILURE_TILE_WEIGHT"],
 			[Settings.number(gs.weight_z, 2, true), "FAILURE_TILE_Z"], [Settings.number(gs.health, 1), "FAILURE_TILE_HEALTH"]])
-	# Mini explanations (user, 7 Nov 2026): what the avatar's value means, then what the measure is.
-	_caption(z_explanation(gs.weight_z), 17, CAPTION_COLOR)
-	_caption(tr("FAILURE_EXPLAIN_WEIGHT") % Settings.number(gs.weight_kg, 1), 17, CAPTION_COLOR)
-	_caption(tr("FAILURE_EXPLAIN_HEALTH") % Settings.number(gs.health, 1), 17, CAPTION_COLOR)
+	# A short verdict where a value needs one (user, 7 Nov 2026: "just say too thin, too something").
+	_caption(z_explanation(gs.weight_z), 18, CAPTION_COLOR)
 	_heading("FAILURE_END_TITLE")
 	for measure in [["MEASURE_PHYSICAL", gs.physical], ["MEASURE_HAPPINESS", gs.happiness], ["MEASURE_SLEEP", gs.sleep]]:
 		_measure(measure[0], measure[1])
-		_caption(measure_explanation(measure[0], measure[1]), 17, CAPTION_COLOR)
+		_caption(measure_explanation(measure[0], measure[1]), 18, CAPTION_COLOR)
 	var habits := habit_numbers()
 	if habits["days"] <= 0.0:
 		return
@@ -157,8 +155,7 @@ func _tiles(items: Array) -> void:
 	details.add_child(row)
 
 
-## BMI-for-age z: the WHO 2007 band of the avatar's value (the same cut-offs as the game), then
-## what the z is.
+## BMI-for-age z in a few words: its WHO 2007 band (the same cut-offs as the game).
 func z_explanation(z: float) -> String:
 	var band := "FAILURE_EXPLAIN_Z_HEALTHY"
 	if z < Config.get_float("fail.danger_z"):
@@ -169,22 +166,18 @@ func z_explanation(z: float) -> String:
 		band = "FAILURE_EXPLAIN_Z_OBESE"
 	elif z > Config.get_float("avatar_states.overweight_above_z"):
 		band = "FAILURE_EXPLAIN_Z_OVER"
-	return "%s %s" % [tr("FAILURE_EXPLAIN_Z") % [Settings.number(z, 2, true), tr(band)], tr("FAILURE_EXPLAIN_Z_INFO")]
+	return tr("FAILURE_EXPLAIN_Z") % tr(band)
 
 
-## Physical, Happiness or Sleep: low, middle or good (failure_screen.measure_low_below and
-## measure_good_from), then what the measure is.
-func measure_explanation(key: String, amount: float) -> String:
+## Physical, Happiness or Sleep in a few words: too low, could be better or good
+## (failure_screen.measure_low_below and measure_good_from).
+func measure_explanation(_key: String, amount: float) -> String:
 	var band := "FAILURE_EXPLAIN_MIDDLE"
 	if amount < Config.get_float("failure_screen.measure_low_below"):
 		band = "FAILURE_EXPLAIN_LOW"
 	elif amount >= Config.get_float("failure_screen.measure_good_from"):
 		band = "FAILURE_EXPLAIN_GOOD"
-	var info := tr({"MEASURE_PHYSICAL": "FAILURE_EXPLAIN_PHYSICAL_INFO", "MEASURE_HAPPINESS": "FAILURE_EXPLAIN_HAPPINESS_INFO"}.get(key, "FAILURE_EXPLAIN_SLEEP_INFO"))
-	if key == "MEASURE_SLEEP":
-		var group := GameState.age_group if not GameState.age_group.is_empty() else "child"
-		info = info % [Settings.number(Config.get_float("sleep.%s_min_h" % group), 0), Settings.number(Config.get_float("sleep.%s_max_h" % group), 0)]
-	return "%s %s" % [tr("FAILURE_EXPLAIN_MEASURE") % [tr(key), Settings.number(amount, 2), tr(band)], info]
+	return tr(band)
 
 
 ## A measure's name and its bar, as in the measures panel.
