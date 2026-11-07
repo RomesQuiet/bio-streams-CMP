@@ -48,10 +48,16 @@ func _test_places(main: Node, activities: Node, minigame: Node) -> void:
 	main._refresh_activity(true)
 	_check("after the meal the fork and its zone are gone", not main.meal_fork.visible and not main.avatar.mouth_open)
 	_check("...and so is the room", scenery.modulate.a == 0.0)
+	_check("no blanket after a meal", main.blanket.modulate.a == 0.0)
 	activities.start("sleep", "sleep", 8.0)
 	main._refresh_activity(true)
 	_check("sleep: the bedroom", scenery.kind == "bedroom" and scenery.modulate.a == 1.0)
 	_check("sleeping after a meal: no fork", not main.meal_fork.visible)
+	var blanket: Control = main.blanket
+	_check("...the blanket over the avatar", blanket.kind == "bedroom" and blanket.modulate.a == 1.0
+			and blanket.front and blanket.get_index() > main.avatar.get_index())
+	_check("...the bed under it", not scenery.front and scenery.get_index() < main.avatar.get_index()
+			and scenery.avatar == main.avatar)
 	activities.stop()
 	root.get_node("Clock").wake_up()
 	for option in ["cardio", "strength"]:

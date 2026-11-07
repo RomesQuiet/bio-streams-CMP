@@ -46,6 +46,8 @@ const HEALTH_TEXT := "MEASURE_HEALTH"
 @onready var sky: ColorRect = $Background
 @onready var activity_backdrop: ColorRect = %ActivityBackdrop
 @onready var scenery: Control = %Scenery
+## The bedroom's blanket, in front of the avatar.
+@onready var blanket: Control = %Blanket
 @onready var avatar: Control = %Avatar
 @onready var health_level_button: Button = %HealthLevelButton
 @onready var health_bar_button: Button = %HealthBarButton
@@ -514,23 +516,27 @@ func _refresh_activity(instant := false) -> void:
 			alpha = activity_backdrop_alpha
 	_refresh_animation()
 	_refresh_minigame()
-	_backdrop_tween = _fade(activity_backdrop, _backdrop_tween, alpha, instant)
+	_backdrop_tween = _fade([activity_backdrop], _backdrop_tween, alpha, instant)
 	# A new place fades in from nothing; when the activity ends the last one fades out.
 	if not place.is_empty() and place != scenery.kind:
-		scenery.kind = place
-		scenery.modulate.a = 0.0
-	_scenery_tween = _fade(scenery, _scenery_tween, 0.0 if place.is_empty() else 1.0, instant)
+		for layer in [scenery, blanket]:
+			layer.avatar = avatar
+			layer.kind = place
+			layer.modulate.a = 0.0
+	_scenery_tween = _fade([scenery, blanket], _scenery_tween, 0.0 if place.is_empty() else 1.0, instant)
 	_refresh_phase()
 
 
-func _fade(node: CanvasItem, tween: Tween, alpha: float, instant: bool) -> Tween:
+func _fade(nodes: Array, tween: Tween, alpha: float, instant: bool) -> Tween:
 	if tween:
 		tween.kill()
 	if instant:
-		node.modulate.a = alpha
+		for node in nodes:
+			node.modulate.a = alpha
 		return null
-	tween = create_tween()
-	tween.tween_property(node, "modulate:a", alpha, backdrop_fade_seconds)
+	tween = create_tween().set_parallel()
+	for node in nodes:
+		tween.tween_property(node, "modulate:a", alpha, backdrop_fade_seconds)
 	return tween
 
 
