@@ -22,6 +22,7 @@
 
 	"save": {
 		"autosave_real_seconds": { "value": 30, "placeholder": true, "comment": "Extra safety save every this many real seconds while the game is open." },
+		"slots": { "value": 3, "placeholder": true, "comment": "Milestone 18: places for avatars in the main menu (user, 7 Nov 2026: build with the suggested 3)." },
 		"resume_paused": { "value": true, "placeholder": true, "comment": "If true, a day in progress is paused when the game is reopened, so time only starts when the player presses pause again." }
 	},
 

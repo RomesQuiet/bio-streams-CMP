@@ -22,6 +22,8 @@ var use_web_storage := OS.has_feature("web")
 var language := ""
 ## The first-time explanation of football was shown on this device (Milestone 14).
 var football_help_seen := false
+## The avatar place played last (Milestone 18): the main menu's Continue.
+var last_slot := 0
 
 ## The language the player chose, or "" while the game follows the browser.
 var _chosen_language := ""
@@ -37,6 +39,7 @@ func load_settings() -> void:
 	var saved := str(data.get("language", ""))
 	_chosen_language = saved if saved in LANGUAGES else ""
 	football_help_seen = bool(data.get("football_help_seen", false))
+	last_slot = int(data.get("last_slot", 0))
 	_apply(saved if saved in LANGUAGES else language_for_locale(OS.get_locale_language()))
 
 
@@ -55,6 +58,12 @@ func set_language(id: String) -> void:
 	_save()
 
 
+## The avatar place played last.
+func set_last_slot(place: int) -> void:
+	last_slot = place
+	_save()
+
+
 ## The player has seen the explanation of football.
 func mark_football_help_seen() -> void:
 	football_help_seen = true
@@ -62,7 +71,7 @@ func mark_football_help_seen() -> void:
 
 
 func _save() -> void:
-	var data := {"football_help_seen": football_help_seen}
+	var data := {"football_help_seen": football_help_seen, "last_slot": last_slot}
 	if not _chosen_language.is_empty():
 		data["language"] = _chosen_language
 	var text := JSON.stringify(data, "\t")

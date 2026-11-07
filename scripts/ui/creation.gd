@@ -9,6 +9,7 @@ extends Control
 ## opens the browser's own text box, which those keyboards type into normally.
 
 const MAIN_SCENE := "res://scenes/main.tscn"
+const MENU_SCENE := "res://scenes/ui/menu.tscn"
 ## The question in the browser's text box, and the field's hint when it opens that box.
 const NAME_QUESTION := "CREATION_NAME_QUESTION"
 const TAP_HINT := "CREATION_TAP_HINT"
@@ -72,6 +73,8 @@ func _ready() -> void:
 		difficulty_names[id] = DIFFICULTIES[id]["name"]
 	_add_choice_buttons(difficulty_buttons, difficulty_names, func(id: String) -> void: _difficulty = id)
 	start_button.pressed.connect(_on_start_pressed)
+	# Back to the main menu (Milestone 18): nothing was saved, so the place stays empty.
+	%BackButton.pressed.connect(func() -> void: get_tree().change_scene_to_file(MENU_SCENE))
 	var languages := ButtonGroup.new()
 	portuguese_button.button_group = languages
 	english_button.button_group = languages

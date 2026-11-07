@@ -10,6 +10,12 @@ extends Node
 ## Deleting has the same problem the other way round: after a reload the browser can still
 ## give back the deleted file. So delete_save() writes down the last save number in
 ## localStorage, at once, and any copy that is not newer than it is ignored.
+##
+## Milestone 18 (main menu): save.slots places for avatars. Place 0 keeps the old file and keys
+## (user://save.json), so an existing save becomes the first avatar; place n uses
+## user://save_<n + 1>.json and keys ending in _<n + 1>. Nothing loads by itself any more: the
+## main menu chooses a place (play_slot) or makes a new avatar in a free one (start_slot).
+## A backup is the save's own text, downloaded as a file and loaded into a free place.
 
 const SAVE_PATH := "user://save.json"
 const WEB_STORAGE_KEY := "plasticine_tamagotchi_save"
@@ -21,6 +27,12 @@ const SAVE_VERSION := 2
 
 ## Where the file is saved. Tests change this so they never touch the real save.
 var save_path := SAVE_PATH
+## The avatar place in use (0 to save.slots - 1), and its browser keys.
+var slot := 0
+var _web_key := WEB_STORAGE_KEY
+var _web_deleted_key := WEB_DELETED_KEY
+## What the main menu should do when it opens ("new_avatar" after a failure), then cleared.
+var menu_request := ""
 var use_web_storage := OS.has_feature("web")
 ## When false, nothing is saved automatically (key moments, timer, closing). Tests turn it off.
 var auto_save_enabled := true
@@ -36,10 +48,6 @@ var _page_event_callback: JavaScriptObject
 
 
 func _ready() -> void:
-	var loaded := load_game()
-	if loaded and Config.get_value("save.resume_paused") and Clock.phase == Clock.Phase.DAY:
-		Clock.set_paused(true)
-
 	# Key moments: every phase change (sleep start, sleep end, wake), every new day,
 	# pause, and the start and end of every activity.
 	Clock.phase_changed.connect(_auto_save.unbind(1))
@@ -105,7 +113,7 @@ func save_game() -> void:
 		file.close()
 	if use_web_storage:
 		JavaScriptBridge.eval("try { localStorage.setItem(%s, %s); } catch (e) {}" % [
-			JSON.stringify(WEB_STORAGE_KEY), JSON.stringify(text)])
+			JSON.stringify(_web_key), JSON.stringify(text)])
 
 
 ## Loads the newest saved copy. Returns false if there is no valid save.
@@ -144,7 +152,7 @@ func delete_save() -> void:
 	_deleted_count = _save_count
 	if use_web_storage:
 		JavaScriptBridge.eval("try { localStorage.removeItem(%s); localStorage.setItem(%s, %s); } catch (e) {}" % [
-			JSON.stringify(WEB_STORAGE_KEY), JSON.stringify(WEB_DELETED_KEY), JSON.stringify(str(_deleted_count))])
+			JSON.stringify(_web_key), JSON.stringify(_web_deleted_key), JSON.stringify(str(_deleted_count))])
 	Activities.reset()
 	Minigame.reset()
 	Habits.reset()
@@ -153,26 +161,149 @@ func delete_save() -> void:
 	Clock.reset()
 
 
-func _read_file() -> String:
-	if not FileAccess.file_exists(save_path):
+func _read_file(path := "") -> String:
+	path = save_path if path.is_empty() else path
+	if not FileAccess.file_exists(path):
 		return ""
-	return FileAccess.get_file_as_string(save_path)
+	return FileAccess.get_file_as_string(path)
 
 
-func _read_deleted_count() -> int:
+func _read_deleted_count(key := "") -> int:
+	if not use_web_storage:
+		return 0
 	var value: Variant = JavaScriptBridge.eval(
 		"(function () { try { return localStorage.getItem(%s) || '0'; } catch (e) { return '0'; } })()"
-		% JSON.stringify(WEB_DELETED_KEY))
+		% JSON.stringify(_web_deleted_key if key.is_empty() else key))
 	return int(value) if value is String else 0
 
 
-func _read_web_storage() -> String:
+func _read_web_storage(key := "") -> String:
 	if not use_web_storage:
 		return ""
 	var value: Variant = JavaScriptBridge.eval(
 		"(function () { try { return localStorage.getItem(%s) || ''; } catch (e) { return ''; } })()"
-		% JSON.stringify(WEB_STORAGE_KEY))
+		% JSON.stringify(_web_key if key.is_empty() else key))
 	return value if value is String else ""
+
+
+# --- Avatar places (Milestone 18) ------------------------------------------------------------
+
+func slot_count() -> int:
+	return Config.get_int("save.slots")
+
+
+func path_for(place: int) -> String:
+	return SAVE_PATH if place == 0 else "user://save_%d.json" % (place + 1)
+
+
+func _key_suffix(place: int) -> String:
+	return "" if place == 0 else "_%d" % (place + 1)
+
+
+## Uses this place for saving and loading from now on (nothing is loaded).
+func select_slot(place: int) -> void:
+	slot = place
+	save_path = path_for(place)
+	_web_key = WEB_STORAGE_KEY + _key_suffix(place)
+	_web_deleted_key = WEB_DELETED_KEY + _key_suffix(place)
+	_save_count = 0
+	_deleted_count = 0
+
+
+## The newest valid save of a place, without loading it: {} when the place is empty.
+func slot_data(place: int) -> Dictionary:
+	var deleted := _read_deleted_count(WEB_DELETED_KEY + _key_suffix(place))
+	var best: Dictionary = {}
+	for text in [_read_file(path_for(place)), _read_web_storage(WEB_STORAGE_KEY + _key_suffix(place))]:
+		var data := _parse(text)
+		var count := int(data.get("save_count", 0))
+		if not data.is_empty() and count > deleted and count > int(best.get("save_count", -1)):
+			best = data
+	return best
+
+
+## The avatar of a place, for the menu's cards: its GameState values, or {} when empty.
+func slot_summary(place: int) -> Dictionary:
+	return slot_data(place).get("game_state", {})
+
+
+## The first place without an avatar, or -1 when all are taken.
+func first_free_slot() -> int:
+	for place in slot_count():
+		if slot_summary(place).is_empty():
+			return place
+	return -1
+
+
+## Back to the menu: the game is emptied and time stops (the avatar is saved first).
+func unload() -> void:
+	if GameState.is_created():
+		save_game()
+	Activities.reset()
+	Minigame.reset()
+	Habits.reset()
+	Simulation.reset()
+	GameState.reset()
+	Clock.reset()
+	Clock.halted = true
+
+
+## Loads the avatar of a place to play it. False if the place is empty.
+func play_slot(place: int) -> bool:
+	unload()
+	select_slot(place)
+	if not load_game():
+		return false
+	Clock.halted = false
+	if Config.get_value("save.resume_paused") and Clock.phase == Clock.Phase.DAY:
+		Clock.set_paused(true)
+	Settings.set_last_slot(place)
+	return true
+
+
+## A new avatar in this place: an empty game that runs; the creation screen fills it.
+func start_slot(place: int) -> void:
+	unload()
+	select_slot(place)
+	Clock.halted = false
+	Settings.set_last_slot(place)
+
+
+## Deletes the avatar of a place for good.
+func delete_slot(place: int) -> void:
+	unload()
+	select_slot(place)
+	delete_save()
+	Clock.halted = true
+
+
+## A backup: the place's save as text ("" when empty).
+func backup_text(place: int) -> String:
+	var data := slot_data(place)
+	return "" if data.is_empty() else JSON.stringify(data, "\t")
+
+
+## Loads a backup into a place. False if the text is not a valid save of this version.
+func restore_backup(text: String, place: int) -> bool:
+	var data := _parse(text)
+	if data.is_empty():
+		return false
+	var previous := slot
+	unload()
+	select_slot(place)
+	# Newer than anything deleted from this place, so it is never ignored.
+	data["save_count"] = _read_deleted_count() + 1
+	var saved := JSON.stringify(data, "\t")
+	var file := FileAccess.open(save_path, FileAccess.WRITE)
+	if file != null:
+		file.store_string(saved)
+		file.close()
+	if use_web_storage:
+		JavaScriptBridge.eval("try { localStorage.setItem(%s, %s); } catch (e) {}" % [
+			JSON.stringify(_web_key), JSON.stringify(saved)])
+	select_slot(previous)
+	Clock.halted = true
+	return true
 
 
 ## Returns the save data, or an empty Dictionary if the text is not a valid save.

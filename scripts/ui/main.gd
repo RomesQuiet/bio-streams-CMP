@@ -3,6 +3,7 @@ extends Control
 ## Eat opens the meals (Milestone 10, Task 3) and, when the avatar is hungry, Skip meal.
 
 const CREATION_SCENE := "res://scenes/ui/creation.tscn"
+const MENU_SCENE := "res://scenes/ui/menu.tscn"
 ## Height of the minigame panel, and of the football controls on a touch screen and on a computer.
 const MINIGAME_PANEL_HEIGHT := 256.0
 const FOOTBALL_PAD_TOUCH := 170.0
@@ -194,7 +195,11 @@ func _ready() -> void:
 	GameState.xp_changed.connect(_on_xp_changed)
 	# Failure is final (user, 7 Nov 2026). Shown after the step that reached it has finished.
 	GameState.failed.connect(func(_cause: String) -> void: _show_failure.call_deferred())
-	failure_screen.restart_pressed.connect(_start_new_avatar)
+	# After failure, a new avatar in a free place; the failed one stays in the menu's list.
+	failure_screen.restart_pressed.connect(func() -> void:
+		SaveGame.menu_request = "new_avatar"
+		_go_to_menu())
+	%MainMenuButton.pressed.connect(_go_to_menu)
 	Clock.time_changed.connect(_refresh_clock)
 	Clock.phase_changed.connect(_on_phase_changed)
 	Clock.paused_changed.connect(_refresh_phase.unbind(1))
@@ -394,6 +399,14 @@ func _close_settings() -> void:
 func _show_new_avatar_confirmation(show_it: bool) -> void:
 	confirm_box.visible = show_it
 	new_avatar_button.visible = not show_it
+
+
+## Back to the main menu (Milestone 18): the avatar is saved, then the menu empties the game.
+func _go_to_menu() -> void:
+	if Activities.is_running() and Activities.current_activity != "sleep":
+		Activities.stop()
+	SaveGame.save_game()
+	get_tree().change_scene_to_file(MENU_SCENE)
 
 
 ## The avatar is deleted for good and the creation screen opens. The language stays: it is in
