@@ -1,7 +1,11 @@
 extends RefCounted
 ## Happiness, 0 to 1 (v1 Step 10, Milestone 10 Task 7). It moves toward a baseline with the time
-## constant mood.tau_h when it rises and mood.fall_tau_h when it falls (2 times slower; user,
-## 7 Nov 2026) (clock time; k does not apply) and jumps with events.
+## constant mood.tau_h (clock time; k does not apply) and jumps with events.
+## mood.speed (user, 7 Nov 2026) slows all of it by one factor, rising and falling alike: the time
+## constant is tau_h / speed and every event (per hour or at once) is x speed. Both together keep
+## v1's end results (an hourly event's full effect is its rate x the time constant) and only change
+## how fast happiness gets there; a slower time constant alone would make every hourly event
+## stronger.
 ## Baseline = base + physical x Physical + sleep x Sleep + diet x Q + fun x Fun - deficit x U
 ## - screen_excess x screen excess - overreach x O, from 0 to 1.
 ## - Fun = the minutes of the last 24 avatar hours of football x 1.0, screens x 0.6 (only the
@@ -90,9 +94,9 @@ static func step(hours: float, asleep: bool) -> void:
 		if SleepModel.tiredness() >= 1.0:
 			change += Config.get_float(events + "kept_awake_per_h") * hours
 	gs.happiness_baseline = baseline()
-	gs.happiness = clampf(gs.happiness + change, 0.0, 1.0)
-	var tau := Config.get_float("mood.tau_h" if gs.happiness_baseline >= gs.happiness else "mood.fall_tau_h")
-	gs.happiness += (gs.happiness_baseline - gs.happiness) * (1.0 - exp(-hours / tau))
+	var speed := Config.get_float("mood.speed")
+	gs.happiness = clampf(gs.happiness + change * speed, 0.0, 1.0)
+	gs.happiness += (gs.happiness_baseline - gs.happiness) * (1.0 - exp(-hours * speed / Config.get_float("mood.tau_h")))
 
 
 ## A meal (this share of it): healthy meal + meal - meal_craving x C; fast food + meal +
@@ -123,6 +127,7 @@ static func new_day() -> void:
 	GameState.screen_minutes_today = 0.0
 
 
+## An event at once (meal, starting exercise, waking), x mood.speed like every event.
 static func _jump(change: float) -> void:
-	GameState.happiness = clampf(GameState.happiness + change, 0.0, 1.0)
+	GameState.happiness = clampf(GameState.happiness + change * Config.get_float("mood.speed"), 0.0, 1.0)
 	GameState.changed.emit()

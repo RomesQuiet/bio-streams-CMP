@@ -1,5 +1,7 @@
 # Milestones 10 and 10.5 — scenario results and the causes of the differences from v1 (for the team)
 
+**Note (7 Nov 2026):** the happiness numbers below were made with v1's happiness pace. Since then happiness changes 2 times slower (`mood.speed` 0.5, user; `MILESTONE_16.md`, "Happiness 2 times slower, checked"): end results are close to these, the lowest points are higher and the daily swings half as large. Run `tests/calibration_test.gd` for the current numbers.
+
 Date: 27 October 2026 (Milestone 10.5; the first version, from Milestone 10 Task 10, is in the git history). The team's review of the first version is `documentation/milestone10_review.md`; this version answers it. Two tests produce the numbers:
 
 - `tests/calibration_test.gd` (about 2.5 minutes): the game as it is, with every rule of the v1 "Bases fundamental check". **All rules pass.**

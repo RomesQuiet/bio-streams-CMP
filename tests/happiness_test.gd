@@ -55,31 +55,34 @@ func _test_diet() -> void:
 	_check("half a fast-food meal moves Q half as far, toward 0", absf(gs.diet_quality - (0.5 - 0.5 * 0.5 / 8.4)) < TOLERANCE)
 
 
+## Every event is x mood.speed (user, 7 Nov 2026; 1 = v1's sizes).
 func _test_events() -> void:
+	var config: Node = root.get_node("Config")
+	var s: float = config.get_float("mood.speed")
 	var gs := _new_avatar("normal")
 	gs.craving = 0.9
 	gs.habituation = 0.0
 	gs.happiness = 0.5
 	happiness.on_meal("healthy_meal", 1.0)
-	_check("a healthy meal with craving 0.9: +0.01 - 0.06 x 0.9 = -0.044", absf(gs.happiness - (0.5 - 0.044)) < TOLERANCE)
+	_check("a healthy meal with craving 0.9: (+0.01 - 0.06 x 0.9) x speed = -0.044 x speed", absf(gs.happiness - (0.5 - 0.044 * s)) < TOLERANCE)
 	gs.happiness = 0.5
 	happiness.on_meal("fast_food_meal", 1.0)
-	_check("fast food with craving 0.9, no habituation: +0.01 + 0.054 = +0.064", absf(gs.happiness - 0.564) < TOLERANCE)
+	_check("fast food with craving 0.9, no habituation: (+0.01 + 0.054) x speed", absf(gs.happiness - (0.5 + 0.064 * s)) < TOLERANCE)
 	gs.habituation = 1.0
 	gs.happiness = 0.5
 	happiness.on_meal("fast_food_meal", 1.0)
-	_check("fully habituated, fast food gives only +0.01", absf(gs.happiness - 0.51) < TOLERANCE)
+	_check("fully habituated, fast food gives only +0.01 x speed", absf(gs.happiness - (0.5 + 0.01 * s)) < TOLERANCE)
 	gs.happiness = 0.5
 	gs.fitness = 0.4
 	happiness.on_activity_started("cardio")
-	_check("starting cardio at fitness 0.4: -0.03 x 0.6 = -0.018", absf(gs.happiness - 0.482) < TOLERANCE)
+	_check("starting cardio at fitness 0.4: -0.03 x 0.6 x speed", absf(gs.happiness - (0.5 - 0.018 * s)) < TOLERANCE)
 	gs.happiness = 0.5
 	happiness.on_activity_started("football")
 	_check("starting football costs nothing", is_equal_approx(gs.happiness, 0.5))
 	gs.happiness = 0.5
 	gs.night_quality = 1.0
 	happiness.on_wake()
-	_check("waking after a good night: +0.08 x 0.5 = +0.04", absf(gs.happiness - 0.54) < TOLERANCE)
+	_check("waking after a good night: +0.08 x 0.5 x speed", absf(gs.happiness - (0.5 + 0.04 * s)) < TOLERANCE)
 	gs.happiness = 0.5
 	gs.night_quality = 4.0 / 9.0
 	happiness.on_wake()
@@ -93,8 +96,8 @@ func _test_events() -> void:
 	gs.happiness_baseline = 0.6
 	var before: float = gs.happiness
 	happiness.step(1.0 / 12.0, false)
-	_check("4 awake hours without screens: the step loses about 0.02", gs.hours_without_screens < 1.0
-			and before - gs.happiness > 0.015)
+	_check("4 awake hours without screens: the step loses about 0.02 x speed", gs.hours_without_screens < 1.0
+			and before - gs.happiness > 0.015 * s)
 	gs.hunger = 2.0 * hunger.healthy_portion_kcal()
 	gs.hours_without_screens = 0.0
 	var hungry_before: float = gs.happiness
@@ -103,7 +106,15 @@ func _test_events() -> void:
 	gs.hunger = 0.0
 	var fed_before: float = gs.happiness
 	happiness.step(1.0, false)
-	_check("hungry while awake costs about 0.05 per hour more", absf((hungry_drop - (fed_before - gs.happiness)) - 0.05) < 0.01)
+	_check("hungry while awake costs about 0.05 x speed per hour more", absf((hungry_drop - (fed_before - gs.happiness)) - 0.05 * s) < 0.01 * s)
+
+	# The move toward the baseline: 63% of the gap in tau_h / speed hours (asleep, no events).
+	gs = _new_avatar("normal")
+	var target: float = happiness.baseline()
+	gs.happiness = target - 0.3
+	happiness.step(config.get_float("mood.tau_h") / s, true)
+	_check("the time constant is tau_h / speed (%.0f h): 63%% of the gap" % (config.get_float("mood.tau_h") / s),
+			absf((gs.happiness - (target - 0.3)) / 0.3 - (1.0 - exp(-1.0))) < TOLERANCE)
 
 
 ## Baseline = 0.15 + 0.30 P + 0.25 S + 0.10 Q + 0.20 Fun - 0.2 U - 0.10 excess - 0.1 O.

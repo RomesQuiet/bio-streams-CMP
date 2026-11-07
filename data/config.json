@@ -288,9 +288,9 @@
 	},
 
 	"mood": {
-		"_comment": "Happiness (0 to 1), v1 Step 10. Moves toward the baseline with tau_h when it rises and fall_tau_h when it falls (clock time; k does not apply) and jumps with events. Baseline = base + physical x Physical + sleep x Sleep + diet x Q + fun x Fun - deficit x U - screen_excess x screen excess - overreach x O.",
-		"tau_h": {"value": 12, "status": "placeholder", "owner": "Pessoa 3", "comment": "Clock time. While happiness rises toward the baseline."},
-		"fall_tau_h": {"value": 24, "status": "placeholder", "owner": "Pessoa 3", "comment": "Clock time. While happiness falls toward the baseline: 2 times slower than it rises (user, 7 Nov 2026; v1 uses tau_h for both)."},
+		"_comment": "Happiness (0 to 1), v1 Step 10. Moves toward the baseline with tau_h / speed (clock time; k does not apply); every event is x speed and jumps with events. Baseline = base + physical x Physical + sleep x Sleep + diet x Q + fun x Fun - deficit x U - screen_excess x screen excess - overreach x O.",
+		"tau_h": {"value": 12, "status": "placeholder", "owner": "Pessoa 3", "comment": "Clock time (v1). Divided by speed."},
+		"speed": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 3", "comment": "How fast happiness changes compared with v1, rising and falling alike (user, 7 Nov 2026: 2 times slower). The time constant is tau_h / speed and every event below is x speed, so v1's end results stay and only the pace changes. 1 = v1."},
 		"baseline": {
 			"base": {"value": 0.15, "status": "placeholder", "owner": "Pessoa 3"},
 			"physical": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 3"},

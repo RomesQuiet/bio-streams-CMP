@@ -50,8 +50,26 @@ The user asked to "add the xp mechanism". XP already worked (v1 Step 12, Milesto
 
 "Change the placeholder of happiness so happiness is reduced slower, like 2x slower. I've told you to stop making it jump."
 
-- **Happiness:** v1 used one time constant (`mood.tau_h`, 12 avatar hours) for the move toward the baseline. A new placeholder, `mood.fall_tau_h` = 24, is used while happiness falls; rising stays at 12. Event jumps (meals, hunger, refused wishes) are unchanged. Scenario test (`calibration_test.gd`): all rules pass. `happiness_test.gd`: the guideline plan ends at 0.96 (was 0.93) and the abrupt switch at 0.96 (was 0.93), the gradual switch at 0.91 as before, so the rule "both switches end in the same place" (a gap below 0.05) fails at exactly 0.05. The lowest points do not change (0.40 and 0.44): they come from the events. The test was not changed; the user decides.
+- **Happiness, first try (replaced, below):** a placeholder `mood.fall_tau_h` = 24 h used only while happiness fell. The user: "happiness rises as it falls, you didn't interpret very well".
 - **Jumping:** the only earlier request about movement was "the character moves a little just by changing sprite" (fixed sideways). The figures also had different heights in the team's sheets (the child boy's asleep figure 11% shorter than his sad one), so with the feet on the ground the head jumped up or down by up to 50 screen pixels when the face changed. `tools/cut_avatar_sheets.py` now scales every figure of a sheet to the sheet's median height (feet to the top of the head, not counting the "zZ") on the sharp upscaled pictures, and puts the middle of its feet in the middle; heads now differ by at most 2 pixels.
+
+## Happiness 2 times slower, checked (7 Nov 2026, user)
+
+The user asked to run every health test, check whether happiness moves as fast as health, whether a slower happiness agrees with the documents and the science, and to explain what to change. All 31 tests ran on `806eaec` (30 passed; the switch rule failed). Settings were tried in memory with the real tests (scripts in the scratchpad, not kept):
+
+| Setting | Guideline lowest happiness | Severe diet | Daily swing | v1 rules |
+|---|---|---|---|---|
+| v1: time constant 12 h | 0.40 | fails day 16, thinness | 0.145 | all pass |
+| Falls only 24 h (first try) | 0.40 | fails day 16, thinness | 0.134 | switch rule fails |
+| 24 h both ways | 0.31 | fails day 1.7, happiness | 0.151 | 1 fails |
+| 52 h both ways (the health bar's pace) | 0.17 | fails day 1.6; 4 h cardio fails too | 0.159 | 2 fail |
+| **Everything 2x slower (built)** | **0.46** | fails day 16, thinness | **0.081** | **all pass** |
+
+- **As fast as health?** Over days, yes: after a change of habits at day 10 (good to bad, bad to good), happiness covers half its change in 54 to 73 avatar hours (v1), target health in 42 to 55 and the health bar in 91 to 103, because the baseline follows Physical, Sleep and diet quality. Within a day happiness swings by about 0.14 (meals, hunger, exercise, screens), which the bar never shows.
+- **Why a slower time constant alone is wrong:** an hourly event's full effect is its rate x the time constant, so doubling the time constant doubles every hourly event (hungry −0.05 per hour), and dips get deeper.
+- **Documents and science:** v1 gives the 12 h as "Design", with no source, the same both ways; the team decided only that k does not speed up happiness. Emotions usually last about a day or more (Verduyn and Lavrijsen 2015: joy about 35 h, sadness about 120 h), and one short night lowers a teenager's mood the next day (Reddy et al. 2017), so 63% of the gap a day (24 h) fits better than 86% (12 h). The same study shows sadness lasts longer than joy, the opposite of the first try, which had no support.
+- **Built:** `mood.fall_tau_h` removed; new placeholder `mood.speed` = 0.5: the time constant is `tau_h / speed` (24 h) and every event, per hour or at once, is x speed (`scripts/health/happiness.gd`). v1's values stay in config. `tests/happiness_test.gd` checks the events x speed and the 24-hour time constant; the switch rule passes (0.91 and 0.89).
+- **Trade-off for the team:** the lowest happiness of an abrupt switch to healthy food against a gradual one becomes 0.43 against 0.47 in the scenario test (v1 setting: 0.36 against 0.43). Gradual is still better, by less. Keeping `meal_craving` at full size would keep the difference larger.
 
 Read `CLAUDE.md` and `documentation/handoff.md` first.
 
