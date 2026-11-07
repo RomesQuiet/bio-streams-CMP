@@ -5,6 +5,9 @@ extends Node
 signal changed
 ## Emitted when XP reaches a new level.
 signal leveled_up(new_level: int)
+## XP really changed by this much (0 is never sent: at 0 XP a loss changes nothing). The main
+## screen shows it over the XP bar (user, 7 Nov 2026).
+signal xp_changed(amount: float)
 ## Emitted when the model counts a wish as refused (Milestone 16): "screens" after
 ## mood.events.no_screens_after_h awake hours without screens. Only the speech bubble listens.
 signal wish_refused(wish: String)
@@ -398,7 +401,10 @@ func apply_effects(effects_per_hour: Dictionary, hours: float) -> void:
 ## Adds (or, if negative, removes) XP. XP never goes below 0.
 func add_xp(amount: float) -> void:
 	var old_level := level
+	var old_xp := xp
 	xp = maxf(0.0, xp + amount)
+	if xp != old_xp:
+		xp_changed.emit(xp - old_xp)
 	if level > old_level:
 		leveled_up.emit(level)
 	changed.emit()

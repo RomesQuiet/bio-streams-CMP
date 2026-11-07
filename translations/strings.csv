@@ -13,6 +13,8 @@ UI_OPTION,%s (%s h),%s (%s h)
 UI_MINUTES,Minutes: %d,Minutos: %d
 UI_LEVEL,Lv %d,Nv %d
 UI_XP,XP %d / %d,XP %d / %d
+UI_XP_GAIN,+%d XP,+%d XP
+UI_XP_LOSS,−%d XP,−%d XP
 UI_HEALTH_LEVEL_TIP,Health level (1 to 5). Click to show the measures.,Nível de saúde (1 a 5). Clica para ver as medidas.
 UI_HEALTH_BAR_TIP,Health. Click to show the measures.,Saúde. Clica para ver as medidas.
 UI_PHYSICAL_TIP,Click to show the physical values,Clica para ver os valores físicos

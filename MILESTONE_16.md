@@ -30,6 +30,14 @@ The user asked to add the team's four sprite sheets to the game before playing t
   - **Checked:** `tests/scenery_test.gd` (the place for each activity, no fork after a meal or during the sleep after it, the day and night buttons and the night sky in the windows) and every other test; the main screen rendered in a Godot window at noon and at 23:00 for idle, a meal, sleep and cardio. **Not checked:** a real phone, and a person playing it.
 - **Checked:** `tests/avatar_art_test.gd` (each sheet, the cell for every state, the mouth, the egg without a sheet, no animation); in the web build at 1.5x, the tired boy, standing still while running cardio, and the meal fork at his mouth, with no console errors. **Not checked:** the other sheets and faces in play (the test covers them), a real phone.
 
+## XP changes shown (added 7 Nov 2026, user)
+
+The user asked to "add the xp mechanism". XP already worked (v1 Step 12, Milestone 10): it changes when the health bar moves after a sleep (100 XP per health point) and grows every avatar hour while health is at least 4.5. On Normal (health 2.9) it stays at 0 for many days, so it looked missing. Asked what to add, the user chose **"Show XP changes"** (not XP for healthy actions, commitment goals or new ways to lose XP).
+
+- `GameState.xp_changed(amount)` sends the real change (at 0 XP a loss sends nothing).
+- The main screen adds the changes up and shows them under the XP bar as a whole number, "+37 XP" in green or "−20 XP" in red, rising and fading over 1.5 real seconds; changes that come while one is shown wait and are shown together after it, and less than 1 XP waits. Nothing is shown while a save loads. New texts `UI_XP_GAIN` and `UI_XP_LOSS`.
+- **Checked:** `tests/xp_change_test.gd`, the other tests, and a render in a Godot window. **Not checked:** a real phone.
+
 Read `CLAUDE.md` and `documentation/handoff.md` first.
 
 ## Decisions (user, 6 Nov 2026)

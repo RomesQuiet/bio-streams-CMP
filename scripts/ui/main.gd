@@ -40,6 +40,12 @@ const HEALTH_TEXT := "MEASURE_HEALTH"
 @export var backdrop_fade_seconds := 0.8
 ## How long the "Level up!" message stays in the speech bubble (real seconds).
 @export var level_up_message_seconds := 3.0
+## XP changes shown over the XP bar (user, 7 Nov 2026): they are added up and shown at most once
+## per xp_change_seconds (real seconds), as a whole number, rising and fading.
+@export var xp_change_seconds := 1.5
+@export var xp_change_rise := 24.0
+@export var xp_gain_color := Color(0.55, 1.0, 0.55)
+@export var xp_loss_color := Color(1.0, 0.5, 0.45)
 ## Health bar colour in the danger state of severe thinness (placeholder warning).
 @export var danger_bar_color := Color(1.0, 0.4, 0.35)
 
@@ -69,6 +75,7 @@ const HEALTH_TEXT := "MEASURE_HEALTH"
 @onready var level_label: Label = %LevelLabel
 @onready var xp_bar: ProgressBar = %XPBar
 @onready var xp_label: Label = %XPLabel
+@onready var xp_change_label: Label = %XPChange
 @onready var clock_label: Label = %ClockLabel
 @onready var pause_button: Button = %PauseButton
 @onready var football_field: Control = %FootballField
@@ -116,6 +123,9 @@ const HEALTH_TEXT := "MEASURE_HEALTH"
 @onready var confirm_box: Control = %ConfirmBox
 
 var _backdrop_tween: Tween
+## XP gained or lost and not shown yet, and the change being shown.
+var _xp_pending := 0.0
+var _xp_tween: Tween
 var _scenery_tween: Tween
 ## A short message (such as "Level up!") shown instead of the normal speech for a moment:
 ## its translation key and the values for its format.
@@ -178,6 +188,7 @@ func _ready() -> void:
 	%SleepStartButton.pressed.connect(_on_sleep_start_pressed)
 	GameState.changed.connect(_refresh)
 	GameState.leveled_up.connect(_on_leveled_up)
+	GameState.xp_changed.connect(_on_xp_changed)
 	Clock.time_changed.connect(_refresh_clock)
 	Clock.phase_changed.connect(_on_phase_changed)
 	Clock.paused_changed.connect(_refresh_phase.unbind(1))
@@ -369,6 +380,33 @@ func _start_new_avatar() -> void:
 	Activities.stop()
 	SaveGame.delete_save()
 	get_tree().change_scene_to_file(CREATION_SCENE)
+
+
+## XP changes come in small amounts (every 5 avatar minutes at high health) or at once (the
+## health bar's step after a sleep). They are added up; a loading save shows nothing.
+func _on_xp_changed(amount: float) -> void:
+	if Simulation.loading:
+		return
+	_xp_pending += amount
+	if _xp_tween == null or not _xp_tween.is_running():
+		_show_xp_change()
+
+
+## Shows the whole XP added up since the last one, keeping the rest for later; a change smaller
+## than 1 XP waits.
+func _show_xp_change() -> void:
+	var shown := roundi(_xp_pending)
+	if shown == 0:
+		return
+	_xp_pending -= shown
+	xp_change_label.text = tr("UI_XP_GAIN" if shown > 0 else "UI_XP_LOSS") % absi(shown)
+	xp_change_label.add_theme_color_override("font_color", xp_gain_color if shown > 0 else xp_loss_color)
+	xp_change_label.position.y = xp_bar.size.y + xp_change_rise
+	xp_change_label.modulate.a = 1.0
+	_xp_tween = create_tween().set_parallel()
+	_xp_tween.tween_property(xp_change_label, "position:y", xp_bar.size.y, xp_change_seconds)
+	_xp_tween.tween_property(xp_change_label, "modulate:a", 0.0, xp_change_seconds).set_ease(Tween.EASE_IN)
+	_xp_tween.chain().tween_callback(_show_xp_change)
 
 
 func _on_leveled_up(new_level: int) -> void:
