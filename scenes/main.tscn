@@ -418,7 +418,7 @@ unique_name_in_owner = true
 layout_mode = 0
 offset_left = 352.0
 offset_top = 24.0
-offset_right = 588.0
+offset_right = 600.0
 offset_bottom = 64.0
 mouse_filter = 2
 theme_type_variation = &"XPBar"
@@ -464,19 +464,23 @@ anchor_right = 1.0
 offset_left = -112.0
 offset_top = 24.0
 offset_right = -24.0
-offset_bottom = 340.0
+offset_bottom = 364.0
 grow_horizontal = 0
 mouse_filter = 2
 theme_override_constants/separation = 8
 
 [node name="LevelBox" type="PanelContainer" parent="RightColumn"]
-custom_minimum_size = Vector2(0, 64)
+custom_minimum_size = Vector2(0, 88)
 layout_mode = 2
 tooltip_text = "UI_XP_LEVEL_TIP"
+theme_type_variation = &"LevelBox"
 
 [node name="LevelLabel" type="Label" parent="RightColumn/LevelBox"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"LevelLabel"
+theme_override_constants/line_spacing = -6
+theme_override_font_sizes/font_size = 28
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -514,6 +518,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 tooltip_text = "UI_WAKE_TIP"
+theme_override_font_sizes/font_size = 19
 disabled = true
 text = "UI_WAKE"
 

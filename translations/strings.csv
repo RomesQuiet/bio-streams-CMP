@@ -11,7 +11,9 @@ UI_SKIP_MEAL,Skip meal,Saltar a refeição
 UI_SLEEP_QUESTION,How many hours of sleep?,Quantas horas de sono?
 UI_OPTION,%s (%s h),%s (%s h)
 UI_MINUTES,Minutes: %d,Minutos: %d
-UI_LEVEL,Lv %d,Nv %d
+UI_LEVEL,"Lv
+%d","Nv
+%d"
 UI_XP,XP %d / %d,XP %d / %d
 UI_XP_GAIN,+%d XP,+%d XP
 UI_XP_LOSS,−%d XP,−%d XP

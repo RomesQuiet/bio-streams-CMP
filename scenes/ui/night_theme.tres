@@ -5,9 +5,9 @@
 ; The bars at night: the same, with white borders.
 
 [sub_resource type="StyleBoxFlat" id="Night_normal"]
-content_margin_left = 14.0
+content_margin_left = 6.0
 content_margin_top = 8.0
-content_margin_right = 14.0
+content_margin_right = 6.0
 content_margin_bottom = 8.0
 bg_color = Color(0, 0, 0, 1)
 border_width_left = 3
@@ -21,9 +21,9 @@ corner_radius_bottom_right = 18
 corner_radius_bottom_left = 18
 
 [sub_resource type="StyleBoxFlat" id="Night_hover"]
-content_margin_left = 14.0
+content_margin_left = 6.0
 content_margin_top = 8.0
-content_margin_right = 14.0
+content_margin_right = 6.0
 content_margin_bottom = 8.0
 bg_color = Color(0.18, 0.18, 0.18, 1)
 border_width_left = 3
@@ -37,9 +37,9 @@ corner_radius_bottom_right = 18
 corner_radius_bottom_left = 18
 
 [sub_resource type="StyleBoxFlat" id="Night_pressed"]
-content_margin_left = 14.0
+content_margin_left = 6.0
 content_margin_top = 8.0
-content_margin_right = 14.0
+content_margin_right = 6.0
 content_margin_bottom = 8.0
 bg_color = Color(0.32, 0.32, 0.32, 1)
 border_width_left = 3
@@ -53,9 +53,9 @@ corner_radius_bottom_right = 18
 corner_radius_bottom_left = 18
 
 [sub_resource type="StyleBoxFlat" id="Night_disabled"]
-content_margin_left = 14.0
+content_margin_left = 6.0
 content_margin_top = 8.0
-content_margin_right = 14.0
+content_margin_right = 6.0
 content_margin_bottom = 8.0
 bg_color = Color(0.12, 0.12, 0.12, 1)
 border_width_left = 3
@@ -69,9 +69,9 @@ corner_radius_bottom_right = 18
 corner_radius_bottom_left = 18
 
 [sub_resource type="StyleBoxFlat" id="Night_focus"]
-content_margin_left = 14.0
+content_margin_left = 6.0
 content_margin_top = 8.0
-content_margin_right = 14.0
+content_margin_right = 6.0
 content_margin_bottom = 8.0
 draw_center = false
 bg_color = Color(0, 0, 0, 1)
@@ -174,3 +174,7 @@ HealthBar/base_type = &"ProgressBar"
 HealthBar/styles/fill = SubResource("Night_bar_health_fill")
 HealthBarDanger/base_type = &"ProgressBar"
 HealthBarDanger/styles/fill = SubResource("Night_bar_danger_fill")
+LevelBox/base_type = &"PanelContainer"
+LevelBox/styles/panel = SubResource("Night_normal")
+LevelLabel/base_type = &"Label"
+LevelLabel/colors/font_color = Color(1, 1, 1, 1)

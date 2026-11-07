@@ -4,6 +4,7 @@
 ; day. scenes/ui/night_theme.tres has the night buttons; scripts/ui/main.gd switches them.
 ; Bars (user, 7 Nov 2026): every bar has the health bar's rounded shape and border, a dark empty
 ; part and a fill: grey (the measures), white (XPBar), green (HealthBar), red (HealthBarDanger).
+; The XP level box (LevelBox, LevelLabel) looks like the health level box: a day or night button.
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.11, 0.13, 0.18, 1)
@@ -13,9 +14,9 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="Day_normal"]
-content_margin_left = 14.0
+content_margin_left = 6.0
 content_margin_top = 8.0
-content_margin_right = 14.0
+content_margin_right = 6.0
 content_margin_bottom = 8.0
 bg_color = Color(1, 1, 1, 1)
 border_width_left = 3
@@ -29,9 +30,9 @@ corner_radius_bottom_right = 18
 corner_radius_bottom_left = 18
 
 [sub_resource type="StyleBoxFlat" id="Day_hover"]
-content_margin_left = 14.0
+content_margin_left = 6.0
 content_margin_top = 8.0
-content_margin_right = 14.0
+content_margin_right = 6.0
 content_margin_bottom = 8.0
 bg_color = Color(0.9, 0.9, 0.9, 1)
 border_width_left = 3
@@ -45,9 +46,9 @@ corner_radius_bottom_right = 18
 corner_radius_bottom_left = 18
 
 [sub_resource type="StyleBoxFlat" id="Day_pressed"]
-content_margin_left = 14.0
+content_margin_left = 6.0
 content_margin_top = 8.0
-content_margin_right = 14.0
+content_margin_right = 6.0
 content_margin_bottom = 8.0
 bg_color = Color(0.76, 0.76, 0.76, 1)
 border_width_left = 3
@@ -61,9 +62,9 @@ corner_radius_bottom_right = 18
 corner_radius_bottom_left = 18
 
 [sub_resource type="StyleBoxFlat" id="Day_disabled"]
-content_margin_left = 14.0
+content_margin_left = 6.0
 content_margin_top = 8.0
-content_margin_right = 14.0
+content_margin_right = 6.0
 content_margin_bottom = 8.0
 bg_color = Color(0.86, 0.86, 0.86, 1)
 border_width_left = 3
@@ -77,9 +78,9 @@ corner_radius_bottom_right = 18
 corner_radius_bottom_left = 18
 
 [sub_resource type="StyleBoxFlat" id="Day_focus"]
-content_margin_left = 14.0
+content_margin_left = 6.0
 content_margin_top = 8.0
-content_margin_right = 14.0
+content_margin_right = 6.0
 content_margin_bottom = 8.0
 draw_center = false
 bg_color = Color(0, 0, 0, 1)
@@ -184,3 +185,7 @@ HealthBar/base_type = &"ProgressBar"
 HealthBar/styles/fill = SubResource("Day_bar_health_fill")
 HealthBarDanger/base_type = &"ProgressBar"
 HealthBarDanger/styles/fill = SubResource("Day_bar_danger_fill")
+LevelBox/base_type = &"PanelContainer"
+LevelBox/styles/panel = SubResource("Day_normal")
+LevelLabel/base_type = &"Label"
+LevelLabel/colors/font_color = Color(0, 0, 0, 1)
