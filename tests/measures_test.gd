@@ -169,6 +169,13 @@ func _test_states_and_values(gs: Node, main: Node) -> void:
 	states = states_script.current()
 	_check("z -3.5: thin and ill, and the avatar draws it", states["thin"] and states["ill"] and main.avatar.states == states)
 	_check("...and the health bar warns", main.health_label.text == main.DANGER_TEXT and main.health_bar.theme_type_variation == main.DANGER_BAR_STYLE)
+	# Short verdicts (user, 7 Nov 2026).
+	_check("z -3.5: the values box says far too thin", main.bmi_label.text.ends_with("far too thin"))
+	gs.happiness = 0.1
+	gs.strength = 0.8
+	gs.changed.emit()
+	_check("the measures panel: happiness 0.1 reads too low", main.measure_verdicts[main.happiness_bar].text == "too low")
+	_check("the values box: strength 0.8 reads good", main.muscle_label.text.ends_with("good"))
 	gs.weight_z = -2.5
 	gs.changed.emit()
 	_check("z back at -2.5: the warning goes away", main.health_label.text != main.DANGER_TEXT and main.health_bar.theme_type_variation == main.HEALTH_BAR_STYLE)

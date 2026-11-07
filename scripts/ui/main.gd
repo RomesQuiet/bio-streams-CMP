@@ -15,6 +15,7 @@ const AvatarStates := preload("res://scripts/health/avatar_states.gd")
 const HealthModel := preload("res://scripts/health/health_model.gd")
 const Training := preload("res://scripts/health/training.gd")
 const Requests := preload("res://scripts/health/requests.gd")
+const Verdicts := preload("res://scripts/ui/verdicts.gd")
 ## The buttons at night: black with white text and border (user, 7 Nov 2026). In the day they
 ## come from the project theme (scenes/ui/main_theme.tres): white with black.
 const NIGHT_THEME := preload("res://scenes/ui/night_theme.tres")
@@ -73,6 +74,8 @@ const DANGER_BAR_STYLE := &"HealthBarDanger"
 @onready var bmi_label: Label = %BmiLabel
 @onready var diet_label: Label = %DietLabel
 @onready var happiness_bar: ProgressBar = %HappinessBar
+## A short verdict under each measure's bar (made in _ready), by bar.
+var measure_verdicts := {}
 @onready var sleep_bar: ProgressBar = %SleepBar
 @onready var level_label: Label = %LevelLabel
 @onready var xp_bar: ProgressBar = %XPBar
@@ -159,6 +162,12 @@ func _ready() -> void:
 	minutes_slider.max_value = Config.get_float("activity_slider.max_minutes")
 	minutes_slider.step = Config.get_float("activity_slider.step_minutes")
 	health_panel.visible = false
+	for bar in [physical_button, happiness_bar, sleep_bar]:
+		var verdict := Label.new()
+		verdict.add_theme_font_size_override("font_size", 17)
+		verdict.add_theme_color_override("font_color", Color(0.75, 0.77, 0.82))
+		bar.add_sibling(verdict)
+		measure_verdicts[bar] = verdict
 	values_panel.visible = false
 	sleep_panel.visible = false
 	options_panel.visible = false
@@ -779,12 +788,16 @@ func _refresh() -> void:
 	happiness_bar.value = GameState.happiness
 	sleep_bar.value = GameState.sleep
 	calories_label.text = tr("MEASURE_CALORIES") % roundi(GameState.calories_spent)
-	muscle_label.text = tr("MEASURE_STRENGTH") % Settings.number(GameState.strength, 2)
-	fitness_label.text = tr("MEASURE_FITNESS") % Settings.number(GameState.fitness, 2)
+	# Short verdicts where a value needs one (user, 7 Nov 2026; scripts/ui/verdicts.gd).
+	for row in [[physical_button, GameState.physical], [happiness_bar, GameState.happiness], [sleep_bar, GameState.sleep]]:
+		if measure_verdicts.has(row[0]):
+			measure_verdicts[row[0]].text = tr(Verdicts.level_key(row[1]))
+	muscle_label.text = tr("MEASURE_STRENGTH") % Settings.number(GameState.strength, 2) + "\n" + tr(Verdicts.level_key(GameState.strength))
+	fitness_label.text = tr("MEASURE_FITNESS") % Settings.number(GameState.fitness, 2) + "\n" + tr(Verdicts.level_key(GameState.fitness))
 	weight_label.text = tr("MEASURE_WEIGHT") % Settings.number(GameState.weight_kg, 1)
 	height_label.text = tr("MEASURE_HEIGHT") % (GameState.height_m * Config.get_float("units.cm_per_m"))
-	bmi_label.text = tr("MEASURE_BMI") % Settings.number(GameState.weight_z, 2, true)
-	diet_label.text = tr("MEASURE_DIET") % Settings.number(GameState.diet_quality, 2)
+	bmi_label.text = tr("MEASURE_BMI") % Settings.number(GameState.weight_z, 2, true) + "\n" + tr(Verdicts.z_key(GameState.weight_z))
+	diet_label.text = tr("MEASURE_DIET") % Settings.number(GameState.diet_quality, 2) + "\n" + tr(Verdicts.level_key(GameState.diet_quality))
 	avatar.states = AvatarStates.current()
 	avatar.sheet = "%s_%s" % [GameState.age_group, GameState.sex]
 	level_label.text = tr("UI_LEVEL") % GameState.level
