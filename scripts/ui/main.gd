@@ -15,6 +15,9 @@ const AvatarStates := preload("res://scripts/health/avatar_states.gd")
 const HealthModel := preload("res://scripts/health/health_model.gd")
 const Training := preload("res://scripts/health/training.gd")
 const Requests := preload("res://scripts/health/requests.gd")
+## The buttons at night: black with white text and border (user, 7 Nov 2026). In the day they
+## come from the project theme (scenes/ui/main_theme.tres): white with black.
+const NIGHT_THEME := preload("res://scenes/ui/night_theme.tres")
 ## Placeholder failure messages by cause (HealthModel.failure_cause(); the failure effect is not
 ## decided yet): severe thinness for too long, or target health or happiness below its line for
 ## too long (fail group in config). Translation keys, like every text on this screen.
@@ -31,8 +34,8 @@ const HEALTH_TEXT := "MEASURE_HEALTH"
 ## the avatar is awake or asleep.
 @export var day_sky_color := Color(0.3, 0.45, 0.62)
 @export var night_sky_color := Color(0.06, 0.07, 0.14)
-## The running activity's background is shown behind the avatar, see-through,
-## so day or night stays visible.
+## An activity without a "scenery" (data/activities.json) shows its background colour behind
+## the avatar, see-through, so day or night stays visible.
 @export var activity_backdrop_alpha := 0.6
 @export var backdrop_fade_seconds := 0.8
 ## How long the "Level up!" message stays in the speech bubble (real seconds).
@@ -42,6 +45,7 @@ const HEALTH_TEXT := "MEASURE_HEALTH"
 
 @onready var sky: ColorRect = $Background
 @onready var activity_backdrop: ColorRect = %ActivityBackdrop
+@onready var scenery: Control = %Scenery
 @onready var avatar: Control = %Avatar
 @onready var health_level_button: Button = %HealthLevelButton
 @onready var health_bar_button: Button = %HealthBarButton
@@ -110,6 +114,7 @@ const HEALTH_TEXT := "MEASURE_HEALTH"
 @onready var confirm_box: Control = %ConfirmBox
 
 var _backdrop_tween: Tween
+var _scenery_tween: Tween
 ## A short message (such as "Level up!") shown instead of the normal speech for a moment:
 ## its translation key and the values for its format.
 var _flash_key := ""
@@ -496,23 +501,37 @@ func _on_phase_changed(_phase: Clock.Phase) -> void:
 	_refresh_activity()
 
 
-## Animation and background of the running activity (or none).
+## Animation and background of the running activity (or none): its scenery (outside, a room
+## with windows, a bedroom; scripts/ui/scenery.gd), or else its see-through background colour.
 func _refresh_activity(instant := false) -> void:
 	var option := Activities.current_option_data()
+	var place := ""
 	var alpha := 0.0
 	if Activities.is_running():
-		activity_backdrop.color = Color.html(str(option.get("background_color", "#000000")))
-		alpha = activity_backdrop_alpha
+		place = str(option.get("scenery", ""))
+		if place.is_empty():
+			activity_backdrop.color = Color.html(str(option.get("background_color", "#000000")))
+			alpha = activity_backdrop_alpha
 	_refresh_animation()
 	_refresh_minigame()
-	if _backdrop_tween:
-		_backdrop_tween.kill()
-	if instant:
-		activity_backdrop.modulate.a = alpha
-	else:
-		_backdrop_tween = create_tween()
-		_backdrop_tween.tween_property(activity_backdrop, "modulate:a", alpha, backdrop_fade_seconds)
+	_backdrop_tween = _fade(activity_backdrop, _backdrop_tween, alpha, instant)
+	# A new place fades in from nothing; when the activity ends the last one fades out.
+	if not place.is_empty() and place != scenery.kind:
+		scenery.kind = place
+		scenery.modulate.a = 0.0
+	_scenery_tween = _fade(scenery, _scenery_tween, 0.0 if place.is_empty() else 1.0, instant)
 	_refresh_phase()
+
+
+func _fade(node: CanvasItem, tween: Tween, alpha: float, instant: bool) -> Tween:
+	if tween:
+		tween.kill()
+	if instant:
+		node.modulate.a = alpha
+		return null
+	tween = create_tween()
+	tween.tween_property(node, "modulate:a", alpha, backdrop_fade_seconds)
+	return tween
 
 
 ## The running activity's repeating animation. In a minigame the avatar moves only with the
@@ -554,16 +573,18 @@ func _refresh_minigame() -> void:
 	# The bubble would cover the match or the fork: it only comes back for a short message.
 	var meal := Minigame.running and Minigame.kind == Minigame.MEAL
 	speech_bubble.visible = not (football or meal) or not _flash_key.is_empty()
+	# Before the return below: after a meal the fork and its zone must go (they stayed during
+	# the sleep that followed; user, 7 Nov 2026).
+	meal_fork.visible = meal
+	if not meal:
+		avatar.mouth_open = false
 	if not Minigame.running:
 		return
 	var strength := Minigame.kind == Minigame.STRENGTH
 	tap_button.visible = Minigame.kind == Minigame.CARDIO
 	help_button.visible = football
 	meal_buttons.visible = meal
-	meal_fork.visible = meal
 	reserve_label.get_parent().visible = not meal
-	if not meal:
-		avatar.mouth_open = false
 	strength_buttons.visible = strength
 	football_pad.visible = football
 	beat_bar.visible = not football
@@ -669,8 +690,16 @@ func _refresh_strength() -> void:
 	up_button.disabled = Minigame.resting or Minigame.next_down
 
 
+## The sky follows the clock, and so do the windows of the room and the buttons: black ones
+## while the sky is more night than day.
 func _refresh_sky() -> void:
-	sky.color = night_sky_color.lerp(day_sky_color, Clock.daylight_amount())
+	var daylight := Clock.daylight_amount()
+	sky.color = night_sky_color.lerp(day_sky_color, daylight)
+	scenery.sky_color = sky.color
+	scenery.daylight = daylight
+	var buttons: Theme = NIGHT_THEME if daylight < 0.5 else null
+	if theme != buttons:
+		theme = buttons
 
 
 func _refresh() -> void:

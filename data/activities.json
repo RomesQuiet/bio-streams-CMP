@@ -1,5 +1,5 @@
 {
-	"_comment": "Activities the avatar can do. Each activity has options; every name is a key of translations/strings.csv; each option has a duration in avatar hours (or \"slider\" for sleep; with \"minutes_slider\": true on the activity the player chooses the minutes and this is where the slider starts), mety (youth MET: energy per avatar hour = BMR / 24 x mety, Milestone 10), effects per avatar hour on GameState values (none for now), activity_intensity (\"moderate_vigorous\" counts toward the 60 minutes), a background colour and an animation name. An option with \"minigame\" is played by the player (Milestone 12). Effects only count for the time actually done; energy is counted every 5-minute step (Simulation). Options marked \"placeholder\": true use temporary numbers; mety and activity_intensity have their own status and owner.",
+	"_comment": "Activities the avatar can do. Each activity has options; every name is a key of translations/strings.csv; each option has a duration in avatar hours (or \"slider\" for sleep; with \"minutes_slider\": true on the activity the player chooses the minutes and this is where the slider starts), mety (youth MET: energy per avatar hour = BMR / 24 x mety, Milestone 10), effects per avatar hour on GameState values (none for now), activity_intensity (\"moderate_vigorous\" counts toward the 60 minutes), a background (\"scenery\": \"outside\" (sky and ground only), \"room\" (a wall with windows to the sky) or \"bedroom\" (a grey room with a bed), drawn by scripts/ui/scenery.gd; user, 7 Nov 2026; or a see-through \"background_color\") and an animation name. An option with \"minigame\" is played by the player (Milestone 12). Effects only count for the time actually done; energy is counted every 5-minute step (Simulation). Options marked \"placeholder\": true use temporary numbers; mety and activity_intensity have their own status and owner.",
 
 	"sleep": {
 		"name": "ACTIVITY_SLEEP",
@@ -10,7 +10,7 @@
 				"duration_hours": "slider",
 				"effects_per_hour": {},
 				"mety": { "value": 0.95, "status": "from source", "owner": "Pessoa 3", "comment": "Youth MET while asleep (v1 Step 3). Energy per avatar hour = BMR / 24 x METy." },
-				"background_color": "#0f1224",
+				"scenery": "bedroom",
 				"animation": "sleep",
 				"placeholder": true,
 				"comment": "Duration comes from the sleep slider (config.json: sleep_activity), at most Clock.max_sleep_hours(). When any sleep ends a new avatar day starts: its hours change the sleep debt and the Sleep measure (config.json: sleep; v1 Step 9)."
@@ -29,7 +29,7 @@
 				"effects_per_hour": {},
 				"mety": { "value": 7.0, "status": "from source", "owner": "Pessoa 3", "comment": "Youth Compendium (v1 Step 3)." },
 				"activity_intensity": { "value": "moderate_vigorous", "status": "placeholder", "owner": "Pessoa 3", "comment": "Until the MET values from the Youth Compendium are in." },
-				"background_color": "#2d5a3d",
+				"scenery": "outside",
 				"animation": "cardio",
 				"placeholder": true,
 				"comment": "Cardio spends more energy than muscle strength. Fitness and strength are trained every step (config.json: train; v1 Step 6)."
@@ -41,7 +41,7 @@
 				"effects_per_hour": {},
 				"mety": { "value": 5.0, "status": "from source", "owner": "Pessoa 3", "comment": "Strength or calisthenics, Youth Compendium (v1 Step 3)." },
 				"activity_intensity": { "value": "moderate_vigorous", "status": "placeholder", "owner": "Pessoa 3", "comment": "Until the MET values from the Youth Compendium are in." },
-				"background_color": "#5a3d2d",
+				"scenery": "outside",
 				"animation": "strength",
 				"placeholder": true,
 				"comment": "Strength is trained every step; a session that starts below 60% recovery is too soon (config.json: train; v1 Step 6)."
@@ -59,7 +59,7 @@
 				"duration_hours": 0.5,
 				"effects_per_hour": {},
 				"mety": { "value": 1.5, "status": "placeholder", "owner": "Pessoa 3", "comment": "Eating while sitting. Not in v1." },
-				"background_color": "#3d6a3a",
+				"scenery": "room",
 				"animation": "eat",
 				"placeholder": true
 			},
@@ -69,7 +69,7 @@
 				"duration_hours": 0.5,
 				"effects_per_hour": {},
 				"mety": { "value": 1.5, "status": "placeholder", "owner": "Pessoa 3", "comment": "Eating while sitting. Not in v1." },
-				"background_color": "#7a4a2a",
+				"scenery": "room",
 				"animation": "eat",
 				"placeholder": true
 			}

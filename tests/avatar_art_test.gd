@@ -2,6 +2,9 @@ extends SceneTree
 ## The avatar art (Milestone 16, user, 6 Nov 2026). Run from the project folder (after --import):
 ##   Godot --headless --path . -s res://tests/avatar_art_test.gd
 
+## How far (pixels of the picture, twice the screen's) the feet may be from the middle.
+const FEET_TOLERANCE := 4.0
+
 var _failures := 0
 
 
@@ -28,6 +31,7 @@ func _test_sheets(avatar: Control) -> void:
 			avatar.sheet = key
 			_check("%s has art" % key, avatar.has_art())
 			var sizes_right := true
+			var feet_centred := true
 			for body in art["columns"].size():
 				for face in art["rows"].size():
 					var path: String = avatar.picture_path(Vector2i(body, face))
@@ -35,7 +39,11 @@ func _test_sheets(avatar: Control) -> void:
 					# Twice the avatar's size, so it stays sharp on dense screens.
 					if texture == null or texture.get_size() != avatar.custom_minimum_size * 2.0:
 						sizes_right = false
+					elif absf(_feet_x(texture.get_image()) - texture.get_width() * 0.5) > FEET_TOLERANCE:
+						feet_centred = false
 			_check("%s: all 25 pictures, at twice the avatar's size" % key, sizes_right)
+			# So the avatar does not move when its picture changes (user, 7 Nov 2026).
+			_check("%s: the feet are in the middle of every picture" % key, feet_centred)
 			var mouth: Vector2 = avatar.mouth_point()
 			_check("%s: the mouth is on the face" % key, mouth.y > avatar.size.y * 0.2 and mouth.y < avatar.size.y * 0.6)
 	avatar.sheet = ""
@@ -100,6 +108,14 @@ func _test_states() -> void:
 	_check("z +2.5: obese and overweight", states.current()["obese"] and states.current()["overweight"])
 	gs.weight_z = 1.5
 	_check("z +1.5: overweight, not obese", states.current()["overweight"] and not states.current()["obese"])
+
+
+## The middle of the feet: the drawn part of the lowest tenth of the figure.
+func _feet_x(image: Image) -> float:
+	var figure := image.get_used_rect()
+	var band := floori(figure.size.y * 0.1)
+	var feet := image.get_region(Rect2i(figure.position.x, figure.end.y - band, figure.size.x, band)).get_used_rect()
+	return figure.position.x + feet.get_center().x
 
 
 func _check(label: String, ok: bool) -> void:

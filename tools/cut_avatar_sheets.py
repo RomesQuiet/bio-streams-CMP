@@ -12,7 +12,10 @@ neutral, sad, tired, asleep), but the figures are not on an even grid.
    turns the white back into transparency: white connected to where the grid was transparent
    is background (so white inside a figure, such as eyes and socks, stays), and the grey edge
    of the black outline gets its transparency back.
-3. Each figure is saved on its own at OUT_SCALE times the avatar's size (sharp on phones
+3. Each figure is moved sideways so its feet are in the middle of its picture: the team's
+   figures do not stand in the same place, so without this the avatar moved a little when
+   its picture changed (user, 7 Nov 2026).
+4. Each figure is saved on its own at OUT_SCALE times the avatar's size (sharp on phones
    with dense screens, and below the 4096-pixel limit of many phones) as
    assets/art/avatar/<name>/<body>_<face>.png, with the names in data/avatar_art.json.
 
@@ -60,6 +63,8 @@ CLEAR = 0.05
 # from grey (largest minus smallest of R, G, B).
 EDGE = 3
 GREY = 40
+# The feet: this share of the figure's height, from the bottom.
+FEET = 0.1
 
 
 def runs(indexes, gap=GAP):
@@ -160,6 +165,18 @@ def from_upscaled(atlas, path):
     return Image.fromarray(np.dstack([rgb, alpha]), "RGBA")
 
 
+def centre_feet(cell):
+    """The figure moved sideways so the middle of its feet is the middle of the picture."""
+    solid = np.array(cell.getchannel("A")) >= SOLID
+    ys, xs = np.where(solid)
+    feet = ys >= ys.max() - FEET * (ys.max() - ys.min())
+    shift = round(cell.width / 2.0 - xs[feet].mean())
+    assert xs.min() + shift >= 0 and xs.max() + shift < cell.width, "a figure would leave its picture"
+    moved = Image.new("RGBA", cell.size, (0, 0, 0, 0))
+    moved.paste(cell, (shift, 0))
+    return moved, shift
+
+
 def save_cells(name, sheet):
     """Each figure of an even 5 x 5 sheet on its own, at OUT_SCALE times the avatar's size."""
     art = json.loads(ART.read_text())
@@ -168,12 +185,15 @@ def save_cells(name, sheet):
     sheet = sheet.convert("RGBa").resize(size, Image.LANCZOS).convert("RGBA")
     folder = OUT / name
     folder.mkdir(exist_ok=True)
+    shifts = []
     for c, body in enumerate(art["columns"]):
         for r, face in enumerate(art["rows"]):
             x, y = c * CELL_W * OUT_SCALE, r * CELL_H * OUT_SCALE
             cell = sheet.crop((x, y, x + CELL_W * OUT_SCALE, y + CELL_H * OUT_SCALE))
+            cell, shift = centre_feet(cell)
+            shifts.append(abs(shift))
             cell.save(folder / f"{body}_{face}.png", optimize=True)
-    print(f"{name}: {len(art['columns']) * len(art['rows'])} pictures")
+    print(f"{name}: {len(art['columns']) * len(art['rows'])} pictures, feet moved up to {max(shifts)} pixels")
 
 
 if __name__ == "__main__":
