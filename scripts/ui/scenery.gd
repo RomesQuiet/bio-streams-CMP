@@ -34,7 +34,11 @@ const SKIRTING := 16.0
 const BED_SIDE := 40.0
 const BED_ABOVE := 36.0
 const BED_FRAME := 14.0
-const PILLOW_SIZE := Vector2(250.0, 120.0)
+## The pillow is under the head (seen from above): it ends just below the chin, by this share of
+## the avatar's height under the mouth, and reaches up to PILLOW_HEIGHT, staying on the mattress.
+const PILLOW_WIDTH := 290.0
+const PILLOW_HEIGHT := 190.0
+const PILLOW_BELOW_MOUTH := 0.06
 ## Where the blanket starts: below the mouth, by this share of the avatar's height.
 const CHEST_BELOW_MOUTH := 0.13
 const FOLD := 34.0
@@ -106,7 +110,9 @@ func _draw_bedroom(ground: float) -> void:
 	var bed := _bed(ground)
 	_draw_box(bed, BED_FRAME_COLOR)
 	_draw_box(bed.grow(-BED_FRAME), MATTRESS_COLOR)
-	var pillow := Rect2(Vector2(bed.get_center().x - PILLOW_SIZE.x * 0.5, bed.position.y + BED_FRAME * 2.0), PILLOW_SIZE)
+	var bottom: float = avatar.position.y + avatar.mouth_point().y + avatar.size.y * PILLOW_BELOW_MOUTH
+	var top := maxf(bottom - PILLOW_HEIGHT, bed.position.y + BED_FRAME * 2.0)
+	var pillow := Rect2(bed.get_center().x - PILLOW_WIDTH * 0.5, top, PILLOW_WIDTH, bottom - top)
 	draw_style_box(_rounded(PILLOW_COLOR), pillow)
 
 

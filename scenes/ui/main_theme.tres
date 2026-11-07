@@ -2,6 +2,8 @@
 
 ; Buttons (user, 7 Nov 2026): rounded with a border, white with black text and border in the
 ; day. scenes/ui/night_theme.tres has the night buttons; scripts/ui/main.gd switches them.
+; Bars (user, 7 Nov 2026): every bar has the health bar's rounded shape and border, a dark empty
+; part and a fill: grey (the measures), white (XPBar), green (HealthBar), red (HealthBarDanger).
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.11, 0.13, 0.18, 1)
@@ -91,6 +93,66 @@ corner_radius_top_right = 18
 corner_radius_bottom_right = 18
 corner_radius_bottom_left = 18
 
+[sub_resource type="StyleBoxFlat" id="Day_bar_empty"]
+bg_color = Color(0.22, 0.24, 0.29, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="Day_bar_fill"]
+bg_color = Color(0.72, 0.72, 0.74, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="Day_bar_xp_fill"]
+bg_color = Color(1, 1, 1, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="Day_bar_health_fill"]
+bg_color = Color(0.3, 0.75, 0.35, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="Day_bar_danger_fill"]
+bg_color = Color(0.9, 0.3, 0.25, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
 [resource]
 default_font_size = 26
 PanelContainer/styles/panel = SubResource("StyleBoxFlat_panel")
@@ -113,3 +175,12 @@ Button/colors/icon_hover_pressed_color = Color(0, 0, 0, 1)
 Button/colors/font_disabled_color = Color(0.5, 0.5, 0.5, 1)
 Button/colors/icon_disabled_color = Color(0.5, 0.5, 0.5, 1)
 Button/colors/font_outline_color = Color(0, 0, 0, 0)
+ProgressBar/styles/background = SubResource("Day_bar_empty")
+ProgressBar/styles/fill = SubResource("Day_bar_fill")
+ProgressBar/colors/font_color = Color(1, 1, 1, 1)
+XPBar/base_type = &"ProgressBar"
+XPBar/styles/fill = SubResource("Day_bar_xp_fill")
+HealthBar/base_type = &"ProgressBar"
+HealthBar/styles/fill = SubResource("Day_bar_health_fill")
+HealthBarDanger/base_type = &"ProgressBar"
+HealthBarDanger/styles/fill = SubResource("Day_bar_danger_fill")

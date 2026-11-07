@@ -38,6 +38,14 @@ The user asked to "add the xp mechanism". XP already worked (v1 Step 12, Milesto
 - The main screen adds the changes up and shows them under the XP bar as a whole number, "+37 XP" in green or "−20 XP" in red, rising and fading over 1.5 real seconds; changes that come while one is shown wait and are shown together after it, and less than 1 XP waits. Nothing is shown while a save loads. New texts `UI_XP_GAIN` and `UI_XP_LOSS`.
 - **Checked:** `tests/xp_change_test.gd`, the other tests, and a render in a Godot window. **Not checked:** a real phone.
 
+## The pillow and the bars (added 7 Nov 2026, user)
+
+"Make the pillow lower so the head is over the pillow; make the bars all the same, with a little contrast between filled and not; the XP bar filled with white, the health bar green, the measure bars grey, all with the shape and border of the health bar."
+
+- The pillow now ends just below the chin (6% of the avatar's height under the mouth) and reaches about 190 pixels up, so the head lies on it.
+- Every `ProgressBar` uses the theme: a rounded frame (radius 18, 3-pixel border, black by day and white at night, like the buttons), a dark empty part and a fill: grey by default, `XPBar` white, `HealthBar` green, `HealthBarDanger` red (the danger warning, which tinted the bar before). The health and physical buttons are flat, so the bar is the frame. Happiness and Sleep are as tall as Physical (30). The Health and XP texts have a black outline.
+- **Checked:** the quick tests (`tests/measures_test.gd` now checks the red fill in the danger state) and renders of the four avatars asleep, by day and at night.
+
 Read `CLAUDE.md` and `documentation/handoff.md` first.
 
 ## Decisions (user, 6 Nov 2026)

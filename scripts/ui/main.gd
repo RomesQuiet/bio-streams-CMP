@@ -46,8 +46,10 @@ const HEALTH_TEXT := "MEASURE_HEALTH"
 @export var xp_change_rise := 24.0
 @export var xp_gain_color := Color(0.55, 1.0, 0.55)
 @export var xp_loss_color := Color(1.0, 0.5, 0.45)
-## Health bar colour in the danger state of severe thinness (placeholder warning).
-@export var danger_bar_color := Color(1.0, 0.4, 0.35)
+## The health bar's fill (theme type variations in scenes/ui/main_theme.tres): green, or red in
+## the danger state of severe thinness (placeholder warning).
+const HEALTH_BAR_STYLE := &"HealthBar"
+const DANGER_BAR_STYLE := &"HealthBarDanger"
 
 @onready var sky: ColorRect = $Background
 @onready var activity_backdrop: ColorRect = %ActivityBackdrop
@@ -751,7 +753,7 @@ func _refresh() -> void:
 	health_bar.value = GameState.health
 	# The danger state of severe thinness: the health bar warns.
 	var danger := HealthModel.in_danger()
-	health_bar.self_modulate = danger_bar_color if danger else Color.WHITE
+	health_bar.theme_type_variation = DANGER_BAR_STYLE if danger else HEALTH_BAR_STYLE
 	health_label.text = DANGER_TEXT if danger else HEALTH_TEXT
 	physical_bar.value = GameState.physical
 	happiness_bar.value = GameState.happiness

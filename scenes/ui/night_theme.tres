@@ -2,6 +2,7 @@
 
 ; The buttons at night (user, 7 Nov 2026): black with white text and border. Put on the main
 ; screen by scripts/ui/main.gd while the sky is dark; everything else comes from main_theme.tres.
+; The bars at night: the same, with white borders.
 
 [sub_resource type="StyleBoxFlat" id="Night_normal"]
 content_margin_left = 14.0
@@ -84,6 +85,66 @@ corner_radius_top_right = 18
 corner_radius_bottom_right = 18
 corner_radius_bottom_left = 18
 
+[sub_resource type="StyleBoxFlat" id="Night_bar_empty"]
+bg_color = Color(0.22, 0.24, 0.29, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="Night_bar_fill"]
+bg_color = Color(0.72, 0.72, 0.74, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="Night_bar_xp_fill"]
+bg_color = Color(1, 1, 1, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="Night_bar_health_fill"]
+bg_color = Color(0.3, 0.75, 0.35, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="Night_bar_danger_fill"]
+bg_color = Color(0.9, 0.3, 0.25, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
 [resource]
 Button/styles/normal = SubResource("Night_normal")
 Button/styles/hover = SubResource("Night_hover")
@@ -104,3 +165,12 @@ Button/colors/icon_hover_pressed_color = Color(1, 1, 1, 1)
 Button/colors/font_disabled_color = Color(0.5, 0.5, 0.5, 1)
 Button/colors/icon_disabled_color = Color(0.5, 0.5, 0.5, 1)
 Button/colors/font_outline_color = Color(0, 0, 0, 0)
+ProgressBar/styles/background = SubResource("Night_bar_empty")
+ProgressBar/styles/fill = SubResource("Night_bar_fill")
+ProgressBar/colors/font_color = Color(1, 1, 1, 1)
+XPBar/base_type = &"ProgressBar"
+XPBar/styles/fill = SubResource("Night_bar_xp_fill")
+HealthBar/base_type = &"ProgressBar"
+HealthBar/styles/fill = SubResource("Night_bar_health_fill")
+HealthBarDanger/base_type = &"ProgressBar"
+HealthBarDanger/styles/fill = SubResource("Night_bar_danger_fill")

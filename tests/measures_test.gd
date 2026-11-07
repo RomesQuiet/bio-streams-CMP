@@ -165,10 +165,10 @@ func _test_states_and_values(gs: Node, main: Node) -> void:
 	gs.changed.emit()
 	states = states_script.current()
 	_check("z -3.5: thin and ill, and the avatar draws it", states["thin"] and states["ill"] and main.avatar.states == states)
-	_check("...and the health bar warns", main.health_label.text == main.DANGER_TEXT and main.health_bar.self_modulate != Color.WHITE)
+	_check("...and the health bar warns", main.health_label.text == main.DANGER_TEXT and main.health_bar.theme_type_variation == main.DANGER_BAR_STYLE)
 	gs.weight_z = -2.5
 	gs.changed.emit()
-	_check("z back at -2.5: the warning goes away", main.health_label.text != main.DANGER_TEXT and main.health_bar.self_modulate == Color.WHITE)
+	_check("z back at -2.5: the warning goes away", main.health_label.text != main.DANGER_TEXT and main.health_bar.theme_type_variation == main.HEALTH_BAR_STYLE)
 
 
 func _check(name: String, ok: bool) -> void:
