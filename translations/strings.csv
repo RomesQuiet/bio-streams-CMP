@@ -172,3 +172,33 @@ SPEECH_JUST_WHAT_I_WANTED,Just what I wanted!,Era mesmo isto que me apetecia!
 SPEECH_LETS_GO,Let's go!,Vamos lá!
 SPEECH_DO_I_HAVE_TO,Do I have to?,Tenho mesmo de ir?
 SPEECH_NO_SCREENS,You never let me watch anything.,Nunca me deixas ver nada.
+FAILURE_TITLE,Failure,Falha
+FAILURE_PHRASE_THINNESS,%s lost too much weight.,%s perdeu demasiado peso.
+FAILURE_PHRASE_HEALTH,%s's health got too low.,A saúde de %s ficou demasiado baixa.
+FAILURE_PHRASE_HAPPINESS,%s became too unhappy.,%s ficou demasiado infeliz.
+FAILURE_END,The game ends here. You can start again with a new avatar.,O jogo acaba aqui. Podes recomeçar com um novo avatar.
+UI_DETAILS,Details,Detalhes
+UI_HIDE_DETAILS,Hide details,Esconder detalhes
+FAILURE_WHAT_HAPPENED,What happened,O que aconteceu
+FAILURE_CAUSE_THINNESS,"Severe thinness: BMI-for-age z stayed below %s for %d avatar hours, or reached %s (WHO 2007). Last z: %s.","Magreza grave: o IMC para a idade (z) ficou abaixo de %s durante %d horas do avatar, ou chegou a %s (OMS 2007). Último z: %s."
+FAILURE_CAUSE_HEALTH,"Health, calculated from Physical, Happiness and Sleep, stayed below %s for %d avatar hours.","A saúde, calculada a partir do Físico, da Felicidade e do Sono, ficou abaixo de %s durante %d horas do avatar."
+FAILURE_CAUSE_HAPPINESS,Happiness stayed below %s for %d avatar hours. Mental well-being is part of health (WHO).,A felicidade ficou abaixo de %s durante %d horas do avatar. O bem-estar mental faz parte da saúde (OMS).
+FAILURE_LIFE_TITLE,%s's life,A vida de %s
+FAILURE_END_TITLE,At the end,No fim
+FAILURE_HABITS_TITLE,Habits in the last %s days,Hábitos nos últimos %s dias
+FAILURE_TILE_DAYS,days lived,dias vividos
+FAILURE_TILE_LEVEL,level,nível
+FAILURE_TILE_BEST,highest health,saúde mais alta
+FAILURE_TILE_WEIGHT,weight,peso
+FAILURE_TILE_Z,BMI-for-age z,IMC para a idade z
+FAILURE_TILE_HEALTH,last health,última saúde
+FAILURE_HABIT_SLEEP,Sleep,Sono
+FAILURE_HABIT_ACTIVITY,Exercise and football,Exercício e futebol
+FAILURE_HABIT_SCREENS,Screens,Ecrãs
+FAILURE_HABIT_MEALS,Meals,Refeições
+FAILURE_HOURS_A_DAY,%s h a day,%s h por dia
+FAILURE_MINUTES_A_DAY,%d min a day,%d min por dia
+FAILURE_RECOMMENDED_RANGE,Recommended: %s to %s h,Recomendado: %s a %s h
+FAILURE_RECOMMENDED_AT_LEAST,Recommended: at least %d min,Recomendado: pelo menos %d min
+FAILURE_RECOMMENDED_AT_MOST,Recommended: at most %s h,Recomendado: no máximo %s h
+FAILURE_MEALS_COUNT,"%d healthy, %d fast food","%d saudáveis, %d de fast food"

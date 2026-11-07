@@ -68,6 +68,18 @@ static func step(hours: float, _asleep: bool) -> void:
 	gs.health_low_hours = gs.health_low_hours + hours if gs.target_health < Config.get_float("fail.health_line") else 0.0
 	gs.happiness_low_hours = gs.happiness_low_hours + hours if gs.happiness < Config.get_float("fail.happiness_line") else 0.0
 	gs.danger_hours = gs.danger_hours + hours if in_danger() else 0.0
+	# Failure is final (user, 7 Nov 2026): the first cause is kept and announced once.
+	if gs.failed_cause.is_empty() and is_at_failure():
+		gs.failed_cause = failure_cause()
+		gs.failed_day = gs.sim_hours / Config.get_float("units.hours_per_day")
+		gs.failed.emit(gs.failed_cause)
+
+
+## A failure timer is running (target health or happiness below its line, or the danger state):
+## the health bar warns before failure comes (user, 7 Nov 2026).
+static func failure_near() -> bool:
+	var gs := GameState
+	return gs.health_low_hours > 0.0 or gs.happiness_low_hours > 0.0 or gs.danger_hours > 0.0
 
 
 ## The danger state of severe thinness: BMI-for-age z below fail.danger_z (WHO severe thinness).
@@ -82,6 +94,7 @@ static func daily_step() -> void:
 	var gs := GameState
 	var change := Config.get_float("health.alpha_bar") * (gs.target_health - gs.health)
 	gs.health += change
+	gs.best_health = maxf(gs.best_health, gs.health)
 	Progress.on_health_change(change)
 
 

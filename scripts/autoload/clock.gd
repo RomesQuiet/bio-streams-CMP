@@ -30,6 +30,9 @@ signal avatar_time_passed(hours: float, asleep: bool)
 
 var phase := Phase.DAY
 var paused := false
+## Time stopped for good after failure (user, 7 Nov 2026; set by the main screen, not saved:
+## a saved failure stops it again when the game opens). Cleared by reset().
+var halted := false
 var day_number := 1
 var day_length_hours: float
 var day_elapsed_hours := 0.0
@@ -53,7 +56,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if paused:
+	if paused or halted:
 		return
 	var real_seconds := minf(delta, Config.get_float("time.max_frame_seconds")) * debug_speed * Minigame.time_share()
 	match phase:
@@ -114,6 +117,7 @@ func _avatar_minutes_per_real_minute(asleep: bool) -> float:
 func reset() -> void:
 	phase = Phase.DAY
 	paused = false
+	halted = false
 	day_number = 1
 	day_length_hours = Config.get_float("time.first_day_hours")
 	day_elapsed_hours = 0.0

@@ -73,8 +73,8 @@ func _test_danger_failure(gs: Node, config: Node) -> void:
 	_check("72 hours in danger: failure, because of severe thinness", gs.is_at_failure() and health_model.failure_cause() == "thinness")
 	gs.weight_z = config.get_float("fail.danger_z") + 0.1
 	_steps(1.0)
-	_check("z back above -3: the danger state and the failure end (the failure effect is not decided)",
-			not gs.is_at_failure() and is_zero_approx(gs.danger_hours))
+	_check("z back above -3: the danger state ends, the failure stays (it is final; user, 7 Nov 2026)",
+			gs.is_at_failure() and gs.failure_cause() == "thinness" and is_zero_approx(gs.danger_hours))
 	_new_avatar(gs)
 	gs.weight_z = config.get_float("fail.danger_failure_z")
 	_steps(1.0)

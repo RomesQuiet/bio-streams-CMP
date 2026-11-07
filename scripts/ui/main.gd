@@ -123,6 +123,7 @@ const DANGER_BAR_STYLE := &"HealthBarDanger"
 @onready var up_button: Button = %UpButton
 @onready var beat_bar: Control = %BeatBar
 @onready var confirm_box: Control = %ConfirmBox
+@onready var failure_screen: ColorRect = %FailureOverlay
 
 var _backdrop_tween: Tween
 ## XP gained or lost and not shown yet, and the change being shown.
@@ -191,6 +192,9 @@ func _ready() -> void:
 	GameState.changed.connect(_refresh)
 	GameState.leveled_up.connect(_on_leveled_up)
 	GameState.xp_changed.connect(_on_xp_changed)
+	# Failure is final (user, 7 Nov 2026). Shown after the step that reached it has finished.
+	GameState.failed.connect(func(_cause: String) -> void: _show_failure.call_deferred())
+	failure_screen.restart_pressed.connect(_start_new_avatar)
 	Clock.time_changed.connect(_refresh_clock)
 	Clock.phase_changed.connect(_on_phase_changed)
 	Clock.paused_changed.connect(_refresh_phase.unbind(1))
@@ -229,6 +233,22 @@ func _ready() -> void:
 	_refresh()
 	_refresh_clock()
 	_refresh_sleep_info()
+	# A saved failure: the failure screen again (it cannot be escaped by reloading).
+	if not GameState.failed_cause.is_empty():
+		_show_failure()
+
+
+## The failure screen over everything. Time stops for good; an activity ends, except a sleep,
+## which only stops with the clock (ending it would start a new avatar day after the failure).
+func _show_failure() -> void:
+	Clock.halted = true
+	if Activities.is_running() and Activities.current_activity != "sleep":
+		Activities.stop()
+	for panel in [options_panel, sleep_panel, settings_overlay, health_panel, values_panel]:
+		panel.hide()
+	if football_help.visible:
+		football_help.hide()
+	failure_screen.open()
 
 
 func _exit_tree() -> void:
@@ -751,8 +771,8 @@ func _refresh_sky() -> void:
 func _refresh() -> void:
 	health_level_button.text = str(GameState.health_level)
 	health_bar.value = GameState.health
-	# The danger state of severe thinness: the health bar warns.
-	var danger := HealthModel.in_danger()
+	# The danger state of severe thinness, or a failure timer running: failure may come soon.
+	var danger := HealthModel.in_danger() or HealthModel.failure_near()
 	health_bar.theme_type_variation = DANGER_BAR_STYLE if danger else HEALTH_BAR_STYLE
 	health_label.text = DANGER_TEXT if danger else HEALTH_TEXT
 	physical_bar.value = GameState.physical
@@ -831,7 +851,7 @@ func _refresh_phase() -> void:
 
 ## The placeholder failure message for the current cause ("" when there is no failure).
 func failure_text() -> String:
-	return tr(FAILURE_TEXTS.get(HealthModel.failure_cause(), ""))
+	return tr(FAILURE_TEXTS.get(GameState.failure_cause(), ""))
 
 
 ## Shows what the chosen hours mean: real sleep time and the length of the next day.

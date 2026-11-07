@@ -11,6 +11,9 @@ signal xp_changed(amount: float)
 ## Emitted when the model counts a wish as refused (Milestone 16): "screens" after
 ## mood.events.no_screens_after_h awake hours without screens. Only the speech bubble listens.
 signal wish_refused(wish: String)
+## Emitted once, when the avatar reaches failure (cause: "thinness", "health" or "happiness").
+## Failure is final (user, 7 Nov 2026): the main screen shows the failure screen.
+signal failed(cause: String)
 
 ## Values that always stay between 0 and 1.
 const MEASURES_0_TO_1 := ["physical", "happiness", "sleep", "strength", "fitness"]
@@ -107,6 +110,11 @@ var happiness_low_hours: float
 ## Avatar hours without a break in the danger state of severe thinness (Milestone 10.5; 0 when
 ## z is at fail.danger_z or above).
 var danger_hours: float
+## Failure is final (user, 7 Nov 2026): its cause ("" before failure) and the avatar day it came.
+var failed_cause: String
+var failed_day: float
+## The highest displayed health the avatar reached (the failure screen shows it).
+var best_health: float
 ## Disease risk index R and hidden damage (v1 Step 12; debug only, decision 9).
 var risk_index: float
 var disease_damage: float
@@ -162,6 +170,7 @@ func reset() -> void:
 	difficulty = ""
 	_apply_body_start()
 	health = calculate_health()
+	best_health = health
 	changed.emit()
 
 
@@ -207,6 +216,9 @@ func to_dict() -> Dictionary:
 		"health_low_hours": health_low_hours,
 		"happiness_low_hours": happiness_low_hours,
 		"danger_hours": danger_hours,
+		"failed_cause": failed_cause,
+		"failed_day": failed_day,
+		"best_health": best_health,
 		"risk_index": risk_index,
 		"disease_damage": disease_damage,
 		"xp": xp,
@@ -266,6 +278,8 @@ func from_dict(data: Dictionary) -> void:
 	health_low_hours = float(data.get("health_low_hours", 0.0))
 	happiness_low_hours = float(data.get("happiness_low_hours", 0.0))
 	danger_hours = float(data.get("danger_hours", 0.0))
+	failed_cause = str(data.get("failed_cause", ""))
+	failed_day = float(data.get("failed_day", 0.0))
 	risk_index = float(data.get("risk_index", 0.0))
 	disease_damage = float(data.get("disease_damage", 0.0))
 	xp = float(data.get("xp", xp))
@@ -274,6 +288,7 @@ func from_dict(data: Dictionary) -> void:
 	age_group = str(data.get("age_group", age_group))
 	sex = str(data.get("sex", sex))
 	difficulty = str(data.get("difficulty", difficulty))
+	best_health = maxf(float(data.get("best_health", health)), health)
 	changed.emit()
 
 
@@ -286,6 +301,7 @@ func start_new_avatar(new_name: String, new_age_group: String, new_sex: String, 
 	difficulty = new_difficulty
 	_apply_body_start()
 	health = calculate_health()
+	best_health = health
 	changed.emit()
 
 
@@ -335,6 +351,8 @@ func _apply_body_start() -> void:
 	health_low_hours = 0.0
 	happiness_low_hours = 0.0
 	danger_hours = 0.0
+	failed_cause = ""
+	failed_day = 0.0
 	risk_index = 0.0
 	disease_damage = 0.0
 	happiness_baseline = Happiness.baseline()
@@ -358,10 +376,15 @@ func daily_update() -> void:
 
 
 ## Failure (there is no death): target health or happiness has stayed below its failure line
-## for long enough, or severe thinness has (fail group in config). The effect is not decided;
-## the main screen shows a message.
+## for long enough, or severe thinness has (fail group in config). Final once reached (user,
+## 7 Nov 2026): it stays even if the values recover.
 func is_at_failure() -> bool:
-	return HealthModel.is_at_failure()
+	return not failed_cause.is_empty() or HealthModel.is_at_failure()
+
+
+## The cause of the failure: the one saved when it came, or the timers' cause now ("" if none).
+func failure_cause() -> String:
+	return failed_cause if not failed_cause.is_empty() else HealthModel.failure_cause()
 
 
 ## True once the avatar has been created (name, age group, sex and difficulty chosen).

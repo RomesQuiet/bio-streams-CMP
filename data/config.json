@@ -375,6 +375,12 @@
 		"danger_failure_z": {"value": -4, "status": "placeholder", "owner": "team", "comment": "Failure at once when z reaches this (a serious condition). WHO flags z below -5 as biologically implausible (CDC)."}
 	},
 
+	"failure_screen": {
+		"_comment": "The failure screen (user, 7 Nov 2026): a short phrase, and Details with the cause, the avatar's life, its last measures and its habits over the last summary_days avatar days next to the recommendations (sleep from the sleep group, screens from mood.fun.screen_max_min).",
+		"summary_days": {"value": 3, "status": "placeholder", "owner": "team", "comment": "Avatar days of habits shown in Details (fewer if the avatar lived less)."},
+		"activity_min_per_day": {"value": 60, "status": "from source", "owner": "Pessoa 3", "comment": "WHO 2020: at least 60 minutes a day of moderate-to-vigorous activity for children and adolescents."}
+	},
+
 	"risk": {
 		"_comment": "v1 Step 12, framework only (decision 9: debug panel only, no disease stages). R = z_weight x clamp((z - z_from) / z_range) + thin_weight x clamp((thin_from - z) / thin_range) + fitness_weight x (1 - fitness) + diet_weight x (1 - Q) + sleep_weight x d. Hidden damage grows at body.k x (R - safe_level) / damage_tau_days while R is above safe_level and falls below it. safe_level and damage_tau_days are not in v1: set them with a health professional.",
 		"z_weight": {"value": 0.4, "status": "placeholder", "owner": "Pessoa 1"},

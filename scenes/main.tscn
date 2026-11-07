@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://scripts/ui/meal_fork.gd" id="11_fork"]
 [ext_resource type="Script" path="res://scripts/ui/request_icon.gd" id="12_request"]
 [ext_resource type="Script" path="res://scripts/ui/scenery.gd" id="13_scenery"]
+[ext_resource type="Script" path="res://scripts/ui/failure_screen.gd" id="14_failure"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -887,6 +888,98 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.6)
 script = ExtResource("10_help")
+
+[node name="FailureOverlay" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+script = ExtResource("14_failure")
+
+[node name="FailurePanel" type="PanelContainer" parent="FailureOverlay"]
+custom_minimum_size = Vector2(620, 0)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="FailureOverlay/FailurePanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="Content" type="VBoxContainer" parent="FailureOverlay/FailurePanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="FailureTitle" type="Label" parent="FailureOverlay/FailurePanel/Margin/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "FAILURE_TITLE"
+horizontal_alignment = 1
+
+[node name="FailureAvatar" parent="FailureOverlay/FailurePanel/Margin/Content" instance=ExtResource("2_avatar")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(165, 225)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="FailurePhrase" type="Label" parent="FailureOverlay/FailurePanel/Margin/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="FailureEnd" type="Label" parent="FailureOverlay/FailurePanel/Margin/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "FAILURE_END"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="FailureDetailsBox" type="ScrollContainer" parent="FailureOverlay/FailurePanel/Margin/Content"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 560)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="FailureDetails" type="VBoxContainer" parent="FailureOverlay/FailurePanel/Margin/Content/FailureDetailsBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(556, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="FailureButtons" type="HBoxContainer" parent="FailureOverlay/FailurePanel/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="FailureDetailsButton" type="Button" parent="FailureOverlay/FailurePanel/Margin/Content/FailureButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "UI_DETAILS"
+
+[node name="FailureRestartButton" type="Button" parent="FailureOverlay/FailurePanel/Margin/Content/FailureButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "SETTINGS_NEW_AVATAR"
 
 [node name="DebugPanel" parent="." instance=ExtResource("6_debug")]
 layout_mode = 0

@@ -131,13 +131,16 @@ func _test_failure(gs: Node, main: Node) -> void:
 	gs.sleep = 0.5
 	health_model.step(1.0 / 12.0, false)
 	gs.changed.emit()
-	_check("the message goes away when health rises again", not gs.is_at_failure() and main.speech_label.text != main.tr(main.FAILURE_TEXTS["health"]))
+	_check("failure is final: it stays when health rises again (user, 7 Nov 2026)", gs.is_at_failure()
+			and gs.failure_cause() == "health" and main.speech_label.text == main.tr(main.FAILURE_TEXTS["health"]))
+	gs.failed_cause = ""
 	gs.happiness = 0.05
 	health_model.step(12.0, false)
-	_check("happiness below 0.10 for 12 h is failure too", gs.is_at_failure())
+	_check("happiness below 0.10 for 12 h is failure too", gs.is_at_failure() and gs.failure_cause() == "happiness")
+	gs.failed_cause = ""
 	gs.happiness = 0.5
 	health_model.step(1.0 / 12.0, false)
-	_check("...and ends when happiness rises", not gs.is_at_failure())
+	main.failure_screen.hide()
 
 
 ## v1 avatar images and the physical values box.
