@@ -59,8 +59,8 @@ export const SaveGame = {
 		Activities.started.connect(() => _auto_save());
 		Activities.ended.connect(() => _auto_save());
 		SaveGame._autosave_left = Config.get_float("save.autosave_real_seconds");
-		// The page is hidden or closed: save at once.
-		if (typeof document !== "undefined") {
+		// The page is hidden or closed: save at once (only in a browser).
+		if (typeof window !== "undefined") {
 			document.addEventListener("visibilitychange", () => _auto_save());
 			window.addEventListener("pagehide", () => _auto_save());
 			window.addEventListener("beforeunload", () => _auto_save());

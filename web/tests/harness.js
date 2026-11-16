@@ -33,3 +33,19 @@ export class Checks {
 		process.exitCode = this.failures > 0 ? 1 : 0;
 	}
 }
+
+// The screens too (main menu, creation, main game): a stand-in page and the screen modules.
+// Returns the element screens are built in.
+export async function setup_ui() {
+	const {install_fake_dom} = await import("./fake_dom.js");
+	const body = install_fake_dom();
+	setup();
+	const {Scene} = await import("../js/ui/scene.js");
+	await import("../js/ui/menu.js");
+	await import("../js/ui/creation.js");
+	await import("../js/ui/main_screen.js");
+	const root = document.createElement("div");
+	body.appendChild(root);
+	Scene.root = root;
+	return Scene;
+}

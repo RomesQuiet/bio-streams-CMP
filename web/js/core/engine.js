@@ -14,12 +14,17 @@ import {HealthLog} from "./health_log.js";
 import {SaveGame} from "./save_game.js";
 import {TranslationServer} from "./translation.js";
 
+// Longer frames are a hidden tab (see run_loop).
+const MAX_FRAME_SECONDS = 1;
+
 export const AUTOLOADS = [Config, Settings, GameState, Clock, Minigame, Simulation, Activities, Habits, HealthLog, SaveGame];
 
 export const Engine = {
 	started: false,
-	// The open screen: an object with optional _process(delta), _key_pressed(key) and close().
+	// The open screen: an object with optional _process(delta) and _key_pressed(key, event).
 	screen: null,
+	// Run after the screen every frame (the screens' timers, tweens and drawing: ui/scene.js).
+	frame_hooks: [],
 	_last_time: null,
 };
 
@@ -47,12 +52,17 @@ export function process_frame(delta) {
 	Minigame._process(delta);
 	SaveGame._process(delta);
 	if (Engine.screen && Engine.screen._process) Engine.screen._process(delta);
+	for (const hook of Engine.frame_hooks) hook(delta);
 }
 
 // The browser's frame loop.
 export function run_loop() {
 	const frame = (time) => {
-		const delta = Engine._last_time === null ? 0 : (time - Engine._last_time) / 1000;
+		// The browser stops drawing frames while the tab is hidden. A gap longer than
+		// MAX_FRAME_SECONDS is that, not play, so it counts as nothing: time only runs with the
+		// game on screen.
+		let delta = Engine._last_time === null ? 0 : (time - Engine._last_time) / 1000;
+		if (delta > MAX_FRAME_SECONDS) delta = 0;
 		Engine._last_time = time;
 		process_frame(delta);
 		requestAnimationFrame(frame);

@@ -46,33 +46,48 @@ export function deep_copy(value) {
 	return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
 }
 
-// Godot's "%" text formatting: %s, %d, %.Nf, %+.Nf, %%; "%.*f" takes the decimals from the list.
+// Godot's "%" text formatting: %s, %d, %f with a precision (%.2f; "%.*f" takes the decimals
+// from the list), a sign (+), a width (%5d) with "-" (left) or "0" padding, and %%.
 export function format(text, args) {
 	const values = Array.isArray(args) ? [...args] : [args];
-	return text.replace(/%([+]?)(\.\*|\.\d+)?([sdf%])/g, (whole, sign, precision, kind) => {
+	return text.replace(/%([-+0]*)(\d+)?(\.\*|\.\d+)?([sdf%])/g, (whole, flags, width, precision, kind) => {
 		if (kind === "%") return "%";
 		let decimals = null;
 		if (precision === ".*") decimals = values.shift();
 		else if (precision) decimals = Number(precision.slice(1));
 		const value = values.shift();
-		if (kind === "s") return String(value);
-		if (kind === "d") {
+		let shown;
+		if (kind === "s") {
+			shown = String(value);
+		} else if (kind === "d") {
 			const whole_number = Math.trunc(Number(value));
-			return (sign && whole_number >= 0 ? "+" : "") + String(whole_number);
+			shown = (flags.includes("+") && whole_number >= 0 ? "+" : "") + String(whole_number);
+		} else {
+			// As Godot: the sign comes from the number before rounding, so -0.0001 is "-0.00".
+			const number = Number(value);
+			const negative = number < 0 || Object.is(number, -0);
+			const size = Math.abs(number);
+			shown = (negative ? "-" : flags.includes("+") ? "+" : "") + (decimals === null ? size.toFixed(6) : round_to_text(size, decimals));
 		}
-		const number = Number(value);
-		const shown = decimals === null ? number.toFixed(6) : round_to_text(number, decimals);
-		return (sign && number >= 0 ? "+" : "") + shown;
+		return pad(shown, Number(width ?? 0), flags);
 	});
 }
 
-// Like C's printf rounding (half away from zero on the decimal value), as Godot uses.
-function round_to_text(number, decimals) {
+function pad(text, width, flags) {
+	if (text.length >= width) return text;
+	if (flags.includes("-")) return text.padEnd(width, " ");
+	if (flags.includes("0") && /^[+-]?\d/.test(text)) {
+		const sign = /^[+-]/.test(text) ? text[0] : "";
+		return sign + text.slice(sign.length).padStart(width - sign.length, "0");
+	}
+	return text.padStart(width, " ");
+}
+
+// Like C's printf rounding (half away from zero on the decimal value), as Godot uses. size is
+// never negative.
+function round_to_text(size, decimals) {
 	const factor = Math.pow(10, decimals);
-	const rounded = roundf(number * factor) / factor;
-	let text = Math.abs(rounded).toFixed(decimals);
-	if (rounded < 0 && Number(text) !== 0) text = "-" + text;
-	return text;
+	return (roundf(size * factor) / factor).toFixed(decimals);
 }
 
 // A Godot signal: connect, disconnect and emit.
