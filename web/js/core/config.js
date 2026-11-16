@@ -29,6 +29,24 @@ export const Config = {
 		return node;
 	},
 
+	// Uses this data as the config from now on and tells the game (debug F6, and tests).
+	reload(data) {
+		Data.files.config = data;
+		if (Config.load_config()) {
+			console.log("Config: reloaded");
+			Config.reloaded.emit();
+		}
+	},
+
+	// Debug (F6 with ?debug): reads data/config.json again from the server.
+	async reload_from_server() {
+		const response = await fetch(Config.base_path + "data/config.json", {cache: "no-cache"});
+		Config.reload(await response.json());
+	},
+
+	// The folder that holds data/ (set by the page).
+	base_path: "",
+
 	get_float(path) {
 		const value = Config.get_value(path);
 		return value !== null ? Number(value) : 0;

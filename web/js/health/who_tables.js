@@ -8,7 +8,7 @@ import {Data} from "../core/data.js";
 import {clampf, lerpf, signf, push_error} from "../core/util.js";
 
 // Columns of a row in both tables (age in months first).
-const MONTH = 0, L = 1, M = 2, S = 3;
+const MONTH = 0, L = MONTH + 1, M = L + 1, S = M + 1;
 
 export const WhoTables = {
 	// L, M and S of the BMI-for-age table for this sex and age: {L, M, S}.

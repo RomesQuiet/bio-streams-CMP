@@ -207,3 +207,6 @@ function _step(hours, asleep) {
 	// 10. Avatar messages and images: the main screen listens to GameState.changed.
 	Simulation.stepped.emit(hours, asleep);
 }
+
+// For the tests (the Godot tests call this underscored function too).
+Simulation._step = _step;

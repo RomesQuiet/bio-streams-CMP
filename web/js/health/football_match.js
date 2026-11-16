@@ -11,7 +11,7 @@ import {Signal} from "../core/util.js";
 import {Vector2, RandomNumberGenerator, closest_point_to_segment} from "../core/vector2.js";
 
 const NOBODY = -1;
-const Flight = {NONE: 0, PASS: 1, SHOT: 2};
+const Flight = {NONE: "none", PASS: "pass", SHOT: "shot"};
 
 export class FootballMatch {
 	static NOBODY = NOBODY;
@@ -65,7 +65,7 @@ export class FootballMatch {
 		this.width = this._value("field_width");
 		this.length = this._value("field_length");
 		this._tick = this._value("tick_seconds");
-		this.positions = new Array(this.team_size * 2).fill(null).map(() => Vector2.ZERO);
+		this.positions = new Array(this.team_size + this.team_size).fill(null).map(() => Vector2.ZERO);
 		this._beaten_left = new Array(this.positions.length).fill(0);
 		this.kick_off(true);
 	}
