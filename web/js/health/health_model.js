@@ -1,0 +1,116 @@
+// Physical, health and failure (v1 Steps 8, 11 and 12; Milestone 10 Task 8). All numbers come
+// from Config (groups health and fail).
+// - Physical = M(w, fitness, strength) x (diet_floor + (1 - diet_floor) x Q) x (1 - deficit.physical_cut
+//   x U) x (1 - train.overreach_physical_cut x O), where M is the weighted power mean
+//   health.physical_mix (p 0.5; weight 0.5, fitness 0.3, strength 0.2) and w the weight score of z.
+// - Target health = 1 + 4 x the weighted power mean health.combine of Physical, Happiness and
+//   Sleep (p 0.5, equal weights). It follows the measures every step.
+// - Displayed health (the bar, decision 1) moves health.alpha_bar of the way to the target once
+//   per avatar day, when a sleep ends. Its changes give or take XP.
+// - Failure (no death): target health below fail.health_line for fail.health_hours (decision
+//   10: the target, not the slow bar), or happiness below fail.happiness_line for
+//   fail.happiness_hours (clock time).
+// - Danger state of severe thinness (Milestone 10.5, team review): z below fail.danger_z. It
+//   ends only when z is back at fail.danger_z or above (decision 11). It is failure too when it
+//   lasts fail.danger_hours, or when z reaches fail.danger_failure_z.
+import {Config} from "../core/config.js";
+import {GameState} from "../core/game_state.js";
+import {BodySize} from "./body_size.js";
+import {Progress} from "./progress.js";
+import {clampf, lerpf, is_zero_approx} from "../core/util.js";
+
+export const HealthModel = {
+	physical() {
+		const gs = GameState;
+		const mix = "health.physical_mix.";
+		const body = HealthModel.power_mean([BodySize.weight_score(gs.weight_z), gs.fitness, gs.strength],
+				[Config.get_float(mix + "weight"), Config.get_float(mix + "fitness"), Config.get_float(mix + "strength")],
+				Config.get_float(mix + "p"));
+		const floor_q = Config.get_float("health.diet_floor");
+		return clampf(body * (floor_q + (1 - floor_q) * gs.diet_quality)
+				* (1 - Config.get_float("deficit.physical_cut") * gs.deficit_u)
+				* (1 - Config.get_float("train.overreach_physical_cut") * gs.overreach), 0, 1);
+	},
+
+	// Target health from three measures: 1 + 4 x their weighted power mean (health.combine).
+	target_health(p_physical, p_happiness, p_sleep) {
+		const weights = "health.combine.weights.";
+		const combined = HealthModel.power_mean([p_physical, p_happiness, p_sleep],
+				[Config.get_float(weights + "physical"), Config.get_float(weights + "happiness"), Config.get_float(weights + "sleep")],
+				Config.get_float("health.combine.p"));
+		return lerpf(Config.get_float("measures.health_min"), Config.get_float("measures.health_max"), combined);
+	},
+
+	// Weighted power mean of values from 0 to 1 (weights divided by their sum). p = 0 is the
+	// geometric mean.
+	power_mean(values, weights, p) {
+		let total_weight = 0;
+		for (const weight of weights) total_weight += Number(weight);
+		let combined = 0;
+		if (is_zero_approx(p)) {
+			for (let i = 0; i < values.length; i++) combined += weights[i] / total_weight * Math.log(clampf(values[i], 0, 1));
+			return Math.exp(combined);
+		}
+		for (let i = 0; i < values.length; i++) combined += weights[i] / total_weight * Math.pow(clampf(values[i], 0, 1), p);
+		return clampf(Math.pow(combined, 1 / p), 0, 1);
+	},
+
+	// Step 7 of the update order: the Physical measure.
+	update_physical() {
+		GameState.physical = HealthModel.physical();
+	},
+
+	// Step 9 of the update order (part): the failure timers. The health timer reads the target
+	// health (decision 10), so failure does not wait for the slow bar to come down.
+	step(hours, _asleep) {
+		const gs = GameState;
+		gs.health_low_hours = gs.target_health < Config.get_float("fail.health_line") ? gs.health_low_hours + hours : 0;
+		gs.happiness_low_hours = gs.happiness < Config.get_float("fail.happiness_line") ? gs.happiness_low_hours + hours : 0;
+		gs.danger_hours = HealthModel.in_danger() ? gs.danger_hours + hours : 0;
+		// Failure is final (user, 7 Nov 2026): the first cause is kept and announced once.
+		if (gs.failed_cause === "" && HealthModel.is_at_failure()) {
+			gs.failed_cause = HealthModel.failure_cause();
+			gs.failed_day = gs.sim_hours / Config.get_float("units.hours_per_day");
+			gs.failed.emit(gs.failed_cause);
+		}
+	},
+
+	// A failure timer is running (target health or happiness below its line, or the danger state):
+	// the health bar warns before failure comes (user, 7 Nov 2026).
+	failure_near() {
+		const gs = GameState;
+		return gs.health_low_hours > 0 || gs.happiness_low_hours > 0 || gs.danger_hours > 0;
+	},
+
+	// The danger state of severe thinness: BMI-for-age z below fail.danger_z (WHO severe thinness).
+	// The avatar looks thin and ill and the health bar warns.
+	in_danger() {
+		return GameState.weight_z < Config.get_float("fail.danger_z");
+	},
+
+	// Once per avatar day (when a sleep ends): the displayed health moves part of the way to the
+	// target; the change gives or takes XP.
+	daily_step() {
+		const gs = GameState;
+		const change = Config.get_float("health.alpha_bar") * (gs.target_health - gs.health);
+		gs.health += change;
+		gs.best_health = Math.max(gs.best_health, gs.health);
+		Progress.on_health_change(change);
+	},
+
+	// Failure: severe thinness for too long, or target health or happiness below its line for long
+	// enough.
+	is_at_failure() {
+		return HealthModel.failure_cause() !== "";
+	},
+
+	// Why the avatar is at failure: "thinness" (the danger state lasted fail.danger_hours, or z
+	// reached fail.danger_failure_z), "health", "happiness", or "" when it is not.
+	failure_cause() {
+		const gs = GameState;
+		if (gs.danger_hours >= Config.get_float("fail.danger_hours") || gs.weight_z <= Config.get_float("fail.danger_failure_z")) return "thinness";
+		if (gs.health_low_hours >= Config.get_float("fail.health_hours")) return "health";
+		if (gs.happiness_low_hours >= Config.get_float("fail.happiness_hours")) return "happiness";
+		return "";
+	},
+};
