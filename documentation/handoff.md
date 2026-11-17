@@ -1,10 +1,15 @@
 # Handoff — state of the project and how to continue
 
-Last updated: 31 October 2026, in Milestone 12. Read this after `CLAUDE.md` when a new session starts. `CLAUDE.md` describes the game and the code; this file says **where the work stands, what was decided along the way, what is still open, and the lessons learned**, so nothing has to be found out again.
+Last updated: 17 November 2026, after Milestone 18, the paused web conversion and the minigame ideas in the documents. Read this after `CLAUDE.md` when a new session starts. `CLAUDE.md` describes the game and the code; this file says **where the work stands, what was decided along the way, what is still open, and the lessons learned**, so nothing has to be found out again.
 
 ## 1. Where the work stands
 
-- **Milestone 16 (the avatar's requests, `MILESTONE_16.md`) is built and committed, not pushed (6 Nov 2026).** Decisions 57 to 60: requests only show what the model already does, the player answers by acting, every wish tied to our activities, hungry and tired in the same style. Waiting on the user: play it, then push. The team's avatar art (four sprite sheets, AI tool, CC BY 4.0) was added the same day, before playing (`MILESTONE_16.md`, "Avatar art").
+- **New minigame ideas (team, "Ideias Extras v2", 16 Nov 2026), not built:** strength: the player chooses squats or push-ups and must really do the chosen exercise (how is open: a real-life exercise or an on-screen minigame, and how it is checked); cardio: the avatar seen from behind, running down a street with trees, the scenery coming closer and repeating; eating: a balanced pace (not too fast, not too slow) and a canteen where the player builds the plate before eating (moved with a joystick to the counter, foods by category; open: view, plate rules, portions, foods). Both concept documents were updated on 17 Nov 2026 to say what is built and what is new (English concept section 8 and 9; Portuguese "Conceito do Jogo V3", which already had the ideas). A milestone plan for them is the next step.
+- **Web conversion (16 to 17 Nov 2026), stopped by the user:** the game logic, the logic tests and every screen were converted to plain HTML, CSS and JavaScript in `web/` (commits `d6787f6`, `91fa6a7`, `4aa6493`), side by side with the Godot project. The JavaScript scenario and parity tests print exactly what Godot prints; all 20 logic tests pass; the screens were checked in the browser (`web-source` server in `.claude/launch.json`, port 8070, page `/web/index.html`). Not done: the screen tests, the swap (serving from the repository root, deleting the Godot project), the Open Sans font. The user stopped it (17 Nov 2026); **the Godot game is still the published one** and still the source of truth. Do not continue the conversion unless the user asks.
+- **Milestone 18 (the main menu, `MILESTONE_18.md`) is built and committed, not pushed (7 Nov 2026).** Continue, New avatar, Avatars (3 places), Load a backup, About, language.
+- **Milestone 17 (the failure screen, `MILESTONE_17.md`) is built and committed, not pushed (7 Nov 2026).** A short phrase, Details drawn (tiles, bars, habit gauges) with short verdicts ("too thin", "could be better"). Short verdicts on the main screen were tried and undone at the user's request (`7f1750c`, reverted by `427a84e`).
+- **After Milestone 16 (7 Nov 2026, in `MILESTONE_16.md`):** the team's upscaled avatar art, the places behind the activities (room, outside, bedroom from above with a blanket), day and night buttons, XP changes shown under the XP bar, one look for every bar, happiness 2 times slower (`mood.speed`), every figure the same height, and the level box in the game's style.
+- **Milestone 16 (the avatar's requests, `MILESTONE_16.md`) is built and committed, not pushed (6 Nov 2026).** Decisions 57 to 60: requests only show what the model already does, the player answers by acting, every wish tied to our activities, hungry and tired in the same style. The user played the rounds after it (7 Nov 2026); Milestones 16 to 18 wait for the user's push. The team's avatar art (four sprite sheets, AI tool, CC BY 4.0) was added the same day, before playing (`MILESTONE_16.md`, "Avatar art").
 - **Milestone 15 (the meal minigame, `MILESTONE_15.md`) is complete: the user played it and is happy with it (6 Nov 2026).** Tuned twice (fork speed and target between the first and the easy version; full from 6 bites). Pushed (`adb0ffe`, 6 Nov 2026). Decisions 52 to 56 are in `MILESTONE_15.md`; the user asked for it "fun, not too much science".
 - **Milestone 14 (the football minigame, `MILESTONE_14.md`) is pushed up to `b040049`.** The third and fourth rounds (decisions 49 to 51 and more goals, `MILESTONE_14.md`, 1 and 2 Nov 2026) are pushed up to `2ce404d`; the user played them and is happy with them (4 Nov 2026). A real phone is not confirmed.
 - **Milestone 13 (the strength minigame, `MILESTONE_13.md`) is complete and pushed.** The user played it and is happy with it. A real phone is not confirmed.
@@ -15,6 +20,19 @@ Last updated: 31 October 2026, in Milestone 12. Read this after `CLAUDE.md` when
 - **Milestone 10** (food as an activity + the whole health system rebuilt to Health Calculation Architecture v1) is pushed (`e3e6a89`, plus the handoff commit `6d3639b`).
 - **All 33 tests pass** (7 Nov 2026, with the main menu, Milestone 18) (`tests/*_test.gd`; `calibration_test.gd` takes about 2.5 minutes and `parity_test.gd` about 5; the parity test prints numbers for the team and only fails if it crashes).
 - **Waiting on the team:** the plan guesses, the training window, eating time and the hunger penalty, the danger-state and gap values (`documentation/milestone10_calibration.md`, "Proposals for the team"). No value was changed to fit the tests.
+
+### Commit history of Milestones 12 to 18 and the web conversion
+
+| Milestone | Commits |
+|---|---|
+| 12 (minutes slider, cardio) | `c892ecb` Task 1, `2fdf35e` Task 2, `096ef99` Task 3, `fba7c68` Task 4, `6912989` Task 5, `839cd05` and `4c7ca4b` Task 6 |
+| 13 (strength) | `4b5235f` Task 1, `2c1a1e9` Task 2, `2087d08` Task 3, `c894f95` Task 4, `5461691`, `0817f91`, `8b7f38e` Task 5, `ac04189` played |
+| 14 (football) | `a7ecc1a` Task 1, `4f8e644` Tasks 2 and 3, `a423c4a` Task 4, `56ba660` Task 5, `5eddda7` Task 6, `dec13a2` and `b67ae18` second round, `b040049` played, `4f2ab59` third round, `2ce404d` fourth round, `154e51e` pushed |
+| 15 (meal) | `34e32b0` and `d9bc339` plan, `63f6711` built, `5292703`, `0befa12`, `4f73cbc` tuning, `adb0ffe` complete |
+| 16 (requests) and after | `80bb167` plan, `79f4733` Task 1, `78737db` Task 2, `a187926` Task 3; `0c0cf5e`, `ccca5c4`, `7b735da` avatar art; `3211879` places and buttons; `d1e3dce` bed from above; `eb4542b` XP changes; `a9120a3` pillow and bars; `806eaec`, `520d40a` happiness 2 times slower; `5697095` level box |
+| 17 (failure screen) | `bf82b25` built, `95e949c` explanations, `381ad23` short verdicts, `7f1750c` main-screen verdicts (undone by `427a84e`) |
+| 18 (main menu) | `42bc2c8` |
+| Web conversion (stopped) | `d6787f6`, `91fa6a7`, `4aa6493` |
 
 ### Commit history of Milestone 11
 
@@ -111,11 +129,11 @@ Decisions 39 to 51 (Milestone 14, football) are in `MILESTONE_14.md`. Decision 3
 
 **For the team** (with numbers and proposals in `documentation/milestone10_calibration.md`, Milestone 10.5): the causes of the six differences are found. (1) The severe diet: the scenario's screens hour blocks one hungry moment a day (without it the game eats exactly v1's 2.33 meals and 1,145 kcal); not a model difference. (2) Happiness: mostly plan details v1 does not describe (30 min of football in the guideline activity, 2 h of screens without sport), plus half-hour meals and the hunger penalty for 4 h of cardio. (3) Resolved by the review. (4) Guideline strength: the 24-hour training window makes strength rise and fall through the week; a one-week window gives 0.76. (5) Decision 1 only. (6) Compared with the wrong row. To decide: the plan guesses, `train.average_window_h`, eating time and METy, the hunger penalty with fixed portions, the danger-state and gap values.
 
-**Not decided** (do not guess; see `CLAUDE.md`, "Not decided yet"): researched values for every placeholder; failure effect; diseases; food menus and tastes; full entertainment menu; whether football counts toward the 60 minutes (it does for now); activity durations; avatar art; other settings; the Portuguese wording until it is checked; server and accounts.
+**Not decided** (do not guess; see `CLAUDE.md`, "Not decided yet"): researched values for every placeholder; diseases; food menus and tastes; full entertainment menu; whether football counts toward the 60 minutes (it does for now); activity durations; avatar art; other settings; the Portuguese wording until it is checked; server and accounts.
 
 **Proposed in Milestone 11, not confirmed by the user or team:** European Portuguese for all browsers, wording that does not depend on the avatar's sex, the decimal comma, the pause while settings are open, English in the debug panel and logs.
 
-**Likely after Milestone 14** (ask the user): the team's answers to the Milestone 10.5 proposals; failure effect and screen; the other minigames; menus; the lobby screen; plasticine art. (A 45-minute strength option would not raise strength: Milestone 10.5 parity run.)
+**Likely next** (ask the user): a milestone plan for the new minigame ideas (squats or push-ups, the street run, eating pace, the canteen; section 1); a minigame for screens (decision 54); the team's answers to the Milestone 10.5 proposals; food menus and tastes; the lobby's pictures and music; plasticine art. (A 45-minute strength option would not raise strength: Milestone 10.5 parity run.)
 
 **Placeholders added in Milestone 10.5:** the Ill look (pale, greenish body), the health bar warning (red bar, "Health: danger") and the failure messages by cause; the review's numbers (`train.strength_min_gap_h` 36, `fail.danger_z` −3, `fail.danger_hours` 72, `fail.danger_failure_z` −4, `risk.thin_weight` 0.4, `risk.thin_from` −2, `risk.thin_range` 2).
 

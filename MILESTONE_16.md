@@ -73,6 +73,10 @@ The user asked to run every health test, check whether happiness moves as fast a
 
 Read `CLAUDE.md` and `documentation/handoff.md` first.
 
+## The level box (added 7 Nov 2026, user)
+
+"The box of the level isn't in the overall style of the game, and collapses with the XP bar." The XP level box now looks like the health level box: 88 x 88, rounded, white with black text by day and black with white text at night (theme variations `LevelBox` and `LevelLabel`), "Lv" above the number. The right column stays 88 pixels wide with an 8-pixel gap to the XP bar: buttons have 6 pixels of side padding and Wake uses font size 19, so "Acordar" fits (`5697095`).
+
 ## Decisions (user, 6 Nov 2026)
 
 | # | Question | Decision |
