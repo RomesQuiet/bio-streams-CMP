@@ -60,17 +60,40 @@ func _test_places(main: Node, activities: Node, minigame: Node) -> void:
 			and scenery.avatar == main.avatar)
 	activities.stop()
 	root.get_node("Clock").wake_up()
-	for option in ["cardio", "strength"]:
-		activities.start("exercise", option)
-		main._refresh_activity(true)
-		_check("%s: outside, no building" % option, scenery.kind == "outside" and main.activity_backdrop.modulate.a == 0.0)
-		activities.stop()
-		minigame.reset()
+	activities.start("exercise", "strength")
+	main._refresh_activity(true)
+	_check("strength: outside, no building", scenery.kind == "outside" and main.activity_backdrop.modulate.a == 0.0
+			and not main.avatar.back_view)
+	activities.stop()
+	minigame.reset()
+	_test_street(main, activities, minigame)
 	activities.start("entertainment", "screens")
 	main._refresh_activity(true)
 	_check("screens: still its see-through colour", scenery.modulate.a == 0.0 and main.activity_backdrop.modulate.a > 0.0)
 	activities.stop()
 	main._refresh_activity(true)
+
+
+## Milestone 19: cardio runs down a street seen from behind; each stride brings it closer.
+func _test_street(main: Node, activities: Node, minigame: Node) -> void:
+	var scenery: Control = main.scenery
+	activities.start("exercise", "cardio")
+	main._refresh_activity(true)
+	_check("cardio: the street, the avatar seen from behind", scenery.kind == "street" and scenery.modulate.a == 1.0
+			and main.avatar.back_view and main.activity_backdrop.modulate.a == 0.0)
+	var before: float = scenery.distance
+	minigame.tap()
+	minigame.tap()
+	_check("each stride moves the street forward", scenery.distance > before)
+	var after_run: float = scenery.distance
+	scenery.stride(true)
+	_check("a walking stride is a shorter step", scenery.distance - after_run < scenery.RUN_STEP)
+	scenery._process(10.0)
+	_check("the picture catches up with the strides", is_equal_approx(scenery._shown, scenery.distance))
+	activities.stop()
+	minigame.reset()
+	main._refresh_activity(true)
+	_check("after cardio the avatar faces the player again", not main.avatar.back_view)
 
 
 func _test_buttons(main: Node, clock: Node) -> void:

@@ -576,8 +576,8 @@ func _on_phase_changed(_phase: Clock.Phase) -> void:
 	_refresh_activity()
 
 
-## Animation and background of the running activity (or none): its scenery (outside, a room
-## with windows, a bedroom; scripts/ui/scenery.gd), or else its see-through background colour.
+## Animation and background of the running activity (or none): its scenery (outside, a street,
+## a room with windows, a bedroom; scripts/ui/scenery.gd), or else its see-through background colour.
 func _refresh_activity(instant := false) -> void:
 	var option := Activities.current_option_data()
 	var place := ""
@@ -597,6 +597,8 @@ func _refresh_activity(instant := false) -> void:
 			layer.kind = place
 			layer.modulate.a = 0.0
 	_scenery_tween = _fade([scenery, blanket], _scenery_tween, 0.0 if place.is_empty() else 1.0, instant)
+	# On the street the avatar runs away from the player: seen from behind (Milestone 19).
+	avatar.back_view = place == scenery.STREET
 	_refresh_phase()
 
 
@@ -632,6 +634,7 @@ func _on_stride() -> void:
 		avatar.squat(not Minigame.next_down)
 	elif Minigame.kind == Minigame.CARDIO:
 		avatar.stride(Minigame.walking)
+		scenery.stride(Minigame.walking)
 	elif Minigame.kind == Minigame.MEAL and Minigame.last_on_beat:
 		avatar.chew()
 

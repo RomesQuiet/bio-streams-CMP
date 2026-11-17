@@ -1,6 +1,6 @@
 # Milestones 19 to 21 — The team's new minigame ideas (plan)
 
-**Status: plan, 17 November 2026. Nothing is built.** Claude's proposals, to be confirmed by the user (and the team where it says so).
+**Status: Milestone 19 (cardio on a street) is built (17 November 2026), not pushed; the user has not played it yet. Milestones 20 and 21 are plans.** Claude's proposals, to be confirmed by the user (and the team where it says so).
 
 **User's answers (17 Nov 2026):** (1) nothing that records or films the player: no camera and no phone sensors, removed; (2) sit-ups too, not only squats and push-ups; (3) the eating pace idea is dropped. Read `CLAUDE.md` and `documentation/handoff.md` first.
 
@@ -24,6 +24,7 @@ The rules of the earlier minigames still hold for all four: a session only exist
 - **The avatar from behind:** the team's sprite sheets only show the front. Until the team draws a back view (one picture per body, as the front sheets), the placeholder is the front picture in a dark silhouette (or the egg seen from behind). **Question for the team:** can you add a back view to the sheets (5 bodies; the face does not show)?
 - **Day and night:** the sky follows the clock, as in the room's windows.
 - Tasks: 1) the street place (`scenery.gd` gets "street", moved by the strides); 2) the back-view placeholder and the place in `activities.json`; 3) tests, web build, documents. About a day of work.
+- **Built (17 Nov 2026):** cardio's place is `"street"` (`data/activities.json`). `scripts/ui/scenery.gd` draws grass, pavements, the road and trees in perspective from a horizon 330 pixels above the ground line; the grey ground under the avatar is the road. Each stride moves the street 1.4 units (0.7 walking) and the picture catches up smoothly; waiting stops it; at night it is up to 55% darker. The avatar is seen from behind as a dark silhouette of its picture (`scripts/avatar/silhouette.gdshader`, placeholder until the team draws a back view); the egg loses its face. Strength keeps the plain outside. All of these are display values in the script, not game numbers. **Checked:** `tests/scenery_test.gd` (the street, the back view, strides move it, walking is shorter, the picture catches up, the front view after cardio), all 32 other tests, renders by day and at night in a Godot window, and the web export. **Not checked:** a person playing it, a real phone.
 
 ## Milestone 20 — Squats, push-ups or sit-ups (B)
 

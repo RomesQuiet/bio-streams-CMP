@@ -29,7 +29,7 @@
 				"effects_per_hour": {},
 				"mety": { "value": 7.0, "status": "from source", "owner": "Pessoa 3", "comment": "Youth Compendium (v1 Step 3)." },
 				"activity_intensity": { "value": "moderate_vigorous", "status": "placeholder", "owner": "Pessoa 3", "comment": "Until the MET values from the Youth Compendium are in." },
-				"scenery": "outside",
+				"scenery": "street",
 				"animation": "cardio",
 				"placeholder": true,
 				"comment": "Cardio spends more energy than muscle strength. Fitness and strength are trained every step (config.json: train; v1 Step 6)."

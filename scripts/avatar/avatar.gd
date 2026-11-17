@@ -42,6 +42,21 @@ const EGG_MOUTH_Y := 0.55
 @export var ill_color := Color(0.82, 0.88, 0.7)
 ## The Ill look on the art: the drawing is tinted with this colour.
 @export var ill_tint := Color(0.8, 0.95, 0.65)
+## Seen from behind (Milestone 19, cardio on the street): the team's art only shows the front, so
+## until a back view exists the picture is drawn as a dark silhouette (placeholder,
+## scripts/avatar/silhouette.gdshader), and the egg has no face.
+const SILHOUETTE := preload("res://scripts/avatar/silhouette.gdshader")
+var back_view := false:
+	set(value):
+		if back_view != value:
+			back_view = value
+			if back_view:
+				var silhouette := ShaderMaterial.new()
+				silhouette.shader = SILHOUETTE
+				material = silhouette
+			else:
+				material = null
+			queue_redraw()
 
 ## The art sheet: "<age group>_<sex>", a key of "sheets" in data/avatar_art.json, or "" (or a key
 ## that is not there) for the egg.
@@ -245,6 +260,8 @@ func _draw() -> void:
 	points.append(points[0])
 	var line_width := muscular_outline_width if states.get("muscular", false) else outline_width
 	draw_polyline(points, outline_color, line_width, true)
+	if back_view:
+		return
 	var eye_y := size.y * 0.42
 	var eye_radius := size.x * 0.05
 	for eye_x in [size.x * 0.38, size.x * 0.62]:
@@ -266,8 +283,9 @@ func _draw_art() -> void:
 	# Each picture is larger than the avatar on screen (sharp on dense screens), scaled down
 	# with mipmaps (texture_filter in scenes/avatar/avatar.tscn).
 	if _picture:
-		draw_texture_rect(_picture, Rect2(Vector2.ZERO, size), false, ill_tint if states.get("ill", false) else Color.WHITE)
-	if mouth_open and not eyes_closed:
+		var tint := ill_tint if states.get("ill", false) else Color.WHITE
+		draw_texture_rect(_picture, Rect2(Vector2.ZERO, size), false, tint)
+	if mouth_open and not eyes_closed and not back_view:
 		draw_circle(mouth_point(), size.x * mouth_width * 0.3, outline_color)
 
 
