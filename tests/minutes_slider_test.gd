@@ -89,7 +89,7 @@ func _test_language() -> void:
 	settings.set_language("pt")
 	_check("changing the language keeps the minutes", is_equal_approx(main.minutes_slider.value, 35.0))
 	_check("the label changes language", main.minutes_label.text == "Minutos: 35")
-	_check("the options change language", main.option_buttons.get_child(1).text == "Força muscular")
+	_check("the options change language", main.option_buttons.get_child(1).text == "Agachamentos")
 	main.options_panel.hide()
 
 

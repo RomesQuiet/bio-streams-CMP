@@ -35,8 +35,9 @@
 				"comment": "Cardio spends more energy than muscle strength. Fitness and strength are trained every step (config.json: train; v1 Step 6)."
 			},
 			"strength": {
-				"name": "ACTIVITY_STRENGTH",
+				"name": "ACTIVITY_SQUATS",
 				"minigame": "strength",
+				"reps_share": { "value": 1.0, "status": "placeholder", "owner": "Pessoa 3", "comment": "Repetitions of this exercise as a share of minigame.reps_min to reps_max (AAP 2020)." },
 				"duration_hours": 1,
 				"effects_per_hour": {},
 				"mety": { "value": 5.0, "status": "from source", "owner": "Pessoa 3", "comment": "Strength or calisthenics, Youth Compendium (v1 Step 3)." },
@@ -44,7 +45,33 @@
 				"scenery": "outside",
 				"animation": "strength",
 				"placeholder": true,
-				"comment": "Strength is trained every step; a session that starts below 60% recovery is too soon (config.json: train; v1 Step 6)."
+				"comment": "Squats (Milestone 20; the option id stays strength, so saves and the scenario tests are unchanged). Strength is trained every step; a session that starts below 60% recovery is too soon (config.json: train; v1 Step 6). Done for real, on trust (user, 17 Nov 2026)."
+			},
+			"push_ups": {
+				"name": "ACTIVITY_PUSH_UPS",
+				"minigame": "strength",
+				"reps_share": { "value": 0.7, "status": "placeholder", "owner": "Pessoa 3", "comment": "Push-ups are harder for the upper body: fewer repetitions for the same strength." },
+				"duration_hours": 1,
+				"effects_per_hour": {},
+				"mety": { "value": 5.0, "status": "from source", "owner": "Pessoa 3", "comment": "Strength or calisthenics, Youth Compendium (v1 Step 3)." },
+				"activity_intensity": { "value": "moderate_vigorous", "status": "placeholder", "owner": "Pessoa 3", "comment": "Until the MET values from the Youth Compendium are in." },
+				"scenery": "outside",
+				"animation": "strength",
+				"placeholder": true,
+				"comment": "Push-ups (Milestone 20, user, 17 Nov 2026): a body-weight strength exercise (AAP 2020), the same minigame and training as squats. Done for real, on trust."
+			},
+			"sit_ups": {
+				"name": "ACTIVITY_SIT_UPS",
+				"minigame": "strength",
+				"reps_share": { "value": 1.0, "status": "placeholder", "owner": "Pessoa 3", "comment": "Repetitions of this exercise as a share of minigame.reps_min to reps_max (AAP 2020)." },
+				"duration_hours": 1,
+				"effects_per_hour": {},
+				"mety": { "value": 5.0, "status": "from source", "owner": "Pessoa 3", "comment": "Strength or calisthenics, Youth Compendium (v1 Step 3)." },
+				"activity_intensity": { "value": "moderate_vigorous", "status": "placeholder", "owner": "Pessoa 3", "comment": "Until the MET values from the Youth Compendium are in." },
+				"scenery": "outside",
+				"animation": "strength",
+				"placeholder": true,
+				"comment": "Sit-ups (Milestone 20, user, 17 Nov 2026): a body-weight strength exercise (AAP 2020), the same minigame and training as squats. Done for real, on trust."
 			}
 		}
 	},

@@ -115,6 +115,8 @@ func _test_exercise(activities: Node, game_state: Node, clock: Node) -> void:
 	_check("no per-hour muscle or physical effects", not cardio.has("muscle") and not strength.has("muscle")
 			and not cardio.has("physical") and not strength.has("physical"))
 
+	_test_strength_choices(activities, game_state)
+
 	for option_id in ["cardio", "strength"]:
 		var mety: float = activities.option_value(activities.get_option("exercise", option_id), "mety")
 		var kcal: float = energy.kcal_per_hour(game_state.sex_or_default(), game_state.body_age_months, game_state.weight_kg, mety)
@@ -153,6 +155,26 @@ func _test_exercise(activities: Node, game_state: Node, clock: Node) -> void:
 
 ## Entertainment has Screens and Football (decision 4), one hour each, with no per-hour effect value
 ## on happiness: screens are logged as screen time, and happiness changes every step (v1 Step 10).
+## Milestone 20 (user, 17 Nov 2026): squats (option id strength), push-ups and sit-ups are all the
+## strength minigame and all train strength; push-ups ask for fewer repetitions.
+func _test_strength_choices(activities: Node, game_state: Node) -> void:
+	var training: GDScript = load("res://scripts/health/training.gd")
+	var strength_load: GDScript = load("res://scripts/health/strength_load.gd")
+	var options: Array = activities.definitions["exercise"]["options"].keys()
+	_check("exercise offers cardio, squats, push-ups and sit-ups", options == ["cardio", "strength", "push_ups", "sit_ups"])
+	var reps := {}
+	game_state.strength = 0.5
+	for option_id in ["strength", "push_ups", "sit_ups"]:
+		var option: Dictionary = activities.get_option("exercise", option_id)
+		_check("%s: the strength minigame, training strength" % option_id, option["minigame"] == "strength"
+				and training.kind(option_id) == training.STRENGTH)
+		activities.start("exercise", option_id)
+		reps[option_id] = strength_load.reps_per_set()
+		activities.stop()
+	_check("push-ups: fewer repetitions than squats and sit-ups (%d, %d, %d)" % [reps["push_ups"], reps["strength"], reps["sit_ups"]],
+			reps["push_ups"] < reps["strength"] and reps["strength"] == reps["sit_ups"])
+
+
 func _test_entertainment(activities: Node, game_state: Node, clock: Node, _save_game: Node) -> void:
 	var option: Dictionary = activities.get_option("entertainment", "screens")
 	var football: Dictionary = activities.get_option("entertainment", "football")

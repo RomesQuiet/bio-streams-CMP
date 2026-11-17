@@ -1,6 +1,6 @@
 # Milestones 19 to 21 — The team's new minigame ideas (plan)
 
-**Status: Milestone 19 (cardio on a street) is built (17 November 2026), not pushed; the user has not played it yet. Milestones 20 and 21 are plans.** Claude's proposals, to be confirmed by the user (and the team where it says so).
+**Status: Milestones 19 (cardio on a street) and 20 (squats, push-ups or sit-ups) are built (17 November 2026), not pushed; the user played 19 once and asked for changes (done). Milestone 21 (the canteen) is a plan.** Claude's proposals, to be confirmed by the user (and the team where it says so).
 
 **User's answers (17 Nov 2026):** (1) nothing that records or films the player: no camera and no phone sensors, removed; (2) sit-ups too, not only squats and push-ups; (3) the eating pace idea is dropped. Read `CLAUDE.md` and `documentation/handoff.md` first.
 
@@ -32,6 +32,7 @@ The rules of the earlier minigames still hold for all four: a session only exist
 - **Doing the exercise for real, on trust (user, 17 Nov 2026):** the screen asks the player to do each repetition for real, with the avatar, and to press Down and Up as they go down and up. The press rhythm (1 second each, technique score) already matches a controlled real repetition. Nothing records or films the player: no camera, no phone sensors.
 - **The three differ:** push-ups are harder for the upper body. Proposal: placeholder factors that set the repetitions of each exercise for the same strength (`minigame.strength.reps_share`: squats 1.0, sit-ups 1.0, push-ups 0.7). Each has its own animation and placeholder picture (the art has no squat, push-up or sit-up pose: the team could draw them).
 - Tasks: 1) three options in `activities.json` (same training type), the factors; 2) the on-trust screen text and the pictures; 3) tests (the scenario test stays the same), web build, documents.
+- **Built (17 Nov 2026):** Exercise shows Cardio, Squats, Push-ups and Sit-ups. Squats keep the option id `strength` (so saves, the scenario tests and every health number are unchanged); `push_ups` and `sit_ups` are new options in `data/activities.json` with the same minigame, METy 5.0 and intensity, and are in `train.strength_types`, `mood.fun.exercise_types` and `log.strength_types`, so all three train strength and share the recovery and the 36-hour gap. Each option has a `reps_share` (placeholder): squats 1.0, sit-ups 1.0, push-ups 0.7, which multiplies the repetitions of a set (`StrengthLoad.reps_per_set()`, at least 1): at strength 0.5, 9 squats or sit-ups and 6 push-ups. Before the first press the panel says "Do each one for real!" ("Faz cada um a sério!", Claude's draft). No pose pictures: the team's art does not move (user, 6 Nov 2026), so all three look the same until the team draws poses. **Checked:** `tests/activities_test.gd` (the four options, all three train strength, fewer push-ups), `tests/minigame_test.gd` (the on-trust text), `tests/minutes_slider_test.gd`, all 32 tests, a render in both languages, the web export. **Not checked:** a person playing it, a real phone.
 
 ## Milestone 21 — The canteen (C)
 

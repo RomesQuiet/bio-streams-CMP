@@ -644,7 +644,8 @@ func _test_strength_screen(main: Node, settings: Node) -> void:
 	_check("strength: Down and Up in place of the tap button", main.strength_buttons.visible and not main.tap_button.visible)
 	_check("the bar is the Muscle bar", main.reserve_label.text == "Muscle")
 	_check("only the expected button is enabled", not down.disabled and up.disabled)
-	_check("it asks for the first press", main.minigame_status.text == "Tap to start!")
+	# Milestone 20: done for real, on trust.
+	_check("it asks for the first press, done for real", main.minigame_status.text == "Do each one for real!")
 	down.button_down.emit()
 	main._refresh_minigame()
 	_check("Down leaves the avatar art still", main.avatar.has_art() and main.avatar.scale == Vector2.ONE)

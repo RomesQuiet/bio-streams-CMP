@@ -126,7 +126,7 @@
 	"train": {
 		"_comment": "v1 Step 6. Daily capacity = (capacity_base_min + capacity_fit_min x fitness) x (1 - capacity_sleep_cut x d) minutes of moderate-to-vigorous activity per avatar day. Target = target_floor + target_range x (1 - e^(-target_rate x minutes / ref_min)).",
 		"cardio_types": {"value": ["cardio", "football"], "status": "placeholder", "owner": "Pessoa 3", "comment": "Activity options that count as cardio for training (v1 Step 6: cardio and football give A_cardio). Their minutes, and those of strength_types, use up the daily capacity."},
-		"strength_types": {"value": ["strength"], "status": "placeholder", "owner": "Pessoa 3", "comment": "Activity options that count as strength training."},
+		"strength_types": {"value": ["strength", "push_ups", "sit_ups"], "status": "placeholder", "owner": "Pessoa 3", "comment": "Activity options that count as strength training: squats (option id strength), push-ups and sit-ups (Milestone 20). They share the recovery and the 36-hour gap."},
 		"capacity_base_min": {"value": 60, "status": "from source", "owner": "Pessoa 3", "comment": "WHO 2020: 60 min a day. Clock time."},
 		"capacity_fit_min": {"value": 90, "status": "placeholder", "owner": "Pessoa 3", "comment": "A very fit avatar tolerates 60 + 90 = 150 minutes."},
 		"capacity_sleep_cut": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 3"},
@@ -312,7 +312,7 @@
 			"window_h": {"value": 24, "status": "placeholder", "owner": "Pessoa 3"},
 			"football_types": {"value": ["football"], "status": "placeholder", "owner": "Pessoa 3", "comment": "Activity options that count as football for fun and happiness."},
 			"screen_types": {"value": ["screens"], "status": "placeholder", "owner": "Pessoa 3", "comment": "Activity options that count as recreational screens (fun, screen excess, the wish for screens)."},
-			"exercise_types": {"value": ["cardio", "strength"], "status": "placeholder", "owner": "Pessoa 3", "comment": "Activity options that count as exercise for fun, the dislike of starting it, and the happiness of exercise within or beyond capacity."}
+			"exercise_types": {"value": ["cardio", "strength", "push_ups", "sit_ups"], "status": "placeholder", "owner": "Pessoa 3", "comment": "Activity options that count as exercise for fun, the dislike of starting it, and the happiness of exercise within or beyond capacity."}
 		},
 		"screen_excess_from_min": {"value": 120, "status": "from source", "owner": "Pessoa 3", "comment": "Screen excess = (average daily screen minutes - this) / screen_excess_range_min, from 0 to 1."},
 		"screen_excess_range_min": {"value": 120, "status": "placeholder", "owner": "Pessoa 3"},
@@ -433,7 +433,7 @@
 		"log_days": {"value": 7, "status": "from source", "owner": "Pessoa 3", "comment": "Scoring days kept in the log; strength days are counted over this many (CDC: per week)."},
 		"sleep_types": ["sleep"],
 		"activity_intensities": {"value": ["moderate_vigorous"], "status": "from source", "owner": "Pessoa 3", "comment": "Entries with one of these activity_intensity values count as moderate-to-vigorous minutes (CDC)."},
-		"strength_types": ["strength"],
+		"strength_types": ["strength", "push_ups", "sit_ups"],
 		"entertainment_types": ["screens", "football"],
 		"screen_types": {"value": ["screens"], "status": "placeholder", "owner": "Pessoa 3", "comment": "Milestone 10 Task 4: only Screens counts as recreational screen time; Football is active entertainment."}
 	},

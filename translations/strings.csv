@@ -55,6 +55,7 @@ FAILURE_HEALTH,Failure: my health has stayed too low for too long.,Falha: a minh
 FAILURE_HAPPINESS,Failure: my happiness has stayed too low for too long.,Falha: a minha felicidade esteve demasiado baixa durante demasiado tempo.
 MINIGAME_TAP,Tap to run,Toca para correr
 MINIGAME_WAITING,Tap to start!,Toca para começar!
+MINIGAME_DO_REAL,Do each one for real!,Faz cada um a sério!
 MINIGAME_RUNNING,Running,A correr
 MINIGAME_WALKING,Walking: catching my breath,A andar: a recuperar o fôlego
 MINIGAME_BREATH,Breath,Fôlego
@@ -149,7 +150,9 @@ CREATION_START,Start,Começar
 ACTIVITY_SLEEP,Sleep,Dormir
 ACTIVITY_EXERCISE,Exercise,Exercício
 ACTIVITY_CARDIO,Cardio,Cardio
-ACTIVITY_STRENGTH,Muscle strength,Força muscular
+ACTIVITY_SQUATS,Squats,Agachamentos
+ACTIVITY_PUSH_UPS,Push-ups,Flexões
+ACTIVITY_SIT_UPS,Sit-ups,Abdominais
 ACTIVITY_EAT,Eat,Comer
 ACTIVITY_HEALTHY_MEAL,Healthy meal,Refeição saudável
 ACTIVITY_FAST_FOOD_MEAL,Fast-food meal,Refeição de fast food

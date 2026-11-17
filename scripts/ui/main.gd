@@ -762,7 +762,8 @@ func _football_hint() -> String:
 
 func _refresh_strength() -> void:
 	if Minigame.waiting:
-		minigame_status.text = tr("MINIGAME_WAITING")
+		# Done for real, on trust (Milestone 20, user, 17 Nov 2026): nothing records the player.
+		minigame_status.text = tr("MINIGAME_DO_REAL")
 	elif Minigame.resting:
 		minigame_status.text = tr("MINIGAME_RESTING")
 	elif Minigame.sets_started <= Minigame.sets_goal:

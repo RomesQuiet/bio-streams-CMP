@@ -17,8 +17,11 @@ static func capacity() -> float:
 			* (1.0 - Config.get_float("minigame.capacity_tired_cut") * SleepModel.tiredness()), 0.0, 1.0)
 
 
+## Repetitions of a set, times the exercise's reps_share (data/activities.json; Milestone 20:
+## push-ups ask for fewer), at least one.
 static func reps_per_set() -> int:
-	return _between("minigame.reps_min", "minigame.reps_max")
+	var share := float(Activities.option_value(Activities.current_option_data(), "reps_share", 1.0))
+	return maxi(1, roundi(_between("minigame.reps_min", "minigame.reps_max") * share))
 
 
 static func sets_goal() -> int:
