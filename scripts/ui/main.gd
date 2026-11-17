@@ -634,7 +634,7 @@ func _on_stride() -> void:
 		avatar.squat(not Minigame.next_down)
 	elif Minigame.kind == Minigame.CARDIO:
 		avatar.stride(Minigame.walking)
-		scenery.stride(Minigame.walking)
+		scenery.stride(Minigame.walking, Minigame.interval())
 	elif Minigame.kind == Minigame.MEAL and Minigame.last_on_beat:
 		avatar.chew()
 
@@ -686,6 +686,8 @@ func _refresh_minigame() -> void:
 		_refresh_strength()
 	else:
 		var status := "MINIGAME_WAITING" if Minigame.waiting else ("MINIGAME_WALKING" if Minigame.walking else "MINIGAME_RUNNING")
+		# The street stops when a tap is late: after the Beat bar's green zone (Milestone 19).
+		scenery.late_after = 0.0 if Minigame.waiting else Minigame.interval() * (1.0 + Config.get_float("minigame.on_beat_share"))
 		minigame_status.text = tr(status)
 		minigame_steps.text = tr("MINIGAME_STEPS") % [Minigame.steps(), Minigame.steps_goal()]
 	var stopped := Minigame.waiting or Minigame.resting

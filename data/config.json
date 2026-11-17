@@ -177,7 +177,7 @@
 		"run_again_at": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 3", "comment": "Share of the Breath bar at which the avatar can run again."},
 		"walk_mety": {"value": 4, "status": "placeholder", "owner": "Pessoa 3", "comment": "Energy while walking: the top of this walk is about moderate intensity, 4 METy in CADENCE-kids."},
 		"on_beat_share": {"value": 0.2, "status": "placeholder", "owner": "Pessoa 4", "comment": "A tap this share of the interval away from it is on the beat."},
-		"min_gap_share": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 4", "comment": "A tap sooner than this share of the interval is not a stride: the leg cannot move that fast."},
+		"min_gap_share": {"value": 0.25, "status": "placeholder", "owner": "Pessoa 4", "comment": "A tap sooner than this share of the interval is not a stride: the leg cannot move that fast. 0.5 until 17 Nov 2026; the user found the shortest gap too long."},
 		"rhythm_weight": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 4", "comment": "Score = this x rhythm + the rest x pace (decision 22: both count)."},
 		"score_window_strides": {"value": 10, "status": "placeholder", "owner": "Pessoa 4", "comment": "Rhythm and pace are averages of about this many last strides, so the score follows the player (decision 20)."},
 		"stall_seconds": {"value": 3, "status": "placeholder", "owner": "Pessoa 4", "comment": "Real seconds without a tap until the avatar stands still and waits."},

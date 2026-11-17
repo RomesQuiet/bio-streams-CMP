@@ -81,15 +81,29 @@ func _test_street(main: Node, activities: Node, minigame: Node) -> void:
 	main._refresh_activity(true)
 	_check("cardio: the street, the avatar seen from behind", scenery.kind == "street" and scenery.modulate.a == 1.0
 			and main.avatar.back_view and main.activity_backdrop.modulate.a == 0.0)
+	scenery.late_after = 1.2
+	scenery.stride(false, 1.0)
 	var before: float = scenery.distance
-	minigame.tap()
-	minigame.tap()
-	_check("each stride moves the street forward", scenery.distance > before)
-	var after_run: float = scenery.distance
-	scenery.stride(true)
-	_check("a walking stride is a shorter step", scenery.distance - after_run < scenery.RUN_STEP)
-	scenery._process(10.0)
-	_check("the picture catches up with the strides", is_equal_approx(scenery._shown, scenery.distance))
+	scenery._process(0.5)
+	_check("after a tap the street keeps moving between taps", scenery.distance > before and scenery.is_moving())
+	var slow: float = scenery.speed
+	scenery.stride(false, 1.0)
+	scenery._process(0.25)
+	scenery.stride(false, 1.0)
+	_check("tapping faster makes it faster", scenery.speed > slow)
+	scenery._process(0.5)
+	scenery.stride(false, 1.0)
+	var run_speed: float = scenery.speed
+	scenery._process(0.5)
+	scenery.stride(true, 1.0)
+	_check("walking strides are shorter steps", scenery.speed < run_speed)
+	scenery._process(1.3)
+	var stopped_at: float = scenery.distance
+	scenery._process(0.5)
+	_check("a tap too late: the street stops", not scenery.is_moving() and scenery.distance == stopped_at)
+	scenery.stride(false, 1.0)
+	_check("the next tap starts it again at the beat's speed", scenery.is_moving()
+			and is_equal_approx(scenery.speed, scenery.RUN_STEP / 1.0))
 	activities.stop()
 	minigame.reset()
 	main._refresh_activity(true)

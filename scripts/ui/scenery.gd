@@ -7,7 +7,9 @@ extends Control
 ## (front = true). "street" (Milestone 19, team idea 16 Nov 2026) is a street with trees seen
 ## from behind the running avatar: the avatar stays in place and the street comes closer, one
 ## step for every stride (stride()), so it looks as if it always runs forward. The grey ground is
-## the Ground node, which is also the road under the avatar. Placeholder art, drawn with shapes.
+## the Ground node, which is also the road under the avatar. The street moves all the time while
+## the player keeps tapping, as fast as they tap, and stops only when a tap comes too late
+## (user, 17 Nov 2026). Placeholder art, drawn with shapes.
 
 const OUTSIDE := "outside"
 const ROOM := "room"
@@ -52,13 +54,13 @@ const FLOOR_BEYOND := 400.0
 const STARS := [Vector2(0.2, 0.15), Vector2(0.7, 0.3), Vector2(0.35, 0.6), Vector2(0.8, 0.75), Vector2(0.15, 0.85)]
 
 ## The street (display only, not game values): the horizon above the ground line, how far each
-## stride moves the street (field units, about metres; walking is a shorter step), how fast the
-## picture catches up with it, the nearest and farthest depth drawn, the gap between trees and
+## stride moves the street (field units, about metres; walking is a shorter step), how much each
+## new tap counts in the speed, the nearest and farthest depth drawn, the gap between trees and
 ## between the road's centre dashes, and sizes at the nearest depth.
 const HORIZON_ABOVE := 330.0
 const RUN_STEP := 1.4
 const WALK_STEP := 0.7
-const CATCH_UP := 6.0
+const SPEED_FOLLOW := 0.5
 const NEAR := 4.0
 const FAR := 90.0
 const TREE_GAP := 9.0
@@ -78,9 +80,13 @@ const CROWN_COLOR := Color(0.2, 0.5, 0.25)
 ## At night the street is darker by up to this share.
 const NIGHT_DARKEN := 0.55
 
-## How far the avatar has run on the street, and how far the picture shows (it catches up).
+## How far the avatar has run on the street, and how fast it moves now (units per real second).
 var distance := 0.0
-var _shown := 0.0
+var speed := 0.0
+## The street stops when no tap came for this long (set by scripts/ui/main.gd: the end of the
+## Beat bar's green zone).
+var late_after := 0.0
+var _since_stride := INF
 
 ## The avatar, for where the bed and the blanket go (set by scripts/ui/main.gd).
 var avatar: Control
@@ -120,16 +126,32 @@ func _draw() -> void:
 			_draw_street(ground)
 
 
-## One stride of the cardio minigame: the street comes one step closer.
-func stride(walking: bool) -> void:
-	distance += WALK_STEP if walking else RUN_STEP
+## One stride of the cardio minigame: the street keeps moving at one step per gap between taps.
+## expected: the gap the beat asks for, used after a stop (there is no gap to measure).
+func stride(walking: bool, expected: float) -> void:
+	var gap := _since_stride if _since_stride <= late_after else expected
+	var wanted := (WALK_STEP if walking else RUN_STEP) / maxf(gap, 0.05)
+	speed = wanted if is_moving() == false else lerpf(speed, wanted, SPEED_FOLLOW)
+	_since_stride = 0.0
+
+
+## Whether the street moves: a tap came, and not too long ago.
+func is_moving() -> bool:
+	return _since_stride <= late_after
+
+
+## The street stops at once (the avatar stands still, or cardio ended).
+func stop() -> void:
+	_since_stride = INF
 
 
 func _process(delta: float) -> void:
-	if kind != STREET or front or is_equal_approx(_shown, distance):
+	if kind != STREET or front:
 		return
-	_shown = move_toward(_shown, distance, maxf(distance - _shown, RUN_STEP) * minf(1.0, delta * CATCH_UP))
-	queue_redraw()
+	if is_moving():
+		distance += speed * delta
+		_since_stride += delta
+		queue_redraw()
 
 
 ## Where a point of the street is on screen: depth z ahead of the avatar, side x at the nearest
@@ -152,10 +174,10 @@ func _draw_street(ground: float) -> void:
 		var near_left := _street_point(ground, NEAR, -band[0])
 		var near_right := _street_point(ground, NEAR, band[0])
 		draw_colored_polygon(PackedVector2Array([far_left, far_right, near_right, near_left]), band[1] * tint)
-	var first_dash := ceilf(_shown / DASH_GAP) * DASH_GAP
+	var first_dash := ceilf(distance / DASH_GAP) * DASH_GAP
 	var at := first_dash
-	while at - _shown + NEAR < FAR:
-		var z_near := at - _shown + NEAR
+	while at - distance + NEAR < FAR:
+		var z_near := at - distance + NEAR
 		var z_far := minf(z_near + DASH_LENGTH, FAR)
 		var a := _street_point(ground, z_near, 0.0)
 		var b := _street_point(ground, z_far, 0.0)
@@ -164,9 +186,9 @@ func _draw_street(ground: float) -> void:
 				b + Vector2(width * z_near / z_far, 0), b - Vector2(width * z_near / z_far, 0)]), DASH_COLOR * tint)
 		at += DASH_GAP
 	var trees: Array[float] = []
-	var tree := ceilf(_shown / TREE_GAP) * TREE_GAP
-	while tree - _shown + NEAR < FAR:
-		trees.append(tree - _shown + NEAR)
+	var tree := ceilf(distance / TREE_GAP) * TREE_GAP
+	while tree - distance + NEAR < FAR:
+		trees.append(tree - distance + NEAR)
 		tree += TREE_GAP
 	trees.reverse()
 	for z in trees:
