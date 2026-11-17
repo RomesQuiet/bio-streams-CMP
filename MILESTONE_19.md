@@ -12,7 +12,7 @@ Source: the team's "Ideias Extras v2" (16 Nov 2026) and the Portuguese "Conceito
 |---|---|---|---|---|
 | A | **Cardio on a street** | The avatar is seen from behind, running down a street with trees; the avatar stays in place and the scenery comes closer and repeats. | Small | No: only what the screen shows. |
 | B | **Squats, push-ups or sit-ups** | The player chooses one and does the chosen exercise for real, on trust. | Medium | No: all three count as strength. |
-| C | **The canteen** | A food chooser: a healthy food chooser and a bad food chooser, with many examples so players learn to tell them apart (user, 17 Nov 2026). | Medium | No: each food is today's healthy meal or fast-food meal. The team gives the examples. |
+| C | **The canteen** | A plate built from a healthy food chooser and a bad food chooser, with many examples so players learn to tell them apart (user, 17 Nov 2026). | Medium | No: the plate counts as shares of today's healthy and fast-food meals. The team gives the examples. |
 
 **Proposed order (smallest and safest first):** Milestone 19 = A, Milestone 20 = B, Milestone 21 = C. A and B do not wait for the team; C needs the team's food list first, so asking them now lets it start on time. The Bio-Streams deadline is 30 November 2026 ("Dúvidas de implementação"); with that date, A and B fit, and C may not: see question 1.
 
@@ -34,20 +34,21 @@ The rules of the earlier minigames still hold for all four: a session only exist
 - Tasks: 1) three options in `activities.json` (same training type), the factors; 2) the on-trust screen text and the pictures; 3) tests (the scenario test stays the same), web build, documents.
 - **Built (17 Nov 2026):** Exercise shows Cardio, Squats, Push-ups and Sit-ups. Squats keep the option id `strength` (so saves, the scenario tests and every health number are unchanged); `push_ups` and `sit_ups` are new options in `data/activities.json` with the same minigame, METy 5.0 and intensity, and are in `train.strength_types`, `mood.fun.exercise_types` and `log.strength_types`, so all three train strength and share the recovery and the 36-hour gap. Each option has a `reps_share` (placeholder): squats 1.0, sit-ups 1.0, push-ups 0.7, which multiplies the repetitions of a set (`StrengthLoad.reps_per_set()`, at least 1): at strength 0.5, 9 squats or sit-ups and 6 push-ups. Before the first press the panel says "Do each one for real!" ("Faz cada um a sério!", Claude's draft). No pose pictures: the team's art does not move (user, 6 Nov 2026), so all three look the same until the team draws poses. **Checked:** `tests/activities_test.gd` (the four options, all three train strength, fewer push-ups), `tests/minigame_test.gd` (the on-trust text), `tests/minutes_slider_test.gd`, all 32 tests, a render in both languages, the web export. **Not checked:** a person playing it, a real phone.
 
-## Milestone 21 — The canteen (C): a food chooser
+## Milestone 21 — The canteen (C): build a plate with the food choosers
 
-**User, 17 Nov 2026: "it won't change the health architecture. It is just a food chooser, with a healthy food chooser and a bad food chooser, with many examples so people distinguish."**
+**User, 17 Nov 2026:** "it won't change the health architecture. It is just a food chooser, with a healthy food chooser and a bad food chooser, with many examples so people distinguish." And: "it is supposed to build a plate, with the choosers." A mixed plate counts **by share**; a plate holds **up to 4 foods**.
 
-- **What it is:** Eat opens the canteen with two choosers: **healthy food** and **bad food** (fast food). Each shows many examples (a picture and a name), so the player learns which foods are healthy and which are not. Skip meal stays (when hungry).
-- **What a choice does:** a healthy food is exactly today's healthy meal, and a bad food exactly today's fast-food meal: same kcal, satiety, diet quality, craving and happiness (`data/foods.json`, decision 3 unchanged). **Nothing in the health model changes**, so the scenario tests stay the same.
-- **Then:** the chosen food is eaten with the meal minigame; the food on the fork shows the chosen food.
-- **The foods:** a list in `data/foods.json` (or a new `data/canteen.json`): id, translation key of the name, healthy or bad, and a placeholder picture. **From the team:** the examples (names in Portuguese and English, healthy or bad). Until they arrive, a placeholder list.
-- **Not in it:** walking to a counter, building a plate, plate rules, kcal per food, mixed plates.
-- Tasks: 1) the food list and its link to the two meals; 2) the canteen screen with the two choosers and placeholder pictures; 3) the chosen food on the fork, both languages; 4) tests (the scenario test stays the same), web build, documents.
+- **What it is:** Eat opens the canteen with two choosers: **healthy food** and **bad food** (fast food). Each shows many examples (a picture and a name), so the player learns which foods are healthy and which are not. The player adds foods from either chooser to the plate (up to 4, at least 1), can take one off again, and then eats. Skip meal stays (when hungry).
+- **What the plate does (no change to the health model):** a plate is one meal, split by its foods: with h healthy and b bad foods it counts as h / (h + b) of today's healthy meal and b / (h + b) of today's fast-food meal. The model already handles part of a meal (pressing Stop halfway), so kcal, satiety, diet quality, craving and happiness work as now (`data/foods.json`, decision 3 unchanged). A plate of only healthy foods is exactly today's healthy meal; only bad foods, today's fast-food meal. The scenario tests stay the same.
+- **Then:** the plate is eaten with the meal minigame; the fork carries the plate's foods.
+- **The foods:** a list in a new `data/canteen.json`: id, translation key of the name, healthy or bad, and a placeholder picture. **From the team:** the examples (names in Portuguese and English, healthy or bad). Until they arrive, a placeholder list.
+- **Not in it:** walking to a counter, kcal per food, portions per food, categories with limits.
+- **Placeholders:** `canteen.plate_max` 4 (user), the placeholder food list and pictures.
+- Tasks: 1) the food list and the plate's split into the two meals (a check that a full healthy or bad plate equals today's meal); 2) the canteen screen: the two choosers, the plate, Eat; 3) the plate eaten with the meal minigame, both languages; 4) tests (the scenario test stays the same), web build, documents.
 
 ## Questions (proposed default in bold)
 
-1. Order: **19 street, 20 squats, push-ups or sit-ups (both built), then 21 the food chooser.**
+1. Order: **19 street, 20 squats, push-ups or sit-ups (both built), then 21 the plate with the food choosers.**
 2. (Team) The canteen's examples: healthy foods and bad foods, with their names in Portuguese and English.
 3. (Team) Art: a back view of the avatar for the street, squat, push-up and sit-up poses, and food pictures. **Placeholders until then.**
 4. How to work: **each task tested and committed; no push; you play each milestone before the next.**
