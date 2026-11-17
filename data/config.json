@@ -428,6 +428,11 @@
 		"keen_fitness": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 4", "comment": "Starting exercise with fitness at least this: \"Let's go!\"; below: \"Do I have to?\"."}
 	},
 
+	"canteen": {
+		"_comment": "The canteen (Milestone 21, MILESTONE_21.md). The foods are in data/canteen.json.",
+		"plate_max": {"value": 4, "status": "team decision", "owner": "team", "comment": "Decision 64 (user, 17 Nov 2026): up to 4 foods on a plate."}
+	},
+
 	"log": {
 		"_comment": "Action log (Milestone 4 Task 2; moved out of the Milestone 4 health block in Milestone 10 Task 8). An avatar day runs from one wake-up to the next. The types are the activity option ids in data/activities.json. Used for the day totals in the CSV log.",
 		"log_days": {"value": 7, "status": "from source", "owner": "Pessoa 3", "comment": "Scoring days kept in the log; strength days are counted over this many (CDC: per week)."},

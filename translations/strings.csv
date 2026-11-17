@@ -236,3 +236,29 @@ MENU_BACKUP_DONE,The backup file was saved. Keep it safe: it brings the avatar b
 MENU_BACKUP_LOADED,The backup was loaded.,A cópia foi carregada.
 MENU_BACKUP_INVALID,That file is not a backup of this game.,Esse ficheiro não é uma cópia deste jogo.
 MENU_ABOUT_TEXT,"Made by a team of 9th-grade students for the Bio-Streams (EU) science competition, about childhood obesity.\n\nThe avatar's health (1 to 5) comes from three measures: Physical, Happiness and Sleep. Sport, sleep and food change them, as science describes.\n\nSources: WHO growth reference 2007 (BMI-for-age); WHO guidelines on physical activity 2020; American Academy of Sleep Medicine 2016 (sleep hours); Canadian 24-Hour Movement Guidelines 2016 (screens); Youth Compendium of Physical Activities (energy); and the others in the project's documents.\n\nLicences: code MIT; texts and art CC BY 4.0 (the avatar drawings were made by the team with an AI tool); the music belongs to its authors, Matilde with Senhor Carlitos.\n\nSaving: the game saves on this device, in the browser. Browsers can delete saved data, so make a backup of your avatar in Avatars.","Feito por uma equipa de alunos do 9.º ano para o concurso científico Bio-Streams (UE), sobre a obesidade infantil.\n\nA saúde do avatar (1 a 5) vem de três medidas: Físico, Felicidade e Sono. O desporto, o sono e a comida mudam-nas, como a ciência descreve.\n\nFontes: referência de crescimento da OMS 2007 (IMC para a idade); diretrizes da OMS sobre atividade física 2020; American Academy of Sleep Medicine 2016 (horas de sono); Canadian 24-Hour Movement Guidelines 2016 (ecrãs); Youth Compendium of Physical Activities (energia); e as outras nos documentos do projeto.\n\nLicenças: código MIT; textos e arte CC BY 4.0 (os desenhos do avatar foram feitos pela equipa com uma ferramenta de IA); a música pertence aos seus autores, Matilde com o Senhor Carlitos.\n\nGravação: o jogo grava neste dispositivo, no navegador. Os navegadores podem apagar dados guardados, por isso faz uma cópia do teu avatar em Avatares."
+FOOD_VEGETABLE_SOUP,Vegetable soup,Sopa de legumes
+FOOD_GRILLED_FISH,Grilled fish,Peixe grelhado
+FOOD_SALAD,Salad,Salada
+FOOD_APPLE,Apple,Maçã
+FOOD_ORANGE,Orange,Laranja
+FOOD_RICE,Rice,Arroz
+FOOD_BEANS,Beans,Feijão
+FOOD_YOGHURT,Yoghurt,Iogurte
+FOOD_WATER,Water,Água
+FOOD_WHOLEMEAL_BREAD,Wholemeal bread,Pão integral
+FOOD_BURGER,Burger,Hambúrguer
+FOOD_FRIES,Fries,Batatas fritas
+FOOD_PIZZA,Pizza,Piza
+FOOD_HOT_DOG,Hot dog,Cachorro-quente
+FOOD_SOFT_DRINK,Soft drink,Refrigerante
+FOOD_CRISPS,Crisps,Batatas de pacote
+FOOD_SWEETS,Sweets,Gomas
+FOOD_FRIED_CHICKEN,Fried chicken,Frango frito
+FOOD_DOUGHNUT,Doughnut,Donut
+FOOD_MILKSHAKE,Milkshake,Batido
+CANTEEN_TITLE,Canteen,Cantina
+CANTEEN_HEALTHY,Healthy food,Comida saudável
+CANTEEN_BAD,Bad food,Comida pouco saudável
+CANTEEN_PLATE,Your plate (%d of %d),O teu prato (%d de %d)
+CANTEEN_PLATE_HINT,Tap a food to add it. Tap it on the plate to take it off.,Toca num alimento para o pôr no prato. Toca nele no prato para o tirar.
+CANTEEN_EAT,Eat the plate,Comer o prato

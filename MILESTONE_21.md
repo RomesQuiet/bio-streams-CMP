@@ -1,6 +1,8 @@
 # Milestone 21 — The canteen: build a plate with the food choosers
 
-**Status: plan, 17 November 2026. Not built: the user asked to build it later.** Read `CLAUDE.md`, `documentation/handoff.md` and `MILESTONE_19.md` (the plan of Milestones 19 to 21) first.
+**Status: built (17 November 2026), not pushed; the user has not played it yet.**
+
+**Built:** `data/canteen.json` (20 placeholder foods, 10 healthy and 10 bad, Claude's list until the team's examples), `canteen.plate_max` 4, `scripts/health/canteen.gd` (the foods, how a plate splits into the two meals, the meal it is eaten as), `Activities.start_plate()` and `Activities.plate` (saved with the running meal), `Hunger.eat_part()`, the split in `Simulation`, `scripts/ui/canteen.gd` and `scripts/ui/food_tile.gd` (the screen: two choosers in grids of 5, the plate of 4 places, Eat the plate, Skip meal when hungry, Cancel), the plate's foods on the fork in turn. **Pictures:** Claude made its own placeholders, a coloured tile with the food's first letter and its name (no pictures downloaded: each would need a clear free licence; the team can replace them). **Checked:** `tests/canteen_test.gd` (19 checks: the foods, 3 and 1 counts 3/4 and 1/4, a healthy or a bad plate is exactly today's meal, a mixed plate lies between them, saving, the screen), `tests/minutes_slider_test.gd` (Eat opens the canteen), `tests/translation_test.gd` (every food name is a key), all 33 tests, the scenario test output identical to before, renders in both languages and of a plate being eaten, the web export. **Not checked:** a person playing it, a real phone. Read `CLAUDE.md`, `documentation/handoff.md` and `MILESTONE_19.md` (the plan of Milestones 19 to 21) first.
 
 ## Decisions (user, 17 Nov 2026)
 

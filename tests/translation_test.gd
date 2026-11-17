@@ -8,7 +8,8 @@ const CSV_PATH := "res://translations/strings.csv"
 const SCENES: Array[String] = ["res://scenes/main.tscn", "res://scenes/ui/creation.tscn"]
 const SCRIPTS: Array[String] = ["res://scripts/ui/main.gd", "res://scripts/ui/creation.gd", "res://scripts/autoload/settings.gd",
 		"res://scripts/ui/football_help.gd", "res://scripts/health/football_match.gd",
-		"res://scripts/autoload/minigame.gd", "res://scripts/health/requests.gd", "res://scripts/ui/failure_screen.gd", "res://scripts/ui/menu.gd"]
+		"res://scripts/autoload/minigame.gd", "res://scripts/health/requests.gd", "res://scripts/ui/failure_screen.gd", "res://scripts/ui/menu.gd",
+		"res://scripts/ui/canteen.gd"]
 const ACTIVITIES := "res://data/activities.json"
 ## Never translated: each language button shows its own name.
 const NOT_TRANSLATED: Array[String] = ["Português", "English", "PT", "EN"]
@@ -83,7 +84,7 @@ func _test_scenes() -> void:
 
 
 func _test_scripts() -> void:
-	var keys := RegEx.create_from_string("\"((?:UI|SPEECH|CREATION|ACTIVITY|MEASURE|FAILURE|SETTINGS|SLEEP|FORMAT|MINIGAME|FOOTBALL|MEAL|MENU)_[A-Z_]+)\"")
+	var keys := RegEx.create_from_string("\"((?:UI|SPEECH|CREATION|ACTIVITY|MEASURE|FAILURE|SETTINGS|SLEEP|FORMAT|MINIGAME|FOOTBALL|MEAL|MENU|CANTEEN)_[A-Z_]+)\"")
 	for path in SCRIPTS:
 		var missing: Array[String] = []
 		for found in keys.search_all(FileAccess.get_file_as_string(path)):
@@ -108,6 +109,14 @@ func _test_activities() -> void:
 			if not _strings.has(key):
 				missing.append(key)
 	_check("every activity name is a key %s" % [missing], missing.is_empty())
+	# The canteen's foods (Milestone 21).
+	var foods: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/canteen.json"))["foods"]
+	var missing_foods: Array[String] = []
+	for id: String in foods:
+		_used[foods[id]["name"]] = true
+		if not _strings.has(foods[id]["name"]):
+			missing_foods.append(foods[id]["name"])
+	_check("every food name is a key %s" % [missing_foods], missing_foods.is_empty())
 
 
 func _check(name: String, ok: bool) -> void:

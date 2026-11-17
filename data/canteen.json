@@ -1,0 +1,26 @@
+{
+	"_comment": "The canteen (Milestone 21, decisions 61 to 64, MILESTONE_21.md). Two choosers, healthy food and bad food, with many examples so players learn to tell them apart. A plate does not change the health model: its healthy foods count as a share of the healthy meal and its bad foods as a share of the fast-food meal (data/foods.json). The foods are Claude's placeholder list until the team sends its examples; the pictures are placeholders (a coloured tile with the first letter). name: a key of translations/strings.csv.",
+	"meal_for": {"healthy": "healthy_meal", "bad": "fast_food_meal"},
+	"foods": {
+		"vegetable_soup": {"name": "FOOD_VEGETABLE_SOUP", "healthy": true, "color": "#7fb069", "placeholder": true},
+		"grilled_fish": {"name": "FOOD_GRILLED_FISH", "healthy": true, "color": "#8fb8de", "placeholder": true},
+		"salad": {"name": "FOOD_SALAD", "healthy": true, "color": "#5fae4f", "placeholder": true},
+		"apple": {"name": "FOOD_APPLE", "healthy": true, "color": "#d94b3d", "placeholder": true},
+		"orange": {"name": "FOOD_ORANGE", "healthy": true, "color": "#f29b30", "placeholder": true},
+		"rice": {"name": "FOOD_RICE", "healthy": true, "color": "#e8e2cf", "placeholder": true},
+		"beans": {"name": "FOOD_BEANS", "healthy": true, "color": "#8c4a3a", "placeholder": true},
+		"yoghurt": {"name": "FOOD_YOGHURT", "healthy": true, "color": "#f2eee6", "placeholder": true},
+		"water": {"name": "FOOD_WATER", "healthy": true, "color": "#6cc3e8", "placeholder": true},
+		"wholemeal_bread": {"name": "FOOD_WHOLEMEAL_BREAD", "healthy": true, "color": "#a9774a", "placeholder": true},
+		"burger": {"name": "FOOD_BURGER", "healthy": false, "color": "#b5652d", "placeholder": true},
+		"fries": {"name": "FOOD_FRIES", "healthy": false, "color": "#f2c94c", "placeholder": true},
+		"pizza": {"name": "FOOD_PIZZA", "healthy": false, "color": "#e0763c", "placeholder": true},
+		"hot_dog": {"name": "FOOD_HOT_DOG", "healthy": false, "color": "#c9553b", "placeholder": true},
+		"soft_drink": {"name": "FOOD_SOFT_DRINK", "healthy": false, "color": "#6b3a2a", "placeholder": true},
+		"crisps": {"name": "FOOD_CRISPS", "healthy": false, "color": "#e8b84a", "placeholder": true},
+		"sweets": {"name": "FOOD_SWEETS", "healthy": false, "color": "#e86fa6", "placeholder": true},
+		"fried_chicken": {"name": "FOOD_FRIED_CHICKEN", "healthy": false, "color": "#c98a3a", "placeholder": true},
+		"doughnut": {"name": "FOOD_DOUGHNUT", "healthy": false, "color": "#d98fb4", "placeholder": true},
+		"milkshake": {"name": "FOOD_MILKSHAKE", "healthy": false, "color": "#9a6b4f", "placeholder": true}
+	}
+}

@@ -74,12 +74,13 @@ func _test_entertainment() -> void:
 	activities.stop()
 
 
+## Milestone 21: Eat opens the canteen, which has no slider; a plate keeps the meal's fixed time.
 func _test_meals() -> void:
-	main.get_node("%EatButton").pressed.emit()
-	_check("meals have no slider (fixed portions)", not main.minutes_box.visible)
-	_check("meals still show their time", main.option_buttons.get_child(0).text == "Healthy meal (0.5 h)")
-	main.option_buttons.get_child(0).pressed.emit()
-	_check("a meal keeps its fixed time", is_equal_approx(activities.target_hours, 0.5))
+	main.eat_button.pressed.emit()
+	_check("meals have no slider (fixed portions): Eat opens the canteen", main.canteen.visible and not main.options_panel.visible)
+	main.canteen.add_food("apple")
+	main.canteen.eat_button.pressed.emit()
+	_check("a plate keeps the meal's fixed time", is_equal_approx(activities.target_hours, 0.5))
 	activities.stop()
 
 

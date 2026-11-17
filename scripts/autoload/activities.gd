@@ -5,6 +5,7 @@ extends Node
 ## Sleep uses the Clock's sleep time; every other activity uses day time.
 
 const ACTIVITIES_PATH := "res://data/activities.json"
+const Canteen := preload("res://scripts/health/canteen.gd")
 
 signal started(activity_id: String, option_id: String)
 signal ended(activity_id: String, option_id: String, hours_done: float)
@@ -80,10 +81,31 @@ func can_start(activity_id: String) -> bool:
 ## Starts an activity option. hours is the time chosen on a slider; without it the option's
 ## duration_hours is used. Sleep always needs it.
 ## Returns false if it could not start.
+## The canteen's plate of the running meal (Milestone 21): food ids of data/canteen.json, or []
+## for a meal without one. Kept until the meal ends; the plate that just ended is in
+## finished_plate while ended is emitted.
+var plate: Array = []
+var finished_plate: Array = []
+## The plate for the next start() (only start_plate() sets it).
+var _next_plate: Array = []
+
+
+## Eats a plate of the canteen: the meal it counts as most (Canteen.meal_option()) runs with it.
+func start_plate(foods: Array) -> bool:
+	var option_id := Canteen.meal_option(foods)
+	if option_id.is_empty():
+		return false
+	_next_plate = foods.duplicate()
+	var started_ok := start("eat", option_id)
+	_next_plate = []
+	return started_ok
+
+
 func start(activity_id: String, option_id: String, hours := -1.0) -> bool:
 	var option := get_option(activity_id, option_id)
 	if option.is_empty() or not can_start(activity_id):
 		return false
+	plate = _next_plate.duplicate()
 	var duration: Variant = option.get("duration_hours")
 	target_hours = hours if duration is String or hours >= 0.0 else float(duration)
 	elapsed_hours = 0.0
@@ -114,6 +136,7 @@ func stop() -> void:
 
 ## No activity running (new game).
 func reset() -> void:
+	plate = []
 	current_activity = ""
 	current_option = ""
 	target_hours = 0.0
@@ -126,6 +149,7 @@ func to_dict() -> Dictionary:
 		"option": current_option,
 		"target_hours": target_hours,
 		"elapsed_hours": elapsed_hours,
+		"plate": plate,
 	}
 
 
@@ -140,6 +164,8 @@ func from_dict(data: Dictionary) -> void:
 	current_option = option_id
 	target_hours = float(data.get("target_hours", 0.0))
 	elapsed_hours = float(data.get("elapsed_hours", 0.0))
+	var saved_plate: Variant = data.get("plate", [])
+	plate = saved_plate.duplicate() if saved_plate is Array else []
 	started.emit(current_activity, current_option)
 
 
@@ -170,8 +196,10 @@ func _end() -> void:
 	var option_id := current_option
 	var hours_done := elapsed_hours
 	changing.emit()
+	finished_plate = plate
 	reset()
 	ended.emit(activity_id, option_id, hours_done)
+	finished_plate = []
 
 
 func _load_definitions() -> void:

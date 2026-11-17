@@ -16,6 +16,8 @@ const AvatarStates := preload("res://scripts/health/avatar_states.gd")
 const HealthModel := preload("res://scripts/health/health_model.gd")
 const Training := preload("res://scripts/health/training.gd")
 const Requests := preload("res://scripts/health/requests.gd")
+const Canteen := preload("res://scripts/health/canteen.gd")
+const CanteenScreen := preload("res://scripts/ui/canteen.gd")
 ## The buttons at night: black with white text and border (user, 7 Nov 2026). In the day they
 ## come from the project theme (scenes/ui/main_theme.tres): white with black.
 const NIGHT_THEME := preload("res://scenes/ui/night_theme.tres")
@@ -126,6 +128,8 @@ const DANGER_BAR_STYLE := &"HealthBarDanger"
 @onready var confirm_box: Control = %ConfirmBox
 @onready var failure_screen: ColorRect = %FailureOverlay
 
+## The canteen (Milestone 21): Eat opens it.
+var canteen: ColorRect
 var _backdrop_tween: Tween
 ## XP gained or lost and not shown yet, and the change being shown.
 var _xp_pending := 0.0
@@ -183,7 +187,11 @@ func _ready() -> void:
 	sleep_button.pressed.connect(_on_sleep_button_pressed)
 	exercise_button.pressed.connect(_open_options.bind("exercise"))
 	entertainment_button.pressed.connect(_open_options.bind("entertainment"))
-	eat_button.pressed.connect(_open_options.bind("eat"))
+	# Eat opens the canteen (Milestone 21), over the screen and under the failure screen.
+	canteen = CanteenScreen.new()
+	add_child(canteen)
+	move_child(canteen, failure_screen.get_index())
+	eat_button.pressed.connect(canteen.open)
 	%OptionsCancelButton.pressed.connect(options_panel.hide)
 	stop_button.pressed.connect(Activities.stop)
 	sleep_slider.value_changed.connect(_refresh_sleep_info.unbind(1))
@@ -249,7 +257,7 @@ func _show_failure() -> void:
 	Clock.halted = true
 	if Activities.is_running() and Activities.current_activity != "sleep":
 		Activities.stop()
-	for panel in [options_panel, sleep_panel, settings_overlay, health_panel, values_panel]:
+	for panel in [options_panel, sleep_panel, settings_overlay, health_panel, values_panel, canteen]:
 		panel.hide()
 	if football_help.visible:
 		football_help.hide()
@@ -732,6 +740,10 @@ func _refresh_meal() -> void:
 			* avatar.mouth_point()
 	var healthy := Activities.current_option == "healthy_meal"
 	meal_fork.food_color = MEAL_HEALTHY_COLOR if healthy else MEAL_FAST_FOOD_COLOR
+	# A plate of the canteen (Milestone 21): its foods come on the fork in turn.
+	if not Activities.plate.is_empty():
+		var food := Canteen.food(str(Activities.plate[Minigame.bites % Activities.plate.size()]))
+		meal_fork.food_color = Color.html(str(food.get("color", "#888888")))
 
 
 func _with_key(key: String, keyboard_key: String, keys: bool) -> String:
