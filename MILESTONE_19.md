@@ -36,6 +36,8 @@ The rules of the earlier minigames still hold for all four: a session only exist
 
 ## Milestone 21 — The canteen (C): build a plate with the food choosers
 
+**Now its own milestone: `MILESTONE_21.md` (decisions 61 to 64). Not built yet (user: later).**
+
 **User, 17 Nov 2026:** "it won't change the health architecture. It is just a food chooser, with a healthy food chooser and a bad food chooser, with many examples so people distinguish." And: "it is supposed to build a plate, with the choosers." A mixed plate counts **by share**; a plate holds **up to 4 foods**.
 
 - **What it is:** Eat opens the canteen with two choosers: **healthy food** and **bad food** (fast food). Each shows many examples (a picture and a name), so the player learns which foods are healthy and which are not. The player adds foods from either chooser to the plate (up to 4, at least 1), can take one off again, and then eats. Skip meal stays (when hungry).
