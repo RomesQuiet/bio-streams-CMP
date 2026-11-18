@@ -12,7 +12,7 @@ Source: the team's "Ideias Extras v2" (16 Nov 2026) and the Portuguese "Conceito
 |---|---|---|---|---|
 | A | **Cardio on a street** | The avatar is seen from behind, running down a street with trees; the avatar stays in place and the scenery comes closer and repeats. | Small | No: only what the screen shows. |
 | B | **Squats, push-ups or sit-ups** | The player chooses one and does the chosen exercise for real, on trust. | Medium | No: all three count as strength. |
-| C | **The canteen** | Good food or bad food, then one dish from many examples of that kind (user, 18 Nov 2026). | Medium | No: a good dish is the healthy meal, a bad dish the fast-food meal. The team gives the examples. |
+| C | **The canteen** | Good food or Fast food, then build a plate of up to 4 foods of that kind (user, 18 Nov 2026). | Medium | No: a good plate is the healthy meal, a fast-food plate the fast-food meal. The team gives the examples. |
 
 **Proposed order (smallest and safest first):** Milestone 19 = A, Milestone 20 = B, Milestone 21 = C. A and B do not wait for the team; C needs the team's food list first, so asking them now lets it start on time. The Bio-Streams deadline is 30 November 2026 ("Dúvidas de implementação"); with that date, A and B fit, and C may not: see question 1.
 
@@ -36,11 +36,11 @@ The rules of the earlier minigames still hold for all four: a session only exist
 
 ## Milestone 21 — The canteen (C)
 
-**Its own milestone: `MILESTONE_21.md`.** Built: good food or bad food, then a dish (user, 18 Nov 2026); no change to the health model.
+**Its own milestone: `MILESTONE_21.md`.** Built (third version, 18 Nov 2026): Good food or Fast food, then build a plate of up to 4 foods of that kind; no change to the health model.
 
 ## Questions (proposed default in bold)
 
-1. Order: **19 street, 20 squats, push-ups or sit-ups (both built), then 21 the canteen (good or bad food, then a dish).**
+1. Order: **19 street, 20 squats, push-ups or sit-ups (both built), then 21 the canteen (good food or fast food, then build a plate).**
 2. (Team) The canteen's examples: healthy foods and bad foods, with their names in Portuguese and English.
 3. (Team) Art: a back view of the avatar for the street, squat, push-up and sit-up poses, and food pictures. **Placeholders until then.**
 4. How to work: **each task tested and committed; no push; you play each milestone before the next.**

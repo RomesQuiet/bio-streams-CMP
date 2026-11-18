@@ -79,8 +79,9 @@ func _test_meals() -> void:
 	main.eat_button.pressed.emit()
 	_check("meals have no slider (fixed portions): Eat opens the canteen", main.canteen.visible and not main.options_panel.visible)
 	main.canteen.show_kind("good")
-	main.canteen.eat("vegetable_soup")
-	_check("a dish keeps the meal's fixed time", is_equal_approx(activities.target_hours, 0.5))
+	main.canteen.add_food("vegetable_soup")
+	main.canteen.eat_button.pressed.emit()
+	_check("a plate keeps the meal's fixed time", is_equal_approx(activities.target_hours, 0.5))
 	activities.stop()
 
 

@@ -740,9 +740,10 @@ func _refresh_meal() -> void:
 			* avatar.mouth_point()
 	var healthy := Activities.current_option == "healthy_meal"
 	meal_fork.food_color = MEAL_HEALTHY_COLOR if healthy else MEAL_FAST_FOOD_COLOR
-	# A dish of the canteen (Milestone 21): its colour on the fork.
-	if not Activities.dish.is_empty():
-		meal_fork.food_color = Color.html(str(Canteen.dish(Activities.dish).get("color", "#888888")))
+	# A plate of the canteen (Milestone 21): its foods come on the fork in turn.
+	if not Activities.plate.is_empty():
+		var food := Canteen.food(str(Activities.plate[Minigame.bites % Activities.plate.size()]))
+		meal_fork.food_color = Color.html(str(food.get("color", "#888888")))
 
 
 func _with_key(key: String, keyboard_key: String, keys: bool) -> String:

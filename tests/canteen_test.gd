@@ -1,9 +1,9 @@
 extends SceneTree
-## The canteen (Milestone 21, decisions 61 to 64): good food or bad food, then a dish. Run from
-## the project folder (after --import):
+## The canteen (Milestone 21, third version, decisions 65 and 66): good food or fast food, then a
+## plate of that kind. Run from the project folder (after --import):
 ##   Godot --headless --path . -s res://tests/canteen_test.gd
-## A dish does not change the health model: a good dish is exactly today's healthy meal and a bad
-## dish exactly today's fast-food meal. Nothing is saved.
+## A plate does not change the health model: a good plate is exactly today's healthy meal and a
+## fast-food plate exactly today's fast-food meal. Nothing is saved.
 
 const STEP_SECONDS := 0.1
 const TOLERANCE := 0.000001
@@ -41,11 +41,14 @@ func _process(_delta: float) -> bool:
 
 
 func _test_foods() -> void:
-	var good: Array[String] = canteen.dishes(true)
-	var bad: Array[String] = canteen.dishes(false)
-	_check("many examples: %d good and %d bad dishes" % [good.size(), bad.size()], good.size() >= 8 and bad.size() >= 8)
-	_check("a good dish is the healthy meal, a bad dish the fast-food meal",
-			canteen.meal_for(good[0]) == "healthy_meal" and canteen.meal_for(bad[0]) == "fast_food_meal")
+	var good: Array[String] = canteen.foods(canteen.GOOD)
+	var fast: Array[String] = canteen.foods(canteen.FAST_FOOD)
+	_check("many examples: %d good foods and %d fast foods" % [good.size(), fast.size()], good.size() >= 8 and fast.size() >= 8)
+	_check("good food is the healthy meal, fast food the fast-food meal",
+			canteen.meal_for(canteen.GOOD) == "healthy_meal" and canteen.meal_for(canteen.FAST_FOOD) == "fast_food_meal")
+	_check("a plate holds up to 4 foods", root.get_node("Config").get_int("canteen.plate_max") == 4)
+	_check("a plate is 1 to 4 foods of one kind", canteen.is_plate(good.slice(0, 4)) and not canteen.is_plate(good.slice(0, 5))
+			and not canteen.is_plate([]) and not canteen.is_plate([good[0], fast[0]]))
 
 
 func _new_avatar() -> void:
@@ -79,29 +82,30 @@ func _same(a: Dictionary, b: Dictionary) -> bool:
 
 func _test_same_as_meals() -> void:
 	var healthy_meal := _eat(func() -> void: activities.start("eat", "healthy_meal"))
-	var good_dish := _eat(func() -> void: activities.start_dish("grilled_fish_rice"))
-	_check("a good dish is exactly today's healthy meal", _same(healthy_meal, good_dish))
+	var good_plate := _eat(func() -> void: activities.start_plate(["grilled_fish", "rice", "salad", "water"]))
+	_check("a good plate is exactly today's healthy meal", _same(healthy_meal, good_plate))
 	var fast_meal := _eat(func() -> void: activities.start("eat", "fast_food_meal"))
-	var bad_dish := _eat(func() -> void: activities.start_dish("burger_fries"))
-	_check("a bad dish is exactly today's fast-food meal", _same(fast_meal, bad_dish))
+	var fast_plate := _eat(func() -> void: activities.start_plate(["burger", "fries"]))
+	_check("a fast-food plate is exactly today's fast-food meal", _same(fast_meal, fast_plate))
 
 
 func _test_mixed_plate() -> void:
-	_check("an unknown dish does not start a meal", not activities.start_dish("no_such_dish") and not activities.is_running())
+	_check("a mixed or empty plate does not start a meal", not activities.start_plate(["apple", "burger"])
+			and not activities.start_plate([]) and not activities.is_running())
 
 
 func _test_saved_plate(save_game: Node) -> void:
 	_new_avatar()
-	activities.start_dish("pizza")
+	activities.start_plate(["pizza", "soft_drink"])
 	save_game.save_game()
 	activities.reset()
 	save_game.load_game()
-	_check("a dish in the middle of a meal is saved and loads", activities.dish == "pizza"
+	_check("a plate in the middle of a meal is saved and loads", activities.plate == ["pizza", "soft_drink"]
 			and activities.current_option == "fast_food_meal")
 	activities.stop()
-	_check("the dish goes when the meal ends", activities.dish.is_empty())
+	_check("the plate goes when the meal ends", activities.plate.is_empty())
 	activities.start("exercise", "cardio")
-	_check("an activity that is not a dish has none", activities.dish.is_empty())
+	_check("an activity that is not a plate has none", activities.plate.is_empty())
 	activities.stop()
 
 
@@ -112,19 +116,29 @@ func _test_screen() -> void:
 	root.add_child(main)
 	var screen: Node = main.canteen
 	main.eat_button.pressed.emit()
-	_check("Eat opens the canteen on the first step: good food or bad food", screen.visible and screen.kind_box.visible
-			and not screen.dish_box.visible)
+	_check("Eat opens the canteen on the first step: good food or fast food", screen.visible and screen.kind_box.visible
+			and not screen.plate_box.visible and screen.fast_button.text == "CANTEEN_FAST")
 	_check("Skip meal only when hungry", screen.skip_button.visible == root.get_node("Simulation").Hunger.is_hungry())
 	screen.good_button.pressed.emit()
-	_check("Good food shows only the good dishes", screen.dish_box.visible and screen.good_grid.visible
-			and not screen.bad_grid.visible and screen.good_grid.get_child_count() == canteen.dishes(true).size())
+	_check("Good food: build a plate from the good foods only", screen.plate_box.visible and screen.good_grid.visible
+			and not screen.fast_grid.visible and screen.good_grid.get_child_count() == canteen.foods(canteen.GOOD).size()
+			and screen.plate.is_empty() and screen.eat_button.disabled)
+	for id in ["vegetable_soup", "grilled_fish", "rice", "water", "apple"]:
+		screen.add_food(id)
+	_check("up to 4 foods: the fifth does not fit", screen.plate == ["vegetable_soup", "grilled_fish", "rice", "water"]
+			and screen.good_grid.get_child(0).disabled)
+	screen.remove_at(0)
+	_check("a tap on the plate takes a food off", screen.plate == ["grilled_fish", "rice", "water"]
+			and screen.plate_label.text == "Your plate (3 of 4)")
 	screen.show_kind("")
-	screen.bad_button.pressed.emit()
-	_check("Bad food shows only the bad dishes", screen.bad_grid.visible and not screen.good_grid.visible
-			and screen.bad_grid.get_child_count() == canteen.dishes(false).size())
-	screen.bad_grid.get_child(0).pressed.emit()
-	_check("a tap on a dish eats it: the fast-food meal, with the dish", not screen.visible
-			and activities.current_option == "fast_food_meal" and activities.dish == canteen.dishes(false)[0])
+	screen.fast_button.pressed.emit()
+	_check("Back and Fast food: a new, empty plate of fast foods", screen.fast_grid.visible and not screen.good_grid.visible
+			and screen.plate.is_empty())
+	screen.add_food("burger")
+	screen.add_food("fries")
+	screen.eat_button.pressed.emit()
+	_check("Eat the plate: the fast-food meal runs with the plate", not screen.visible
+			and activities.current_option == "fast_food_meal" and activities.plate == ["burger", "fries"])
 	activities.stop()
 	root.remove_child(main)
 	main.free()

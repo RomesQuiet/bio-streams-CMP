@@ -236,29 +236,31 @@ MENU_BACKUP_DONE,The backup file was saved. Keep it safe: it brings the avatar b
 MENU_BACKUP_LOADED,The backup was loaded.,A cópia foi carregada.
 MENU_BACKUP_INVALID,That file is not a backup of this game.,Esse ficheiro não é uma cópia deste jogo.
 MENU_ABOUT_TEXT,"Made by a team of 9th-grade students for the Bio-Streams (EU) science competition, about childhood obesity.\n\nThe avatar's health (1 to 5) comes from three measures: Physical, Happiness and Sleep. Sport, sleep and food change them, as science describes.\n\nSources: WHO growth reference 2007 (BMI-for-age); WHO guidelines on physical activity 2020; American Academy of Sleep Medicine 2016 (sleep hours); Canadian 24-Hour Movement Guidelines 2016 (screens); Youth Compendium of Physical Activities (energy); and the others in the project's documents.\n\nLicences: code MIT; texts and art CC BY 4.0 (the avatar drawings were made by the team with an AI tool); the music belongs to its authors, Matilde with Senhor Carlitos.\n\nSaving: the game saves on this device, in the browser. Browsers can delete saved data, so make a backup of your avatar in Avatars.","Feito por uma equipa de alunos do 9.º ano para o concurso científico Bio-Streams (UE), sobre a obesidade infantil.\n\nA saúde do avatar (1 a 5) vem de três medidas: Físico, Felicidade e Sono. O desporto, o sono e a comida mudam-nas, como a ciência descreve.\n\nFontes: referência de crescimento da OMS 2007 (IMC para a idade); diretrizes da OMS sobre atividade física 2020; American Academy of Sleep Medicine 2016 (horas de sono); Canadian 24-Hour Movement Guidelines 2016 (ecrãs); Youth Compendium of Physical Activities (energia); e as outras nos documentos do projeto.\n\nLicenças: código MIT; textos e arte CC BY 4.0 (os desenhos do avatar foram feitos pela equipa com uma ferramenta de IA); a música pertence aos seus autores, Matilde com o Senhor Carlitos.\n\nGravação: o jogo grava neste dispositivo, no navegador. Os navegadores podem apagar dados guardados, por isso faz uma cópia do teu avatar em Avatares."
-DISH_VEGETABLE_SOUP,Vegetable soup,Sopa de legumes
-DISH_GRILLED_FISH_RICE,Grilled fish with rice,Peixe grelhado com arroz
-DISH_CHICKEN_SALAD,Chicken with salad,Frango com salada
-DISH_VEGETABLE_PASTA,Pasta with vegetables,Massa com legumes
-DISH_LENTIL_STEW,Lentil stew,Estufado de lentilhas
-DISH_OMELETTE_SALAD,Omelette with salad,Omelete com salada
-DISH_RICE_BEANS,Rice with beans,Arroz com feijão
-DISH_WHOLEMEAL_SANDWICH,Wholemeal sandwich,Sandes de pão integral
-DISH_FRUIT_SALAD,Fruit salad,Salada de fruta
-DISH_YOGHURT_FRUIT,Yoghurt with fruit,Iogurte com fruta
-DISH_BURGER_FRIES,Burger and fries,Hambúrguer com batatas fritas
-DISH_PIZZA,Pizza,Piza
-DISH_HOT_DOG,Hot dog,Cachorro-quente
-DISH_FRIED_CHICKEN,Fried chicken,Frango frito
-DISH_NUGGETS,Chicken nuggets,Nuggets de frango
-DISH_KEBAB,Kebab,Kebab
-DISH_CRISPS_SOFT_DRINK,Crisps and a soft drink,Batatas de pacote e refrigerante
-DISH_DOUGHNUT,Doughnut,Donut
-DISH_MILKSHAKE,Milkshake,Batido de chocolate
-DISH_SWEETS,Sweets,Gomas
+FOOD_VEGETABLE_SOUP,Vegetable soup,Sopa de legumes
+FOOD_GRILLED_FISH,Grilled fish,Peixe grelhado
+FOOD_SALAD,Salad,Salada
+FOOD_RICE,Rice,Arroz
+FOOD_BEANS,Beans,Feijão
+FOOD_WHOLEMEAL_BREAD,Wholemeal bread,Pão integral
+FOOD_APPLE,Apple,Maçã
+FOOD_ORANGE,Orange,Laranja
+FOOD_YOGHURT,Yoghurt,Iogurte
+FOOD_WATER,Water,Água
+FOOD_BURGER,Burger,Hambúrguer
+FOOD_FRIES,Fries,Batatas fritas
+FOOD_PIZZA,Pizza,Piza
+FOOD_HOT_DOG,Hot dog,Cachorro-quente
+FOOD_FRIED_CHICKEN,Fried chicken,Frango frito
+FOOD_NUGGETS,Chicken nuggets,Nuggets de frango
+FOOD_KEBAB,Kebab,Kebab
+FOOD_SOFT_DRINK,Soft drink,Refrigerante
+FOOD_MILKSHAKE,Milkshake,Batido
+FOOD_DOUGHNUT,Doughnut,Donut
 CANTEEN_TITLE,Canteen,Cantina
 CANTEEN_CHOOSE,What kind of food?,Que tipo de comida?
 CANTEEN_GOOD,Good food,Comida saudável
-CANTEEN_BAD,Bad food,Comida pouco saudável
-CANTEEN_CHOOSE_DISH,Choose a dish,Escolhe um prato
+CANTEEN_FAST,Fast food,Fast food
+CANTEEN_PLATE,Your plate (%d of %d),O teu prato (%d de %d)
+CANTEEN_PLATE_HINT,Tap a food to put it on your plate. Tap it on the plate to take it off.,Toca num alimento para o pôr no prato. Toca nele no prato para o tirar.
+CANTEEN_EAT,Eat the plate,Comer o prato
 CANTEEN_BACK,Back,Voltar
