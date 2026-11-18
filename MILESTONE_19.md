@@ -41,7 +41,7 @@ The rules of the earlier minigames still hold for all four: a session only exist
 ## Questions (proposed default in bold)
 
 1. Order: **19 street, 20 squats, push-ups or sit-ups (both built), then 21 the canteen (good food or fast food, then build a plate).**
-2. (Team) The canteen's examples: healthy foods and bad foods, with their names in Portuguese and English.
+2. (Team) The canteen's examples: good foods and fast foods, with their names in Portuguese and English.
 3. (Team) Art: a back view of the avatar for the street, squat, push-up and sit-up poses, and food pictures. **Placeholders until then.**
 4. How to work: **each task tested and committed; no push; you play each milestone before the next.**
 
