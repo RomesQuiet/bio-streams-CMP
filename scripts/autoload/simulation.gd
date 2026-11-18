@@ -24,7 +24,6 @@ const Happiness := preload("res://scripts/health/happiness.gd")
 const HealthModel := preload("res://scripts/health/health_model.gd")
 const Risk := preload("res://scripts/health/risk.gd")
 const Progress := preload("res://scripts/health/progress.gd")
-const Canteen := preload("res://scripts/health/canteen.gd")
 
 ## Emitted after each step, with the avatar hours of that step and whether the avatar slept.
 signal stepped(hours: float, asleep: bool)
@@ -154,19 +153,10 @@ func _on_activity_ended(_activity_id: String, option_id: String, hours_done: flo
 			share = played["share"]
 			full = played["full_share"]
 		if played.is_empty() or share > 0.0:
-			# A plate of the canteen (Milestone 21) is its healthy and bad parts, each a share of
-			# the meal; a meal without a plate is one part. Nothing else in the model changes.
-			var parts: Array = Canteen.parts(Activities.finished_plate)
-			if parts.is_empty():
-				parts = [[option_id, 1.0]]
-			var filled := minf(share / full, 1.0) if full > 0.0 else share
-			for part in parts:
-				Energy.add_eaten(Hunger.eat_part(part[0], share * part[1], filled * part[1]))
+			Energy.add_eaten(Hunger.eat(option_id, share, full))
 			# The meal's happiness uses C and A from before it; then Q, C and A move.
-			for part in parts:
-				Happiness.on_meal(part[0], share * part[1])
-			for part in parts:
-				Diet.on_meal(part[0], share * part[1])
+			Happiness.on_meal(option_id, share)
+			Diet.on_meal(option_id, share)
 	# The rest of the frame, after the activity.
 	if _after_activity_hours > 0.0:
 		var hours := _after_activity_hours

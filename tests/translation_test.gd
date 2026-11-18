@@ -109,14 +109,14 @@ func _test_activities() -> void:
 			if not _strings.has(key):
 				missing.append(key)
 	_check("every activity name is a key %s" % [missing], missing.is_empty())
-	# The canteen's foods (Milestone 21).
-	var foods: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/canteen.json"))["foods"]
-	var missing_foods: Array[String] = []
-	for id: String in foods:
-		_used[foods[id]["name"]] = true
-		if not _strings.has(foods[id]["name"]):
-			missing_foods.append(foods[id]["name"])
-	_check("every food name is a key %s" % [missing_foods], missing_foods.is_empty())
+	# The canteen's dishes (Milestone 21).
+	var dishes: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/canteen.json"))["dishes"]
+	var missing_dishes: Array[String] = []
+	for id: String in dishes:
+		_used[dishes[id]["name"]] = true
+		if not _strings.has(dishes[id]["name"]):
+			missing_dishes.append(dishes[id]["name"])
+	_check("every dish name is a key %s" % [missing_dishes], missing_dishes.is_empty())
 
 
 func _check(name: String, ok: bool) -> void:

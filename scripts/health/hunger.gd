@@ -55,15 +55,8 @@ static func meal_kcal(food_id: String, share: float) -> float:
 ## Milestone 15). Hunger falls as if share / full_share of the portion was eaten, at most a whole
 ## one, x satiety. With the default 1 it is the eaten kcal x satiety, as without a minigame.
 static func eat(food_id: String, share: float, full_share := 1.0) -> float:
-	var filled := minf(share / full_share, 1.0) if full_share > 0.0 else share
-	return eat_part(food_id, share, filled)
-
-
-## The same with the filling given: share of the portion eaten (kcal) and share that fills. A
-## plate of the canteen (Milestone 21) eats its healthy and bad parts this way, each with its share
-## of the plate, so the plate fills at most one portion as a meal does.
-static func eat_part(food_id: String, share: float, filled: float) -> float:
 	var kcal := meal_kcal(food_id, share)
+	var filled := minf(share / full_share, 1.0) if full_share > 0.0 else share
 	GameState.hunger -= meal_kcal(food_id, filled) * food_value(food_id, "satiety")
 	GameState.hours_since_meal = 0.0
 	GameState.changed.emit()

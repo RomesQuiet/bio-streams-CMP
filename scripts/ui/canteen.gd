@@ -1,24 +1,27 @@
 extends ColorRect
-## The canteen (Milestone 21, decisions 61 to 64): two choosers, healthy food and bad food, with
-## many examples, and a plate of up to canteen.plate_max foods. A tap on a food puts it on the
-## plate; a tap on the plate takes it off. Eat the plate starts the meal (Activities.start_plate());
-## a plate counts by share of the healthy and fast-food meals, so the health model is unchanged.
-## Every text is a translation key.
+## The canteen (Milestone 21, decisions 61 to 64). Two steps: first good food or bad food, then
+## one dish from many examples of that kind, so players learn to tell them apart. A tap on a
+## dish eats it (Activities.start_dish()): a good dish is the healthy meal and a bad dish the
+## fast-food meal, so the health model is unchanged. Every text is a translation key.
 
 signal closed
 
 const Canteen := preload("res://scripts/health/canteen.gd")
 const Hunger := preload("res://scripts/health/hunger.gd")
-const FoodTile := preload("res://scripts/ui/food_tile.gd")
+const DishTile := preload("res://scripts/ui/food_tile.gd")
 const COLUMNS := 5
+const GOOD_COLOR := Color(0.55, 0.9, 0.55)
+const BAD_COLOR := Color(1.0, 0.65, 0.45)
 
-## Food ids on the plate, in the order they were added.
-var plate: Array[String] = []
-var healthy_grid: GridContainer
+## The kind being shown: "" (step 1), "good" or "bad" (step 2).
+var kind := ""
+var kind_box: VBoxContainer
+var dish_box: VBoxContainer
+var dish_title: Label
+var good_grid: GridContainer
 var bad_grid: GridContainer
-var plate_row: HBoxContainer
-var plate_label: Label
-var eat_button: Button
+var good_button: Button
+var bad_button: Button
 var skip_button: Button
 
 
@@ -26,68 +29,73 @@ func _ready() -> void:
 	color = Color(0, 0, 0, 0.6)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var panel := PanelContainer.new()
-	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	panel.offset_left = 12.0
-	panel.offset_top = 24.0
-	panel.offset_right = -12.0
-	panel.offset_bottom = -24.0
+	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	panel.custom_minimum_size = Vector2(680, 0)
 	add_child(panel)
 	var margin := MarginContainer.new()
 	for side in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 14)
+		margin.add_theme_constant_override("margin_" + side, 18)
 	panel.add_child(margin)
 	var content := VBoxContainer.new()
-	content.add_theme_constant_override("separation", 8)
+	content.add_theme_constant_override("separation", 14)
 	margin.add_child(content)
-	var title := _label("CANTEEN_TITLE", 32, content)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_label("CANTEEN_HEALTHY", 24, content).add_theme_color_override("font_color", Color(0.55, 0.9, 0.55))
-	healthy_grid = _grid(content)
-	_label("CANTEEN_BAD", 24, content).add_theme_color_override("font_color", Color(1.0, 0.65, 0.45))
-	bad_grid = _grid(content)
-	plate_label = _label("", 24, content)
-	var hint := _label("CANTEEN_PLATE_HINT", 18, content)
-	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	plate_row = HBoxContainer.new()
-	plate_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	content.add_child(plate_row)
-	var spacer := Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	content.add_child(spacer)
-	eat_button = _button("CANTEEN_EAT", content, 72)
-	eat_button.pressed.connect(_on_eat)
+	_label("CANTEEN_TITLE", 32, content).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	# Step 1: the kind of food.
+	kind_box = VBoxContainer.new()
+	kind_box.add_theme_constant_override("separation", 14)
+	content.add_child(kind_box)
+	_label("CANTEEN_CHOOSE", 24, kind_box).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	good_button = _button("CANTEEN_GOOD", kind_box, 110)
+	good_button.add_theme_color_override("font_color", GOOD_COLOR.darkened(0.45))
+	good_button.pressed.connect(show_kind.bind("good"))
+	bad_button = _button("CANTEEN_BAD", kind_box, 110)
+	bad_button.add_theme_color_override("font_color", BAD_COLOR.darkened(0.45))
+	bad_button.pressed.connect(show_kind.bind("bad"))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
-	content.add_child(row)
+	kind_box.add_child(row)
 	skip_button = _button("UI_SKIP_MEAL", row, 64)
 	skip_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	skip_button.pressed.connect(_on_skip)
 	var cancel := _button("UI_CANCEL", row, 64)
 	cancel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	cancel.pressed.connect(close)
-	for healthy in [true, false]:
-		for id in Canteen.foods(healthy):
-			var tile: Button = FoodTile.new()
-			tile.food_id = id
-			tile.pressed.connect(add_food.bind(id))
-			(healthy_grid if healthy else bad_grid).add_child(tile)
-	for i in Config.get_int("canteen.plate_max"):
-		var slot: Button = FoodTile.new()
-		slot.pressed.connect(remove_at.bind(i))
-		plate_row.add_child(slot)
+	# Step 2: one dish of that kind.
+	dish_box = VBoxContainer.new()
+	dish_box.add_theme_constant_override("separation", 10)
+	content.add_child(dish_box)
+	dish_title = _label("", 26, dish_box)
+	_label("CANTEEN_CHOOSE_DISH", 20, dish_box)
+	good_grid = _grid(dish_box)
+	bad_grid = _grid(dish_box)
+	for good in [true, false]:
+		for id in Canteen.dishes(good):
+			var tile: Button = DishTile.new()
+			tile.dish_id = id
+			tile.pressed.connect(eat.bind(id))
+			(good_grid if good else bad_grid).add_child(tile)
+	_button("CANTEEN_BACK", dish_box, 64).pressed.connect(show_kind.bind(""))
 	visible = false
 
 
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_TRANSLATION_CHANGED and plate_label != null:
-		_refresh()
-
-
-## Opens with an empty plate. Skip meal only when the avatar is hungry.
+## Opens on step 1. Skip meal only when the avatar is hungry.
 func open() -> void:
-	plate.clear()
-	_refresh()
+	show_kind("")
 	show()
+
+
+## Step 1 (kind ""), or the dishes of "good" or "bad" food.
+func show_kind(new_kind: String) -> void:
+	kind = new_kind
+	kind_box.visible = kind.is_empty()
+	dish_box.visible = not kind.is_empty()
+	good_grid.visible = kind == "good"
+	bad_grid.visible = kind == "bad"
+	dish_title.text = "CANTEEN_GOOD" if kind == "good" else "CANTEEN_BAD"
+	dish_title.add_theme_color_override("font_color", GOOD_COLOR if kind == "good" else BAD_COLOR)
+	skip_button.visible = Hunger.is_hungry()
 
 
 func close() -> void:
@@ -95,40 +103,10 @@ func close() -> void:
 	closed.emit()
 
 
-## Puts a food on the plate, if there is room.
-func add_food(id: String) -> void:
-	if plate.size() < Config.get_int("canteen.plate_max"):
-		plate.append(id)
-	_refresh()
-
-
-## Takes the food in this place of the plate off.
-func remove_at(index: int) -> void:
-	if index < plate.size():
-		plate.remove_at(index)
-	_refresh()
-
-
-func _refresh() -> void:
-	var plate_max := Config.get_int("canteen.plate_max")
-	plate_label.text = tr("CANTEEN_PLATE") % [plate.size(), plate_max]
-	var slots := plate_row.get_children()
-	for i in slots.size():
-		slots[i].food_id = plate[i] if i < plate.size() else ""
-		slots[i].disabled = i >= plate.size()
-	eat_button.disabled = plate.is_empty()
-	skip_button.visible = Hunger.is_hungry()
-	for grid in [healthy_grid, bad_grid]:
-		for tile in grid.get_children():
-			tile.disabled = plate.size() >= plate_max
-			tile.modulate.a = 0.4 if tile.disabled else 1.0
-
-
-func _on_eat() -> void:
-	var foods := plate.duplicate()
-	hide()
-	closed.emit()
-	Activities.start_plate(foods)
+## The player chose this dish: the meal starts.
+func eat(dish_id: String) -> void:
+	close()
+	Activities.start_dish(dish_id)
 
 
 func _on_skip() -> void:
@@ -140,7 +118,7 @@ func _grid(parent: Control) -> GridContainer:
 	var grid := GridContainer.new()
 	grid.columns = COLUMNS
 	grid.add_theme_constant_override("h_separation", 6)
-	grid.add_theme_constant_override("v_separation", 4)
+	grid.add_theme_constant_override("v_separation", 6)
 	parent.add_child(grid)
 	return grid
 
