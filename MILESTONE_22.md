@@ -1,8 +1,21 @@
 # Milestone 22 — XP: what is missing
 
-**Status: closed, 18 November 2026. Nothing to build: the user decided to keep XP as it is.**
+**Status: built (18 November 2026), not pushed: XP follows the target health (decision 72). The user has not played it yet.**
 
-## Decisions (user, 18 Nov 2026: "1 abort, 2 abort, 3 true, 4 number")
+## Decision 72 (user, 18 Nov 2026): XP follows the target health
+
+The user: "the xp never changes when playing!!!!" Right: XP moved only when the health bar moved (once a day, on waking) and every hour at health 4.5 or more, so a new avatar (health about 2.9) showed no XP change all day. The user's fix: "follow target health, but not only at 4.5!!! at 4.5 it is more xp gain, but it always gains xp if the health rises!"
+
+- XP follows the **target health** every step of the simulation (5 avatar minutes): when it rises, XP rises by `progress.per_health_point` (100) per point; when it falls, XP falls the same way. At any health level.
+- **At 4.5 or more there is more:** the hourly bonus stays (`gain_per_avatar_hour` 10 x up to 3), now read from the target health too.
+- The health bar still moves once a day (decision 1); it no longer gives XP itself, so nothing is counted twice.
+- XP is only a score: nothing in the health model changes. This replaces decisions 68 to 70 only where they said XP changes with the displayed health.
+
+**Built (18 Nov 2026):** `scripts/health/progress.gd`: every step, XP += 100 x (target health − the target last counted, `GameState.xp_health`), then the hourly bonus at target health 4.5 or more; `HealthModel.daily_step()` no longer gives XP. `GameState.xp_health` is set when an avatar is created, saved, and is −1 in older saves, so their first step only takes the starting point (no jump). Example: a rise of 0.07 in target health at about 3 gives about +7 XP at once. **Checked (only the tests that touch XP, as the user asked):** `tests/health_xp_test.gd` (rewritten for decision 72: a small rise at about 3 gives XP, a fall takes it, no change gives none, the bar's daily move gives none, XP never below 0, the bonus at 4.5 or more), `tests/xp_change_test.gd`, `tests/save_test.gd`, `tests/measures_test.gd`, and `tests/calibration_test.gd` (all rules pass; every health number identical; only "XP per real hour" changes: 172.6 for the guideline plan against 168.7 before, 2.3 with 6 h sleep, so short sleep still does not pay). The parity test was not run (it prints numbers only). The web export. **Not checked:** a person playing it.
+
+## Earlier decisions (user, 18 Nov 2026)
+
+
 
 | # | Missing part | Decision |
 |---|---|---|

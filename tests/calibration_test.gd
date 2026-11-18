@@ -303,13 +303,11 @@ func _play(scenario: String, sex: String, group: String, difficulty: String, day
 ## After every 5-minute step of a scenario: the hours awake, asleep, hungry and tired, the
 ## lowest happiness, the longest time with happiness below the failure line (does the
 ## 12-hour timer fire?), and the first danger state and failure. With instant_bar the health bar
-## jumps to the target (and the change gives or takes XP, as when the bar moves).
+## jumps to the target (XP follows the target health anyway, Milestone 22).
 func _record_step(result: Dictionary, hours: float, asleep: bool) -> void:
 	var gs: Node = root.get_node("GameState")
 	if instant_bar:
-		var change: float = gs.target_health - gs.health
 		gs.health = gs.target_health
-		progress.on_health_change(change)
 	result["lowest_happiness"] = minf(result["lowest_happiness"], gs.happiness)
 	if asleep:
 		result["asleep_hours"] += hours

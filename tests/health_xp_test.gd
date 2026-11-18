@@ -66,45 +66,59 @@ func _test_health_follows_measures(gs: Node, config: Node) -> void:
 	_check("health rises gradually, day by day", values[2] > values[1] and values[-1] > values[2] and values[-1] <= 5.0)
 
 
+## Milestone 22 (decision 72): XP follows the target health every step, up and down, at any
+## level; the health bar's daily move gives no XP of its own.
 func _test_xp_from_health_changes(gs: Node, config: Node) -> void:
 	gs.start_new_avatar("Test", "child", "female", "normal")
 	gs.xp = 50.0
 	var per_point: float = config.get_float("progress.per_health_point")
 	_check("100 XP per health point (v1)", per_point == 100.0)
-	var before_health: float = gs.health
-	_set_measures(gs, GOOD_DAY)
-	gs.daily_update()
-	var gain: float = gs.health - before_health
-	_check("a health gain gives XP", absf(gs.xp - (50.0 + gain * per_point)) < TOLERANCE and gain > 0.0)
+	_check("a new avatar starts counting from its target health", is_equal_approx(gs.xp_health, gs.target_health))
+	var before_target: float = gs.target_health
+	gs.physical += 0.05
+	progress.step(1.0 / 12.0, false)
+	var gain: float = gs.target_health - before_target
+	_check("a small rise in target health at about 3 gives XP at once (%.1f XP)" % (gain * per_point),
+			gain > 0.0 and gs.target_health < 4.5 and absf(gs.xp - (50.0 + gain * per_point)) < TOLERANCE)
 	var xp_before: float = gs.xp
-	before_health = gs.health
-	_set_measures(gs, BAD_DAY)
+	before_target = gs.target_health
+	gs.happiness -= 0.1
+	progress.step(1.0 / 12.0, false)
+	var loss: float = before_target - gs.target_health
+	_check("a fall in target health takes XP away", loss > 0.0 and absf(gs.xp - (xp_before - loss * per_point)) < TOLERANCE)
+	xp_before = gs.xp
+	progress.step(1.0 / 12.0, false)
+	_check("no change in target health, below 4.5: no XP", gs.xp == xp_before)
+	_set_measures(gs, GOOD_DAY)
+	progress.step(1.0 / 12.0, false)
+	xp_before = gs.xp
 	gs.daily_update()
-	var loss: float = before_health - gs.health
-	_check("a health loss takes XP away", absf(gs.xp - (xp_before - loss * per_point)) < TOLERANCE and loss > 0.0)
+	_check("the health bar's daily move gives no XP of its own", gs.xp == xp_before)
 	gs.xp = 1.0
-	gs.daily_update()
+	_set_measures(gs, BAD_DAY)
+	progress.step(1.0 / 12.0, false)
 	_check("XP never goes below 0", gs.xp == 0.0)
 
 
-## At health 4.5 or more: 10 XP per avatar hour x (1 + hours at that level / 48), at most x 3.
+## At target health 4.5 or more: also 10 XP per avatar hour x (1 + hours at that level / 48), at
+## most x 3.
 func _test_xp_over_time(gs: Node) -> void:
 	gs.reset()
-	gs.health = 4.5
+	_set_measures(gs, GOOD_DAY)
+	gs.xp_health = gs.target_health
 	gs.xp = 0.0
 	progress.step(1.0, false)
-	_check("health 4.5, first hour: 10 x (1 + 1 / 48) XP", absf(gs.xp - 10.0 * (1.0 + 1.0 / 48.0)) < TOLERANCE)
+	_check("target health %.2f, first hour: 10 x (1 + 1 / 48) XP" % gs.target_health, gs.target_health >= 4.5
+			and absf(gs.xp - 10.0 * (1.0 + 1.0 / 48.0)) < TOLERANCE)
 	gs.high_health_hours = 200.0
 	var before: float = gs.xp
 	progress.step(1.0, false)
 	_check("after a long time at high health the bonus stops at x 3", absf(gs.xp - before - 30.0) < TOLERANCE)
-	gs.health = 4.4
+	_set_measures(gs, BAD_DAY)
+	gs.xp_health = gs.target_health
 	before = gs.xp
 	progress.step(1.0, false)
 	_check("below 4.5 no XP over time, and the bonus starts again", gs.xp == before and gs.high_health_hours == 0.0)
-	gs.health = 1.2
-	progress.step(10.0, false)
-	_check("low health takes no XP over time (only health losses do)", gs.xp == before)
 
 
 func _test_level_up(gs: Node, config: Node) -> void:

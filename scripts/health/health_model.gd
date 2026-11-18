@@ -16,7 +16,6 @@ extends RefCounted
 ##   lasts fail.danger_hours, or when z reaches fail.danger_failure_z.
 
 const BodySize := preload("res://scripts/health/body_size.gd")
-const Progress := preload("res://scripts/health/progress.gd")
 
 
 static func physical() -> float:
@@ -95,7 +94,6 @@ static func daily_step() -> void:
 	var change := Config.get_float("health.alpha_bar") * (gs.target_health - gs.health)
 	gs.health += change
 	gs.best_health = maxf(gs.best_health, gs.health)
-	Progress.on_health_change(change)
 
 
 ## Failure: severe thinness for too long, or target health or happiness below its line for long

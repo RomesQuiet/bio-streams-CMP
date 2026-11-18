@@ -121,6 +121,9 @@ var disease_damage: float
 var xp: float
 ## Avatar hours spent at high health without a break (for the XP bonus).
 var high_health_hours: float
+## The target health XP last counted (Milestone 22: XP follows the target health); -1 until the
+## first step.
+var xp_health: float
 var avatar_name: String
 ## "child" or "teenager".
 var age_group: String
@@ -164,6 +167,7 @@ func reset() -> void:
 	hours_awake = 0.0
 	xp = Config.get_float("xp.start")
 	high_health_hours = 0.0
+	xp_health = -1.0
 	avatar_name = Config.get_string("defaults.avatar_name")
 	age_group = ""
 	sex = ""
@@ -171,6 +175,7 @@ func reset() -> void:
 	_apply_body_start()
 	health = calculate_health()
 	best_health = health
+	xp_health = target_health
 	changed.emit()
 
 
@@ -223,6 +228,7 @@ func to_dict() -> Dictionary:
 		"disease_damage": disease_damage,
 		"xp": xp,
 		"high_health_hours": high_health_hours,
+		"xp_health": xp_health,
 		"avatar_name": avatar_name,
 		"age_group": age_group,
 		"sex": sex,
@@ -284,6 +290,7 @@ func from_dict(data: Dictionary) -> void:
 	disease_damage = float(data.get("disease_damage", 0.0))
 	xp = float(data.get("xp", xp))
 	high_health_hours = float(data.get("high_health_hours", high_health_hours))
+	xp_health = float(data.get("xp_health", -1.0))
 	avatar_name = str(data.get("avatar_name", avatar_name))
 	age_group = str(data.get("age_group", age_group))
 	sex = str(data.get("sex", sex))
