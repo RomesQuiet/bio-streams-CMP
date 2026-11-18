@@ -57,6 +57,7 @@ const DANGER_BAR_STYLE := &"HealthBarDanger"
 @onready var sky: ColorRect = $Background
 @onready var activity_backdrop: ColorRect = %ActivityBackdrop
 @onready var scenery: Control = %Scenery
+@onready var sky_bodies: Control = %SkyBodies
 ## The bedroom's blanket, in front of the avatar.
 @onready var blanket: Control = %Blanket
 @onready var avatar: Control = %Avatar
@@ -801,6 +802,8 @@ func _refresh_sky() -> void:
 	sky.color = night_sky_color.lerp(day_sky_color, daylight)
 	scenery.sky_color = sky.color
 	scenery.daylight = daylight
+	sky_bodies.sky_color = sky.color
+	sky_bodies.minute = Clock.minute_of_day
 	var buttons: Theme = NIGHT_THEME if daylight < 0.5 else null
 	if theme != buttons:
 		theme = buttons

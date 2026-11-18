@@ -2,12 +2,14 @@ extends SceneTree
 ## Milestone 24: the sun and the moon in the sky.
 ##   Godot --headless --path . -s res://tests/sky_bodies_test.gd
 
-const SkyBodies := preload("res://scripts/ui/sky_bodies.gd")
+## load() at run time: the script uses the Config autoload (handoff.md, technical lessons).
+var SkyBodies: GDScript
 
 var _failures := 0
 
 
 func _process(_delta: float) -> bool:
+	SkyBodies = load("res://scripts/ui/sky_bodies.gd")
 	_test_arc()
 	_test_point()
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])

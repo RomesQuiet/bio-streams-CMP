@@ -13,6 +13,7 @@
 [ext_resource type="Script" path="res://scripts/ui/request_icon.gd" id="12_request"]
 [ext_resource type="Script" path="res://scripts/ui/scenery.gd" id="13_scenery"]
 [ext_resource type="Script" path="res://scripts/ui/failure_screen.gd" id="14_failure"]
+[ext_resource type="Script" path="res://scripts/ui/sky_bodies.gd" id="15_sky"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -58,6 +59,17 @@ mouse_filter = 2
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
+
+[node name="SkyBodies" type="Control" parent="Margin/Layout/Stage"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("15_sky")
 
 [node name="ActivityBackdrop" type="ColorRect" parent="Margin/Layout/Stage"]
 unique_name_in_owner = true
