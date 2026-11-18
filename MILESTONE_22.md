@@ -1,6 +1,19 @@
 # Milestone 22 — XP: what is missing
 
-**Status: plan, 18 November 2026. Nothing is built.** Claude's check of the code and the documents, with proposals to confirm. Read `CLAUDE.md` and `documentation/handoff.md` first.
+**Status: closed, 18 November 2026. Nothing to build: the user decided to keep XP as it is.**
+
+## Decisions (user, 18 Nov 2026: "1 abort, 2 abort, 3 true, 4 number")
+
+| # | Missing part | Decision |
+|---|---|---|
+| 68 | 1. Other ways to lose XP | **Dropped.** XP changes only with health, as now. |
+| 69 | 2. Commitment goals | **Dropped.** |
+| 70 | 3. The XP values and the level size | **Kept as they are** (v1 values; 100 XP for every level). They stay placeholders the team may tune. |
+| 71 | 4. What a level means | **Only a number**, a record of experience; nothing is unlocked. |
+
+The concept documents (English and V3) were updated: no other ways to lose XP, commitment goals dropped. The proposals below are kept as a record only.
+
+Claude's check of the code and the documents, with the proposals that were asked about: Read `CLAUDE.md` and `documentation/handoff.md` first.
 
 ## What already works (built)
 
