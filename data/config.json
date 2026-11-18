@@ -8,6 +8,8 @@
 		"day_avatar_minutes_per_real_minute": 42,
 		"sleep_avatar_minutes_per_real_minute": 5,
 		"first_day_start_hour": { "value": 7.0, "placeholder": true, "comment": "Clock time (24 h) when the first day starts." },
+		"offline_sleep_enabled": { "value": true, "placeholder": true, "comment": "Milestone 23: while the avatar sleeps, real time with the game closed or the phone off counts as sleep (device clock, sleep only)." },
+		"offline_sleep_min_gap_seconds": { "value": 2.0, "placeholder": true, "comment": "Milestone 23: shortest gap in the device clock, while sleeping, counted as time away." },
 		"max_sleep_hours": { "value": 12, "placeholder": true, "comment": "Maximum hours on the sleep slider." },
 		"max_frame_seconds": { "value": 0.5, "placeholder": true, "comment": "Longest real time counted in one frame, so a frozen or hidden tab cannot jump game time forward." },
 		"step_avatar_min": {"value": 5, "status": "placeholder", "owner": "Pessoa 4", "comment": "Milestone 10: the health system updates in fixed steps of this many avatar minutes (v1, Update order)."}

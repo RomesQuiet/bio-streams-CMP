@@ -200,6 +200,7 @@ func _ready() -> void:
 	%SleepStartButton.pressed.connect(_on_sleep_start_pressed)
 	GameState.changed.connect(_refresh)
 	GameState.leveled_up.connect(_on_leveled_up)
+	Clock.slept_while_away.connect(_on_slept_while_away)
 	GameState.xp_changed.connect(_on_xp_changed)
 	# Failure is final (user, 7 Nov 2026). Shown after the step that reached it has finished.
 	GameState.failed.connect(func(_cause: String) -> void: _show_failure.call_deferred())
@@ -454,6 +455,12 @@ func _show_xp_change() -> void:
 
 func _on_leveled_up(new_level: int) -> void:
 	_flash("SPEECH_LEVEL_UP", [new_level])
+
+
+## Milestone 23: the sleep moved on while the game was closed.
+func _on_slept_while_away(hours: float) -> void:
+	var minutes := roundi(hours * 60.0)
+	_flash("SPEECH_SLEPT_AWAY", [GameState.avatar_name, minutes / 60, minutes % 60])
 
 
 ## Shows a short message in the speech bubble for level_up_message_seconds.

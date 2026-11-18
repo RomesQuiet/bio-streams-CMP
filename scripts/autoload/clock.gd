@@ -1,6 +1,8 @@
 extends Node
 ## Avatar time. Advances only with the game open, using frame delta time.
-## It never reads the device clock. All numbers come from Config.
+## It never reads the device clock for the day. Milestone 23: only while the avatar sleeps,
+## the device clock (Unix time) is read to count the real time the game was closed or the phone
+## was off, and the sleep moves on by that much (catch_up_sleep). All numbers come from Config.
 ##
 ## Cycle: DAY -> SLEEPING -> SLEEP_OVER (paused, waits for the wake button) -> DAY
 ## Sleep can start at any time during the DAY (a nap or a night) when the avatar is sleepy
@@ -27,6 +29,8 @@ signal day_started(slept: bool)
 ## Emitted every frame that avatar time moves, with the avatar hours that passed
 ## and whether the avatar was asleep.
 signal avatar_time_passed(hours: float, asleep: bool)
+## Milestone 23: the sleep moved on by these avatar hours while the game was closed.
+signal slept_while_away(hours: float)
 
 var phase := Phase.DAY
 var paused := false
@@ -46,6 +50,11 @@ var debug_speed := 1.0
 var _debug_speed_index := 0
 ## Time of day (minutes) when the current day or sleep started.
 var _phase_start_minute: float
+## Milestone 23: device time (Unix seconds) when the sleep last ran; 0 = unknown.
+## Saved, so a closed tab or a phone that was off can be caught up.
+var last_seen_unix := 0.0
+## Tests set this to a Unix time instead of reading the device clock (negative = not used).
+var now_override := -1.0
 
 
 func _ready() -> void:
@@ -67,6 +76,9 @@ func _process(delta: float) -> void:
 			if day_elapsed_hours >= day_length_hours:
 				_end_day()
 		Phase.SLEEPING:
+			_check_time_away(delta)
+			if phase != Phase.SLEEPING:
+				return
 			var hours := minf(real_seconds_to_avatar_hours(real_seconds, true), sleep_target_hours - sleep_elapsed_hours)
 			sleep_elapsed_hours = minf(sleep_elapsed_hours + hours, sleep_target_hours)
 			_advance(hours, sleep_elapsed_hours)
@@ -125,6 +137,7 @@ func reset() -> void:
 	sleep_elapsed_hours = 0.0
 	minute_of_day = Config.get_float("time.first_day_start_hour") * MINUTES_PER_HOUR
 	_phase_start_minute = minute_of_day
+	last_seen_unix = 0.0
 	phase_changed.emit(phase)
 	paused_changed.emit(paused)
 	time_changed.emit()
@@ -141,6 +154,7 @@ func to_dict() -> Dictionary:
 		"sleep_elapsed_hours": sleep_elapsed_hours,
 		"minute_of_day": minute_of_day,
 		"phase_start_minute": _phase_start_minute,
+		"last_seen_unix": now_unix() if phase == Phase.SLEEPING else 0.0,
 	}
 
 
@@ -158,6 +172,7 @@ func from_dict(data: Dictionary) -> void:
 	sleep_elapsed_hours = float(data.get("sleep_elapsed_hours", sleep_elapsed_hours))
 	minute_of_day = float(data.get("minute_of_day", minute_of_day))
 	_phase_start_minute = float(data.get("phase_start_minute", _phase_start_minute))
+	last_seen_unix = float(data.get("last_seen_unix", 0.0)) if phase == Phase.SLEEPING else 0.0
 	if old_bedtime_save:
 		_start_day_without_sleep()
 	phase_changed.emit(phase)
@@ -187,6 +202,7 @@ func start_sleep(hours: float) -> void:
 		return
 	sleep_target_hours = clampf(hours, 0.0, max_sleep_hours())
 	sleep_elapsed_hours = 0.0
+	last_seen_unix = now_unix()
 	GameState.changed.emit()
 	_set_phase(Phase.SLEEPING)
 	if sleep_target_hours <= 0.0:
@@ -224,6 +240,38 @@ func max_sleep_hours() -> float:
 func stop_sleep() -> void:
 	if phase == Phase.SLEEPING:
 		_end_sleep()
+
+
+## Milestone 23. The device time now, in Unix seconds (or now_override in tests).
+func now_unix() -> float:
+	return now_override if now_override >= 0.0 else Time.get_unix_time_from_system()
+
+
+## Called every sleeping frame: real time beyond this frame's delta is time the game did not run
+## (tab closed, phone off), and is caught up.
+func _check_time_away(delta: float) -> void:
+	var now := now_unix()
+	if last_seen_unix > 0.0:
+		var away := now - last_seen_unix - delta
+		if away >= Config.get_float("time.offline_sleep_min_gap_seconds"):
+			catch_up_sleep(away)
+	last_seen_unix = now
+
+
+## Moves the sleep on by real_seconds of sleep time, never past the hours chosen. A negative time
+## (the device date moved back) does nothing. Returns the avatar hours added.
+func catch_up_sleep(real_seconds: float) -> float:
+	if phase != Phase.SLEEPING or real_seconds <= 0.0 or not Config.get_value("time.offline_sleep_enabled"):
+		return 0.0
+	var hours := minf(real_seconds_to_avatar_hours(real_seconds, true), sleep_target_hours - sleep_elapsed_hours)
+	if hours <= 0.0:
+		return 0.0
+	sleep_elapsed_hours = minf(sleep_elapsed_hours + hours, sleep_target_hours)
+	_advance(hours, sleep_elapsed_hours)
+	slept_while_away.emit(hours)
+	if sleep_elapsed_hours >= sleep_target_hours:
+		_end_sleep()
+	return hours
 
 
 ## Starts the next day. Its length depends on the hours actually slept.

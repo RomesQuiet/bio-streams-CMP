@@ -42,6 +42,7 @@ SPEECH_TIRED,I'm tired. Sleep is recommended.,Tenho sono. Recomenda-se dormir.
 SPEECH_NOT_SLEEPY,I'm not sleepy.,Não tenho sono.
 SPEECH_SAD,I'm sad.,Estou triste.
 SPEECH_LEVEL_UP,Level up! Level %d,Subiste de nível! Nível %d
+SPEECH_SLEPT_AWAY,%s slept %d h %02d min while you were away.,%s dormiu %d h %02d min enquanto estiveste fora.
 SPEECH_PROGRESS,%s (%s of %s h),%s (%s de %s h)
 SPEECH_PROGRESS_MINUTES,%s (%d of %d min),%s (%d de %d min)
 SPEECH_GAVE_UP,"You stopped tapping, so I stopped.","Deixaste de tocar, por isso parei."
