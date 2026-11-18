@@ -14,6 +14,12 @@ Request (user, 18 Nov 2026, after the AM/PM question): make the time of day visi
 2. **Drawing** (`SkyBodies` node in `scenes/main.tscn`, behind every place): a yellow sun with a soft glow and a pale crescent moon, placeholder shapes; sizes and arch height as `@export` values. The main screen sets the minute when the time changes.
 3. **Hiding** during football and sleep (`main.gd`), with tests.
 
+## Done
+
+- Patch 1 `d66a40b`: `SkyBodies.arc()` and `point()`, `tests/sky_bodies_test.gd`.
+- Patch 2 `6da68f3`: the `SkyBodies` node behind every place; the main screen sets the minute and the sky colour in `_refresh_sky()`. Checked in a local web build: the sun at 10:00, a crescent moon rising at 20:00.
+- Patch 3: `main._refresh_sky_bodies()` hides it during football and outside the day phase; tests in `tests/scenery_test.gd`.
+
 ## Still to check
 
 The look on a real phone; whether the team wants art instead of shapes.

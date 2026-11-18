@@ -27,6 +27,7 @@ func _process(_delta: float) -> bool:
 	var main: Node = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
 	_test_places(main, activities, minigame)
+	_test_sky_bodies(main, activities, minigame, clock)
 	_test_buttons(main, clock)
 	root.remove_child(main)
 	main.free()
@@ -34,6 +35,29 @@ func _process(_delta: float) -> bool:
 	print("ALL PASSED (0 failed)" if _failures == 0 else "SOME FAILED (%d failed)" % _failures)
 	quit(1 if _failures > 0 else 0)
 	return true
+
+
+## Milestone 24: the sun or the moon is in the sky, but not during football or sleep.
+func _test_sky_bodies(main: Node, activities: Node, minigame: Node, clock: Node) -> void:
+	activities.reset()
+	minigame.reset()
+	clock.reset()
+	main._refresh_phase()
+	_check("awake: the sun or moon is shown", main.sky_bodies.visible)
+	activities.start("entertainment", "football")
+	_check("football: no sun or moon", minigame.running and not main.sky_bodies.visible)
+	activities.reset()
+	minigame.reset()
+	main._refresh_minigame()
+	_check("after football: shown again", main.sky_bodies.visible)
+	root.get_node("GameState").sleep_debt = 4.0
+	activities.start("sleep", "sleep", 8.0)
+	_check("sleeping: no sun or moon", not main.sky_bodies.visible)
+	clock.stop_sleep()
+	_check("waiting for Wake: no sun or moon", not main.sky_bodies.visible)
+	clock.wake_up()
+	activities.reset()
+	_check("awake again: shown", main.sky_bodies.visible)
 
 
 func _test_places(main: Node, activities: Node, minigame: Node) -> void:

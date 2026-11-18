@@ -668,6 +668,7 @@ func _refresh_minigame() -> void:
 	var football := Minigame.running and Minigame.kind == Minigame.FOOTBALL
 	football_field.visible = football
 	avatar.visible = not football
+	_refresh_sky_bodies()
 	# The bubble would cover the match or the fork: it only comes back for a short message.
 	var meal := Minigame.running and Minigame.kind == Minigame.MEAL
 	speech_bubble.visible = not (football or meal) or not _flash_key.is_empty()
@@ -854,8 +855,15 @@ func _refresh_activity_speech() -> void:
 			roundi(Activities.elapsed_hours * Clock.MINUTES_PER_HOUR), roundi(Activities.target_hours * Clock.MINUTES_PER_HOUR)])
 
 
+## Milestone 24 (decision 78): no sun or moon during football (the field fills the stage) or
+## while the avatar sleeps or waits for Wake (the bedroom fills it).
+func _refresh_sky_bodies() -> void:
+	sky_bodies.visible = not football_field.visible and Clock.phase == Clock.Phase.DAY
+
+
 func _refresh_phase() -> void:
 	var phase := Clock.phase
+	_refresh_sky_bodies()
 	var running := Activities.is_running()
 	pause_button.disabled = phase != Clock.Phase.DAY
 	pause_button.set_pressed_no_signal(Clock.paused)
