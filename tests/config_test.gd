@@ -18,7 +18,7 @@ const V1_KEYS := ["body.k", "body.kcal_per_kg", "body.max_age_months.child", "bo
 		"energy.pal_ref", "energy.mety_idle", "appetite.habit_share", "meals.hungry_trigger", "meals.min_gap_h",
 		"deficit.start", "deficit.full", "train.capacity_base_min", "train.fitness_tau_days",
 		"train.strength_recovery_h", "minigame.default_score", "diet.quality_tau_days", "diet.habituation_tau_days",
-		"sleep.child_min_h", "sleep.teenager_target_h", "sleep.debt_recovery_tau_days", "sleep.can_sleep_debt_h",
+		"sleep.child_min_h", "sleep.teenager_target_h", "sleep.debt_recovery_tau_days", "sleep.min_wake_floor_h",
 		"mood.tau_h", "mood.baseline.physical", "mood.fun.football", "mood.events.football_per_h",
 		"health.combine.p", "health.combine.weights.happiness", "health.physical_mix.weight", "health.alpha_bar",
 		"health.weight_score_points", "fail.health_line", "fail.happiness_hours", "risk.z_weight",

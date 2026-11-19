@@ -680,6 +680,7 @@ step = 0.0
 show_percentage = false
 
 [node name="SleepLabel" type="Label" parent="HealthPanel/Margin/Measures"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 text = "MEASURE_SLEEP"
@@ -688,6 +689,16 @@ text = "MEASURE_SLEEP"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
+max_value = 1.0
+step = 0.0
+show_percentage = false
+
+[node name="SleepNeedBar" type="ProgressBar" parent="HealthPanel/Margin/Measures"]
+unique_name_in_owner = true
+self_modulate = Color(0.82, 0.76, 1, 1)
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+tooltip_text = "MEASURE_SLEEP_NEED"
 max_value = 1.0
 step = 0.0
 show_percentage = false

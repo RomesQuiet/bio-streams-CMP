@@ -63,7 +63,10 @@ func _test_full_cycle(clock: Node) -> void:
 	_check("on the 12-hour clock: 9:00 PM", clock.clock_text_12h("AM", "PM") == "9:00 PM")
 	_check("avatar is tired when the awake period ends", game_state.tired)
 	var sleep_at_bedtime: float = game_state.sleep
-	_check("sleep measure falls during the day", sleep_at_bedtime < sleep_at_start)
+	# Sleep v2 (Milestone 27): a normal day builds today's sleep need, not debt, so the Sleep measure
+	# stays; it falls only when the need is late or a sleep leaves it unpaid.
+	_check("a normal day builds sleep need, and keeps the Sleep measure", game_state.sleep_need > 5.0
+			and is_equal_approx(sleep_at_bedtime, sleep_at_start))
 	_check("sleep is not automatic", clock.phase == clock.Phase.DAY)
 	root.get_node("Activities").start("sleep", "sleep", 8.0)
 	_run_until(clock, clock.Phase.SLEEP_OVER)
@@ -160,7 +163,10 @@ func _test_ignoring_the_recommendation(clock: Node) -> void:
 	_check("the new day starts without a stop at 21:00", clock.clock_text() == "21:00" and not clock.paused)
 	_check("the new day lasts 24 h", is_equal_approx(clock.day_length_hours, 24.0))
 	_check("the new day is reported as not slept", new_days == [false])
-	_check("the sleep measure is lower than at the start", game_state.sleep < sleep_at_start)
+	var three_hours: float = clock.avatar_hours_to_real_seconds(3.0, false) / clock.debug_speed
+	for i in 30:
+		clock._process(three_hours / 30.0)
+	_check("staying awake past a normal day lowers the sleep measure (sleep v2)", game_state.sleep < sleep_at_start)
 	_check("the avatar stays tired", game_state.tired)
 	var sleep_after_day_1: float = game_state.sleep
 	_run_until_new_day(clock)
@@ -195,9 +201,11 @@ func _test_can_sleep(clock: Node) -> void:
 	_check("5 h awake: still not sleepy", absf(game_state.hours_awake - 5.0) < 0.001 and not clock.is_sleepy())
 	clock._process(0.5)
 	_check("6 h awake: sleepy", clock.is_sleepy() and activities.can_start("sleep"))
-	game_state.hours_awake = 0.0
-	game_state.sleep_debt = 1.0
-	_check("1 h of sleep debt: sleepy", clock.is_sleepy())
+	game_state.hours_awake = 3.9
+	game_state.sleep_debt = 4.0
+	var before: bool = clock.is_sleepy()
+	game_state.hours_awake = 4.0
+	_check("4 h of sleep debt: sleepy after 4 h awake, not before (minimum wake time)", not before and clock.is_sleepy())
 	game_state.sleep_debt = 0.0
 	_check("child, no debt: at most 12 h", is_equal_approx(clock.max_sleep_hours(), 12.0))
 	game_state.age_group = "teenager"
@@ -207,6 +215,7 @@ func _test_can_sleep(clock: Node) -> void:
 	game_state.sleep_debt = 5.0
 	_check("teenager, 5 h debt: at most 12 h (10 + 2)", is_equal_approx(clock.max_sleep_hours(), 12.0))
 	game_state.sleep_debt = 1.0
+	game_state.hours_awake = 6.0
 	activities.start("sleep", "sleep", 12.0)
 	_check("a 12 h sleep is cut to 11 h", is_equal_approx(clock.sleep_target_hours, 11.0))
 	clock.debug_speed = 600.0

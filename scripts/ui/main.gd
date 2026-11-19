@@ -14,6 +14,7 @@ const MEAL_FAST_FOOD_COLOR := Color(0.85, 0.55, 0.25)
 const Hunger := preload("res://scripts/health/hunger.gd")
 const AvatarStates := preload("res://scripts/health/avatar_states.gd")
 const HealthModel := preload("res://scripts/health/health_model.gd")
+const SleepModel := preload("res://scripts/health/sleep_model.gd")
 const Training := preload("res://scripts/health/training.gd")
 const Requests := preload("res://scripts/health/requests.gd")
 const Canteen := preload("res://scripts/health/canteen.gd")
@@ -88,6 +89,9 @@ const SPEECH_GAP_UNDER_CAPSULE := 8.0
 @onready var diet_label: Label = %DietLabel
 @onready var happiness_bar: ProgressBar = %HappinessBar
 @onready var sleep_bar: ProgressBar = %SleepBar
+## Sleep v2 (Milestone 27): the label shows the debt, and a thin bar today's sleep need.
+@onready var sleep_label: Label = %SleepLabel
+@onready var sleep_need_bar: ProgressBar = %SleepNeedBar
 @onready var level_display: Control = %LevelDisplay
 @onready var xp_bar: ProgressBar = %XPBar
 @onready var xp_label: Label = %XPLabel
@@ -900,6 +904,8 @@ func _refresh() -> void:
 	physical_bar.value = GameState.physical
 	happiness_bar.value = GameState.happiness
 	sleep_bar.value = GameState.sleep
+	sleep_label.text = tr("MEASURE_SLEEP_DEBT") % Settings.number(SleepModel.effective_debt(), 1)
+	sleep_need_bar.value = minf(1.0, GameState.sleep_need / SleepModel.day_need(GameState.age_group))
 	calories_label.text = tr("MEASURE_CALORIES") % roundi(GameState.calories_spent)
 	muscle_label.text = tr("MEASURE_STRENGTH") % Settings.number(GameState.strength, 2)
 	fitness_label.text = tr("MEASURE_FITNESS") % Settings.number(GameState.fitness, 2)

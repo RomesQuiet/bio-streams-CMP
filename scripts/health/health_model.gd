@@ -6,8 +6,9 @@ extends RefCounted
 ##   health.physical_mix (p 0.5; weight 0.5, fitness 0.3, strength 0.2) and w the weight score of z.
 ## - Target health = 1 + 4 x the weighted power mean health.combine of Physical, Happiness and
 ##   Sleep (p 0.5, equal weights). It follows the measures every step.
-## - Displayed health (the bar, decision 1) moves health.alpha_bar of the way to the target once
-##   per avatar day, when a sleep ends. Its changes give or take XP.
+## - Displayed health (the bar, decision 1, adapted in Milestone 27) moves health.alpha_bar of the
+##   way to the target per 24 avatar hours, spread over every step, so health moves while playing
+##   and a nap gives no extra step. It gives no XP itself.
 ## - Failure (no death): target health below fail.health_line for fail.health_hours (decision
 ##   10: the target, not the slow bar), or happiness below fail.happiness_line for
 ##   fail.happiness_hours (clock time).
@@ -64,6 +65,9 @@ static func update_physical() -> void:
 ## health (decision 10), so failure does not wait for the slow bar to come down.
 static func step(hours: float, _asleep: bool) -> void:
 	var gs := GameState
+	var per_day := Config.get_float("units.hours_per_day")
+	gs.health += (gs.target_health - gs.health) * (1.0 - pow(1.0 - Config.get_float("health.alpha_bar"), hours / per_day))
+	gs.best_health = maxf(gs.best_health, gs.health)
 	gs.health_low_hours = gs.health_low_hours + hours if gs.target_health < Config.get_float("fail.health_line") else 0.0
 	gs.happiness_low_hours = gs.happiness_low_hours + hours if gs.happiness < Config.get_float("fail.happiness_line") else 0.0
 	gs.danger_hours = gs.danger_hours + hours if in_danger() else 0.0
@@ -87,13 +91,10 @@ static func in_danger() -> bool:
 	return GameState.weight_z < Config.get_float("fail.danger_z")
 
 
-## Once per avatar day (when a sleep ends): the displayed health moves part of the way to the
-## target; the change gives or takes XP.
+## Milestone 27: the health bar moves every step (step()), so a sleep that ends moves nothing more.
+## Kept so GameState.daily_update() keeps its place.
 static func daily_step() -> void:
-	var gs := GameState
-	var change := Config.get_float("health.alpha_bar") * (gs.target_health - gs.health)
-	gs.health += change
-	gs.best_health = maxf(gs.best_health, gs.health)
+	pass
 
 
 ## Failure: severe thinness for too long, or target health or happiness below its line for long

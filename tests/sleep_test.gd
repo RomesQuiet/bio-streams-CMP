@@ -1,10 +1,11 @@
 extends SceneTree
-## Tests for sleep (Milestone 10, Task 6; v1 Step 9). Run from the project folder:
+## Tests for sleep (Milestone 10, Task 6; v1 Step 9; sleep model v2, Milestone 27,
+## documentation/sleep_model_v2.md). Run from the project folder:
 ##   Godot --headless --path . -s res://tests/sleep_test.gd
-## Checks that a full night repays 86% of the sleep debt and no sleep repays nothing, that 6 h
-## every night settles near 4.4 h of debt, the Sleep measure (debt and oversleep), night
-## quality, tiredness and the "I'm tired" state, the starting values per difficulty, and that
-## loading a save never runs a new day again. Uses a test save path.
+## Checks the dynamic sleep need and debt (a full night repays 86%, 6 h every night settles near
+## 4.4 h of debt as in v1, a nap pays only its own hours), the Sleep measure, night quality,
+## tiredness, sleepiness and "I'm tired" (never just after waking), the minimum wake time, the
+## starting values per difficulty, and that loading a save never runs a new day again.
 
 const TOLERANCE := 0.001
 
@@ -24,6 +25,7 @@ func _process(_delta: float) -> bool:
 	_test_debt()
 	_test_measure_and_quality()
 	_test_tiredness()
+	_test_min_wake()
 	_test_start()
 	_test_in_play_and_load(save_game)
 
@@ -33,20 +35,53 @@ func _process(_delta: float) -> bool:
 	return true
 
 
-## debt = debt x e^(-(slept / target) x 24 / 12) + max(0, minimum - slept) (child: 9 to 12 h,
-## target 10.5; 12 = 5 real days / k).
+## Sleep v2: the need grows by minimum / 24 per hour, sleep pays 1 h per hour, need above a normal
+## day's becomes debt, and sleep repays the debt by v1's factor (86% for a whole night at 10.5 h).
 func _test_debt() -> void:
-	var after_full: float = sleep_model.debt_after(4.0, 10.5, "child")
-	print("  child, 4 h of debt, a full night (10.5 h): %.2f h left (%.1f%% repaid)" % [after_full, (1.0 - after_full / 4.0) * 100.0])
-	_check("a full night repays 86% of the debt", absf(after_full - 4.0 * exp(-2.0)) < TOLERANCE)
-	_check("no sleep repays nothing and adds the minimum (9 h)", is_equal_approx(sleep_model.debt_after(4.0, 0.0, "child"), 13.0))
-	_check("sleep inside the range adds no debt", is_zero_approx(sleep_model.debt_after(0.0, 9.0, "child")))
-	_check("teenager: 6 h adds 2 h (minimum 8 h)", is_equal_approx(sleep_model.debt_after(0.0, 6.0, "teenager"), 2.0))
-	var debt := 0.0
+	var gs := _new_avatar("easy")
+	gs.sleep_debt = 4.0
+	gs.sleep_need = 5.25
+	_run(10.5, true)
+	print("  child, 4 h of debt, a full night (10.5 h): %.2f h left (%.1f%% repaid)" % [gs.sleep_debt, (1.0 - gs.sleep_debt / 4.0) * 100.0])
+	_check("a full night repays 86% of the debt", absf(gs.sleep_debt - 4.0 * exp(-2.0)) < TOLERANCE)
+	_check("...and pays today's need back to 0", is_zero_approx(gs.sleep_need))
+	gs.sleep_debt = 0.0
+	_run(15.0, false)
+	_check("15 h awake builds a normal day's need (5.6 h), not debt",
+			absf(gs.sleep_need - 9.0 * 15.0 / 24.0) < TOLERANCE and is_zero_approx(gs.sleep_debt))
+	_run(9.0, true)
+	_check("9 h asleep pays it back: no debt", is_zero_approx(gs.sleep_need) and is_zero_approx(gs.sleep_debt))
+	_run(18.0, false)
+	_check("3 h awake past a normal day: the late need (1.1 h) counts as debt at once",
+			absf(sleep_model.effective_debt() - 3.0 * 9.0 / 24.0) < TOLERANCE and is_zero_approx(gs.sleep_debt))
+	_check("...and lowers the Sleep measure", absf(gs.sleep - sleep_model.sleep_measure(3.0 * 9.0 / 24.0, 0.0)) < TOLERANCE)
+	sleep_model.new_day(0.0)
+	_check("the 0-hour rule converts nothing: the avatar keeps its need and stays tired", gs.sleep_need > 6.0 and _tired())
+	gs.sleep_need = 0.0
+	gs.sleep_debt = 0.0
+	gs.sleep_need = 2.0
+	_run(1.0, true)
+	_check("a 1-hour nap pays 1 h of need minus the hour's own need",
+			absf(gs.sleep_need - (2.0 + 9.0 / 24.0 - 1.0)) < TOLERANCE and is_zero_approx(gs.sleep_debt))
+	sleep_model.new_day(1.0)
+	_check("on waking, the need it left unpaid (1.4 h) becomes debt (v1 added 8 h for a 1-hour nap)",
+			absf(gs.sleep_debt - (2.0 + 9.0 / 24.0 - 1.0)) < TOLERANCE and is_zero_approx(gs.sleep_need))
+	gs.sleep_debt = 0.0
+	gs.sleep_need = 0.0
 	for night in 30:
-		debt = sleep_model.debt_after(debt, 6.0, "child")
-	print("  child sleeping 6 h every night: debt settles at %.2f h (v1: 4.4)" % debt)
-	_check("6 h every night settles near 4.4 h of debt", absf(debt - 4.4) < 0.05)
+		_run(18.0, false)
+		_run(6.0, true)
+		sleep_model.new_day(6.0)
+	print("  child sleeping 6 h every night: debt settles at %.2f h on waking (v1: 4.4)" % gs.sleep_debt)
+	_check("6 h every night settles at 4.4 h of debt (as v1)", absf(gs.sleep_debt - 4.4) < 0.05)
+	_check("...and the Sleep measure follows the debt every step", absf(gs.sleep - sleep_model.sleep_measure(gs.sleep_debt, 0.0)) < TOLERANCE)
+
+
+## Runs the sleep model for this many hours in 5-minute steps.
+func _run(hours: float, asleep: bool) -> void:
+	var steps := roundi(hours * 12.0)
+	for i in steps:
+		sleep_model.step(1.0 / 12.0, asleep)
 
 
 ## Sleep = (1 - min(1, debt / 8)) x (1 - min(0.3, 0.1 x oversleep)); night quality.
@@ -63,19 +98,47 @@ func _test_measure_and_quality() -> void:
 	_check("night quality: at least 0.7", is_equal_approx(sleep_model.night_quality(20.0, "teenager"), 0.7))
 
 
-## Tiredness = max(d, (hours awake - 15) / 4); tired at 0.5 or more.
+## Tiredness for performance = max(d, (hours awake - 15) / 4) (v1, unchanged). "I'm tired" comes
+## from sleepiness = need / day need + 0.5 x d >= 1 (sleep v2).
 func _test_tiredness() -> void:
 	var gs := _new_avatar("easy")
 	gs.sleep_debt = 0.0
 	gs.hours_awake = 10.0
 	_check("rested and 10 h awake: tiredness 0", is_zero_approx(sleep_model.tiredness()))
 	gs.hours_awake = 17.0
-	_check("17 h awake: tiredness 0.5, tired", is_equal_approx(sleep_model.tiredness(), 0.5) and _tired())
+	_check("17 h awake: tiredness 0.5", is_equal_approx(sleep_model.tiredness(), 0.5))
 	gs.hours_awake = 30.0
 	_check("30 h awake: tiredness 1", is_equal_approx(sleep_model.tiredness(), 1.0))
 	gs.hours_awake = 0.0
 	gs.sleep_debt = 6.0
-	_check("6 h of debt (d 0.75): tiredness 0.75, tired", is_equal_approx(sleep_model.tiredness(), 0.75) and _tired())
+	_check("6 h of debt (d 0.75): tiredness 0.75", is_equal_approx(sleep_model.tiredness(), 0.75))
+	gs.sleep_debt = 4.0
+	gs.sleep_need = 0.0
+	_check("Normal's 4 h of debt just after waking: not tired (sleep v2)", not _tired())
+	gs.sleep_need = 0.75 * sleep_model.day_need("child")
+	_check("4 h of debt: tired at 75% of a normal day's need", _tired())
+	gs.sleep_debt = 0.0
+	gs.sleep_need = 0.9 * sleep_model.day_need("child")
+	_check("no debt: not tired before the normal bedtime", not _tired())
+	gs.sleep_need = sleep_model.day_need("child")
+	_check("no debt: tired at the normal bedtime", _tired())
+
+
+## Minimum wake time (sleep v2): 6 h after any sleep, 0.5 h less per hour of debt, at least 3 h;
+## or at any time when tired.
+func _test_min_wake() -> void:
+	var gs := _new_avatar("normal")
+	gs.sleep_need = 0.0
+	for case in [[0.0, 6.0], [2.0, 5.0], [4.0, 4.0], [10.0, 3.0]]:
+		gs.sleep_debt = case[0]
+		gs.hours_awake = case[1] - 0.1
+		var before: bool = sleep_model.can_sleep()
+		gs.hours_awake = case[1]
+		_check("%.0f h of debt: can sleep after %.0f h awake, not before" % case, not before and sleep_model.can_sleep())
+	gs.sleep_debt = 0.0
+	gs.hours_awake = 1.0
+	gs.sleep_need = sleep_model.day_need("child")
+	_check("when tired it can sleep at any time", sleep_model.can_sleep())
 
 
 ## Starting debt per difficulty gives the v1 starting Sleep measure: Easy 0.75, Normal 0.50,
@@ -86,7 +149,7 @@ func _test_start() -> void:
 		_check("%s starts with Sleep %.2f" % pair, absf(gs.sleep - pair[1]) < TOLERANCE)
 
 
-## A real night: the debt and the Sleep measure change when the sleep ends, and loading a
+## A real night: the debt is repaid during the sleep (86% for 10.5 h), and loading a
 ## save made after the sleep does not run that new day a second time.
 func _test_in_play_and_load(save_game: Node) -> void:
 	var gs := _new_avatar("normal")
@@ -98,7 +161,7 @@ func _test_in_play_and_load(save_game: Node) -> void:
 	root.get_node("Activities").start("sleep", "sleep", 10.5)
 	while clock.phase == clock.Phase.SLEEPING:
 		clock._process(0.1)
-	var expected: float = sleep_model.debt_after(debt_before, 10.5, "child")
+	var expected: float = debt_before * exp(-2.0)
 	_check("after a 10.5 h night the debt follows the formula", absf(gs.sleep_debt - expected) < TOLERANCE)
 	_check("...and so does the Sleep measure", absf(gs.sleep - sleep_model.sleep_measure(expected, 0.0)) < TOLERANCE)
 	_check("after a full night the avatar is not tired", not gs.tired)

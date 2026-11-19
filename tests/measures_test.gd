@@ -73,8 +73,9 @@ func _test_days(gs: Node, clock: Node, activities: Node, main: Node) -> void:
 		_check("day %d: Physical follows the v1 formula" % (day + 1), absf(gs.physical - health_model.physical()) < TOLERANCE)
 		_check("day %d: target = 1 + 4 x the power mean (p 0.5) of the three measures" % (day + 1),
 				absf(gs.target_health - (1.0 + 4.0 * pow((sqrt(gs.physical) + sqrt(gs.happiness) + sqrt(gs.sleep)) / 3.0, 2.0))) < TOLERANCE)
-		var expected_health: float = health_before + config.get_float("health.alpha_bar") * (gs.target_health - health_before)
-		_check("day %d: health += alpha_bar x (target - health)" % (day + 1), absf(gs.health - expected_health) < TOLERANCE)
+		# Milestone 27: the bar moves toward the target a little every step, not once at the sleep's end.
+		_check("day %d: health moved toward the target during the day" % (day + 1),
+				(gs.health - health_before) * (gs.target_health - health_before) >= 0.0 and not is_equal_approx(gs.health, health_before))
 		_check("day %d: the five pills and \"Health N\" (rounded down) show it" % (day + 1),
 				is_equal_approx(main.health_pills.value, gs.health)
 				and main.health_label.text == main.tr(main.HEALTH_VALUE_TEXT) % floori(gs.health))

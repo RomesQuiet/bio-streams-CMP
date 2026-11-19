@@ -161,7 +161,7 @@ func _test_main_screen() -> void:
 	_check("pause: the day stops and the button shows play", clock.paused and main.pause_icon.kind == "play")
 	main.pause_button.pressed.emit()
 	_check("play: the day goes on and the button shows pause", not clock.paused and main.pause_icon.kind == "pause")
-	gs.sleep_debt = 4.0
+	gs.hours_awake = 6.0  # Sleep v2: past the minimum wake time
 	activities.start("sleep", "sleep", 8.0)
 	_check("asleep: the button cannot pause the sleep", main.pause_button.disabled)
 	clock.stop_sleep()

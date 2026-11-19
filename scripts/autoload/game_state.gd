@@ -95,11 +95,14 @@ var calories_spent: float
 ## Aerobic fitness, 0 to 1 (v1 Step 6). Trained every step by Training from cardio and football
 ## (and a little from strength).
 var fitness: float
-## Hours of sleep owed (v1 Step 9, Milestone 10 Task 6). Changes at each new avatar day.
+## Hours of chronic sleep debt (v1 Step 9; sleep v2, Milestone 27: changes every step).
 var sleep_debt: float
+## Sleep v2 (Milestone 27): the sleep owed today, in hours (0 just after waking, about 5.6 h at a
+## child's normal bedtime). Above that it becomes debt (SleepModel.step()).
+var sleep_need: float
 ## WHO BMI-for-age z-score (Milestone 10: worked out every step from weight, height and body age).
 var weight_z: float
-## "I'm tired": tiredness is at least avatar_states.tired_at (SleepModel.update_tired()).
+## "I'm tired": sleepiness is 1 or more (SleepModel.update_tired(), sleep v2).
 var tired: bool
 ## Avatar hours awake since the last sleep ended (Milestone 10). Simulation adds to it.
 var hours_awake: float
@@ -166,6 +169,7 @@ func reset() -> void:
 	calories_spent = Config.get_float("measures.calories_spent_start")
 	tired = false
 	hours_awake = 0.0
+	sleep_need = 0.0
 	xp = Config.get_float("xp.start")
 	high_health_hours = 0.0
 	xp_health = -1.0
@@ -214,6 +218,7 @@ func to_dict() -> Dictionary:
 		"calories_spent": calories_spent,
 		"fitness": fitness,
 		"sleep_debt": sleep_debt,
+		"sleep_need": sleep_need,
 		"night_quality": night_quality,
 		"last_sleep_hours": last_sleep_hours,
 		"weight_z": weight_z,
@@ -277,6 +282,7 @@ func from_dict(data: Dictionary) -> void:
 	calories_spent = float(data.get("calories_spent", calories_spent))
 	fitness = float(data.get("fitness", fitness))
 	sleep_debt = float(data.get("sleep_debt", sleep_debt))
+	sleep_need = float(data.get("sleep_need", 0.0))
 	night_quality = float(data.get("night_quality", night_quality))
 	last_sleep_hours = float(data.get("last_sleep_hours", last_sleep_hours))
 	weight_z = float(data.get("weight_z", weight_z))
@@ -333,6 +339,8 @@ func _apply_body_start() -> void:
 	# Sleep (v1 Step 9): the starting debt of the difficulty gives the starting Sleep measure.
 	sleep_debt = Config.get_float("health.difficulties.%s.sleep_debt" % difficulty_id)
 	sleep = SleepModel.sleep_measure(sleep_debt, 0.0)
+	# Sleep v2: the avatar has just woken up, so it owes no sleep for today yet.
+	sleep_need = 0.0
 	night_quality = 1.0
 	last_sleep_hours = 0.0
 	SleepModel.update_tired()

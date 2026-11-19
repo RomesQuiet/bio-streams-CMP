@@ -50,7 +50,7 @@ func _test_sky_bodies(main: Node, activities: Node, minigame: Node, clock: Node)
 	minigame.reset()
 	main._refresh_minigame()
 	_check("after football: shown again", main.sky_bodies.visible)
-	root.get_node("GameState").sleep_debt = 4.0
+	root.get_node("GameState").hours_awake = 6.0  # Sleep v2: past the minimum wake time
 	activities.start("sleep", "sleep", 8.0)
 	_check("sleeping: no sun or moon", not main.sky_bodies.visible)
 	clock.stop_sleep()
@@ -73,6 +73,7 @@ func _test_places(main: Node, activities: Node, minigame: Node) -> void:
 	_check("after the meal the fork and its zone are gone", not main.meal_fork.visible and not main.avatar.mouth_open)
 	_check("...and so is the room", scenery.modulate.a == 0.0)
 	_check("no blanket after a meal", main.blanket.modulate.a == 0.0)
+	root.get_node("GameState").hours_awake = 6.0  # Sleep v2: past the minimum wake time
 	activities.start("sleep", "sleep", 8.0)
 	main._refresh_activity(true)
 	_check("sleep: the bedroom", scenery.kind == "bedroom" and scenery.modulate.a == 1.0)

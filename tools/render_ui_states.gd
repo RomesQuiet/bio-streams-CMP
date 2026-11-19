@@ -6,7 +6,8 @@ extends SceneTree
 ## each run renders one state. Run from the project folder:
 ##   Godot --path . --resolution 720x1280 -s res://tools/render_ui_states.gd -- <output folder> <state> [en|pt]
 ## State: A to F (section 16), P (a button pressed and one disabled), X (danger), R (the room),
-## S (the street), Z (the bedroom), W (the sleep is over: the play button), M (the menu),
+## S (the street), Z (the bedroom), W (the sleep is over: the play button), H (the measures panel
+## open, with 2.4 h of sleep debt and two thirds of today's sleep need; Milestone 27), M (the menu),
 ## N (the creation screen).
 
 ## [name, minute of the day, health, XP].
@@ -23,6 +24,7 @@ const STATES := {
 	"S": ["S_street", 17 * 60, 3.0, 250.0],
 	"Z": ["Z_bedroom", 22 * 60, 3.0, 250.0],
 	"W": ["W_sleep_over", 6 * 60 + 40, 3.0, 250.0],
+	"H": ["H_measures_sleep", 18 * 60, 3.0, 250.0],
 }
 
 
@@ -71,10 +73,14 @@ func _run() -> void:
 		"S":
 			activities.start("exercise", "cardio", 0.5)
 		"Z":
-			gs.sleep_debt = 4.0
+			gs.hours_awake = 6.0
 			activities.start("sleep", "sleep", 8.0)
+		"H":
+			gs.sleep_debt = 2.4
+			gs.sleep_need = 3.75
+			gs.sleep = 0.7
 		"W":
-			gs.sleep_debt = 4.0
+			gs.hours_awake = 6.0
 			activities.start("sleep", "sleep", 8.0)
 			clock.stop_sleep()
 	clock.halted = true
@@ -85,6 +91,8 @@ func _run() -> void:
 		main.eat_button.disabled = true
 	if letter == "S":
 		root.get_node("Minigame").tap()
+	if letter == "H":
+		main._toggle_health_panel()
 	await _save(out, state[0])
 
 

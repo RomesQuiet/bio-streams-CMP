@@ -170,6 +170,9 @@ func _step(hours: float, asleep: bool) -> void:
 	GameState.sim_hours += hours
 	if not asleep:
 		GameState.hours_awake += hours
+	# Sleep v2 (Milestone 27): sleep need, debt and the Sleep measure, every step (they were worked
+	# out only at each new day in v1). Before the modules that read the debt factor d.
+	SleepModel.step(hours, asleep)
 	# 2. Energy spent.
 	Energy.step(hours, asleep)
 	# 3. Hunger.
@@ -180,13 +183,13 @@ func _step(hours: float, asleep: bool) -> void:
 	Energy.update_deficit()
 	# 6. Training: capacity, recovery, overreaching, fitness and strength.
 	Training.step(hours, asleep)
-	# Tiredness for "I'm tired" (sleep debt and hours awake; the debt changes at each new day).
+	# "I'm tired" from sleepiness (sleep v2: today's sleep need, earlier with debt).
 	SleepModel.update_tired()
 	# 7. Physical.
 	HealthModel.update_physical()
 	# 8. Happiness: fun, events and the move toward its baseline.
 	Happiness.step(hours, asleep)
-	# 9. Health (its target follows the measures; the bar moves once per avatar day), failure
+	# 9. Health (its target follows the measures; the bar moves toward it a little every step), failure
 	# timers, risk and XP.
 	HealthModel.step(hours, asleep)
 	Risk.step(hours, asleep)

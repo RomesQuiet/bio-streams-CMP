@@ -27,6 +27,8 @@ MEASURE_HEALTH_DANGER,Health: danger,Saúde: perigo
 MEASURE_PHYSICAL,Physical,Físico
 MEASURE_HAPPINESS,Happiness,Felicidade
 MEASURE_SLEEP,Sleep amount,Quantidade de sono
+MEASURE_SLEEP_DEBT,Sleep amount · debt %s h,Quantidade de sono · dívida %s h
+MEASURE_SLEEP_NEED,Sleep needed today (full at bedtime),Sono necessário hoje (cheio à hora de deitar)
 MEASURE_CALORIES,Calories spent\n%d kcal,Calorias gastas\n%d kcal
 MEASURE_STRENGTH,Strength\n%s,Força\n%s
 MEASURE_FITNESS,Fitness\n%s,Aptidão física\n%s

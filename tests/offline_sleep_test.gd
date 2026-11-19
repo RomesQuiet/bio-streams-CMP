@@ -36,7 +36,7 @@ func _new_sleep(hours: float) -> void:
 	root.get_node("Simulation").reset()
 	root.get_node("GameState").reset()
 	_clock.reset()
-	root.get_node("GameState").sleep_debt = 4.0
+	root.get_node("GameState").hours_awake = 6.0  # Sleep v2: past the minimum wake time
 	_clock.now_override = START
 	_clock.start_sleep(hours)
 	_away_hours = 0.0

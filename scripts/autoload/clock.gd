@@ -17,6 +17,8 @@ extends Node
 ## It stays in the list so the numbers in older saves keep their meaning.
 enum Phase { DAY, BEDTIME, SLEEPING, SLEEP_OVER }
 
+const SleepModel := preload("res://scripts/health/sleep_model.gd")
+
 const MINUTES_PER_HOUR := 60.0
 const SECONDS_PER_MINUTE := 60.0
 const MINUTES_PER_DAY := 24.0 * 60.0
@@ -214,12 +216,11 @@ func can_start_sleep() -> bool:
 	return phase == Phase.DAY and is_sleepy()
 
 
-## v1 Step 9: the avatar can sleep only when its sleep debt is at least
-## sleep.can_sleep_debt_h or it has been awake at least sleep.can_sleep_awake_h.
-## Otherwise it says it is not sleepy.
+## Sleep v2 (Milestone 27): the avatar can sleep only after the minimum wake time since the last
+## sleep (shorter with debt), or when it is tired (SleepModel.can_sleep()). Otherwise it says it
+## is not sleepy.
 func is_sleepy() -> bool:
-	return _at_least(GameState.sleep_debt, Config.get_float("sleep.can_sleep_debt_h")) \
-			or _at_least(GameState.hours_awake, Config.get_float("sleep.can_sleep_awake_h"))
+	return SleepModel.can_sleep()
 
 
 ## value >= limit, also when value is a sum of steps that lands a tiny bit below it.

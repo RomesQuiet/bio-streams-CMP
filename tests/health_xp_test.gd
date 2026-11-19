@@ -45,8 +45,10 @@ const GOOD_DAY := {"physical": 0.9, "happiness": 0.9, "sleep": 1.0}
 const BAD_DAY := {"physical": 0.1, "happiness": 0.1, "sleep": 0.0}
 
 
-## Health starts at the target and then moves alpha_bar of the way to it once per avatar day.
+## Health starts at the target and then moves alpha_bar of the way to it per 24 avatar hours, a
+## little every step (decision 1, adapted in Milestone 27).
 func _test_health_follows_measures(gs: Node, config: Node) -> void:
+	var health_model: GDScript = load("res://scripts/health/health_model.gd")
 	gs.start_new_avatar("Test", "child", "female", "normal")
 	var alpha: float = config.get_float("health.alpha_bar")
 	_check("health equals the target at the start", is_equal_approx(gs.health, gs.target_health))
@@ -54,15 +56,23 @@ func _test_health_follows_measures(gs: Node, config: Node) -> void:
 	var start: float = gs.health
 	_set_measures(gs, GOOD_DAY)
 	_check("the target follows the measures at once", gs.target_health > start)
-	_check("the displayed health does not change during the day", is_equal_approx(gs.health, start))
 	var target: float = gs.target_health
+	health_model.step(1.0, false)
+	_check("one avatar hour moves the bar a little toward the target (Milestone 27)",
+			gs.health > start and absf(gs.health - (start + (1.0 - pow(1.0 - alpha, 1.0 / 24.0)) * (target - start))) < TOLERANCE)
+	gs.health = start
+	for i in 24 * 12:
+		health_model.step(1.0 / 12.0, false)
+	_check("24 avatar hours move it alpha_bar (0.37) of the way, as once per day did", absf(gs.health - (start + alpha * (target - start))) < TOLERANCE)
+	gs.health = start
 	gs.daily_update()
-	_check("once per day it moves alpha_bar (0.37) of the way to the target", absf(gs.health - (start + alpha * (target - start))) < TOLERANCE)
-	var values := [start, gs.health]
+	_check("a sleep that ends moves nothing more (no extra step for a nap)", is_equal_approx(gs.health, start))
+	var values := [start]
 	for day in 10:
-		gs.daily_update()
+		for i in 24 * 12:
+			health_model.step(1.0 / 12.0, false)
 		values.append(gs.health)
-	print("  health on 11 good days: %s" % ", ".join(values.map(func(v): return "%.2f" % v)))
+	print("  health on 10 good days: %s" % ", ".join(values.map(func(v): return "%.2f" % v)))
 	_check("health rises gradually, day by day", values[2] > values[1] and values[-1] > values[2] and values[-1] <= 5.0)
 
 

@@ -271,7 +271,7 @@
 	},
 
 	"sleep": {
-		"_comment": "v1 Step 9. Recommended sleep per 24 h by age group (AASM 2016). At each new day: debt = debt x e^(-(slept / target) x 24 / (debt_recovery_tau_days x 24 / body.k)) + max(0, minimum - slept); Sleep = (1 - min(1, debt / debt_ref_h)) x (1 - min(oversleep_cut_max, oversleep_cut_per_h x oversleep)); d = min(1, debt / debt_ref_h).",
+		"_comment": "v1 Step 9, sleep model v2 (Milestone 27, documentation/sleep_model_v2.md). Recommended sleep per 24 h by age group (AASM 2016). Every step: sleep need += minimum / 24 per hour, - 1 per hour asleep; need above minimum x (24 - minimum) / 24 becomes debt; asleep, debt x e^(-(hours / target) x 24 / (debt_recovery_tau_days x 24 / body.k)); Sleep = (1 - min(1, debt / debt_ref_h)) x (1 - min(oversleep_cut_max, oversleep_cut_per_h x oversleep)); d = min(1, debt / debt_ref_h).",
 		"child_min_h": {"value": 9, "status": "from source", "owner": "Pessoa 2", "comment": "AASM 2016, 6 to 12 years."},
 		"child_max_h": {"value": 12, "status": "from source", "owner": "Pessoa 2"},
 		"child_target_h": {"value": 10.5, "status": "placeholder", "owner": "Pessoa 2", "comment": "Middle of the range."},
@@ -282,8 +282,10 @@
 		"debt_ref_h": {"value": 8, "status": "placeholder", "owner": "Pessoa 2", "comment": "Sleep measure is 0 at this much debt or more."},
 		"oversleep_cut_per_h": {"value": 0.1, "status": "placeholder", "owner": "Pessoa 2", "comment": "AASM 2016: long sleep is also linked to worse health."},
 		"oversleep_cut_max": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 2"},
-		"can_sleep_debt_h": {"value": 1, "status": "placeholder", "owner": "Pessoa 2", "comment": "The avatar can sleep only with at least this much debt, or after can_sleep_awake_h awake (clock time)."},
-		"can_sleep_awake_h": {"value": 6, "status": "placeholder", "owner": "Pessoa 2"},
+		"can_sleep_awake_h": {"value": 6, "status": "placeholder", "owner": "Pessoa 2", "comment": "Sleep v2 (Milestone 27): the minimum wake time. After any sleep the avatar can sleep again only after this many hours awake (less with debt, see min_wake_cut_per_debt_h), or when it is tired. No published value exists; school-age children rarely nap (documentation/sleep_model_v2.md)."},
+		"min_wake_cut_per_debt_h": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 2", "comment": "Sleep v2: hours taken off the minimum wake time per hour of sleep debt (sleep-deprived people fall asleep sooner)."},
+		"min_wake_floor_h": {"value": 3, "status": "placeholder", "owner": "Pessoa 2", "comment": "Sleep v2: the minimum wake time is never shorter than this."},
+		"debt_sleepiness_weight": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 2", "comment": "Sleep v2: sleepiness = sleep need / day need + this x d. 'I'm tired' at 1 or more: at the normal bedtime without debt, at 75% of the day with d = 0.5."},
 		"wake_extra_max_h": {"value": 2, "status": "placeholder", "owner": "Pessoa 2", "comment": "The avatar wakes never later than the maximum of the range + min(debt, this)."},
 		"tired_awake_from_h": {"value": 15, "status": "placeholder", "owner": "Pessoa 2", "comment": "Tiredness = max(d, (hours awake - tired_awake_from_h) / tired_awake_range_h), at most 1."},
 		"tired_awake_range_h": {"value": 4, "status": "placeholder", "owner": "Pessoa 2"},
@@ -357,7 +359,7 @@
 				"sleep": {"value": 0.3333333333333333, "status": "placeholder", "owner": "Pessoa 2"}
 			}
 		},
-		"alpha_bar": {"value": 0.37, "status": "placeholder", "owner": "Pessoa 4", "comment": "Decision 1: health bar speed, 90% of the way to the target in 5 avatar days ((1 - 0.37)^5 = 0.1)."},
+		"alpha_bar": {"value": 0.37, "status": "placeholder", "owner": "Pessoa 4", "comment": "Decision 1, adapted in Milestone 27: the health bar moves this share of the way to the target per 24 avatar hours, spread over every step (1 - (1 - 0.37)^(hours / 24)), not once per sleep. 90% of the way in 5 avatar days."},
 		"difficulties": {
 			"_comment": "v1 'Difficulty starts'. z = WHO BMI-for-age z-score (the starting weight is calculated from it, the sex and the body age), fitness, strength, Q = diet quality, C = fast-food craving, A = habituation to fast food, happiness, sleep debt (h). Starting Physical, Sleep and health are calculated, never typed in. Easy, Normal and Hard as in v1. Very hard happiness is 0.30, not 0.15 (decision 7, user, 25 Oct 2026: higher, so it is playable). start_A is not in v1: placeholder = share of fast-food meals, 1 - Q.",
 			"easy": {"z": 0.0, "fitness": 0.65, "strength": 0.6, "Q": 0.8, "C": 0.35, "A": 0.2, "happiness": 0.75, "sleep_debt": 2.0, "status": "placeholder", "owner": "Pessoa 4", "comment": "Health about 3.94."},
