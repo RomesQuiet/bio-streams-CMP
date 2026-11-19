@@ -12,7 +12,9 @@ const HEIGHT_ABOVE_MOUTH := 34.0
 const HANDLE := 110.0
 const TINE := 22.0
 const FOOD_RADIUS := 16.0
-const ZONE_HEIGHT := 150.0
+## Half the height of the ring around the mouth (Milestone 26: a ring, not a box over the face).
+const RING_HALF_HEIGHT := 26.0
+const RING_POINTS := 40
 const EVENT_FONT := 40
 const EVENT_SECONDS := 1.2
 
@@ -42,9 +44,15 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	var half := hit_share * SWING
-	var zone := Rect2(mouth.x - half, mouth.y - ZONE_HEIGHT * 0.75, half * 2.0, ZONE_HEIGHT)
-	draw_rect(zone, Color(GOOD_COLOR, 0.35 if at_mouth else 0.12))
-	draw_rect(zone, GOOD_COLOR if at_mouth else RING_COLOR, false, 3.0)
+	# A ring around the mouth as wide as the bite zone; it fills softly when the fork is inside.
+	var ring := PackedVector2Array()
+	for i in RING_POINTS + 1:
+		var angle := TAU * i / RING_POINTS
+		ring.append(mouth + Vector2(cos(angle) * half, sin(angle) * RING_HALF_HEIGHT))
+	if at_mouth:
+		draw_colored_polygon(ring.slice(0, RING_POINTS), Color(GOOD_COLOR, 0.3))
+	draw_polyline(ring, OUTLINE_COLOR, 7.0, true)
+	draw_polyline(ring, GOOD_COLOR if at_mouth else Color.WHITE, 4.0, true)
 	var tip := mouth + Vector2(fork * SWING, -HEIGHT_ABOVE_MOUTH)
 	draw_line(tip, tip + Vector2(0.0, -HANDLE), FORK_COLOR, 8.0)
 	for side in [-1.0, 0.0, 1.0]:
