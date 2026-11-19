@@ -50,7 +50,7 @@ func _test_full_cycle(clock: Node) -> void:
 	clock.debug_speed = 600.0
 	_check("first day starts at 07:00", clock.clock_text() == "07:00")
 	# Milestone 25 (decision 80): the interface shows the 12-hour clock.
-	_check("on the 12-hour clock: 07:00 AM", clock.clock_text_12h("AM", "PM") == "07:00 AM")
+	_check("on the 12-hour clock: 7:00 AM", clock.clock_text_12h("AM", "PM") == "7:00 AM")
 	_check("first day is 14 h", is_equal_approx(clock.day_length_hours, 14.0))
 	clock.set_paused(true)
 	clock._process(STEP_SECONDS)
@@ -60,7 +60,7 @@ func _test_full_cycle(clock: Node) -> void:
 	var sleep_at_start: float = game_state.sleep
 	_run_until_new_day(clock)
 	_check("awake period ends at 21:00", clock.clock_text() == "21:00")
-	_check("on the 12-hour clock: 09:00 PM", clock.clock_text_12h("AM", "PM") == "09:00 PM")
+	_check("on the 12-hour clock: 9:00 PM", clock.clock_text_12h("AM", "PM") == "9:00 PM")
 	_check("avatar is tired when the awake period ends", game_state.tired)
 	var sleep_at_bedtime: float = game_state.sleep
 	_check("sleep measure falls during the day", sleep_at_bedtime < sleep_at_start)

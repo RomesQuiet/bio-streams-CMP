@@ -86,13 +86,13 @@ func _test_sun_and_moon() -> void:
 
 func _test_clock_text() -> void:
 	var clock: Node = root.get_node("Clock")
-	var cases := [[0, "12:00 AM"], [30, "12:30 AM"], [7 * 60, "07:00 AM"], [12 * 60, "12:00 PM"],
-			[13 * 60 + 5, "01:05 PM"], [22 * 60 + 15, "10:15 PM"], [23 * 60 + 59, "11:59 PM"]]
+	var cases := [[0, "12:00 AM"], [30, "12:30 AM"], [7 * 60, "7:00 AM"], [12 * 60, "12:00 PM"],
+			[13 * 60 + 5, "1:05 PM"], [22 * 60 + 15, "10:15 PM"], [23 * 60 + 59, "11:59 PM"]]
 	var ok := true
 	for case in cases:
 		clock.minute_of_day = case[0]
 		ok = ok and clock.clock_text_12h("AM", "PM") == case[1]
-	_check("the 12-hour clock: 12:00 AM, 07:00 AM, 12:00 PM, 01:05 PM, 10:15 PM, 11:59 PM", ok)
+	_check("the 12-hour clock: 12:00 AM, 7:00 AM, 12:00 PM, 1:05 PM, 10:15 PM, 11:59 PM", ok)
 	clock.reset()
 
 
@@ -141,7 +141,7 @@ func _test_main_screen() -> void:
 			and is_equal_approx(main.health_pills.value, 2.6))
 	_check("\"XP 70 / 100\" and level 2 -> 3", main.xp_label.text == "XP 70 / 100" and main.level_display.level == 2)
 	main._refresh_clock()
-	_check("the clock shows 07:00 AM", main.clock_label.text == "07:00 AM")
+	_check("the clock shows 7:00 AM", main.clock_label.text == "7:00 AM")
 	# The level rolls when it changes, and the bar starts again.
 	gs.xp = 310.0
 	gs.changed.emit()

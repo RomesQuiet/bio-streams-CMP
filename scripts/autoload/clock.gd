@@ -316,7 +316,7 @@ func clock_text_12h(am: String, pm: String) -> String:
 	var shown := hour % 12
 	if shown == 0:
 		shown = 12
-	return "%02d:%02d %s" % [shown, total_minutes % int(MINUTES_PER_HOUR), pm if hour >= 12 else am]
+	return "%d:%02d %s" % [shown, total_minutes % int(MINUTES_PER_HOUR), pm if hour >= 12 else am]
 
 
 func is_debug_speed_active() -> bool:
