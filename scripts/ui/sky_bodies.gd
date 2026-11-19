@@ -18,7 +18,9 @@ const GROUND_FROM_BOTTOM := Ui.GROUND_FROM_BOTTOM
 @export var sun_radius := 34.0
 @export var moon_radius := 30.0
 ## Height of the arch, as a share of the sky above the ground.
-@export var arch_share := 0.7
+@export var arch_share := 0.86
+## Below 1: the arch rises sooner and is flatter on top (see point()).
+@export var arch_roundness := 0.45
 @export var sun_color := Ui.SUN_COLOR
 @export var sun_glow_color := Color(1.0, 0.96, 0.78, 0.4)
 ## The warm glow around a low sun (dawn and dusk).
@@ -58,8 +60,10 @@ static func arc(minute: float, start_hour: float, end_hour: float) -> Dictionary
 
 
 ## Where on the stage: x from left to right, y on an arch of height `height` above `ground`.
-static func point(t: float, width: float, ground: float, height: float, margin: float) -> Vector2:
-	return Vector2(margin + t * (width - 2.0 * margin), ground - sin(t * PI) * height)
+## roundness below 1 makes the arch rise sooner and stay high longer (flatter on top), so the sun
+## and moon pass above the avatar's head instead of behind it (Milestone 26, user, 19 Nov 2026).
+static func point(t: float, width: float, ground: float, height: float, margin: float, roundness := 1.0) -> Vector2:
+	return Vector2(margin + t * (width - 2.0 * margin), ground - pow(sin(t * PI), roundness) * height)
 
 
 func _draw() -> void:
@@ -67,7 +71,7 @@ func _draw() -> void:
 	var ground := size.y - GROUND_FROM_BOTTOM
 	var sun: bool = a.body == SUN
 	var radius := sun_radius if sun else moon_radius
-	var at := point(a.t, size.x, ground, ground * arch_share, radius * 2.0)
+	var at := point(a.t, size.x, ground, ground * arch_share, radius * 2.0, arch_roundness)
 	if sun:
 		# Low in the sky (near 0 or 1 along the arch) the sky around it glows warm.
 		var low := pow(1.0 - sin(a.t * PI), 2.0)
