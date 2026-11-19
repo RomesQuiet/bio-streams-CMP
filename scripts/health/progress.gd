@@ -2,10 +2,10 @@ extends RefCounted
 ## XP (v1 Step 12, Milestone 10 Task 8; Milestone 22, decision 72). All numbers come from Config
 ## (group progress).
 ## - XP follows the target health every step (user, 18 Nov 2026), at any level, so XP moves while
-##   the player plays. XP is never lost (Milestone 26, decision 90, user, 19 Nov 2026): a rise above
-##   the highest target health reached so far (xp_health) gives per_health_point x the rise; a fall
-##   takes nothing, and climbing back up to the earlier best gives nothing either, so health that
-##   goes up and down cannot farm XP. The health bar still moves once a day but gives no XP itself.
+##   the player plays. XP is never lost (Milestone 26, decisions 90 and 92, user, 19 Nov 2026): every
+##   rise in target health gives per_health_point x the rise, also after a fall; a fall takes
+##   nothing. So XP can be farmed by letting health fall and rise again (the user wants that
+##   possible). The health bar still moves once a day but gives no XP itself.
 ## - Every avatar hour while target health is at least high_health_min: gain_per_avatar_hour
 ##   x (1 + hours at that level without a break / bonus_hours), at most max_multiplier (more XP at
 ##   high health).
@@ -20,8 +20,7 @@ static func step(hours: float, _asleep: bool) -> void:
 	# The first step after a new avatar or an older save only takes the starting point.
 	if gs.xp_health >= 0.0 and target > gs.xp_health:
 		gs.add_xp((target - gs.xp_health) * Config.get_float("progress.per_health_point"))
-	if gs.xp_health < 0.0 or target > gs.xp_health:
-		gs.xp_health = target
+	gs.xp_health = target
 	if target >= Config.get_float("progress.high_health_min"):
 		gs.high_health_hours += hours
 		var multiplier := minf(1.0 + gs.high_health_hours / Config.get_float("progress.bonus_hours"),

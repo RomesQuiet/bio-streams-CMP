@@ -7,6 +7,8 @@ The user asked "Do you like the new look?". Claude rendered the main screen (`to
 - **90 (user, 19 Nov 2026): XP is never lost.** It replaces the "down" half of decision 72. A rise in target health above the highest target health reached so far (`GameState.xp_health`, now a high-water mark) gives `progress.per_health_point` x the rise. A fall takes nothing. Climbing back up to the earlier best gives nothing, so health that goes up and down cannot farm XP. The hourly bonus at 4.5 or more is unchanged. The level never goes down. (User's answer: "XP only goes up".)
 - **91: the XP level numbers.** The user said the level "doesn't change at all". The code was checked headlessly (+150 XP rolls the display from 0 to 1) and in a web build (99 XP plus a +10 XP rise rolls "0 → 1" to "1 → 2", with "+10 XP" under the bar). No display bug was found. The likely cause is the old rule: XP went up and down with health, so the level rarely crossed a boundary or fell back. With decision 90 the level only climbs.
 
+- **92 (user, 19 Nov 2026): farming XP is allowed.** "It should be possible to farm XP... imagine someone is on the health 5 maximum... it doesn't gain any more XP. That shouldn't be possible." It replaces the high-water mark of decision 90: every rise in target health gives XP, also after a fall, and a fall still takes nothing. At 4.5 or more the hourly bonus also gives XP.
+
 ## Patches
 
 1. `8b91875` XP is never lost (`scripts/health/progress.gd`, `tests/health_xp_test.gd`).
@@ -15,6 +17,8 @@ The user asked "Do you like the new look?". Claude rendered the main screen (`to
 4. `75884a5` A greener ground by day (the 07:30 to 16:30 ground colours in `scripts/ui/sky_palette.gd`; dawn, dusk and night unchanged) and the 12-hour clock without a leading zero ("7:15 PM", `Clock.clock_text_12h()`).
 
 Not changed: the keyboard hints ("Bite! [Space]") are already hidden on touch screens (`football_pad.touch_mode`); the review's render ran on a computer, so they showed.
+
+5. Decision 92: `xp_health` is again the last step's target health; only rises give XP.
 
 ## Still to check
 
