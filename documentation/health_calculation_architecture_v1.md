@@ -3,6 +3,12 @@
 Plasticine Tamagotchi. Version 1, 25 October 2026. Status: proposed. Copied from the Google Doc "Health Calculation Architecture v1".
 "Bases fundamental" has priority: where this document disagrees with it, Bases fundamental wins and this document changes.
 
+**Changes since v1 (as built; read them before the steps below):**
+- **Sleep (Step 9) is replaced by sleep model v2** (Milestone 27, 19 Nov 2026, `documentation/sleep_model_v2.md`): the sleep need and debt change every step with the same totals per cycle, a nap adds only the need it leaves, "I'm tired" comes from today's need, and a minimum wake time replaces "debt ≥ 1 h or awake ≥ 6 h".
+- **The health bar (Step 11, decision 1)** moves 37% of the way to the target per 24 avatar hours, a little every step, not once per sleep (Milestone 27).
+- **XP (Step 12)** follows every rise of the target health and is never lost (Milestones 22 and 26, decisions 72, 90 and 92): "Losing health loses XP" no longer holds.
+- **Sleep continues while the game is closed** (Milestone 23): only during sleep, the device clock counts the time away.
+
 **For Claude:** this is the current target design of the health system. It replaces the older "Architecture Decisions: Health System" plan where they disagree. The code (Milestone 4) does not implement it yet. All numbers are placeholders to tune and go in `data/config.json`.
 
 ## Summary
@@ -185,6 +191,8 @@ Prediction: fast food + 3 h cardio 0.32; guidelines 0.88; couch with fast food 0
 
 ### Step 9: Sleep
 
+> **Replaced by sleep model v2 (Milestone 27, `documentation/sleep_model_v2.md`).** The text below is v1, kept as a record.
+
 Recommended (AASM 2016): child 9–12 h (target 10.5), teenager 8–10 h (target 9). "Slept" = all sleep since the previous new day, naps included. Ignoring the night recommendation counts as 0 h.
 
 At each new day:
@@ -252,7 +260,7 @@ Arithmetic mean hides one bad measure; geometric mean makes any zero give health
 - Stage 2 (irreversible, failure) can only follow stage 1 if damage keeps rising.
 - With k = 10, one body year = 36.5 avatar days (≈ 88 real hours); set values with a health professional.
 
-**XP** (to tune): XP += 100 × change in health, plus 10 XP per avatar hour while health ≥ 4.5, × (1 + hours at that level ÷ 48), at most × 3. Losing health loses XP. Guideline play ≈ 225 XP per real hour; every other scenario < 3.
+**XP** (to tune): XP += 100 × change in health, plus 10 XP per avatar hour while health ≥ 4.5, × (1 + hours at that level ÷ 48), at most × 3. Losing health loses XP *(no longer: since Milestones 22 and 26, every rise of the target health gives XP and XP is never lost)*. Guideline play ≈ 225 XP per real hour; every other scenario < 3.
 
 **Avatar images:**
 

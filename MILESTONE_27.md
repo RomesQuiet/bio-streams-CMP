@@ -42,6 +42,12 @@ The research, the model and the tables of what changed, what stayed and what was
 - Short sleep (scenario test): Sleep 0.45 and health 3.71 at day 21 (v1 0.45 and 3.79; before this milestone 0.45 and 3.70).
 - Updated tests for the new rules: `clock_test.gd`, `health_xp_test.gd`, `measures_test.gd`, `offline_sleep_test.gd`, `interface_test.gd`, `scenery_test.gd` (they put the avatar to sleep with debt, or checked the once-per-sleep health bar).
 
+## Documents updated (19 Nov 2026, user: "did you update ALL the docs?")
+
+- In the repository: `CLAUDE.md`, `documentation/handoff.md`, `documentation/sleep_model_v2.md` (new; the napping source corrected to Staton et al. 2020), notes at the top and at Step 9 and the XP rule of `documentation/health_calculation_architecture_v1.md`, a note at the top of `documentation/milestone10_calibration.md`.
+- In Google Drive (text replaced in place, same links): the deck "Apresentação Bio-Streams v5" (slides 10, 15, 16, 21 and 25: the minimum wake time, the debt paid hour by hour, XP never lost, sleep while closed, new sources; checked for overflow), "Game Concept (English)", "Plano de Desenvolvimento" (with log entries for 17 to 19 Nov), "Jury Report (EN)" (annex sections 7, 10 and 11 and the sources), "My Healthy Avatar - Conceito do Jogo (versão completa)" and "Health Calculation Architecture v1".
+- Not changed: "Conceito do Jogo V3" (read-only for this account), the Milestone 4 documents (records), "Apresentação do Projeto" (meeting decisions, no rules). The two new paragraphs in the Jury Report's annex are not in bold like the others. The Portuguese and the English texts are Claude's draft until the team checks them.
+
 ## Still to check
 
 The team (Pessoa 2, Pessoa 4): the placeholders and decisions 93 to 97; `documentation/milestone10_calibration.md` was written with v1 sleep (the parity test was not run again). A real phone.

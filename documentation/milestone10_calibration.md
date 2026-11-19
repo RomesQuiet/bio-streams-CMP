@@ -1,5 +1,7 @@
 # Milestones 10 and 10.5 — scenario results and the causes of the differences from v1 (for the team)
 
+**Note (19 Nov 2026):** the numbers below were made with v1 sleep and v1 XP. Since then the sleep model is v2 (Milestone 27, `documentation/sleep_model_v2.md`; short sleep still gives Sleep 0.45 at day 21, as v1) and XP is never lost (Milestone 26). The parity test was not run again. Open in `MILESTONE_27.md`: two happiness rules of the guideline plan fail because of meal timing at bedtime, and "short sleep must not pay" fails narrowly (27% of the XP rate, limit 25%).
+
 **Note (7 Nov 2026):** the happiness numbers below were made with v1's happiness pace. Since then happiness changes 2 times slower (`mood.speed` 0.5, user; `MILESTONE_16.md`, "Happiness 2 times slower, checked"): end results are close to these, the lowest points are higher and the daily swings half as large. Run `tests/calibration_test.gd` for the current numbers.
 
 Date: 27 October 2026 (Milestone 10.5; the first version, from Milestone 10 Task 10, is in the git history). The team's review of the first version is `documentation/milestone10_review.md`; this version answers it. Two tests produce the numbers:
