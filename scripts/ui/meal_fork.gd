@@ -2,10 +2,11 @@ extends Control
 ## The meal minigame (Milestone 15): a fork with food swings over the avatar's mouth. A ring at
 ## the mouth shows where a tap is a bite, and turns bright when the fork is inside it. Short messages ("Yum!") show above it.
 
-const FORK_COLOR := Color(0.85, 0.87, 0.9)
-const RING_COLOR := Color(1.0, 1.0, 1.0, 0.35)
-const GOOD_COLOR := Color(0.5, 1.0, 0.6)
-const OUTLINE_COLOR := Color(0.1, 0.1, 0.15)
+## Colours of Milestone 25 (scripts/ui/ui_style.gd).
+const FORK_COLOR := Color("#eef1ff")
+const RING_COLOR := Color(1.0, 1.0, 1.0, 0.4)
+const GOOD_COLOR := Color("#84f2da")
+const OUTLINE_COLOR := Color("#1b2552")
 const SWING := 230.0
 const HEIGHT_ABOVE_MOUTH := 34.0
 const HANDLE := 110.0

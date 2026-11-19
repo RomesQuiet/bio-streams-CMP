@@ -32,7 +32,7 @@ var eat_button: Button
 
 
 func _ready() -> void:
-	color = Color(0, 0, 0, 0.6)
+	color = Color(0.04, 0.05, 0.16, 0.6)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var panel := PanelContainer.new()
 	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)

@@ -14,12 +14,16 @@ signal touch_seen
 const NO_FINGER := -1
 const MOUSE_FINGER := -2
 
-@export var stick_color := Color(0.11, 0.13, 0.18, 0.9)
-@export var knob_color := Color(0.85, 0.87, 0.9)
-@export var pass_color := Color(0.25, 0.5, 0.95)
-@export var shoot_color := Color(0.9, 0.3, 0.3)
-@export var disabled_color := Color(0.3, 0.32, 0.36)
-@export var text_color := Color.WHITE
+## Colours of Milestone 25 (scripts/ui/ui_style.gd): a flat see-through joystick, and pressable
+## buttons with a thickness (cyan Pass, salmon Shoot or Tackle) and navy text.
+const Ui := preload("res://scripts/ui/ui_style.gd")
+@export var stick_color := Color(1, 1, 1, 0.12)
+@export var knob_color := Color(1, 1, 1, 0.92)
+@export var pass_color := Ui.XP_COLOR
+@export var shoot_color := Ui.EAT_COLOR
+@export var disabled_color := Color(0.75, 0.78, 0.9, 0.45)
+@export var text_color := Ui.INK
+@export var keys_color := Color.WHITE
 @export var font_size := 24
 @export var keys_font_size := 20
 ## Moves smaller than this share of the joystick do nothing.
@@ -104,19 +108,23 @@ func _stick_radius() -> float:
 
 func _draw() -> void:
 	if touch_mode:
-		draw_circle(_stick_centre(), _stick_radius(), stick_color)
-		draw_circle(_stick_centre() + _direction * _stick_radius() * 0.6, _stick_radius() * 0.4, knob_color)
+		draw_circle(_stick_centre(), _stick_radius(), stick_color, true, -1.0, true)
+		draw_circle(_stick_centre(), _stick_radius(), Ui.HUD_LINE, false, Ui.BORDER_THIN, true)
+		draw_circle(_stick_centre() + _direction * _stick_radius() * 0.6, _stick_radius() * 0.4, knob_color, true, -1.0, true)
 	else:
 		draw_multiline_string(get_theme_default_font(), Vector2(0.0, 30.0), keys_text, HORIZONTAL_ALIGNMENT_LEFT,
-				size.x * stick_share, keys_font_size, -1, text_color)
+				size.x * stick_share, keys_font_size, -1, keys_color)
 	var left := size.x * stick_share
 	var half := size.y * 0.5
 	_draw_button(Rect2(left + 8.0, 0.0, size.x - left - 8.0, half - 4.0), pass_text, pass_color if pass_enabled else disabled_color)
 	_draw_button(Rect2(left + 8.0, half + 4.0, size.x - left - 8.0, half - 4.0), shoot_text, shoot_color if shoot_enabled else disabled_color)
 
 
+## A pressable button: a darker thickness under a body with a soft gradient.
 func _draw_button(rect: Rect2, text: String, color: Color) -> void:
-	draw_rect(rect, color)
-	var font := get_theme_default_font()
-	var y := rect.position.y + (rect.size.y + font.get_ascent(font_size) - font.get_descent(font_size)) * 0.5
-	draw_string(font, Vector2(rect.position.x, y), text, HORIZONTAL_ALIGNMENT_CENTER, rect.size.x, font_size, text_color)
+	var depth := Ui.BUTTON_BASE_DEPTH * 0.75
+	var body := Rect2(rect.position, rect.size - Vector2(0, depth))
+	Ui.draw_gradient_box(self, Rect2(rect.position + Vector2(0, depth), body.size), 20.0, color.darkened(0.22), color.darkened(0.22))
+	Ui.draw_gradient_box(self, body, 20.0, color.lightened(0.12), color)
+	Ui.draw_outline(self, Ui.rounded_rect_points(body.grow(-1.0), 19.0), Color(1, 1, 1, 0.6), Ui.BORDER_THIN)
+	Ui.draw_centred_text(self, Ui.FONT_HEAVY, body.get_center(), text, font_size, text_color, body.size.x - 12.0)

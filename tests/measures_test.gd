@@ -69,14 +69,15 @@ func _test_days(gs: Node, clock: Node, activities: Node, main: Node) -> void:
 		while clock.phase == clock.Phase.SLEEPING:
 			clock._process(STEP_SECONDS)
 		print("%3d  %.3f    %.3f      %.3f  %.3f   %.3f (%.3f)" % [day + 1, gs.physical, gs.happiness, gs.sleep,
-				gs.target_health, gs.health, main.health_bar.value])
+				gs.target_health, gs.health, main.health_pills.value])
 		_check("day %d: Physical follows the v1 formula" % (day + 1), absf(gs.physical - health_model.physical()) < TOLERANCE)
 		_check("day %d: target = 1 + 4 x the power mean (p 0.5) of the three measures" % (day + 1),
 				absf(gs.target_health - (1.0 + 4.0 * pow((sqrt(gs.physical) + sqrt(gs.happiness) + sqrt(gs.sleep)) / 3.0, 2.0))) < TOLERANCE)
 		var expected_health: float = health_before + config.get_float("health.alpha_bar") * (gs.target_health - health_before)
 		_check("day %d: health += alpha_bar x (target - health)" % (day + 1), absf(gs.health - expected_health) < TOLERANCE)
-		_check("day %d: the health bar and level box show it" % (day + 1), is_equal_approx(main.health_bar.value, gs.health)
-				and main.health_level_button.text == str(gs.health_level))
+		_check("day %d: the five pills and \"Health N\" (rounded down) show it" % (day + 1),
+				is_equal_approx(main.health_pills.value, gs.health)
+				and main.health_label.text == main.tr(main.HEALTH_VALUE_TEXT) % floori(gs.health))
 		_check("day %d: the measures panel shows the new values" % (day + 1), is_equal_approx(main.physical_bar.value, gs.physical)
 				and is_equal_approx(main.happiness_bar.value, gs.happiness) and is_equal_approx(main.sleep_bar.value, gs.sleep))
 		clock.wake_up()
@@ -162,16 +163,19 @@ func _test_states_and_values(gs: Node, main: Node) -> void:
 	_check("the physical box shows weight, height, BMI-for-age z and diet quality as numbers",
 			main.weight_label.text.contains("kg") and main.height_label.text.contains("cm")
 			and main.bmi_label.text.contains("z") and main.diet_label.text.contains("Diet quality"))
-	_check("z -2.5: no danger warning on the health bar", main.health_label.text != main.DANGER_TEXT and not states["ill"])
+	_check("z -2.5: no danger warning on the health bar", not main.health_pills.danger and not main.heart.flashing
+			and not states["ill"])
 	# Milestone 10.5: the danger state of severe thinness (z below -3).
 	gs.weight_z = -3.5
 	gs.changed.emit()
 	states = states_script.current()
 	_check("z -3.5: thin and ill, and the avatar draws it", states["thin"] and states["ill"] and main.avatar.states == states)
-	_check("...and the health bar warns", main.health_label.text == main.DANGER_TEXT and main.health_bar.theme_type_variation == main.DANGER_BAR_STYLE)
+	_check("...and the heart and the pills flash (decision 82), the tooltip says danger", main.health_pills.danger
+			and main.heart.flashing and main.health_button.tooltip_text == main.DANGER_TIP)
 	gs.weight_z = -2.5
 	gs.changed.emit()
-	_check("z back at -2.5: the warning goes away", main.health_label.text != main.DANGER_TEXT and main.health_bar.theme_type_variation == main.HEALTH_BAR_STYLE)
+	_check("z back at -2.5: the warning goes away", not main.health_pills.danger and not main.heart.flashing
+			and main.health_button.tooltip_text == main.HEALTH_TIP)
 
 
 func _check(name: String, ok: bool) -> void:

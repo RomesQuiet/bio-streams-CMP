@@ -137,10 +137,11 @@ var target_health: float:
 	get:
 		return calculate_health()
 
-## Health as a whole number from 1 to 5 (health rounded). Shown in the health level box.
+## Health as a whole number from 1 to 5, rounded down (Milestone 25, decision 83), so "Health N"
+## in the HUD never says more than its five pills show.
 var health_level: int:
 	get:
-		return roundi(health)
+		return floori(health)
 
 ## Level shown next to the XP bar. Starts at 0.
 var level: int:

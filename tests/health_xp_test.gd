@@ -50,7 +50,7 @@ func _test_health_follows_measures(gs: Node, config: Node) -> void:
 	gs.start_new_avatar("Test", "child", "female", "normal")
 	var alpha: float = config.get_float("health.alpha_bar")
 	_check("health equals the target at the start", is_equal_approx(gs.health, gs.target_health))
-	_check("health level is health rounded", gs.health_level == roundi(gs.health))
+	_check("health level is health rounded down (decision 83)", gs.health_level == floori(gs.health))
 	var start: float = gs.health
 	_set_measures(gs, GOOD_DAY)
 	_check("the target follows the measures at once", gs.target_health > start)

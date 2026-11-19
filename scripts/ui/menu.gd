@@ -8,9 +8,13 @@ extends Control
 const MAIN_SCENE := "res://scenes/main.tscn"
 const CREATION_SCENE := "res://scenes/ui/creation.tscn"
 const AVATAR_SCENE := "res://scenes/avatar/avatar.tscn"
-const SKY_COLOR := Color(0.3, 0.45, 0.62)
-const GROUND_COLOR := Color(0.5, 0.5, 0.52)
-const DIM_COLOR := Color(0, 0, 0, 0.6)
+const Ui := preload("res://scripts/ui/ui_style.gd")
+const SkyBackground := preload("res://scripts/ui/sky_background.gd")
+const CurvedGround := preload("res://scripts/ui/curved_ground.gd")
+const OutsideDim := preload("res://scripts/ui/outside_dim.gd")
+## Milestone 25: the menu's sky and curved ground are those of a morning (only the look).
+const MENU_MINUTE := 9.0 * 60.0
+const DIM_COLOR := Ui.DIM_COLOR
 const CAPTION_COLOR := Color(0.75, 0.77, 0.82)
 const FAILED_COLOR := Color(1.0, 0.5, 0.45)
 const GROUND_TOP := 700.0
@@ -27,6 +31,9 @@ var _confirm_delete := -1
 ## Kept so the browser callback is not freed while the file is read.
 var _file_callback: JavaScriptObject
 var _file_dialog: FileDialog
+var _sky: Control
+var _ground: Control
+var _outside_dim: Control
 
 
 func _ready() -> void:
@@ -47,21 +54,20 @@ func _notification(what: int) -> void:
 # --- Layout ----------------------------------------------------------------------------------
 
 func _build() -> void:
-	set_anchors_preset(PRESET_FULL_RECT)
-	var sky := ColorRect.new()
-	sky.color = SKY_COLOR
-	sky.set_anchors_preset(PRESET_FULL_RECT)
-	add_child(sky)
-	var ground := ColorRect.new()
-	ground.color = GROUND_COLOR
-	ground.set_anchors_preset(PRESET_FULL_RECT)
-	ground.offset_top = GROUND_TOP
-	add_child(ground)
+	# A 720-wide column in the middle, as tall as the screen; the sky and the curved ground fill
+	# the whole screen behind it (Milestone 25, decision 87).
+	Ui.make_column(self)
+	_sky = SkyBackground.new()
+	_sky.minute = MENU_MINUTE
+	add_child(_sky)
+	_ground = CurvedGround.new()
+	_ground.minute = MENU_MINUTE
+	add_child(_ground)
 	var title := _label("MENU_TITLE", 52)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.set_anchors_preset(PRESET_TOP_WIDE)
 	title.offset_top = 70
-	title.add_theme_color_override("font_outline_color", Color.BLACK)
+	title.add_theme_color_override("font_outline_color", Ui.INK)
 	title.add_theme_constant_override("outline_size", 10)
 	add_child(title)
 	var subtitle := _label("MENU_SUBTITLE", 24)
@@ -126,6 +132,21 @@ func _build() -> void:
 	scroll.add_child(text)
 	about.add_child(scroll)
 	about.add_child(_button("MENU_BACK", _close_pages, 64))
+	_outside_dim = OutsideDim.new()
+	_outside_dim.column = self
+	_outside_dim.color = DIM_COLOR
+	add_child(_outside_dim)
+
+
+## The ground under the avatar's feet in the middle of the column, the sky's horizon on it, and
+## the dim outside the column while a page is open.
+func _process(_delta: float) -> void:
+	if _ground == null:
+		return
+	var rect := get_global_rect()
+	_ground.centre = Vector2(rect.get_center().x, rect.position.y + GROUND_TOP + 10.0)
+	_sky.horizon_y = _ground.horizon()
+	_outside_dim.amount = DIM_COLOR.a if (_avatars_page.visible or _about_page.visible) else 0.0
 
 
 ## A page over the menu in the settings panel's style; its content box is in the "content" meta.

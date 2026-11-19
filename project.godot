@@ -33,6 +33,7 @@ SaveGame="*res://scripts/autoload/save_game.gd"
 window/size/viewport_width=720
 window/size/viewport_height=1280
 window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
 window/handheld/orientation=1
 
 [gui]
@@ -48,6 +49,8 @@ locale/translations=PackedStringArray("res://translations/strings.en.translation
 3d/physics_engine="Jolt Physics"
 
 [rendering]
+
+environment/defaults/default_clear_color=Color(0.063, 0.086, 0.29, 1)
 
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="gl_compatibility"

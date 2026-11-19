@@ -1,6 +1,6 @@
 extends SceneTree
-## The places behind the avatar, the fork after a meal and the day and night buttons
-## (user, 7 Nov 2026). Run from the project folder (after --import):
+## The places behind the avatar, the fork after a meal (user, 7 Nov 2026) and the buttons, the same
+## by day and night (Milestone 25). Run from the project folder (after --import):
 ##   Godot --headless --path . -s res://tests/scenery_test.gd
 
 var _failures := 0
@@ -54,7 +54,7 @@ func _test_sky_bodies(main: Node, activities: Node, minigame: Node, clock: Node)
 	activities.start("sleep", "sleep", 8.0)
 	_check("sleeping: no sun or moon", not main.sky_bodies.visible)
 	clock.stop_sleep()
-	_check("waiting for Wake: no sun or moon", not main.sky_bodies.visible)
+	_check("waiting for the play button: no sun or moon", not main.sky_bodies.visible)
 	clock.wake_up()
 	activities.reset()
 	_check("awake again: shown", main.sky_bodies.visible)
@@ -134,24 +134,30 @@ func _test_street(main: Node, activities: Node, minigame: Node) -> void:
 	_check("after cardio the avatar faces the player again", not main.avatar.back_view)
 
 
+## Milestone 25 (decision 84): the buttons look the same by day and by night: the four big ones
+## in their colours, the others white with navy text. There is no night theme any more. The places
+## follow the clock's minute.
 func _test_buttons(main: Node, clock: Node) -> void:
-	var day_style: StyleBox = ThemeDB.get_project_theme().get_stylebox("normal", "Button")
-	_check("day buttons: white, rounded, black border", day_style is StyleBoxFlat and day_style.bg_color == Color.WHITE
-			and day_style.border_color == Color.BLACK and day_style.corner_radius_top_left > 0)
-	_check("...with black letters", ThemeDB.get_project_theme().get_color("font_color", "Button") == Color.BLACK)
-	clock.minute_of_day = 12.0 * 60.0
-	main._refresh_clock()
+	var ink := Color("#1b2552")
+	var style: StyleBox = ThemeDB.get_project_theme().get_stylebox("normal", "Button")
+	_check("buttons: white and rounded, with a thickness under them", style is StyleBoxFlat and style.bg_color.v > 0.95
+			and style.corner_radius_top_left > 0 and style.shadow_offset.y > 0)
+	_check("...with navy letters", ThemeDB.get_project_theme().get_color("font_color", "Button").is_equal_approx(ink))
+	var pressed: StyleBox = ThemeDB.get_project_theme().get_stylebox("pressed", "Button")
+	_check("...that go down when pressed", pressed.content_margin_top > style.content_margin_top
+			and pressed.shadow_offset.y < style.shadow_offset.y)
+	_check("there is no night theme", not ResourceLoader.exists("res://scenes/ui/night_theme.tres"))
 	var button: Button = main.exercise_button
-	_check("noon: day buttons", main.theme == null and button.get_theme_color("font_color") == Color.BLACK)
-	clock.minute_of_day = 23.0 * 60.0
-	main._refresh_clock()
-	var night_style: StyleBox = button.get_theme_stylebox("normal")
-	_check("23:00: black buttons with white letters and border", night_style.bg_color == Color.BLACK
-			and night_style.border_color == Color.WHITE and button.get_theme_color("font_color") == Color.WHITE)
-	_check("...and the windows show the night sky", main.scenery.daylight == 0.0 and main.scenery.sky_color == main.night_sky_color)
+	for hour in [12.0, 23.0]:
+		clock.minute_of_day = hour * 60.0
+		main._refresh_clock()
+		_check("%02d:00: the screen keeps the project theme" % hour, main.theme == null)
+		_check("%02d:00: the windows and the street follow the clock" % hour, main.scenery.minute == clock.minute_of_day
+				and main.background.minute == clock.minute_of_day and main.ground.minute == clock.minute_of_day)
+	_check("the four buttons are drawn in their colours", button.kind == "exercise" and main.eat_button.kind == "eat")
+	_check("at 23:00 the windows show no daylight", main.scenery.daylight == 0.0)
 	clock.minute_of_day = 12.0 * 60.0
 	main._refresh_clock()
-	_check("day again: white buttons", button.get_theme_stylebox("normal").bg_color == Color.WHITE)
 
 
 func _check(label: String, ok: bool) -> void:

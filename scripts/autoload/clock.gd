@@ -4,7 +4,8 @@ extends Node
 ## the device clock (Unix time) is read to count the real time the game was closed or the phone
 ## was off, and the sleep moves on by that much (catch_up_sleep). All numbers come from Config.
 ##
-## Cycle: DAY -> SLEEPING -> SLEEP_OVER (paused, waits for the wake button) -> DAY
+## Cycle: DAY -> SLEEPING -> SLEEP_OVER (paused, waits for the play button next to the clock,
+## which took the Wake button's place in Milestone 25) -> DAY
 ## Sleep can start at any time during the DAY (a nap or a night) when the avatar is sleepy
 ## (is_sleepy(): enough sleep debt or enough hours awake). Any sleep, short or
 ## long, ends the current day: after it, a new day starts with length 14 + (10 - hours slept).
@@ -301,10 +302,21 @@ func daylight_amount(minute := -1.0) -> float:
 	return minf(dawn, dusk)
 
 
-## Time of day as "HH:MM" (24-hour clock).
+## Time of day as "HH:MM" (24-hour clock). Used by the debug log and the tests.
 func clock_text() -> String:
 	var total_minutes := floori(minute_of_day)
 	return "%02d:%02d" % [floori(total_minutes / MINUTES_PER_HOUR), total_minutes % int(MINUTES_PER_HOUR)]
+
+
+## Time of day on the 12-hour clock of the interface (Milestone 25, decision 80): "07:00 AM",
+## "12:00 PM", "10:15 PM", "12:30 AM". am and pm are the translated words.
+func clock_text_12h(am: String, pm: String) -> String:
+	var total_minutes := floori(minute_of_day)
+	var hour := floori(total_minutes / MINUTES_PER_HOUR) % 24
+	var shown := hour % 12
+	if shown == 0:
+		shown = 12
+	return "%02d:%02d %s" % [shown, total_minutes % int(MINUTES_PER_HOUR), pm if hour >= 12 else am]
 
 
 func is_debug_speed_active() -> bool:

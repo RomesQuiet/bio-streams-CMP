@@ -18,9 +18,7 @@ const Training := preload("res://scripts/health/training.gd")
 const Requests := preload("res://scripts/health/requests.gd")
 const Canteen := preload("res://scripts/health/canteen.gd")
 const CanteenScreen := preload("res://scripts/ui/canteen.gd")
-## The buttons at night: black with white text and border (user, 7 Nov 2026). In the day they
-## come from the project theme (scenes/ui/main_theme.tres): white with black.
-const NIGHT_THEME := preload("res://scenes/ui/night_theme.tres")
+const Ui := preload("res://scripts/ui/ui_style.gd")
 ## Placeholder failure messages by cause (HealthModel.failure_cause(); the failure effect is not
 ## decided yet): severe thinness for too long, or target health or happiness below its line for
 ## too long (fail group in config). Translation keys, like every text on this screen.
@@ -29,14 +27,27 @@ const FAILURE_TEXTS := {
 	"health": "FAILURE_HEALTH",
 	"happiness": "FAILURE_HAPPINESS",
 }
-## Placeholder health bar warning in the danger state of severe thinness (Milestone 10.5).
-const DANGER_TEXT := "MEASURE_HEALTH_DANGER"
-const HEALTH_TEXT := "MEASURE_HEALTH"
-
-## Sky colours. The sky follows the clock (daylight hours in config), not whether
-## the avatar is awake or asleep.
-@export var day_sky_color := Color(0.3, 0.45, 0.62)
-@export var night_sky_color := Color(0.06, 0.07, 0.14)
+## The health part of the HUD: "Health N" (rounded down, decision 83) and its tooltip, which says
+## "Health: danger" while the danger warning flashes (decision 82; Milestone 10.5 placeholder).
+const HEALTH_VALUE_TEXT := "UI_HEALTH_VALUE"
+const DANGER_TIP := "MEASURE_HEALTH_DANGER"
+const HEALTH_TIP := "UI_HEALTH_BAR_TIP"
+## The clock is 12-hour, with AM and PM (decision 80).
+const AM_TEXT := "UI_AM"
+const PM_TEXT := "UI_PM"
+## The play button of the clock capsule: pause the day, go on, or start the day after a sleep
+## (it replaces the Wake button, decision 81).
+const PAUSE_TIP := "UI_PAUSE_TIP"
+const PLAY_TIP := "UI_PLAY_TIP"
+const WAKE_TIP := "UI_WAKE_TIP"
+## The XP bar fills smoothly (real seconds).
+const XP_FILL_SECONDS := 0.5
+## The balloon's text: a smaller size when it would need more than SPEECH_MAX_LINES lines, and the
+## balloon never covers the clock capsule (it moves down over the avatar's head instead).
+const SPEECH_FONT_SIZE := 25
+const SPEECH_SMALL_FONT_SIZE := 21
+const SPEECH_MAX_LINES := 2
+const SPEECH_GAP_UNDER_CAPSULE := 8.0
 ## An activity without a "scenery" (data/activities.json) shows its background colour behind
 ## the avatar, see-through, so day or night stays visible.
 @export var activity_backdrop_alpha := 0.6
@@ -49,21 +60,20 @@ const HEALTH_TEXT := "MEASURE_HEALTH"
 @export var xp_change_rise := 24.0
 @export var xp_gain_color := Color(0.55, 1.0, 0.55)
 @export var xp_loss_color := Color(1.0, 0.5, 0.45)
-## The health bar's fill (theme type variations in scenes/ui/main_theme.tres): green, or red in
-## the danger state of severe thinness (placeholder warning).
-const HEALTH_BAR_STYLE := &"HealthBar"
-const DANGER_BAR_STYLE := &"HealthBarDanger"
 
-@onready var sky: ColorRect = $Background
+## The sky (whole screen), the curved ground, and the dim outside the column (Milestone 25).
+@onready var background: Control = $Background
+@onready var ground: Control = %Ground
+@onready var outside_dim: Control = %OutsideDim
 @onready var activity_backdrop: ColorRect = %ActivityBackdrop
 @onready var scenery: Control = %Scenery
 @onready var sky_bodies: Control = %SkyBodies
 ## The bedroom's blanket, in front of the avatar.
 @onready var blanket: Control = %Blanket
 @onready var avatar: Control = %Avatar
-@onready var health_level_button: Button = %HealthLevelButton
-@onready var health_bar_button: Button = %HealthBarButton
-@onready var health_bar: ProgressBar = %HealthBar
+@onready var health_button: Button = %HealthButton
+@onready var health_pills: Control = %HealthPills
+@onready var heart: Control = %Heart
 @onready var health_label: Label = %HealthLabel
 @onready var health_panel: PanelContainer = %HealthPanel
 @onready var physical_button: Button = %PhysicalButton
@@ -78,12 +88,13 @@ const DANGER_BAR_STYLE := &"HealthBarDanger"
 @onready var diet_label: Label = %DietLabel
 @onready var happiness_bar: ProgressBar = %HappinessBar
 @onready var sleep_bar: ProgressBar = %SleepBar
-@onready var level_label: Label = %LevelLabel
+@onready var level_display: Control = %LevelDisplay
 @onready var xp_bar: ProgressBar = %XPBar
 @onready var xp_label: Label = %XPLabel
 @onready var xp_change_label: Label = %XPChange
 @onready var clock_label: Label = %ClockLabel
 @onready var pause_button: Button = %PauseButton
+@onready var pause_icon: Control = %PauseIcon
 @onready var football_field: Control = %FootballField
 @onready var football_pad: Control = %FootballPad
 @onready var football_help: Control = %FootballHelp
@@ -92,9 +103,11 @@ const DANGER_BAR_STYLE := &"HealthBarDanger"
 @onready var bite_button: Button = %BiteButton
 @onready var done_button: Button = %DoneButton
 @onready var help_button: Button = %HelpButton
-@onready var wake_button: Button = %WakeButton
 @onready var speech_label: Label = %SpeechLabel
 @onready var speech_bubble: PanelContainer = %SpeechBubble
+@onready var speech_divider: Control = %SpeechDivider
+@onready var clock_capsule: Control = $ClockCapsule
+@onready var _speech_bottom: float = speech_bubble.offset_bottom
 @onready var request_icon: Control = %RequestIcon
 @onready var stop_button: Button = %StopButton
 @onready var action_buttons: Array[Button] = [%ExerciseButton, %SleepButton, %EatButton, %EntertainmentButton]
@@ -135,7 +148,12 @@ var _backdrop_tween: Tween
 ## XP gained or lost and not shown yet, and the change being shown.
 var _xp_pending := 0.0
 var _xp_tween: Tween
+var _xp_fill_tween: Tween
 var _scenery_tween: Tween
+## The level shown, to know whether the XP bar fills smoothly or starts again.
+var _shown_level := -1
+## What the balloon is about now (see _set_speech()).
+var _speech_topic := ""
 ## A short message (such as "Level up!") shown instead of the normal speech for a moment:
 ## its translation key and the values for its format.
 var _flash_key := ""
@@ -155,8 +173,6 @@ func _ready() -> void:
 	if not GameState.is_created():
 		get_tree().change_scene_to_file.call_deferred(CREATION_SCENE)
 		return
-	health_bar.min_value = Config.get_float("measures.health_min")
-	health_bar.max_value = Config.get_float("measures.health_max")
 	sleep_slider.min_value = Config.get_float("sleep_activity.slider_min_hours")
 	sleep_slider.max_value = Config.get_float("time.max_sleep_hours")
 	sleep_slider.step = Config.get_float("sleep_activity.slider_step_hours")
@@ -173,10 +189,9 @@ func _ready() -> void:
 	portuguese_button.button_group = languages
 	english_button.button_group = languages
 
-	health_level_button.pressed.connect(_toggle_health_panel)
-	health_bar_button.pressed.connect(_toggle_health_panel)
+	health_button.pressed.connect(_toggle_health_panel)
 	physical_button.pressed.connect(_toggle_values_panel)
-	pause_button.pressed.connect(Clock.toggle_pause)
+	pause_button.pressed.connect(_on_pause_pressed)
 	%SettingsButton.pressed.connect(_open_settings)
 	%SettingsCloseButton.pressed.connect(_close_settings)
 	portuguese_button.pressed.connect(Settings.set_language.bind("pt"))
@@ -184,7 +199,6 @@ func _ready() -> void:
 	new_avatar_button.pressed.connect(_show_new_avatar_confirmation.bind(true))
 	%ConfirmCancelButton.pressed.connect(_show_new_avatar_confirmation.bind(false))
 	%ConfirmNewAvatarButton.pressed.connect(_start_new_avatar)
-	wake_button.pressed.connect(Clock.wake_up)
 	sleep_button.pressed.connect(_on_sleep_button_pressed)
 	exercise_button.pressed.connect(_open_options.bind("exercise"))
 	entertainment_button.pressed.connect(_open_options.bind("entertainment"))
@@ -243,9 +257,13 @@ func _ready() -> void:
 	Minigame.attach()
 	_open_football_help_first_time()
 
-	# The game may have been loaded mid-activity, so show it at once.
+	# The game may have been loaded mid-activity, so show it at once (no animation either).
+	health_pills.animate = false
+	level_display.animate = false
 	_refresh_activity(true)
 	_refresh()
+	health_pills.animate = true
+	level_display.animate = true
 	_refresh_clock()
 	_refresh_sleep_info()
 	# A saved failure: the failure screen again (it cannot be escaped by reloading).
@@ -274,6 +292,41 @@ func _process(_delta: float) -> void:
 	if Minigame.running:
 		_send_stick()
 		_refresh_minigame()
+	# The sky's horizon colour ends at the top of the curved ground (both cover the whole screen).
+	background.horizon_y = ground.horizon()
+	_refresh_outside_dim()
+	_place_speech()
+
+
+## The balloon stands over the avatar; a tall one moves down rather than cover the clock capsule
+## and its play button.
+func _place_speech() -> void:
+	var height := speech_bubble.size.y
+	var stage_bottom: float = speech_bubble.get_parent().get_global_rect().end.y
+	var limit := clock_capsule.get_global_rect().end.y + SPEECH_GAP_UNDER_CAPSULE
+	var bottom := _speech_bottom + maxf(0.0, limit - (stage_bottom + _speech_bottom - height))
+	if not is_equal_approx(bottom, speech_bubble.offset_bottom):
+		speech_bubble.offset_bottom = bottom
+		speech_bubble.offset_top = bottom - height
+
+
+## On a screen wider than the column, an open panel darkens the rest of the screen too.
+func _refresh_outside_dim() -> void:
+	var amount := 0.0
+	for cover: ColorRect in [settings_overlay, football_help, failure_screen, canteen]:
+		if cover and cover.visible:
+			amount = maxf(amount, cover.color.a)
+	outside_dim.amount = amount
+	outside_dim.color = Ui.DIM_COLOR
+
+
+## The button next to the clock: after a sleep it starts the day (it replaces the Wake button,
+## decision 81); otherwise it pauses the day or lets it go on.
+func _on_pause_pressed() -> void:
+	if Clock.phase == Clock.Phase.SLEEP_OVER:
+		Clock.wake_up()
+	else:
+		Clock.toggle_pause()
 
 
 ## The joystick, or the arrow keys or WASD on a computer. The screen's y goes down, the field's
@@ -473,8 +526,7 @@ func _flash(key: String, args := []) -> void:
 
 
 func _show_flash() -> void:
-	speech_label.text = tr(_flash_key) % _flash_args
-	request_icon.kind = ""
+	_write_speech(tr(_flash_key) % _flash_args, "", _flash_key)
 
 
 func _end_flash() -> void:
@@ -483,11 +535,39 @@ func _end_flash() -> void:
 
 
 ## Writes to the speech bubble, unless a short message is being shown. request: the picture of
-## a request (Requests), or "" for none.
-func _set_speech(text: String, request := "") -> void:
+## a request (Requests), or "" for none. topic: what the message is about; the balloon comes in
+## softly only when it changes (an activity's progress changes its numbers, not its topic).
+func _set_speech(text: String, request := "", topic := "") -> void:
 	if _flash_key.is_empty():
-		speech_label.text = text
-		request_icon.kind = request
+		_write_speech(text, request, topic if not topic.is_empty() else text)
+
+
+## The balloon's text and picture. With a picture the text sits on the left of a divider (as in
+## the mockups); without one it is centred.
+func _write_speech(text: String, request: String, topic: String) -> void:
+	speech_label.text = text
+	request_icon.kind = request
+	speech_divider.visible = not request.is_empty()
+	speech_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER if request.is_empty() else HORIZONTAL_ALIGNMENT_LEFT
+	speech_label.add_theme_font_size_override("font_size", _speech_font_size(text, not request.is_empty()))
+	if topic != _speech_topic:
+		# Not for the first message of the screen.
+		if not _speech_topic.is_empty() and speech_bubble.visible:
+			speech_bubble.pop()
+		_speech_topic = topic
+
+
+## The balloon's font size: smaller when the text would need more than SPEECH_MAX_LINES lines.
+func _speech_font_size(text: String, with_picture: bool) -> int:
+	var font := speech_label.get_theme_font("font")
+	var style := speech_bubble.get_theme_stylebox("panel")
+	var width := speech_bubble.size.x - style.get_content_margin(SIDE_LEFT) - style.get_content_margin(SIDE_RIGHT)
+	if with_picture:
+		width -= request_icon.custom_minimum_size.x + speech_divider.get_theme_constant("separation")
+	var lines := 0.0
+	for line in text.split("\n"):
+		lines += ceilf(font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, SPEECH_FONT_SIZE).x / maxf(width, 1.0))
+	return SPEECH_SMALL_FONT_SIZE if lines > SPEECH_MAX_LINES else SPEECH_FONT_SIZE
 
 
 ## The avatar's reactions (Milestone 16): each shows an effect the model already has.
@@ -668,6 +748,7 @@ func _refresh_minigame() -> void:
 	var football := Minigame.running and Minigame.kind == Minigame.FOOTBALL
 	football_field.visible = football
 	avatar.visible = not football
+	ground.shadow_visible = not football
 	_refresh_sky_bodies()
 	# The bubble would cover the match or the fork: it only comes back for a short message.
 	var meal := Minigame.running and Minigame.kind == Minigame.MEAL
@@ -796,27 +877,26 @@ func _refresh_strength() -> void:
 	up_button.disabled = Minigame.resting or Minigame.next_down
 
 
-## The sky follows the clock, and so do the windows of the room and the buttons: black ones
-## while the sky is more night than day.
+## The sky, the sun or moon, the ground and the places follow the clock's minute of the day and
+## nothing else (Milestone 25). The buttons look the same day and night (decision 84).
 func _refresh_sky() -> void:
-	var daylight := Clock.daylight_amount()
-	sky.color = night_sky_color.lerp(day_sky_color, daylight)
-	scenery.sky_color = sky.color
-	scenery.daylight = daylight
-	sky_bodies.sky_color = sky.color
-	sky_bodies.minute = Clock.minute_of_day
-	var buttons: Theme = NIGHT_THEME if daylight < 0.5 else null
-	if theme != buttons:
-		theme = buttons
+	var minute := Clock.minute_of_day
+	background.minute = minute
+	ground.minute = minute
+	sky_bodies.minute = minute
+	scenery.minute = minute
+	scenery.daylight = Clock.daylight_amount()
 
 
 func _refresh() -> void:
-	health_level_button.text = str(GameState.health_level)
-	health_bar.value = GameState.health
+	# "Health N" rounded down and the pills show the same health (the bar's value, 1 to 5).
+	health_label.text = tr(HEALTH_VALUE_TEXT) % GameState.health_level
+	health_pills.value = GameState.health
 	# The danger state of severe thinness, or a failure timer running: failure may come soon.
 	var danger := HealthModel.in_danger() or HealthModel.failure_near()
-	health_bar.theme_type_variation = DANGER_BAR_STYLE if danger else HEALTH_BAR_STYLE
-	health_label.text = DANGER_TEXT if danger else HEALTH_TEXT
+	health_pills.danger = danger
+	heart.flashing = danger
+	health_button.tooltip_text = DANGER_TIP if danger else HEALTH_TIP
 	physical_bar.value = GameState.physical
 	happiness_bar.value = GameState.happiness
 	sleep_bar.value = GameState.sleep
@@ -829,17 +909,31 @@ func _refresh() -> void:
 	diet_label.text = tr("MEASURE_DIET") % Settings.number(GameState.diet_quality, 2)
 	avatar.states = AvatarStates.current()
 	avatar.sheet = "%s_%s" % [GameState.age_group, GameState.sex]
-	level_label.text = tr("UI_LEVEL") % GameState.level
-	xp_bar.value = GameState.level_progress
+	level_display.level = GameState.level
+	_refresh_xp_bar()
 	var per_level := Config.get_float("xp.per_level")
 	xp_label.text = tr("UI_XP") % [floori(GameState.level_progress * per_level), roundi(per_level)]
 	_refresh_phase()
 
 
+## The XP bar fills smoothly; when the level changes (up or down) it starts again from its new
+## place, while the level numbers roll.
+func _refresh_xp_bar() -> void:
+	var target := GameState.level_progress
+	if _xp_fill_tween:
+		_xp_fill_tween.kill()
+	if GameState.level != _shown_level or not level_display.animate or is_equal_approx(target, xp_bar.value):
+		xp_bar.value = target
+	else:
+		_xp_fill_tween = create_tween()
+		_xp_fill_tween.tween_property(xp_bar, "value", target, XP_FILL_SECONDS).set_ease(Tween.EASE_OUT)
+	_shown_level = GameState.level
+
+
 func _refresh_clock() -> void:
-	var text := Clock.clock_text()
+	var text := Clock.clock_text_12h(tr(AM_TEXT), tr(PM_TEXT))
 	if Clock.is_debug_speed_active():
-		text += "\nx%d" % Clock.debug_speed
+		text += " x%d" % Clock.debug_speed
 	clock_label.text = text
 	_refresh_sky()
 
@@ -849,10 +943,11 @@ func _refresh_activity_speech() -> void:
 		return
 	if Activities.current_activity == "sleep":
 		_set_speech(tr("SPEECH_PROGRESS") % ["Zzz...", Settings.number(Activities.elapsed_hours, 1),
-				Settings.number(Activities.target_hours, 1)])
+				Settings.number(Activities.target_hours, 1)], "", "activity:sleep")
 		return
 	_set_speech(tr("SPEECH_PROGRESS_MINUTES") % ["%s..." % tr(Activities.current_option_data().get("name", "")),
-			roundi(Activities.elapsed_hours * Clock.MINUTES_PER_HOUR), roundi(Activities.target_hours * Clock.MINUTES_PER_HOUR)])
+			roundi(Activities.elapsed_hours * Clock.MINUTES_PER_HOUR), roundi(Activities.target_hours * Clock.MINUTES_PER_HOUR)],
+			"", "activity:" + Activities.current_option)
 
 
 ## Milestone 24 (decision 78): no sun or moon during football (the field fills the stage) or
@@ -865,9 +960,12 @@ func _refresh_phase() -> void:
 	var phase := Clock.phase
 	_refresh_sky_bodies()
 	var running := Activities.is_running()
-	pause_button.disabled = phase != Clock.Phase.DAY
-	pause_button.set_pressed_no_signal(Clock.paused)
-	wake_button.disabled = phase != Clock.Phase.SLEEP_OVER
+	# While the avatar sleeps the day cannot pause; when the sleep is over the button shows play
+	# and starts the day (decision 81).
+	pause_button.disabled = phase == Clock.Phase.SLEEPING
+	var waiting := Clock.paused or phase == Clock.Phase.SLEEP_OVER
+	pause_icon.kind = "play" if waiting else "pause"
+	pause_button.tooltip_text = WAKE_TIP if phase == Clock.Phase.SLEEP_OVER else (PLAY_TIP if waiting else PAUSE_TIP)
 	stop_button.visible = running
 	for button in action_buttons:
 		button.disabled = running
@@ -895,7 +993,7 @@ func _refresh_phase() -> void:
 			var text := tr("SPEECH_SLEPT") % Settings.number(Clock.sleep_elapsed_hours, 1)
 			if GameState.is_at_failure():
 				text = failure_text() + "\n" + text
-			_set_speech(text)
+			_set_speech(text, "", "slept")
 
 
 ## The placeholder failure message for the current cause ("" when there is no failure).

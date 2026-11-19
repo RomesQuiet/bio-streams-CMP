@@ -2,8 +2,6 @@
 
 [ext_resource type="Script" path="res://scripts/ui/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/avatar/avatar.tscn" id="2_avatar"]
-[ext_resource type="Texture2D" path="res://assets/art/ui/pause.svg" id="3_pause"]
-[ext_resource type="Texture2D" path="res://assets/art/ui/settings.svg" id="5_settings"]
 [ext_resource type="PackedScene" path="res://scenes/ui/debug_panel.tscn" id="6_debug"]
 [ext_resource type="Script" path="res://scripts/ui/beat_bar.gd" id="7_beat"]
 [ext_resource type="Script" path="res://scripts/ui/football_field.gd" id="8_field"]
@@ -14,17 +12,28 @@
 [ext_resource type="Script" path="res://scripts/ui/scenery.gd" id="13_scenery"]
 [ext_resource type="Script" path="res://scripts/ui/failure_screen.gd" id="14_failure"]
 [ext_resource type="Script" path="res://scripts/ui/sky_bodies.gd" id="15_sky"]
+[ext_resource type="Script" path="res://scripts/ui/sky_background.gd" id="16_background"]
+[ext_resource type="Script" path="res://scripts/ui/curved_ground.gd" id="17_ground"]
+[ext_resource type="Script" path="res://scripts/ui/action_button.gd" id="18_action"]
+[ext_resource type="Script" path="res://scripts/ui/health_pills.gd" id="19_pills"]
+[ext_resource type="Script" path="res://scripts/ui/level_display.gd" id="20_level"]
+[ext_resource type="Script" path="res://scripts/ui/speech_balloon.gd" id="21_balloon"]
+[ext_resource type="Script" path="res://scripts/ui/ui_icon.gd" id="22_icon"]
+[ext_resource type="Script" path="res://scripts/ui/outside_dim.gd" id="23_dim"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
+anchors_preset = 13
+anchor_left = 0.5
+anchor_right = 0.5
 anchor_bottom = 1.0
+offset_left = -360.0
+offset_right = 360.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_main")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -32,7 +41,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.17, 0.2, 0.27, 1)
+script = ExtResource("16_background")
 
 [node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -42,7 +51,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 24
+theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 24
 theme_override_constants/margin_bottom = 32
 
@@ -51,7 +60,7 @@ layout_mode = 2
 theme_override_constants/separation = 16
 
 [node name="TopSpace" type="Control" parent="Margin/Layout"]
-custom_minimum_size = Vector2(0, 72)
+custom_minimum_size = Vector2(0, 178)
 layout_mode = 2
 mouse_filter = 2
 
@@ -78,10 +87,21 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_bottom = -54.0
+offset_bottom = -94.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="Ground" type="Control" parent="Margin/Layout/Stage"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("17_ground")
 
 [node name="Scenery" type="Control" parent="Margin/Layout/Stage"]
 unique_name_in_owner = true
@@ -94,21 +114,6 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("13_scenery")
-
-[node name="Ground" type="ColorRect" parent="Margin/Layout/Stage"]
-layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -24.0
-offset_top = -60.0
-offset_right = 24.0
-offset_bottom = 640.0
-grow_horizontal = 2
-grow_vertical = 0
-mouse_filter = 2
-color = Color(0.5, 0.5, 0.52, 1)
 
 [node name="Avatar" parent="Margin/Layout/Stage" instance=ExtResource("2_avatar")]
 unique_name_in_owner = true
@@ -171,32 +176,42 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -220.0
-offset_top = -610.0
-offset_right = 220.0
+offset_left = -275.0
+offset_top = -624.0
+offset_right = 275.0
 offset_bottom = -540.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
+theme_type_variation = &"SpeechBalloon"
+script = ExtResource("21_balloon")
 
 [node name="SpeechRow" type="HBoxContainer" parent="Margin/Layout/Stage/SpeechBubble"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 0
 
 [node name="RequestIcon" type="Control" parent="Margin/Layout/Stage/SpeechBubble/SpeechRow"]
 unique_name_in_owner = true
 visible = false
-custom_minimum_size = Vector2(60, 60)
+custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
 script = ExtResource("12_request")
 
+[node name="SpeechDivider" type="VSeparator" parent="Margin/Layout/Stage/SpeechBubble/SpeechRow"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"SpeechDivider"
+
 [node name="SpeechLabel" type="Label" parent="Margin/Layout/Stage/SpeechBubble/SpeechRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"SpeechLabel"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
@@ -221,37 +236,53 @@ text = "UI_STOP"
 [node name="ActionGrid" type="GridContainer" parent="Margin/Layout"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/h_separation = 16
-theme_override_constants/v_separation = 16
+theme_override_constants/h_separation = 18
+theme_override_constants/v_separation = 18
 columns = 2
 
 [node name="ExerciseButton" type="Button" parent="Margin/Layout/ActionGrid"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 120)
+custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 size_flags_horizontal = 3
+focus_mode = 0
+theme_type_variation = &"ActionButton"
 text = "UI_EXERCISE"
+script = ExtResource("18_action")
+kind = "exercise"
 
 [node name="SleepButton" type="Button" parent="Margin/Layout/ActionGrid"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 120)
+custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 size_flags_horizontal = 3
+focus_mode = 0
+theme_type_variation = &"ActionButton"
 text = "UI_SLEEP"
+script = ExtResource("18_action")
+kind = "sleep"
 
 [node name="EatButton" type="Button" parent="Margin/Layout/ActionGrid"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 120)
+custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 size_flags_horizontal = 3
+focus_mode = 0
+theme_type_variation = &"ActionButton"
 text = "UI_EAT"
+script = ExtResource("18_action")
+kind = "eat"
 
 [node name="EntertainmentButton" type="Button" parent="Margin/Layout/ActionGrid"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 120)
+custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 size_flags_horizontal = 3
+focus_mode = 0
+theme_type_variation = &"ActionButton"
 text = "UI_ENTERTAINMENT"
+script = ExtResource("18_action")
+kind = "entertainment"
 
 [node name="MinigamePanel" type="VBoxContainer" parent="Margin/Layout"]
 unique_name_in_owner = true
@@ -373,87 +404,98 @@ size_flags_horizontal = 3
 focus_mode = 0
 text = "MINIGAME_UP"
 
-[node name="HealthLevelButton" type="Button" parent="."]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 24.0
-offset_top = 24.0
-offset_right = 112.0
-offset_bottom = 112.0
-tooltip_text = "UI_HEALTH_LEVEL_TIP"
-theme_override_font_sizes/font_size = 44
-text = "4"
+[node name="Hud" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 120.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_type_variation = &"HudPanel"
 
-[node name="HealthBarButton" type="Button" parent="."]
+[node name="HudRow" type="HBoxContainer" parent="Hud"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="HealthZone" type="MarginContainer" parent="Hud/HudRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.35
+mouse_filter = 2
+
+[node name="HealthContent" type="HBoxContainer" parent="Hud/HudRow/HealthZone"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Heart" type="Control" parent="Hud/HudRow/HealthZone/HealthContent"]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 120.0
-offset_top = 24.0
-offset_right = 340.0
-offset_bottom = 64.0
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("22_icon")
+box_share = 0.94
+
+[node name="HealthText" type="VBoxContainer" parent="Hud/HudRow/HealthZone/HealthContent"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="HealthLabel" type="Label" parent="Hud/HudRow/HealthZone/HealthContent/HealthText"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+
+[node name="HealthPills" type="Control" parent="Hud/HudRow/HealthZone/HealthContent/HealthText"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("19_pills")
+
+[node name="HealthButton" type="Button" parent="Hud/HudRow/HealthZone"]
+unique_name_in_owner = true
+layout_mode = 2
 focus_mode = 0
 tooltip_text = "UI_HEALTH_BAR_TIP"
 flat = true
 
-[node name="HealthBar" type="ProgressBar" parent="HealthBarButton"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="Divider1" type="VSeparator" parent="Hud/HudRow"]
+layout_mode = 2
 mouse_filter = 2
-theme_type_variation = &"HealthBar"
-min_value = 1.0
-max_value = 5.0
-step = 0.0
-value = 3.0
-show_percentage = false
+theme_type_variation = &"HudDivider"
 
-[node name="HealthLabel" type="Label" parent="HealthBarButton"]
+[node name="XPZone" type="VBoxContainer" parent="Hud/HudRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="XPLabel" type="Label" parent="Hud/HudRow/XPZone"]
 unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 6
-theme_override_font_sizes/font_size = 20
-text = "MEASURE_HEALTH"
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
 horizontal_alignment = 1
-vertical_alignment = 1
 
-[node name="XPBar" type="ProgressBar" parent="."]
+[node name="XPBar" type="ProgressBar" parent="Hud/HudRow/XPZone"]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 352.0
-offset_top = 24.0
-offset_right = 600.0
-offset_bottom = 64.0
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
 mouse_filter = 2
 theme_type_variation = &"XPBar"
 max_value = 1.0
 step = 0.0
 show_percentage = false
 
-[node name="XPLabel" type="Label" parent="XPBar"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 6
-theme_override_font_sizes/font_size = 20
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="XPChange" type="Label" parent="XPBar"]
+[node name="XPChange" type="Label" parent="Hud/HudRow/XPZone/XPBar"]
 unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0)
 layout_mode = 1
@@ -463,86 +505,129 @@ offset_top = 44.0
 offset_bottom = 80.0
 grow_horizontal = 2
 mouse_filter = 2
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0.105882, 0.145098, 0.321569, 1)
 theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 26
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="RightColumn" type="VBoxContainer" parent="."]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -112.0
-offset_top = 24.0
-offset_right = -24.0
-offset_bottom = 364.0
-grow_horizontal = 0
+[node name="Divider2" type="VSeparator" parent="Hud/HudRow"]
+layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 8
+theme_type_variation = &"HudDivider"
 
-[node name="LevelBox" type="PanelContainer" parent="RightColumn"]
-custom_minimum_size = Vector2(0, 88)
+[node name="LevelZone" type="VBoxContainer" parent="Hud/HudRow"]
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.72
 tooltip_text = "UI_XP_LEVEL_TIP"
-theme_type_variation = &"LevelBox"
+mouse_filter = 1
+theme_override_constants/separation = 0
+alignment = 1
 
-[node name="LevelLabel" type="Label" parent="RightColumn/LevelBox"]
-unique_name_in_owner = true
+[node name="LevelTitle" type="Label" parent="Hud/HudRow/LevelZone"]
 layout_mode = 2
-theme_type_variation = &"LevelLabel"
-theme_override_constants/line_spacing = -6
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 17
+text = "UI_XP_LEVEL"
 horizontal_alignment = 1
-vertical_alignment = 1
 
-[node name="ClockLabel" type="Label" parent="RightColumn"]
+[node name="LevelDisplay" type="Control" parent="Hud/HudRow/LevelZone"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 40)
+custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
+mouse_filter = 2
+script = ExtResource("20_level")
+
+[node name="ClockCapsule" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -150.0
+offset_top = 134.0
+offset_right = 150.0
+offset_bottom = 196.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_type_variation = &"Capsule"
+
+[node name="ClockRow" type="HBoxContainer" parent="ClockCapsule"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="ClockLabel" type="Label" parent="ClockCapsule/ClockRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 30
 text = "07:00"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="PauseButton" type="Button" parent="RightColumn"]
-unique_name_in_owner = true
-focus_mode = 0
-custom_minimum_size = Vector2(0, 64)
+[node name="ClockDivider" type="VSeparator" parent="ClockCapsule/ClockRow"]
 layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HudDivider"
+theme_override_constants/separation = 2
+
+[node name="PauseButton" type="Button" parent="ClockCapsule/ClockRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(52, 56)
+layout_mode = 2
+focus_mode = 0
 tooltip_text = "UI_PAUSE_TIP"
-toggle_mode = true
-icon = ExtResource("3_pause")
-icon_alignment = 1
-expand_icon = true
+flat = true
 
-[node name="SettingsButton" type="Button" parent="RightColumn"]
+[node name="PauseIcon" type="Control" parent="ClockCapsule/ClockRow/PauseButton"]
 unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("22_icon")
+kind = "pause"
+box_share = 0.62
+
+[node name="SettingsButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -84.0
+offset_top = 133.0
+offset_right = -20.0
+offset_bottom = 197.0
+grow_horizontal = 0
 focus_mode = 0
-custom_minimum_size = Vector2(0, 64)
-layout_mode = 2
 tooltip_text = "SETTINGS_TITLE"
-icon = ExtResource("5_settings")
-icon_alignment = 1
-expand_icon = true
+flat = true
 
-[node name="WakeButton" type="Button" parent="RightColumn"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 56)
-layout_mode = 2
-tooltip_text = "UI_WAKE_TIP"
-theme_override_font_sizes/font_size = 19
-disabled = true
-text = "UI_WAKE"
+[node name="GearIcon" type="Control" parent="SettingsButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("22_icon")
+kind = "gear"
+box_share = 0.72
 
 [node name="HealthPanel" type="PanelContainer" parent="."]
 unique_name_in_owner = true
 visible = false
 layout_mode = 0
-offset_left = 120.0
-offset_top = 64.0
-offset_right = 420.0
-offset_bottom = 300.0
+offset_left = 16.0
+offset_top = 124.0
+offset_right = 316.0
+offset_bottom = 360.0
 
 [node name="Margin" type="MarginContainer" parent="HealthPanel"]
 layout_mode = 2
@@ -611,10 +696,10 @@ show_percentage = false
 unique_name_in_owner = true
 visible = false
 layout_mode = 0
-offset_left = 428.0
-offset_top = 64.0
-offset_right = 588.0
-offset_bottom = 200.0
+offset_left = 324.0
+offset_top = 124.0
+offset_right = 544.0
+offset_bottom = 260.0
 
 [node name="Margin" type="MarginContainer" parent="ValuesPanel"]
 layout_mode = 2
@@ -789,7 +874,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.5)
+color = Color(0.04, 0.05, 0.16, 0.6)
 
 [node name="SettingsPanel" type="PanelContainer" parent="SettingsOverlay"]
 layout_mode = 1
@@ -904,7 +989,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.6)
+color = Color(0.04, 0.05, 0.16, 0.6)
 script = ExtResource("10_help")
 
 [node name="FailureOverlay" type="ColorRect" parent="."]
@@ -916,7 +1001,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.6)
+color = Color(0.04, 0.05, 0.16, 0.6)
 script = ExtResource("14_failure")
 
 [node name="FailurePanel" type="PanelContainer" parent="FailureOverlay"]
@@ -998,6 +1083,13 @@ custom_minimum_size = Vector2(0, 72)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "SETTINGS_NEW_AVATAR"
+
+[node name="OutsideDim" type="Control" parent="." node_paths=PackedStringArray("column")]
+unique_name_in_owner = true
+layout_mode = 0
+mouse_filter = 2
+script = ExtResource("23_dim")
+column = NodePath("..")
 
 [node name="DebugPanel" parent="." instance=ExtResource("6_debug")]
 layout_mode = 0

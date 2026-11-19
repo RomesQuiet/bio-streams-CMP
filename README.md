@@ -59,7 +59,7 @@ Godot --headless --path . -s res://tests/health_log_test.gd
 | `data/` | Game data and tunable numbers (JSON) |
 | `translations/` | Game texts in Portuguese and English (CSV) |
 | `assets/` | Art and audio (`assets/art/avatar/source/` holds the original avatar sheets and the team's upscaled versions) |
-| `tools/` | Helper scripts, such as `cut_avatar_sheets.py`, which cuts the avatar sheets for the game |
+| `tools/` | Helper scripts, such as `cut_avatar_sheets.py`, which cuts the avatar sheets for the game, and `render_ui_states.gd`, which renders the interface at the test moments of the specification |
 | `documentation/` | Development notes |
 | `docs/` | Web export, published with GitHub Pages |
 
@@ -69,3 +69,5 @@ Godot --headless --path . -s res://tests/health_log_test.gd
 - Texts and art: CC BY 4.0.
 - The avatar art (`assets/art/avatar/`) was made by the project team with an AI image tool, and is shared under CC BY 4.0 like the rest of the art.
 - Original music belongs to its authors (Matilde with Senhor Carlitos), who decide its licence.
+- The font Nunito (`assets/fonts/nunito/`, from Google Fonts' official repository) is by The Nunito Project Authors and is under the SIL Open Font License 1.1 (`assets/fonts/nunito/OFL.txt`).
+- The interface (Milestone 25) is drawn by code; its approved mockups (`documentation/ui_mockups/`) come from the project team.

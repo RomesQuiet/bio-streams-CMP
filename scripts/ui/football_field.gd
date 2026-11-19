@@ -4,17 +4,19 @@ extends Control
 ## where a good shot starts, a line shows where a pass would go, rings show who is free and who
 ## can be tackled, a small map shows the whole field, and a line of text says what to do next.
 
-const GRASS_COLOR := Color(0.2, 0.48, 0.28)
-const STRIPE_COLOR := Color(0.23, 0.52, 0.31)
-const LINE_COLOR := Color(0.9, 0.95, 0.9, 0.8)
-const TEAM_COLOR := Color(0.25, 0.5, 0.95)
-const YOU_COLOR := Color(1.0, 0.85, 0.3)
-const OTHER_COLOR := Color(0.9, 0.3, 0.3)
+## Colours of Milestone 25 (scripts/ui/ui_style.gd): a mint-green pitch, a blue team, a salmon-red
+## team, the avatar in gold, navy outlines.
+const GRASS_COLOR := Color("#2fa877")
+const STRIPE_COLOR := Color("#38b582")
+const LINE_COLOR := Color(1, 1, 1, 0.85)
+const TEAM_COLOR := Color("#3f86f0")
+const YOU_COLOR := Color("#ffd84a")
+const OTHER_COLOR := Color("#ff6b6b")
 const BALL_COLOR := Color.WHITE
-const GOOD_COLOR := Color(0.5, 1.0, 0.6)
-const WARN_COLOR := Color(1.0, 0.7, 0.3)
-const OUTLINE_COLOR := Color(0.1, 0.1, 0.15)
-const BANNER_COLOR := Color(0.05, 0.07, 0.1, 0.75)
+const GOOD_COLOR := Color("#9ff7e3")
+const WARN_COLOR := Color("#ffb347")
+const OUTLINE_COLOR := Color("#1b2552")
+const BANNER_COLOR := Color(0.106, 0.145, 0.322, 0.82)
 
 const PLAYER_RADIUS := 17.0
 const YOU_RADIUS := 22.0

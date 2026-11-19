@@ -65,14 +65,14 @@ func _new_avatar() -> void:
 
 
 func _reach_failure() -> void:
-	_check("a new avatar: no failure, no warning", not gs.is_at_failure() and main.health_label.text == main.HEALTH_TEXT)
+	_check("a new avatar: no failure, no warning", not gs.is_at_failure() and not main.health_pills.danger)
 	activities.start("entertainment", "screens")
 	gs.physical = 0.0
 	gs.sleep = 0.0
 	health_model.step(1.0, false)
 	gs.changed.emit()
-	_check("target health below the line: the health bar warns before failure", not gs.is_at_failure()
-			and main.health_label.text == main.DANGER_TEXT and main.health_bar.theme_type_variation == main.DANGER_BAR_STYLE)
+	_check("target health below the line: the heart and pills flash before failure", not gs.is_at_failure()
+			and main.health_pills.danger and main.heart.flashing)
 	_check("...and the failure screen is not shown yet", not main.failure_screen.visible)
 	gs.failed.connect(func(cause: String) -> void: _announced.append(cause))
 	health_model.step(23.0, false)
