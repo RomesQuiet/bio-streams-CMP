@@ -1,7 +1,7 @@
 extends Control
 ## Milestone 25: the XP level as "2 → 3" (documentation/ui_specification_v1.md, 4.4): the current
 ## level large and white, a small arrow, and the next level smaller and see-through. When the level
-## changes the numbers roll: up when it rises, down when it falls (XP can go down, decision 72).
+## changes the numbers roll up (since Milestone 26, decision 90, XP and the level never go down; a falling roll is kept for safety).
 ## No frame and no ring.
 
 const Ui := preload("res://scripts/ui/ui_style.gd")

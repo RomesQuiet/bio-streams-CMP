@@ -85,7 +85,13 @@ func _test_xp_from_health_changes(gs: Node, config: Node) -> void:
 	gs.happiness -= 0.1
 	progress.step(1.0 / 12.0, false)
 	var loss: float = before_target - gs.target_health
-	_check("a fall in target health takes XP away", loss > 0.0 and absf(gs.xp - (xp_before - loss * per_point)) < TOLERANCE)
+	_check("a fall in target health takes no XP (decision 90)", loss > 0.0 and gs.xp == xp_before)
+	gs.happiness += 0.1
+	progress.step(1.0 / 12.0, false)
+	_check("climbing back to the earlier best gives no XP", gs.xp == xp_before)
+	gs.happiness += 0.05
+	progress.step(1.0 / 12.0, false)
+	_check("a rise above the best gives XP again", gs.xp > xp_before)
 	xp_before = gs.xp
 	progress.step(1.0 / 12.0, false)
 	_check("no change in target health, below 4.5: no XP", gs.xp == xp_before)
@@ -97,7 +103,7 @@ func _test_xp_from_health_changes(gs: Node, config: Node) -> void:
 	gs.xp = 1.0
 	_set_measures(gs, BAD_DAY)
 	progress.step(1.0 / 12.0, false)
-	_check("XP never goes below 0", gs.xp == 0.0)
+	_check("a bad day takes no XP", gs.xp == 1.0)
 
 
 ## At target health 4.5 or more: also 10 XP per avatar hour x (1 + hours at that level / 48), at
