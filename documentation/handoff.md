@@ -1,4 +1,5 @@
 # Handoff — state of the project and how to continue
+- **20 Nov 2026: renamed to "My Healthy Avatar"** (project name, menu title, page title, documents); the storage keys `plasticine_tamagotchi_*` stay so browser saves keep loading. On the Mac the editor's save folder is now `app_userdata/My Healthy Avatar/`.
 
 Last updated: 18 November 2026, after Milestone 25 (the new interface). Before that: 17 November 2026, after Milestone 18, the paused web conversion and the minigame ideas in the documents. Read this after `CLAUDE.md` when a new session starts. `CLAUDE.md` describes the game and the code; this file says **where the work stands, what was decided along the way, what is still open, and the lessons learned**, so nothing has to be found out again.
 
@@ -225,4 +226,4 @@ for t in tests/*_test.gd; do perl -e 'alarm 400; exec @ARGV' "/Applications/Godo
 "/Applications/Godot 2.app/Contents/MacOS/Godot" --path . --resolution 720x1280 -s res://tools/render_ui_states.gd -- <folder> <state: A to F, P, X, R, S, Z, W, M, N> [en|pt]
 ```
 
-Debug keys in the editor: F6 reload config, F7 debug panel, F9 time speed. The debug CSV log is in `~/Library/Application Support/Godot/app_userdata/Plasticine Tamagotchi/health_log.csv`; the save is `save.json` in the same folder (delete it to start a new avatar).
+Debug keys in the editor: F6 reload config, F7 debug panel, F9 time speed. The debug CSV log is in `~/Library/Application Support/Godot/app_userdata/My Healthy Avatar/health_log.csv`; the save is `save.json` in the same folder (delete it to start a new avatar).

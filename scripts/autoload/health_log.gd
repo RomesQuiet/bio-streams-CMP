@@ -6,7 +6,7 @@ extends Node
 ## themselves with their own file). If the file has another header (an older version of the
 ## log), it is started again.
 ## On the Mac the file is in:
-##   ~/Library/Application Support/Godot/app_userdata/Plasticine Tamagotchi/health_log.csv
+##   ~/Library/Application Support/Godot/app_userdata/My Healthy Avatar/health_log.csv
 
 const LOG_PATH := "user://health_log.csv"
 const SEPARATOR := ","

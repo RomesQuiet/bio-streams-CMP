@@ -1,6 +1,6 @@
 # Milestone 10 Review: Differences from Health Calculation v1
 
-Plasticine Tamagotchi. Copied from the team's Google Doc "Milestone 10 Review" (27 October 2026), a review of "Milestone 10: Differences from Health Calculation v1" (`documentation/milestone10_calibration.md`). Milestone 10.5 (`MILESTONE_10_5.md`) acts on it.
+My Healthy Avatar. Copied from the team's Google Doc "Milestone 10 Review" (27 October 2026), a review of "Milestone 10: Differences from Health Calculation v1" (`documentation/milestone10_calibration.md`). Milestone 10.5 (`MILESTONE_10_5.md`) acts on it.
 
 ## Verdict
 

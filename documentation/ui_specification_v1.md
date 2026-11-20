@@ -1,11 +1,11 @@
-# Plasticine Tamagotchi: interface specification v1 (copy)
+# My Healthy Avatar: interface specification v1 (copy)
 
 > Copy of the team's document `plasticTamagotchi01.rtf` (18 Nov 2026), kept as written (European Portuguese). It is the rule for the interface since Milestone 25 (`MILESTONE_25.md`), with the user's answers recorded there. The approved mockups are in `documentation/ui_mockups/`.
 
 Especificação de interface gráfica, HUD e ciclo dia/noite
 Instruções para implementação por uma IA de programação
 ## 1. Objectivo
-Redesenhar a interface gráfica do jogo Plasticine Tamagotchi, utilizando como referência principal os mockups finais aprovados.
+Redesenhar a interface gráfica do jogo My Healthy Avatar, utilizando como referência principal os mockups finais aprovados.
 A interface deve ser construída, tanto quanto possível, com geometria vectorial produzida por código, utilizando linhas, contornos (strokes), polígonos, curvas, gradientes, preenchimentos, transparências e texto.
 Não se pretende simplesmente colocar as imagens dos mockups como fundos ou reproduzir a interface através de dezenas de sprites.
 O objectivo é recriar um sistema gráfico dinâmico, responsivo, parametrizável e reutilizável.

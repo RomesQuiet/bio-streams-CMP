@@ -1,6 +1,6 @@
 # Health Calculation Architecture (v1)
 
-Plasticine Tamagotchi. Version 1, 25 October 2026. Status: proposed. Copied from the Google Doc "Health Calculation Architecture v1".
+My Healthy Avatar. Version 1, 25 October 2026. Status: proposed. Copied from the Google Doc "Health Calculation Architecture v1".
 "Bases fundamental" has priority: where this document disagrees with it, Bases fundamental wins and this document changes.
 
 **Changes since v1 (as built; read them before the steps below):**

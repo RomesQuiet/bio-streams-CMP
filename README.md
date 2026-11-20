@@ -1,4 +1,4 @@
-# Plasticine Tamagotchi
+# My Healthy Avatar
 
 A web game about **childhood obesity**, made for the Bio-Streams (EU) science competition.
 
@@ -22,7 +22,7 @@ The game saves on your device. Nothing is sent to a server. A new game starts on
 
 The project uses the **Compatibility** renderer so that it works in web browsers on computers, Android and iOS.
 
-Debug keys (only when running from the Godot editor): **F9** changes the game speed (x1, x60, x600), **F8** deletes the save and starts a new game, **F6** reloads `data/config.json` (change a value, save the file, press F6), **F7** shows or hides the debug panel (habit scores, body states, measures, target and displayed health; only in debug builds, never in the published game). Debug builds also write one line per scoring day to `health_log.csv` (on the Mac: `~/Library/Application Support/Godot/app_userdata/Plasticine Tamagotchi/health_log.csv`; in Finder use Go → Go to Folder and paste the folder path).
+Debug keys (only when running from the Godot editor): **F9** changes the game speed (x1, x60, x600), **F8** deletes the save and starts a new game, **F6** reloads `data/config.json` (change a value, save the file, press F6), **F7** shows or hides the debug panel (habit scores, body states, measures, target and displayed health; only in debug builds, never in the published game). Debug builds also write one line per scoring day to `health_log.csv` (on the Mac: `~/Library/Application Support/Godot/app_userdata/My Healthy Avatar/health_log.csv`; in Finder use Go → Go to Folder and paste the folder path).
 
 ## Tests
 
