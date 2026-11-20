@@ -103,7 +103,7 @@ a tall phone (1080 x 2340).
   the creation screen and the main screen (07:01 AM, the sun rising on the left).
 - All 35 tests that ran pass (every test except the scenario and parity tests). Committed on 19 Nov 2026 (user: "commit"), not pushed.
 - `tools/` is left out of the web export. `assets/art/ui/pause.svg` and `settings.svg` are no longer
-  used by the game; they stay because the paused web conversion in `web/` uses them.
+  used by the game; they stayed for the web conversion in `web/`, and were deleted with it on 20 Nov 2026.
 
 ## Still to check
 
