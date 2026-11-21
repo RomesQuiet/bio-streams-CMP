@@ -60,7 +60,7 @@ func _test_order() -> void:
 	gs.tired = true
 	_check("tired comes first", requests.current() == "tired")
 	_check("tired uses the old text", requests.text_key("tired") == "SPEECH_TIRED")
-	_check("every request has a text", requests.TEXT_KEYS.size() == 6)
+	_check("every request has a text (starving added in Milestone 29)", requests.TEXT_KEYS.size() == 7)
 
 
 func _test_hunger_requests() -> void:

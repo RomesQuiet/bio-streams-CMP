@@ -370,7 +370,7 @@ func _test_slow_time() -> void:
 	_start("normal", false)
 	var waiting_share: float = minigame.time_share()
 	minigame.set_stick(Vector2(0, 1))
-	_check("time only slows while the avatar plays", is_equal_approx(waiting_share, 1.0) and is_equal_approx(minigame.time_share(), 0.2))
+	_check("time only slows while the avatar plays", is_equal_approx(waiting_share, 1.0) and is_equal_approx(minigame.time_share(), 1.0 / root.get_node("Config").get_float("minigame.football.time_slowdown")))
 	var before: float = clock.minute_of_day
 	_pass_time(10.0)
 	var minutes: float = clock.minute_of_day - before

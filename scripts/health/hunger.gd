@@ -18,6 +18,7 @@ static func step(hours: float, _asleep: bool) -> void:
 	var gs := GameState
 	gs.hunger += growth(hours, gs.energy_spent_step)
 	gs.hours_since_meal += hours
+	gs.hours_without_food += hours
 
 
 ## How much hunger grows in this many avatar hours when kcal_spent were spent in them.
@@ -59,6 +60,9 @@ static func eat(food_id: String, share: float, full_share := 1.0) -> float:
 	var filled := minf(share / full_share, 1.0) if full_share > 0.0 else share
 	GameState.hunger -= meal_kcal(food_id, filled) * food_value(food_id, "satiety")
 	GameState.hours_since_meal = 0.0
+	# Milestone 29: eating at least fail.starve_meal_share of a portion ends a fast.
+	if share >= Config.get_float("fail.starve_meal_share"):
+		GameState.hours_without_food = 0.0
 	GameState.changed.emit()
 	return kcal
 

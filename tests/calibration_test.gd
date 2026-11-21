@@ -434,7 +434,7 @@ func _day(result: Dictionary, day: int) -> Dictionary:
 	return result["days"][mini(day, result["days"].size() - 1)]
 
 
-## XP earned per real hour of play over these days (awake: 42 avatar minutes per real minute,
+## XP earned per real hour of play over these days (awake: 56 avatar minutes per real minute,
 ## asleep: 5; the same conversion as the Clock).
 func _xp_per_real_hour(result: Dictionary, days: int) -> float:
 	var clock: Node = root.get_node("Clock")

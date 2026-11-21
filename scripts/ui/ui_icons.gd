@@ -38,7 +38,7 @@ static func draw(canvas: CanvasItem, kind: String, centre: Vector2, box: float, 
 			_apple(canvas)
 		"entertainment":
 			_controller(canvas, Ui.CONTROLLER_BROWN)
-		"hungry":
+		"hungry", "starving":
 			_cutlery(canvas, color)
 		"fast_food":
 			_burger(canvas)

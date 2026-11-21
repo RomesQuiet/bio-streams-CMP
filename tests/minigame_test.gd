@@ -225,10 +225,12 @@ func _test_breath() -> void:
 	_check("walking has its own slower beat", absf(minigame.interval() - pace.walk_interval()) < TOLERANCE)
 	var walking_score: float = minigame.pace
 	var strides_to_refill := ceili(clock.avatar_hours_to_real_seconds(10.0 / 60.0, false) / pace.walk_interval())
-	_play(strides_to_refill - 2, pace.walk_interval())
-	_check("walking refills the bar", minigame.walking and minigame.reserve > 0.3)
+	var reserve_walking: float = minigame.reserve
+	var half_refill := strides_to_refill / 2
+	_play(half_refill, pace.walk_interval())
+	_check("walking refills the bar", minigame.walking and minigame.reserve > reserve_walking + 0.05)
 	_check("walking lowers the pace part of the score", walking_score <= 1.0 and minigame.pace < 0.95)
-	_play(3, pace.walk_interval())
+	_play(strides_to_refill - half_refill + 1, pace.walk_interval())
 	_check("at half the bar it runs again", not minigame.walking)
 	activities.stop()
 
@@ -566,7 +568,7 @@ func _test_score_reaches_training() -> void:
 	var fixed: float = training.performance()
 	_check("no player: performance as before, score 1", is_equal_approx(fixed, 1.0))
 	minigame.attach()
-	activities.start("exercise", "cardio")
+	activities.start("exercise", "cardio", 2.0)  # 2 avatar hours: long enough for these taps with the 15-minute day
 	minigame.tap()
 	_play(15, minigame.interval())
 	_check("a perfect player: the same performance", absf(training.performance() - fixed) < TOLERANCE)

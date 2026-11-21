@@ -51,6 +51,9 @@ var health: float
 var hunger: float
 ## Avatar hours since the last meal or skipped meal.
 var hours_since_meal: float
+## Avatar hours (clock time, awake and asleep) since the avatar last ate anything (Milestone 29):
+## a skipped meal does not reset it. Starving and the hunger failure read it.
+var hours_without_food: float
 ## Body weight in kg, body age in months and height in metres (Milestone 10, v1 Step 2).
 ## Weight changes with energy eaten minus energy spent; the body ages with body time
 ## (body.k) up to the end of its age group; height is the WHO median for the body age.
@@ -227,6 +230,7 @@ func to_dict() -> Dictionary:
 		"health_low_hours": health_low_hours,
 		"happiness_low_hours": happiness_low_hours,
 		"danger_hours": danger_hours,
+		"hours_without_food": hours_without_food,
 		"failed_cause": failed_cause,
 		"failed_day": failed_day,
 		"best_health": best_health,
@@ -291,6 +295,7 @@ func from_dict(data: Dictionary) -> void:
 	health_low_hours = float(data.get("health_low_hours", 0.0))
 	happiness_low_hours = float(data.get("happiness_low_hours", 0.0))
 	danger_hours = float(data.get("danger_hours", 0.0))
+	hours_without_food = float(data.get("hours_without_food", 0.0))
 	failed_cause = str(data.get("failed_cause", ""))
 	failed_day = float(data.get("failed_day", 0.0))
 	risk_index = float(data.get("risk_index", 0.0))
@@ -353,6 +358,8 @@ func _apply_body_start() -> void:
 	overreach = 0.0
 	hunger = Config.get_float("meals.start_hunger_meals") * Energy.healthy_portion_kcal(sex_or_default(), body_age_months)
 	hours_since_meal = Config.get_float("meals.min_gap_h")
+	# Milestone 29: a new avatar has just woken from a normal night without food.
+	hours_without_food = Config.get_float("fail.starve_start_h")
 	# Happiness and diet (v1 Steps 7 and 10).
 	var path := "health.difficulties.%s." % difficulty_id
 	happiness = Config.get_float(path + "happiness")

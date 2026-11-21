@@ -156,8 +156,9 @@ func _test_in_play_and_load(save_game: Node) -> void:
 	var clock: Node = root.get_node("Clock")
 	var debt_before: float = gs.sleep_debt
 	clock.debug_speed = 600.0
+	# Each frame stops before the end of the day, so the day never runs out (the 0-hour rule).
 	while clock.day_elapsed_hours < clock.day_length_hours - 0.01:
-		clock._process(0.1)
+		clock._process(minf(0.1, clock.avatar_hours_to_real_seconds(clock.day_length_hours - 0.01 - clock.day_elapsed_hours, false) / 600.0 + 1e-6))
 	root.get_node("Activities").start("sleep", "sleep", 10.5)
 	while clock.phase == clock.Phase.SLEEPING:
 		clock._process(0.1)

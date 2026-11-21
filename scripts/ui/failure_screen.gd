@@ -20,6 +20,7 @@ const SCREENS_SCALE := 3.0
 const CAPTION_COLOR := Color(0.75, 0.77, 0.82)
 const PHRASES := {
 	"thinness": "FAILURE_PHRASE_THINNESS",
+	"hunger": "FAILURE_PHRASE_HUNGER",
 	"health": "FAILURE_PHRASE_HEALTH",
 	"happiness": "FAILURE_PHRASE_HAPPINESS",
 }
@@ -237,6 +238,9 @@ func cause_text(cause: String) -> String:
 			return tr("FAILURE_CAUSE_THINNESS") % [Settings.number(Config.get_float("fail.danger_z"), 0, true),
 					roundi(Config.get_float("fail.danger_hours")), Settings.number(Config.get_float("fail.danger_failure_z"), 0, true),
 					Settings.number(GameState.weight_z, 2, true)]
+		"hunger":
+			return tr("FAILURE_CAUSE_HUNGER") % [roundi(Config.get_float("fail.starve_failure_h")),
+					roundi(Config.get_float("fail.starve_danger_h")), roundi(GameState.hours_without_food)]
 		"happiness":
 			return tr("FAILURE_CAUSE_HAPPINESS") % [Settings.number(Config.get_float("fail.happiness_line"), 2),
 					roundi(Config.get_float("fail.happiness_hours"))]

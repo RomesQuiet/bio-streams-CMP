@@ -443,9 +443,10 @@ func _football_input() -> void:
 func _football_move(cost: String) -> void:
 	strides += 1
 	strode.emit(last_on_beat)
-	# A move a team-mate makes costs the avatar no Breath.
+	# A move a team-mate makes costs the avatar no Breath. The costs are per move (decision 98:
+	# no longer divided by time_slowdown, so the 15-minute day did not change them).
 	if not cost.is_empty():
-		_spend_breath(Config.get_float(cost) / Config.get_float("minigame.football.time_slowdown"))
+		_spend_breath(Config.get_float(cost))
 
 
 func _spend_breath(amount: float) -> void:

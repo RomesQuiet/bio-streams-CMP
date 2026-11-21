@@ -55,7 +55,7 @@ func _ready() -> void:
 
 ## touch: the player has a touch screen, so the joystick is explained and not the keys.
 func open(touch: bool) -> void:
-	_time_label.text = tr("FOOTBALL_HELP_TIME") % Config.get_int("minigame.football.time_slowdown")
+	_time_label.text = tr("FOOTBALL_HELP_TIME") % roundi(Config.get_float("minigame.football.time_slowdown"))
 	_controls.text = "FOOTBALL_HELP_TOUCH" if touch else "FOOTBALL_HELP_KEYS"
 	show()
 	_play.grab_focus()

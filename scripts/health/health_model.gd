@@ -82,7 +82,14 @@ static func step(hours: float, _asleep: bool) -> void:
 ## the health bar warns before failure comes (user, 7 Nov 2026).
 static func failure_near() -> bool:
 	var gs := GameState
-	return gs.health_low_hours > 0.0 or gs.happiness_low_hours > 0.0 or gs.danger_hours > 0.0
+	return gs.health_low_hours > 0.0 or gs.happiness_low_hours > 0.0 or gs.danger_hours > 0.0 or starving()
+
+
+## Milestone 29: the avatar has eaten nothing for fail.starve_danger_h avatar hours (clock time,
+## awake and asleep): healthy children keep a normal blood glucose for about 15 to 18 hours of
+## fasting, after which it falls and ketones rise. A real meal ends it.
+static func starving() -> bool:
+	return GameState.hours_without_food >= Config.get_float("fail.starve_danger_h")
 
 
 ## The danger state of severe thinness: BMI-for-age z below fail.danger_z (WHO severe thinness).
@@ -104,11 +111,18 @@ static func is_at_failure() -> bool:
 
 
 ## Why the avatar is at failure: "thinness" (the danger state lasted fail.danger_hours, or z
-## reached fail.danger_failure_z), "health", "happiness", or "" when it is not.
+## reached fail.danger_failure_z), "hunger" (Milestone 29), "health", "happiness", or "" when it
+## is not.
 static func failure_cause() -> String:
 	var gs := GameState
 	if gs.danger_hours >= Config.get_float("fail.danger_hours") or gs.weight_z <= Config.get_float("fail.danger_failure_z"):
 		return "thinness"
+	# Milestone 29: starvation. No food for fail.starve_failure_h, or health or happiness reaching
+	# failure while starving (the fast is what brought them down).
+	var low := gs.health_low_hours >= Config.get_float("fail.health_hours") \
+			or gs.happiness_low_hours >= Config.get_float("fail.happiness_hours")
+	if gs.hours_without_food >= Config.get_float("fail.starve_failure_h") or (low and starving()):
+		return "hunger"
 	if gs.health_low_hours >= Config.get_float("fail.health_hours"):
 		return "health"
 	if gs.happiness_low_hours >= Config.get_float("fail.happiness_hours"):

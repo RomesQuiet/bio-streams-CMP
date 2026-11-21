@@ -5,7 +5,7 @@
 		"day_baseline_hours": 14,
 		"sleep_baseline_hours": 10,
 		"first_day_hours": 14,
-		"day_avatar_minutes_per_real_minute": 42,
+		"day_avatar_minutes_per_real_minute": 56,
 		"sleep_avatar_minutes_per_real_minute": 5,
 		"first_day_start_hour": { "value": 7.0, "placeholder": true, "comment": "Clock time (24 h) when the first day starts." },
 		"offline_sleep_enabled": { "value": true, "placeholder": true, "comment": "Milestone 23: while the avatar sleeps, real time with the game closed or the phone off counts as sleep (device clock, sleep only)." },
@@ -204,7 +204,7 @@
 		"football": {
 			"_comment": "Football minigame (Milestone 14, decisions 39 to 46, MILESTONE_14.md). No study gives these numbers: all are placeholders. Distances are field units, about metres. Time is real seconds.",
 			"team_size": {"value": 4, "status": "team decision", "owner": "team", "comment": "Decision 41: 4 a side."},
-			"time_slowdown": {"value": 5, "status": "team decision", "owner": "team", "comment": "Decision 47 (user, 31 Oct 2026): avatar time runs this many times slower while the avatar plays, so 60 minutes last about 7 real minutes. Energy and training stay per avatar minute."},
+			"time_slowdown": {"value": 6.6667, "status": "team decision", "owner": "team", "comment": "Decision 47 (user, 31 Oct 2026): avatar time runs this many times slower while the avatar plays, so 60 minutes last about 7 real minutes. Was 5 with the 20-minute day; 5 x 56 / 42 since the 15-minute day (decision 98, user, 21 Nov 2026), so the match lasts as long as before. Energy and training stay per avatar minute."},
 			"match_pace": {"value": 0.8, "status": "team decision", "owner": "team", "comment": "User, 1 Nov 2026: the whole match runs at this share of its speed: players, ball and timers."},
 			"beaten_seconds": {"value": 1.5, "status": "placeholder", "owner": "Pessoa 4", "comment": "A computer player who loses a tackle stands still this long, so a tackle always ends."},
 			"knockback": {"value": 2, "status": "placeholder", "owner": "Pessoa 4", "comment": "And is pushed back this far."},
@@ -255,9 +255,9 @@
 			"cpu_goal_chance": {"value": 0.35, "status": "placeholder", "owner": "Pessoa 4"},
 			"cpu_press_radius": {"value": 4, "status": "placeholder", "owner": "Pessoa 4", "comment": "A computer player with an opponent this close passes."},
 			"cpu_pass_chance": {"value": 0.6, "status": "placeholder", "owner": "Pessoa 4"},
-			"pass_cost": {"value": 0.02, "status": "placeholder", "owner": "Pessoa 3", "comment": "Share of the Breath bar (decision 44)."},
-			"shot_cost": {"value": 0.04, "status": "placeholder", "owner": "Pessoa 3"},
-			"tackle_cost": {"value": 0.05, "status": "placeholder", "owner": "Pessoa 3"},
+			"pass_cost": {"value": 0.004, "status": "placeholder", "owner": "Pessoa 3", "comment": "Share of the Breath bar per move (decision 44). Was 0.02 divided by time_slowdown 5 in the code; written as the result since decision 98 (21 Nov 2026)."},
+			"shot_cost": {"value": 0.008, "status": "placeholder", "owner": "Pessoa 3"},
+			"tackle_cost": {"value": 0.01, "status": "placeholder", "owner": "Pessoa 3"},
 			"quiet_recover_min": {"value": 10, "status": "placeholder", "owner": "Pessoa 3", "comment": "Avatar minutes of standing still that would refill the whole bar."},
 			"active_window_seconds": {"value": 10, "status": "placeholder", "owner": "Pessoa 4", "comment": "The staying-active share is an average over about this long (decision 42)."}
 		}
@@ -370,13 +370,37 @@
 	},
 
 	"fail": {
-		"_comment": "v1 Step 12. Failure (no death): target health below health_line for health_hours avatar hours (decision 10, user, 27 Oct 2026: the target, not the slow bar), happiness below happiness_line for happiness_hours, or severe thinness: z below danger_z for danger_hours, or z at danger_failure_z or below (Milestone 10.5, team review). Timers are clock time. The effect is not decided.",
+		"_comment": "v1 Step 12. Failure (no death): target health below health_line for health_hours avatar hours (decision 10, user, 27 Oct 2026: the target, not the slow bar), happiness below happiness_line for happiness_hours, or severe thinness: z below danger_z for danger_hours, or z at danger_failure_z or below (Milestone 10.5, team review), or hunger: no food for starve_failure_h, or health or happiness failing while starving (Milestone 29). Timers are clock time. The effect is not decided.",
 		"health_line": {"value": 1.3, "status": "placeholder", "owner": "Pessoa 4"},
 		"health_hours": {"value": 24, "status": "placeholder", "owner": "Pessoa 4"},
 		"happiness_line": {"value": 0.1, "status": "placeholder", "owner": "Pessoa 4"},
 		"happiness_hours": {"value": 12, "status": "placeholder", "owner": "Pessoa 4"},
 		"danger_z": {"value": -3, "status": "placeholder", "owner": "team", "comment": "Milestone 10.5 (team review, 27 Oct 2026): below this BMI-for-age z (WHO 2007 severe thinness, -3 SD) the avatar is in a reversible danger state: it looks thin and ill and the health bar warns. The state ends only when z is back at danger_z or above (decision 11, user, 27 Oct 2026)."},
 		"danger_hours": {"value": 72, "status": "placeholder", "owner": "team", "comment": "Failure when the danger state lasts this many avatar hours without a break (3 avatar days, clock time): a serious condition."},
+		"starve_danger_h": {
+			"value": 18,
+			"status": "placeholder",
+			"owner": "Pessoa 1",
+			"comment": "Milestone 29 (user, 21 Nov 2026: failure by hunger, following science). Avatar hours without food (clock time, awake and asleep; a skipped meal does not count as food) after which the avatar is starving: the speech bubble says so, and the heart and health pills flash. Most well-nourished healthy children keep a normal blood glucose for 15 to 18 hours of fasting, after which it falls and ketones rise (review in Hormone Research in Paediatrics; Visser et al. 2011, Pediatrics). Clock time like meal timing: not sped up by body.k."
+		},
+		"starve_failure_h": {
+			"value": 36,
+			"status": "placeholder",
+			"owner": "Pessoa 1",
+			"comment": "Milestone 29: failure when the avatar has eaten nothing for this many avatar hours: twice the 18 hours, a whole avatar day and a half without any meal. No study gives a safe or lethal fasting time for a child (total starvation is fatal after weeks, but children have fewer reserves and are at risk of ketotic hypoglycaemia); the value is ours. Health or happiness reaching failure while starving is also failure by hunger."
+		},
+		"starve_meal_share": {
+			"value": 0.3,
+			"status": "placeholder",
+			"owner": "Pessoa 1",
+			"comment": "Milestone 29: eating at least this share of a portion (3 bites of 10 in the meal minigame) ends a fast."
+		},
+		"starve_start_h": {
+			"value": 10,
+			"status": "placeholder",
+			"owner": "Pessoa 1",
+			"comment": "Milestone 29: hours without food of a new avatar, which has just woken from a normal night (about 10 hours since its last meal)."
+		},
 		"danger_failure_z": {"value": -4, "status": "placeholder", "owner": "team", "comment": "Failure at once when z reaches this (a serious condition). WHO flags z below -5 as biologically implausible (CDC)."}
 	},
 

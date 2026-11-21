@@ -7,8 +7,10 @@ extends RefCounted
 
 const Hunger := preload("res://scripts/health/hunger.gd")
 const Happiness := preload("res://scripts/health/happiness.gd")
+const HealthModel := preload("res://scripts/health/health_model.gd")
 
 const NONE := ""
+const STARVING := "starving"
 const TIRED := "tired"
 const FAST_FOOD := "fast_food"
 const HEALTHY := "healthy"
@@ -18,6 +20,7 @@ const FOOTBALL := "football"
 
 ## The translation key of each request.
 const TEXT_KEYS := {
+	STARVING: "SPEECH_STARVING",
 	TIRED: "SPEECH_TIRED",
 	FAST_FOOD: "SPEECH_WANT_FAST_FOOD",
 	HEALTHY: "SPEECH_WANT_HEALTHY",
@@ -31,6 +34,9 @@ const TEXT_KEYS := {
 ## a healthy meal or either), screens, football. NONE when the avatar wants nothing.
 static func current() -> String:
 	var gs := GameState
+	# Milestone 29: starving comes before everything else.
+	if HealthModel.starving():
+		return STARVING
 	if gs.tired:
 		return TIRED
 	if Hunger.is_hungry():

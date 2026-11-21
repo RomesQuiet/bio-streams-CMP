@@ -37,10 +37,10 @@ func _test_conversion(clock: Node) -> void:
 	for pair in [[0.0, 24.0], [5.0, 19.0], [8.0, 16.0], [10.0, 14.0], [12.0, 12.0]]:
 		_check("sleep %s h gives a %s h day" % pair, is_equal_approx(clock.day_hours_after_sleep(pair[0]), pair[1]))
 	# Real minutes for avatar hours.
-	# Milestone 10 (v1): day = 20 real minutes = 14 avatar hours (42 avatar min per real min).
-	_check("14 h day = 20 real min", is_equal_approx(clock.avatar_hours_to_real_seconds(14.0, false), 20.0 * 60.0))
-	_check("16 h day = 22.86 real min", absf(clock.avatar_hours_to_real_seconds(16.0, false) / 60.0 - 22.8571) < 0.001)
-	_check("19 h day = 27.14 real min", absf(clock.avatar_hours_to_real_seconds(19.0, false) / 60.0 - 27.1429) < 0.001)
+	# Decision 98 (21 Nov 2026): day = 15 real minutes = 14 avatar hours (56 avatar min per real min).
+	_check("14 h day = 15 real min", is_equal_approx(clock.avatar_hours_to_real_seconds(14.0, false), 15.0 * 60.0))
+	_check("16 h day = 17.14 real min", absf(clock.avatar_hours_to_real_seconds(16.0, false) / 60.0 - 17.1429) < 0.001)
+	_check("19 h day = 20.36 real min", absf(clock.avatar_hours_to_real_seconds(19.0, false) / 60.0 - 20.3571) < 0.001)
 	_check("10 h sleep = 120 real min", is_equal_approx(clock.avatar_hours_to_real_seconds(10.0, true), 120.0 * 60.0))
 	_check("8 h sleep = 96 real min", is_equal_approx(clock.avatar_hours_to_real_seconds(8.0, true), 96.0 * 60.0))
 	_check("back conversion", is_equal_approx(clock.real_seconds_to_avatar_hours(96.0 * 60.0, true), 8.0))

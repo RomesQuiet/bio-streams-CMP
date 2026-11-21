@@ -35,7 +35,7 @@ Simulation (boy, 10 years, Normal, 21 avatar days, about 51 real hours of play):
 | Wishes: the avatar wants fast food, does not want to exercise, gets sleepy and wants screens. Refusing lowers happiness. Exercise and good sleep raise it. | Bases | Step 10 |
 | Happiness is part of health (WHO) and a secondary goal. Very sad, minimal health or an irreversible disease is failure. Healthy and happy must be possible together. | Bases, team | Steps 10–12 |
 | The avatar cannot sleep when its sleep is up to date. Minutes are chosen on a slider. Each activity except sleep has a minigame that sets performance. | Bases | Steps 6, 9 |
-| Day: 20 real minutes = 14 h. Night: 2 real hours = 10 h. The 10 h only sets the scale; recommended sleep comes from the age (child 9–12 h, teenager 8–10 h). | Bases, concept | Steps 1, 9 |
+| Day: 20 real minutes = 14 h (since 21 Nov 2026, decision 98: 15 real minutes; the night is unchanged). Night: 2 real hours = 10 h. The 10 h only sets the scale; recommended sleep comes from the age (child 9–12 h, teenager 8–10 h). | Bases, concept | Steps 1, 9 |
 | k = 10 for everything metabolic, sleep debt included. Happiness is not sped up. | Bases, team (25 Oct) | Step 1 |
 
 ## How the system is built

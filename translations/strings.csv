@@ -38,6 +38,7 @@ MEASURE_BMI,BMI-for-age\nz %s,IMC para\na idade\nz %s
 MEASURE_DIET,Diet quality\n%s,Qualidade da\nalimentação\n%s
 SPEECH_HELLO,Hello!,Olá!
 SPEECH_PAUSED,Paused,Em pausa
+SPEECH_STARVING,I'm starving! I haven't eaten for hours.,Estou cheio de fome! Não como há horas.
 SPEECH_HUNGRY,I'm hungry!,Tenho fome!
 SPEECH_TIRED,I'm tired. Sleep is recommended.,Tenho sono. Recomenda-se dormir.
 SPEECH_NOT_SLEEPY,I'm not sleepy.,Não tenho sono.
@@ -54,6 +55,7 @@ SLEEP_AT_MOST,At most %s h now.,No máximo %s h agora.
 SLEEP_ENDS_DAY,Sleeping now ends the current day.,Dormir agora termina o dia atual.
 FAILURE_THINNESS,Failure: I have been severely thin for too long.,Falha: estive demasiado tempo em magreza grave.
 FAILURE_HEALTH,Failure: my health has stayed too low for too long.,Falha: a minha saúde esteve demasiado baixa durante demasiado tempo.
+FAILURE_HUNGER,Failure: I went without food for too long.,Falha: estive demasiado tempo sem comer.
 FAILURE_HAPPINESS,Failure: my happiness has stayed too low for too long.,Falha: a minha felicidade esteve demasiado baixa durante demasiado tempo.
 MINIGAME_TAP,Tap to run,Toca para correr
 MINIGAME_WAITING,Tap to start!,Toca para começar!
@@ -180,6 +182,7 @@ SPEECH_NO_SCREENS,You never let me watch anything.,Nunca me deixas ver nada.
 FAILURE_TITLE,Failure,Falha
 FAILURE_PHRASE_THINNESS,%s lost too much weight.,%s perdeu demasiado peso.
 FAILURE_PHRASE_HEALTH,%s's health got too low.,A saúde de %s ficou demasiado baixa.
+FAILURE_PHRASE_HUNGER,%s went without food for too long.,%s esteve demasiado tempo sem comer.
 FAILURE_PHRASE_HAPPINESS,%s became too unhappy.,%s ficou demasiado infeliz.
 FAILURE_END,The game ends here. You can start again with a new avatar.,O jogo acaba aqui. Podes recomeçar com um novo avatar.
 UI_DETAILS,Details,Detalhes
@@ -187,6 +190,7 @@ UI_HIDE_DETAILS,Hide details,Esconder detalhes
 FAILURE_WHAT_HAPPENED,What happened,O que aconteceu
 FAILURE_CAUSE_THINNESS,"Severe thinness: BMI-for-age z stayed below %s for %d avatar hours, or reached %s (WHO 2007). Last z: %s.","Magreza grave: o IMC para a idade (z) ficou abaixo de %s durante %d horas do avatar, ou chegou a %s (OMS 2007). Último z: %s."
 FAILURE_CAUSE_HEALTH,"Health, calculated from Physical, Happiness and Sleep, stayed below %s for %d avatar hours.","A saúde, calculada a partir do Físico, da Felicidade e do Sono, ficou abaixo de %s durante %d horas do avatar."
+FAILURE_CAUSE_HUNGER,"Starvation: no food for %d avatar hours, or health or happiness failed while starving (more than %d hours without food). Healthy children keep a normal blood sugar for about 15 to 18 hours of fasting. Hours without food: %d.","Fome: sem comer durante %d horas do avatar, ou a saúde ou a felicidade falharam durante a fome (mais de %d horas sem comer). As crianças saudáveis mantêm o açúcar no sangue normal durante cerca de 15 a 18 horas de jejum. Horas sem comer: %d."
 FAILURE_CAUSE_HAPPINESS,Happiness stayed below %s for %d avatar hours. Mental well-being is part of health (WHO).,A felicidade ficou abaixo de %s durante %d horas do avatar. O bem-estar mental faz parte da saúde (OMS).
 FAILURE_LIFE_TITLE,%s's life,A vida de %s
 FAILURE_END_TITLE,At the end,No fim

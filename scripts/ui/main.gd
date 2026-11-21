@@ -25,6 +25,7 @@ const Ui := preload("res://scripts/ui/ui_style.gd")
 ## too long (fail group in config). Translation keys, like every text on this screen.
 const FAILURE_TEXTS := {
 	"thinness": "FAILURE_THINNESS",
+	"hunger": "FAILURE_HUNGER",
 	"health": "FAILURE_HEALTH",
 	"happiness": "FAILURE_HAPPINESS",
 }
