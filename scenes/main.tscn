@@ -122,6 +122,13 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("13_scenery")
 
+[node name="DockBand" type="ColorRect" parent="Margin/Layout/Stage"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+mouse_filter = 2
+color = Color(0.137255, 0.164706, 0.431373, 0.85)
+
 [node name="Avatar" parent="Margin/Layout/Stage" instance=ExtResource("2_avatar")]
 unique_name_in_owner = true
 layout_mode = 1

@@ -5,7 +5,8 @@ extends Control
 ## Colours of Milestone 25 (scripts/ui/ui_style.gd).
 const FORK_COLOR := Color("#eef1ff")
 const RING_COLOR := Color(1.0, 1.0, 1.0, 0.4)
-const GOOD_COLOR := Color("#84f2da")
+## The ring at the mouth when the fork is inside it: the green of the timing zones (Milestone 40).
+const GOOD_COLOR := Color("#6bf0b0")
 const OUTLINE_COLOR := Color("#1b2552")
 const SWING := 230.0
 const HEIGHT_ABOVE_MOUTH := 34.0

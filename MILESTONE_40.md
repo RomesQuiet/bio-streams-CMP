@@ -18,7 +18,7 @@ Started 21 Nov 2026 (40 is the user's number; there are no Milestones 36 to 39).
 | 3 | Exercise pictures | done, waiting for the user's check | see git log |
 | 4 | Cardio panel and running pictures | done, waiting for the user's check | see git log |
 | 5 | Football field, minimap, score, panel | done, waiting for the user's check | see git log |
-| 6 | Meal: eating pictures, dock band | | |
+| 6 | Meal: eating pictures, dock band | done, waiting for the user's check | see git log |
 | 7 | Screen time | | |
 | 8 | Sleep: bed, window, Wake up | | |
 | 9 | Exercise and entertainment menus | | |
@@ -98,6 +98,16 @@ Table "Football (11, 12)". For a circle the table's x and y are its centre (as f
 - Texts: new `FOOTBALL_TITLE`, `FOOTBALL_CONTROLS_TOUCH`, `FOOTBALL_CONTROLS_KEYS`, `FOOTBALL_MOVE`; `FOOTBALL_KEYS` (the old list of keys under the joystick) is deleted, as nothing shows it now. The status ("Playing (12 of 60 min)") is not shown any more (the minutes are in the panel's header).
 - New colours in `ui_style.gd`: `PASS_COLOR`, `PASS_BASE`, `SHOOT_COLOR`, `SHOOT_BASE`, `FIELD_STRIPE_A`, `FIELD_STRIPE_B`, `TILE_BASE`, `WHITE_08`, `WHITE_25`, `WHITE_60`, `SHADOW_INK`; icons "pass" and "goal". `tools/render_ui_states.gd`: G (football) and J (football on a touch screen).
 - Checked: headless start without errors; `minigame_test`, `football_test`, `translation_test`, `interface_test`, `settings_panel_test`, `scenery_test` ALL PASSED; G in English and Portuguese and J rendered and compared with the table.
+
+### Change 6: the meal (user: "OK, do change 6", 21 Nov 2026)
+
+Table "Meal minigame (09)".
+
+- The standing avatar is replaced by the eating picture (seated at the table): `eat_closed.png`, and `eat_open.png` for 0.25 s after each bite; rect 110, 290, 500 x 500, the canvas's bottom on y 790. The fork aims at the picture's mouth: x 360 and y 290 + 500 x the sheet's share (`eat_mouth_y` in `data/avatar_art.json`: child_male 0.450, child_female 0.473, teen_male and teen_female 0.417). The ring at the mouth turns the timing zones' green (`meal_fork.gd`).
+- The dock band (`DockBand` in the stage, after the scenery): navy at 85% across the whole width of the screen, from y 790 to the bottom, behind the dock; it hides the room's floor.
+- **Fixed on the way (changes 3 and 4):** the activity pictures were looked up in a folder named after the sheet (`teenager_male`), but the teenagers' folders are `teen_male` and `teen_female`, so teenagers kept the normal avatar during exercise and cardio. The pictures now come from the sheet's folder in `data/avatar_art.json` (`avatar.art_folder()`). A new test checks a teenager.
+- `tests/minigame_test.gd`: new checks (eat_closed, the band, the fork's aim, eat_open after a bite, both gone after the meal, a teenager's pictures). `tools/render_ui_states.gd`: a fourth argument `teen` renders a teenage girl.
+- Checked: headless start without errors; `minigame_test`, `meal_test`, `avatar_art_test`, `canteen_test`, `scenery_test` ALL PASSED; state R rendered for a boy and a teenage girl.
 
 ## Contradictions found (to ask before the change they touch)
 

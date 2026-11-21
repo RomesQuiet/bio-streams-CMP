@@ -37,7 +37,14 @@ const EXERCISE_STAGE_BOTTOM := 790.0
 const RUN_FRAMES := ["run_01", "run_02", "run_03", "run_04", "run_05"]
 const RUN_RECT := Rect2(228, 336, 264, 360)
 const RUN_STAGE_BOTTOM := 744.0
-const ART_FOLDER := "res://assets/art/avatar/%s/%s.png"
+## Change 6: the meal: the avatar seated at a table, mouth closed, open for 0.25 s after each bite;
+## the canvas's bottom on the dock band's top (y 790); the fork aims at the mouth (x 360, and the
+## sheet's eat_mouth_y in data/avatar_art.json).
+const EAT_FRAMES := ["eat_closed", "eat_open"]
+const EAT_RECT := Rect2(110, 290, 500, 500)
+const EAT_OPEN_SECONDS := 0.25
+## The pictures are in the sheet's folder (data/avatar_art.json): "<folder>/<name>.png".
+const ART_PICTURE := "%s/%s.png"
 ## During an activity the balloon's top is at y 208 of the column (changes.md, rule 8).
 const SPEECH_TOP_IN_ACTIVITY := 208.0
 ## The food on the fork in the meal minigame.
@@ -143,6 +150,7 @@ const SPEECH_GAP_UNDER_CAPSULE := 8.0
 @onready var football_panel: Control = %FootballPanel
 @onready var football_stop: Button = %FootballStop
 @onready var field_mask: Control = %FieldMask
+@onready var dock_band: ColorRect = %DockBand
 @onready var speech_label: Label = %SpeechLabel
 @onready var speech_bubble: PanelContainer = %SpeechBubble
 @onready var speech_divider: Control = %SpeechDivider
@@ -217,6 +225,8 @@ var _exercise_textures := {}
 var _exercise_key := ""
 ## The running picture shown (0 to 4).
 var _run_frame := 0
+## Until when (Time.get_ticks_msec()) the eating picture shows the open mouth.
+var _mouth_open_until := 0
 
 
 ## The joystick's direction, on screen.
@@ -812,6 +822,7 @@ func _on_stride() -> void:
 		avatar.stride(Minigame.walking)
 		scenery.stride(Minigame.walking, Minigame.interval())
 	elif Minigame.kind == Minigame.MEAL and Minigame.last_on_beat:
+		_mouth_open_until = Time.get_ticks_msec() + roundi(EAT_OPEN_SECONDS * 1000.0)
 		avatar.chew()
 
 
@@ -841,6 +852,7 @@ func _refresh_minigame() -> void:
 	# Before the return below: after a meal the fork and its zone must go (they stayed during
 	# the sleep that followed; user, 7 Nov 2026).
 	meal_fork.visible = meal
+	_place_dock_band(meal)
 	if not meal:
 		avatar.mouth_open = false
 	# Change 4: the cardio panel has its own small Stop, so the stop slot above it is hidden.
@@ -943,8 +955,13 @@ func _refresh_meal() -> void:
 	meal_fork.fork = Minigame.fork_position()
 	meal_fork.at_mouth = Minigame.at_mouth()
 	meal_fork.hit_share = Config.get_float("minigame.meal.hit_share")
-	meal_fork.mouth = meal_fork.get_global_transform().affine_inverse() * avatar.get_global_transform() \
-			* avatar.mouth_point()
+	# Change 6: the fork aims at the mouth of the eating picture when it is shown.
+	if exercise_picture.visible:
+		meal_fork.mouth = meal_fork.get_global_transform().affine_inverse() * exercise_picture.get_global_transform() \
+				* Vector2(exercise_picture.size.x * 0.5, exercise_picture.size.y * avatar.eat_mouth_share())
+	else:
+		meal_fork.mouth = meal_fork.get_global_transform().affine_inverse() * avatar.get_global_transform() \
+				* avatar.mouth_point()
 	var healthy := Activities.current_option == "healthy_meal"
 	meal_fork.food_color = MEAL_HEALTHY_COLOR if healthy else MEAL_FAST_FOOD_COLOR
 	# A plate of the canteen (Milestone 21): its foods come on the fork in turn.
@@ -996,23 +1013,26 @@ func _layout_dock(strength: bool, meal: bool) -> void:
 
 ## Change 3: during squats, push-ups and sit-ups the avatar is replaced by the exercise's
 ## pictures (the healthy body for every body, Q8): the "down" one after DOWN, the "up" one after UP,
-## and the resting one before the first press and while resting. Returns whether one is shown.
+## and the resting one before the first press and while resting. Change 4: the running pictures
+## in cardio; change 6: the eating pictures in a meal. Returns whether one is shown.
 func _refresh_exercise_picture() -> bool:
 	var option := Activities.current_option
 	var running := Minigame.running and Minigame.kind == Minigame.CARDIO
-	var shown := running or (Minigame.running and Minigame.kind == Minigame.STRENGTH and EXERCISE_PICTURES.has(option))
+	var eating := Minigame.running and Minigame.kind == Minigame.MEAL
+	var shown := running or eating or (Minigame.running and Minigame.kind == Minigame.STRENGTH and EXERCISE_PICTURES.has(option))
 	exercise_picture.visible = shown
-	if not shown:
+	if not shown or avatar.art_folder().is_empty():
+		exercise_picture.visible = false
 		return false
-	var names: Array = RUN_FRAMES if running else EXERCISE_PICTURES[option].slice(0, 3)
-	var key := "%s|%s" % [avatar.sheet, "cardio" if running else option]
+	var names: Array = RUN_FRAMES if running else (EAT_FRAMES if eating else EXERCISE_PICTURES[option].slice(0, 3))
+	var key := "%s|%s" % [avatar.sheet, "cardio" if running else ("meal" if eating else option)]
 	if not _exercise_textures.has(key):
 		_exercise_textures.clear()
 		for i in names.size():
-			var path := ART_FOLDER % [avatar.sheet, names[i]]
+			var path := ART_PICTURE % [avatar.art_folder(), names[i]]
 			_exercise_textures[i] = load(path) if ResourceLoader.exists(path) else null
 		_exercise_textures[key] = true
-		var rect: Rect2 = RUN_RECT if running else EXERCISE_PICTURES[option][3]
+		var rect: Rect2 = RUN_RECT if running else (EAT_RECT if eating else EXERCISE_PICTURES[option][3])
 		var bottom := RUN_STAGE_BOTTOM if running else EXERCISE_STAGE_BOTTOM
 		# The stage starts at the Margin's left margin (24), also before the first layout.
 		var stage_left := float($Margin.get_theme_constant("margin_left"))
@@ -1027,6 +1047,8 @@ func _refresh_exercise_picture() -> bool:
 		if Minigame.waiting:
 			_run_frame = 0
 		which = _run_frame
+	elif eating:
+		which = 1 if Time.get_ticks_msec() < _mouth_open_until else 0
 	else:
 		# next_down: the next press is DOWN, so the last one was UP (or none yet).
 		which = 2 if (Minigame.waiting or Minigame.resting) else (1 if Minigame.next_down else 0)
@@ -1037,6 +1059,19 @@ func _refresh_exercise_picture() -> bool:
 	if exercise_picture.texture != texture:
 		exercise_picture.texture = texture
 	return true
+
+
+## Change 6: during a meal a navy band (85%) covers the whole width of the screen from the stage's
+## bottom (y 790) down, behind the dock; the room's floor is hidden under it.
+func _place_dock_band(shown: bool) -> void:
+	dock_band.visible = shown
+	if not shown:
+		return
+	dock_band.color = Ui.DOCK_BAND
+	var top: float = dock_band.get_parent().get_global_rect().end.y
+	var screen := get_viewport_rect().size
+	dock_band.global_position = Vector2(0.0, top)
+	dock_band.size = Vector2(screen.x, maxf(0.0, screen.y - top))
 
 
 ## Change 4: the Tap button (changes.md, "Cardio on the street", places from its top-left).

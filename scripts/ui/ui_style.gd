@@ -62,6 +62,8 @@ const CHIP_COLOR := Color(0.105882, 0.145098, 0.321569, 0.35)
 const STEPS_FILL := Color("#6df9cf")
 const BREATH_FILL := Color("#29d3fd")
 const PANEL_92 := Color(0.137255, 0.164706, 0.431373, 0.92)
+## Change 6: the band behind the meal's dock: PANEL_COLOR at 85%.
+const DOCK_BAND := Color(0.137255, 0.164706, 0.431373, 0.85)
 ## Change 5: football (values.md): Pass, Shoot, the field's stripes, keycaps' base, see-through white.
 const PASS_COLOR := Color("#6cd6fd")
 const PASS_BASE := Color("#2a9fd6")

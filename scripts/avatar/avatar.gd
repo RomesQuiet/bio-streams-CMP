@@ -181,6 +181,17 @@ func squat(down: bool) -> void:
 
 
 ## Where the mouth is, in this control (the meal fork aims there).
+## Milestone 40: the folder of the current sheet's pictures ("" for the egg), for the activity
+## pictures (exercise, running, eating), and where the mouth is in the eating pictures (a share
+## of their height from the top; data/avatar_art.json, "eat_mouth_y").
+func art_folder() -> String:
+	return _folder
+
+
+func eat_mouth_share() -> float:
+	return float(art_data()["sheets"].get(sheet, {}).get("eat_mouth_y", 0.45))
+
+
 func mouth_point() -> Vector2:
 	return Vector2(size.x * 0.5, size.y * _mouth_y)
 

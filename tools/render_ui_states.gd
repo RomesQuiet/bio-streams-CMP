@@ -63,7 +63,11 @@ func _run() -> void:
 		root.add_child(load(scene).instantiate())
 		await _save(out, "M_menu" if letter == "M" else "N_creation")
 		return
-	gs.start_new_avatar("Ana", "child", "male", "normal")
+	# A fourth argument "teen" renders a teenage girl (Milestone 40: the other sheets' pictures).
+	if args.size() > 3 and args[3] == "teen":
+		gs.start_new_avatar("Ana", "teenager", "female", "normal")
+	else:
+		gs.start_new_avatar("Ana", "child", "male", "normal")
 	var state: Array = STATES[letter]
 	# The time of day: set the phase start too, or the Clock works it out again (handoff.md).
 	clock._phase_start_minute = state[1]

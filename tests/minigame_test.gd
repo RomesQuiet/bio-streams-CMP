@@ -641,6 +641,7 @@ func _test_screen() -> void:
 	_check("after the wait the buttons are back, with a message", main.action_grid.visible
 			and main.speech_label.text == "You stopped tapping, so I stopped.")
 	_test_strength_screen(main, settings)
+	_test_meal_screen(main)
 	root.remove_child(main)
 	main.free()
 	_check("closing the main screen ends the player's presence", not minigame._player_present)
@@ -712,6 +713,36 @@ func _test_strength_screen(main: Node, settings: Node) -> void:
 	activities.stop()
 	main._refresh_minigame()
 	_check("after the exercise the avatar is back", main.avatar.visible and not main.exercise_picture.visible)
+
+
+## Milestone 40, change 6: the eating pictures, the fork's aim and the dock band; and the activity
+## pictures of a teenager (their folder is teen_male, not the sheet's name).
+func _test_meal_screen(main: Node) -> void:
+	activities.start("eat", "healthy_meal")
+	main._refresh_minigame()
+	_check("meal: the eating picture with the mouth closed, in the avatar's place", main.exercise_picture.visible
+			and not main.avatar.visible and main.exercise_picture.texture.resource_path.ends_with("child_male/eat_closed.png"))
+	_check("the dock band covers the width from the stage's bottom", main.dock_band.visible
+			and is_equal_approx(main.dock_band.global_position.y, main.dock_band.get_parent().get_global_rect().end.y))
+	var mouth: Vector2 = main.exercise_picture.get_global_transform() * Vector2(250.0, 500.0 * 0.45)
+	main._refresh_meal()
+	var aim: Vector2 = main.meal_fork.get_global_transform() * main.meal_fork.mouth
+	_check("the fork aims at the picture's mouth (x 360, y 515 on a 1280 screen)", aim.distance_to(mouth) < 0.5)
+	main._mouth_open_until = Time.get_ticks_msec() + 250
+	main._refresh_minigame()
+	_check("after a bite the mouth is open", main.exercise_picture.texture.resource_path.ends_with("child_male/eat_open.png"))
+	activities.stop()
+	main._refresh_minigame()
+	_check("after the meal the band and the picture go", not main.dock_band.visible and not main.exercise_picture.visible)
+	gs.age_group = "teenager"
+	main._refresh()
+	activities.start("exercise", "push_ups")
+	main._refresh_minigame()
+	_check("a teenager's pictures come from teen_male", main.exercise_picture.visible
+			and main.exercise_picture.texture.resource_path.ends_with("teen_male/pushup_up.png"))
+	activities.stop()
+	gs.age_group = "child"
+	main._refresh()
 
 
 func _new_avatar(difficulty: String) -> void:
