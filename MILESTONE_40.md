@@ -24,7 +24,7 @@ Started 21 Nov 2026 (40 is the user's number; there are no Milestones 36 to 39).
 | 9 | Exercise and entertainment menus | done, waiting for the user's check | see git log |
 | 10 | Let's eat | done, waiting for the user's check | see git log |
 | 11 | Canteen with pictures | done, waiting for the user's check | see git log |
-| 12 | Canteen list (`data/canteen.json`) | | |
+| 12 | Canteen list (`data/canteen.json`) | done, waiting for the user's check | see git log |
 
 ### Change 1: colours
 
@@ -156,6 +156,18 @@ Tables "Canteen (07, 08)": the second step of `scripts/ui/canteen.gd`, at the ta
 - The key `CANTEEN_TITLE` ("Canteen") is deleted (nothing shows it now). New colours `PLATE_COLOR`, `PLATE_RIM`, `SLOT_LINE`.
 - `tests/canteen_test.gd`: new checks (5 columns at the table's places, the plate's places, a food on the plate is chosen and in the first place). `tools/render_ui_states.gd`: T (good food) and I (fast food), two foods on the plate.
 - Checked: headless start without errors; `canteen_test`, `minutes_slider_test`, `translation_test`, `meal_test`, `interface_test` ALL PASSED; T and I rendered in Portuguese and compared with the tables.
+
+### Change 12: the canteen list (user: "OK, do change 12", 21 Nov 2026)
+
+- `data/canteen.json`: the good foods are unchanged (Q10). Fast foods: burger, fries, pizza, hot dog, fried chicken, soft drink and doughnut stay; **ice cream** is added (`FOOD_ICE_CREAM`, "Ice cream" / "Gelado"); nuggets, kebab and milkshake are removed (and their keys). Every food now has the team's picture, so `color` and `placeholder` are gone from all of them. The fast-food grid has 8 foods in 4 columns until the team sends two more (then the 5-column grid of good food, by itself).
+- The meal fork took the food's `color`; without it, it keeps the meal's own colour (green for a good plate, orange for fast food) (`main.gd`).
+- **Nothing in the health model changes:** a good plate is still the healthy meal and a fast-food plate the fast-food meal.
+- `tests/canteen_test.gd`: new checks (the two lists, every food has its picture, 4 columns of 150 for 8 fast foods).
+- Checked: headless start without errors; `canteen_test`, `translation_test`, `meal_test`, `minutes_slider_test`, `minigame_test` ALL PASSED; I (fast food) rendered.
+
+## Where Milestone 40 stands
+
+All 12 changes are done (7 skipped by the user), plus the splash screen. Each was committed alone. **Not pushed, and not to be published** until the team confirms that the image tool's terms allow CC BY 4.0 (`documentation/ui_v2/licence.md`); the web build in `docs/` was not exported again. Open for the user: Done always enabled (change 2), the cardio status not shown (change 4), how Wake up works (change 8), whether `documentation/ui_v2/assets/` and `work/` should be committed. Not checked on a real phone.
 
 ## Contradictions found (to ask before the change they touch)
 

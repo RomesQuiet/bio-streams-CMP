@@ -252,11 +252,9 @@ FOOD_FRIES,Fries,Batatas fritas
 FOOD_PIZZA,Pizza,Piza
 FOOD_HOT_DOG,Hot dog,Cachorro-quente
 FOOD_FRIED_CHICKEN,Fried chicken,Frango frito
-FOOD_NUGGETS,Chicken nuggets,Nuggets de frango
-FOOD_KEBAB,Kebab,Kebab
 FOOD_SOFT_DRINK,Soft drink,Refrigerante
-FOOD_MILKSHAKE,Milkshake,Batido
 FOOD_DOUGHNUT,Doughnut,Donut
+FOOD_ICE_CREAM,Ice cream,Gelado
 CANTEEN_GOOD,Good food,Comida saudável
 CANTEEN_FAST,Fast food,Fast food
 CANTEEN_PLATE,Your plate (%d of %d),O teu prato (%d de %d)

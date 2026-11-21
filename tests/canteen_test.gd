@@ -44,6 +44,14 @@ func _test_foods() -> void:
 	var good: Array[String] = canteen.foods(canteen.GOOD)
 	var fast: Array[String] = canteen.foods(canteen.FAST_FOOD)
 	_check("many examples: %d good foods and %d fast foods" % [good.size(), fast.size()], good.size() >= 8 and fast.size() >= 8)
+	# Milestone 40, change 12: the team's lists; every food has its picture.
+	_check("10 good foods and the team's 8 fast foods (ice cream in; nuggets, kebab, milkshake out)", good.size() == 10
+			and fast == ["burger", "fries", "pizza", "hot_dog", "fried_chicken", "soft_drink", "doughnut", "ice_cream"])
+	var missing: Array[String] = []
+	for id in good + fast:
+		if not ResourceLoader.exists("res://assets/art/food/%s.png" % id):
+			missing.append(id)
+	_check("every food has its picture %s" % [missing], missing.is_empty())
 	_check("good food is the healthy meal, fast food the fast-food meal",
 			canteen.meal_for(canteen.GOOD) == "healthy_meal" and canteen.meal_for(canteen.FAST_FOOD) == "fast_food_meal")
 	_check("a plate holds up to 4 foods", root.get_node("Config").get_int("canteen.plate_max") == 4)
@@ -156,6 +164,9 @@ func _test_screen() -> void:
 	screen.continue_button.pressed.emit()
 	_check("Back and Fast food: a new, empty plate of fast foods", screen.fast_grid.visible and not screen.good_grid.visible
 			and screen.plate.is_empty())
+	var fourth: Control = screen.fast_grid.get_child(3)
+	_check("8 fast foods: 4 columns of 150 (x 45 + 160 per column)", is_equal_approx(fourth.position.x, 525.0)
+			and is_equal_approx(fourth.size.x, 150.0) and is_equal_approx(screen.fast_grid.get_child(4).position.y, 502.0))
 	screen.add_food("burger")
 	screen.add_food("fries")
 	screen.eat_button.pressed.emit()

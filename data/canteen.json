@@ -1,29 +1,27 @@
 {
-	"_comment": "The canteen (Milestone 21, third version, decisions 65 and 66, MILESTONE_21.md). The player chooses good food or fast food, then builds a plate of up to canteen.plate_max foods of that kind from many examples, so players learn to tell them apart. Kinds are not mixed, so a good plate is exactly the healthy meal and a fast-food plate exactly the fast-food meal (meal_for, data/foods.json): the health model is unchanged. The foods are Claude's placeholder list until the team sends its examples; the pictures are placeholders (a coloured tile with the first letter). name: a key of translations/strings.csv.",
+	"_comment": "The canteen (Milestone 21, third version, decisions 65 and 66, MILESTONE_21.md). The player chooses good food or fast food, then builds a plate of up to canteen.plate_max foods of that kind from many examples, so players learn to tell them apart. Kinds are not mixed, so a good plate is exactly the healthy meal and a fast-food plate exactly the fast-food meal (meal_for, data/foods.json): the health model is unchanged. Milestone 40 (documentation/ui_v2/changes.md, change 12, 21 Nov 2026): the ten good foods are the team's (mockup 07), and the fast foods are the team's eight (ice cream added; nuggets, kebab and milkshake removed); two more fast foods come later from the team. Every food has the team's picture, assets/art/food/<id>.png, so the placeholder colour is gone (a food added without a picture needs a \"color\" again: the tile then shows its first letter on that colour). name: a key of translations/strings.csv.",
 	"meal_for": {
 		"good": "healthy_meal",
 		"fast_food": "fast_food_meal"
 	},
 	"foods": {
-		"vegetable_soup": {"name": "FOOD_VEGETABLE_SOUP", "kind": "good", "color": "#7fb069", "placeholder": true},
-		"grilled_fish": {"name": "FOOD_GRILLED_FISH", "kind": "good", "color": "#8fb8de", "placeholder": true},
-		"salad": {"name": "FOOD_SALAD", "kind": "good", "color": "#5fae4f", "placeholder": true},
-		"rice": {"name": "FOOD_RICE", "kind": "good", "color": "#e8e2cf", "placeholder": true},
-		"beans": {"name": "FOOD_BEANS", "kind": "good", "color": "#8c4a3a", "placeholder": true},
-		"wholemeal_bread": {"name": "FOOD_WHOLEMEAL_BREAD", "kind": "good", "color": "#a9774a", "placeholder": true},
-		"apple": {"name": "FOOD_APPLE", "kind": "good", "color": "#d94b3d", "placeholder": true},
-		"orange": {"name": "FOOD_ORANGE", "kind": "good", "color": "#f29b30", "placeholder": true},
-		"yoghurt": {"name": "FOOD_YOGHURT", "kind": "good", "color": "#f2eee6", "placeholder": true},
-		"water": {"name": "FOOD_WATER", "kind": "good", "color": "#6cc3e8", "placeholder": true},
-		"burger": {"name": "FOOD_BURGER", "kind": "fast_food", "color": "#b5652d", "placeholder": true},
-		"fries": {"name": "FOOD_FRIES", "kind": "fast_food", "color": "#f2c94c", "placeholder": true},
-		"pizza": {"name": "FOOD_PIZZA", "kind": "fast_food", "color": "#e0763c", "placeholder": true},
-		"hot_dog": {"name": "FOOD_HOT_DOG", "kind": "fast_food", "color": "#c9553b", "placeholder": true},
-		"fried_chicken": {"name": "FOOD_FRIED_CHICKEN", "kind": "fast_food", "color": "#c98a3a", "placeholder": true},
-		"nuggets": {"name": "FOOD_NUGGETS", "kind": "fast_food", "color": "#e0a64a", "placeholder": true},
-		"kebab": {"name": "FOOD_KEBAB", "kind": "fast_food", "color": "#b07a4a", "placeholder": true},
-		"soft_drink": {"name": "FOOD_SOFT_DRINK", "kind": "fast_food", "color": "#6b3a2a", "placeholder": true},
-		"milkshake": {"name": "FOOD_MILKSHAKE", "kind": "fast_food", "color": "#9a6b4f", "placeholder": true},
-		"doughnut": {"name": "FOOD_DOUGHNUT", "kind": "fast_food", "color": "#d98fb4", "placeholder": true}
+		"vegetable_soup": {"name": "FOOD_VEGETABLE_SOUP", "kind": "good"},
+		"grilled_fish": {"name": "FOOD_GRILLED_FISH", "kind": "good"},
+		"salad": {"name": "FOOD_SALAD", "kind": "good"},
+		"rice": {"name": "FOOD_RICE", "kind": "good"},
+		"beans": {"name": "FOOD_BEANS", "kind": "good"},
+		"wholemeal_bread": {"name": "FOOD_WHOLEMEAL_BREAD", "kind": "good"},
+		"apple": {"name": "FOOD_APPLE", "kind": "good"},
+		"orange": {"name": "FOOD_ORANGE", "kind": "good"},
+		"yoghurt": {"name": "FOOD_YOGHURT", "kind": "good"},
+		"water": {"name": "FOOD_WATER", "kind": "good"},
+		"burger": {"name": "FOOD_BURGER", "kind": "fast_food"},
+		"fries": {"name": "FOOD_FRIES", "kind": "fast_food"},
+		"pizza": {"name": "FOOD_PIZZA", "kind": "fast_food"},
+		"hot_dog": {"name": "FOOD_HOT_DOG", "kind": "fast_food"},
+		"fried_chicken": {"name": "FOOD_FRIED_CHICKEN", "kind": "fast_food"},
+		"soft_drink": {"name": "FOOD_SOFT_DRINK", "kind": "fast_food"},
+		"doughnut": {"name": "FOOD_DOUGHNUT", "kind": "fast_food"},
+		"ice_cream": {"name": "FOOD_ICE_CREAM", "kind": "fast_food"}
 	}
 }

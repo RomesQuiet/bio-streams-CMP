@@ -1046,7 +1046,9 @@ func _refresh_meal() -> void:
 	# A plate of the canteen (Milestone 21): its foods come on the fork in turn.
 	if not Activities.plate.is_empty():
 		var food := Canteen.food(str(Activities.plate[Minigame.bites % Activities.plate.size()]))
-		meal_fork.food_color = Color.html(str(food.get("color", "#888888")))
+		# Milestone 40: foods with a picture have no colour; the fork then keeps the meal's colour.
+		if food.has("color"):
+			meal_fork.food_color = Color.html(str(food["color"]))
 
 
 ## Milestone 40 (changes.md, change 2): the dock of squats, push-ups, sit-ups and meals, at the
