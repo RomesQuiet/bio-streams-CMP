@@ -42,4 +42,4 @@ Also run: `requests_test` (the count of request texts is now 7), `danger_test`, 
 
 ## Google Drive (21 Nov 2026, text replaced in place)
 
-"Jury Report (EN)" and its "Summary (3 pages)": failure now also when "the avatar goes without food for too long". "Jury Report (EN)" and its "Annex", section 10: a paragraph "Adapted. Failure by hunger" (the science and the values), and Visser et al. (2011) in the sources. The deck is not changed (slide 17 describes failure in general).
+"Jury Report (EN)" and its "Summary (3 pages)": failure now also when "the avatar goes without food for too long". "Jury Report (EN)" and its "Annex", section 10: a paragraph "Adapted. Failure by hunger" (the science, the hours counted awake and asleep, starving at 18 h with the request first and the flashing heart, failure at 36 h or while starving, the failure screen, a skip is not food, 3 bites of 10 end a fast, clock time, the 36 h are ours), and Visser et al. (2011) in the sources. The deck is not changed (slide 17 describes failure in general).
