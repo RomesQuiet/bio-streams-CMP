@@ -15,7 +15,7 @@ Started 21 Nov 2026 (40 is the user's number; there are no Milestones 36 to 39).
 | 1 | Colours (`values.md`) | done, waiting for the user's check | see git log |
 | — | The splash screen (main menu), asked by the user | done, waiting for the user's check | see git log |
 | 2 | Activity dock (squats, push-ups, sit-ups, meal; screens waits for the change 7 question) | done, waiting for the user's check | see git log |
-| 3 | Exercise pictures | | |
+| 3 | Exercise pictures | done, waiting for the user's check | see git log |
 | 4 | Cardio panel and running pictures | | |
 | 5 | Football field, minimap, score, panel | | |
 | 6 | Meal: eating pictures, dock band | | |
@@ -66,6 +66,14 @@ For squats, push-ups, sit-ups and meals, at the places of the tables "Squats, pu
 - New colours in `ui_style.gd`: `STOP_COLOR`, `STOP_BASE`, `MINIGAME_UP_COLOR`, `MINIGAME_UP_BASE`, `MINIGAME_DOWN_COLOR`, `MINIGAME_DOWN_BASE`, `SLEEP_BASE`, `ZONE_COLOR`, `CHIP_COLOR`, `DISABLED_ALPHA`.
 - `tools/render_ui_states.gd`: a new state K (squats).
 - Checked: headless start without errors; `minigame_test`, `meal_test`, `canteen_test`, `interface_test`, `translation_test`, `requests_test`, `scenery_test` ALL PASSED; squats (K) and a meal (R) rendered in English, the meal in Portuguese too, and compared with the tables.
+
+### Change 3: exercise pictures (user: "OK, do change 3", 21 Nov 2026)
+
+- During squats, push-ups and sit-ups the avatar is hidden and `ExercisePicture` (a TextureRect in the stage, `scenes/main.tscn`) shows the exercise's picture of the avatar's sheet: after DOWN the "down" one, after UP the "up" one; before the first press and while resting `squat_up`, `pushup_up` or `situp_down`. The healthy body is used for every body (Q8).
+- Rects from the tables, kept at the same distance from the stage's bottom (y 790), so the feet are on y 730: squats 195, 295, 330 x 450; push-ups 110, 394, 500 x 340; sit-ups 130, 374, 460 x 360 (each the canvas's own aspect, never cropped or stretched).
+- `main.gd`: `EXERCISE_PICTURES`, `_refresh_exercise_picture()`; the three pictures are loaded when the option or sheet changes, never while drawing. The ground's shadow under the avatar stays.
+- `tests/minigame_test.gd`: new checks (the down and up pictures, the rest picture, sit-ups resting lying down, the rect, the avatar back after the exercise). `tools/render_ui_states.gd`: K is now squats after DOWN; new U (push-ups after DOWN) and V (sit-ups before the first press).
+- Checked: headless start without errors; `minigame_test` ALL PASSED; K, U and V rendered: the three figures stand on the ground line.
 
 ## Contradictions found (to ask before the change they touch)
 

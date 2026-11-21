@@ -25,6 +25,16 @@ const DOCK_FONT_MIN := 16
 const BEAT_BAR_HEIGHT := 36.0
 ## The icon of the exercise on DOWN and UP, by option.
 const EXERCISE_ICONS := {"strength": "squat", "push_ups": "pushup", "sit_ups": "situp"}
+## Change 3: the pictures of squats, push-ups and sit-ups (documentation/ui_v2/changes.md): for each
+## option, the picture after DOWN, after UP and before the first press or while resting, and its
+## rect in the column (the feet on y 730, 60 above the stage's bottom at y 790).
+const EXERCISE_PICTURES := {
+	"strength": ["squat_down", "squat_up", "squat_up", Rect2(195, 295, 330, 450)],
+	"push_ups": ["pushup_down", "pushup_up", "pushup_up", Rect2(110, 394, 500, 340)],
+	"sit_ups": ["situp_down", "situp_up", "situp_down", Rect2(130, 374, 460, 360)],
+}
+const EXERCISE_STAGE_BOTTOM := 790.0
+const ART_FOLDER := "res://assets/art/avatar/%s/%s.png"
 ## During an activity the balloon's top is at y 208 of the column (changes.md, rule 8).
 const SPEECH_TOP_IN_ACTIVITY := 208.0
 ## The food on the fork in the meal minigame.
@@ -166,6 +176,7 @@ const SPEECH_GAP_UNDER_CAPSULE := 8.0
 @onready var up_button: Button = %UpButton
 @onready var beat_bar: Control = %BeatBar
 @onready var dock_gaps: Array[Control] = [%Gap1, %Gap2, %Gap3]
+@onready var exercise_picture: TextureRect = %ExercisePicture
 @onready var confirm_box: Control = %ConfirmBox
 @onready var failure_screen: ColorRect = %FailureOverlay
 
@@ -191,6 +202,10 @@ var _options_activity := ""
 var _paused_by_settings := false
 ## What the activity dock was last laid out for (Milestone 40).
 var _dock_state := ""
+## The exercise pictures of the running option, loaded when it starts (never while drawing), and
+## which one is shown.
+var _exercise_textures := {}
+var _exercise_key := ""
 
 
 ## The joystick's direction, on screen.
@@ -798,7 +813,8 @@ func _refresh_minigame() -> void:
 	var sky := Minigame.running and Minigame.kind == Minigame.SKY
 	football_field.visible = football
 	sky_game.visible = sky
-	avatar.visible = not (football or sky)
+	var exercise := _refresh_exercise_picture()
+	avatar.visible = not (football or sky or exercise)
 	ground.shadow_visible = not (football or sky)
 	_refresh_sky_bodies()
 	# The bubble would cover the match, the game or the fork: it only comes back for a short message.
@@ -942,6 +958,43 @@ func _layout_dock(strength: bool, meal: bool) -> void:
 		_style_meal_buttons()
 	else:
 		_style_strength_buttons()
+
+
+## Change 3: during squats, push-ups and sit-ups the avatar is replaced by the exercise's
+## pictures (the healthy body for every body, Q8): the "down" one after DOWN, the "up" one after UP,
+## and the resting one before the first press and while resting. Returns whether one is shown.
+func _refresh_exercise_picture() -> bool:
+	var option := Activities.current_option
+	var shown := Minigame.running and Minigame.kind == Minigame.STRENGTH and EXERCISE_PICTURES.has(option)
+	exercise_picture.visible = shown
+	if not shown:
+		return false
+	var entry: Array = EXERCISE_PICTURES[option]
+	var key := "%s|%s" % [avatar.sheet, option]
+	if not _exercise_textures.has(key):
+		_exercise_textures.clear()
+		for i in 3:
+			var path := ART_FOLDER % [avatar.sheet, entry[i]]
+			_exercise_textures[i] = load(path) if ResourceLoader.exists(path) else null
+		_exercise_textures[key] = true
+		var rect: Rect2 = entry[3]
+		# The stage starts at the Margin's left margin (24), also before the first layout.
+		var stage_left := float($Margin.get_theme_constant("margin_left"))
+		exercise_picture.anchor_top = 1.0
+		exercise_picture.anchor_bottom = 1.0
+		exercise_picture.offset_left = rect.position.x - stage_left
+		exercise_picture.offset_right = rect.end.x - stage_left
+		exercise_picture.offset_top = rect.position.y - EXERCISE_STAGE_BOTTOM
+		exercise_picture.offset_bottom = rect.end.y - EXERCISE_STAGE_BOTTOM
+	# next_down: the next press is DOWN, so the last one was UP (or none yet).
+	var which := 2 if (Minigame.waiting or Minigame.resting) else (1 if Minigame.next_down else 0)
+	var texture: Texture2D = _exercise_textures[which]
+	if texture == null:
+		exercise_picture.visible = false
+		return false
+	if exercise_picture.texture != texture:
+		exercise_picture.texture = texture
+	return true
 
 
 ## The status on one line, made smaller (down to 16) when it is longer than 420 pixels.

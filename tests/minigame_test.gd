@@ -652,12 +652,18 @@ func _test_strength_screen(main: Node, settings: Node) -> void:
 	down.button_down.emit()
 	main._refresh_minigame()
 	_check("Down leaves the avatar art still", main.avatar.has_art() and main.avatar.scale == Vector2.ONE)
+	# Milestone 40, change 3: the exercise's pictures take the avatar's place.
+	_check("after DOWN the squat_down picture replaces the avatar", main.exercise_picture.visible and not main.avatar.visible
+			and main.exercise_picture.texture.resource_path.ends_with("child_male/squat_down.png"))
+	_check("its rect is the table's: feet on y 730", is_equal_approx(main.exercise_picture.offset_bottom, 745.0 - 790.0)
+			and is_equal_approx(main.exercise_picture.offset_left, 195.0 - 24.0))
 	_check("the set is shown", main.minigame_status.text == "Set 1 of %d" % minigame.sets_goal)
 	_check("now Up is the expected one", down.disabled and not up.disabled)
 	_pass_time(1.0)
 	up.button_down.emit()
 	main._refresh_minigame()
 	_check("the repetitions are shown", main.minigame_steps.text == "Repetitions: 1 / %d" % minigame.set_reps)
+	_check("after UP the squat_up picture", main.exercise_picture.texture.resource_path.ends_with("child_male/squat_up.png"))
 	var key := InputEventKey.new()
 	key.pressed = true
 	key.keycode = KEY_DOWN
@@ -672,6 +678,7 @@ func _test_strength_screen(main: Node, settings: Node) -> void:
 	_play_set(1.0)
 	main._refresh_minigame()
 	_check("the rest is shown, with both buttons off", main.minigame_status.text == "Resting" and down.disabled and up.disabled)
+	_check("while resting, the squat_up picture", main.exercise_picture.texture.resource_path.ends_with("child_male/squat_up.png"))
 	settings.set_language("pt")
 	main._refresh_minigame()
 	_check("the texts change language", main.minigame_status.text == "A descansar" and main.reserve_label.text == "Músculo"
@@ -688,6 +695,13 @@ func _test_strength_screen(main: Node, settings: Node) -> void:
 	_check("too soon: the avatar warns", main.speech_label.text == "My muscles still need rest.")
 	_check("...and the player can still play", minigame.running and activities.is_running())
 	activities.stop()
+	# Sit-ups rest lying down: situp_down before the first press, situp_up after UP.
+	activities.start("exercise", "sit_ups")
+	main._refresh_minigame()
+	_check("sit-ups: situp_down before the first press", main.exercise_picture.texture.resource_path.ends_with("child_male/situp_down.png"))
+	activities.stop()
+	main._refresh_minigame()
+	_check("after the exercise the avatar is back", main.avatar.visible and not main.exercise_picture.visible)
 
 
 func _new_avatar(difficulty: String) -> void:
