@@ -642,6 +642,7 @@ func _test_screen() -> void:
 			and main.speech_label.text == "You stopped tapping, so I stopped.")
 	_test_strength_screen(main, settings)
 	_test_meal_screen(main)
+	_test_feedback(main)
 	root.remove_child(main)
 	main.free()
 	_check("closing the main screen ends the player's presence", not minigame._player_present)
@@ -743,6 +744,24 @@ func _test_meal_screen(main: Node) -> void:
 	activities.stop()
 	gs.age_group = "child"
 	main._refresh()
+
+
+## The team's task list (21 Nov 2026): the rating pop-up after a minigame.
+func _test_feedback(main: Node) -> void:
+	_check("feedback: a great cardio, a so-so football, bad push-ups, a fast-food meal",
+			main.feedback_key("cardio", "cardio", 0.9) == "FEEDBACK_CARDIO_GREAT"
+			and main.feedback_key("football", "football", 0.6) == "FEEDBACK_FOOTBALL_GOOD"
+			and main.feedback_key("strength", "push_ups", 0.2) == "FEEDBACK_PUSH_UPS_BAD"
+			and main.feedback_key("meal", "fast_food_meal", 1.0) == "FEEDBACK_MEAL_FAST"
+			and main.feedback_key("sky", "screens", 1.0) == "")
+	activities.start("exercise", "cardio")
+	main.get_node("%TapButton").button_down.emit()
+	activities.stop()
+	_check("a played session ends with the pop-up", main.feedback_popup.visible and not main.feedback_popup.text.is_empty())
+	main.feedback_popup.hide()
+	activities.start("exercise", "cardio")
+	activities.stop()
+	_check("...a session nobody played shows none", not main.feedback_popup.visible)
 
 
 func _new_avatar(difficulty: String) -> void:

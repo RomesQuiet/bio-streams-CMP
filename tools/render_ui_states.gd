@@ -9,7 +9,7 @@ extends SceneTree
 ## S (the street), Z (the bedroom), W (the sleep is over: the play button), H (the measures panel
 ## open, with 2.4 h of sleep debt and two thirds of today's sleep need; Milestone 27), M (the menu),
 ## N (the creation screen), K (squats after DOWN: the activity dock and
-## the squat picture, Milestone 40), U (push-ups after DOWN), V (sit-ups before the first press), G (football), J (football on a touch screen: the joystick), Y (asleep in the day: the light stripes), O (the exercise menu), Q (the entertainment menu), L (Let's eat), T (the good-food canteen with two foods on the plate), I (the fast-food one).
+## the squat picture, Milestone 40), U (push-ups after DOWN), V (sit-ups before the first press), G (football), J (football on a touch screen: the joystick), Y (asleep in the day: the light stripes), O (the exercise menu), Q (the entertainment menu), L (Let's eat), T (the good-food canteen with two foods on the plate), I (the fast-food one), p (noon, health 3.7, with the rating pop-up after push-ups).
 
 ## [name, minute of the day, health, XP].
 const STATES := {
@@ -36,6 +36,7 @@ const STATES := {
 	"L": ["L_lets_eat", 10 * 60, 3.0, 250.0],
 	"T": ["T_canteen_good", 10 * 60, 3.0, 250.0],
 	"I": ["I_canteen_fast", 10 * 60, 3.0, 250.0],
+	"p": ["p_feedback_popup", 12 * 60, 3.7, 250.0],
 	"H": ["H_measures_sleep", 18 * 60, 3.0, 250.0],
 }
 
@@ -127,6 +128,10 @@ func _run() -> void:
 		main.canteen.show_kind("good" if letter == "T" else "fast_food")
 		for id in (["salad", "grilled_fish"] if letter == "T" else ["burger", "fries"]):
 			main.canteen.add_food(id)
+	if letter == "p":
+		main.feedback_popup.show_text(main.tr("FEEDBACK_PUSH_UPS_BAD"))
+		main.feedback_popup._tween.kill()
+		main.feedback_popup.modulate.a = 1.0
 	if letter == "J":
 		main.football_pad.touch_mode = true
 	if letter == "K" or letter == "U":

@@ -160,6 +160,8 @@
 		"min_performance": {"value": 0.7, "status": "placeholder", "owner": "Pessoa 4", "comment": "Decisions matter more than skill."},
 		"tired_cut": {"value": 0.3, "status": "placeholder", "owner": "Pessoa 4"},
 		"default_score": {"value": 1, "status": "placeholder", "owner": "Pessoa 4", "comment": "Decision 5: used by activities without a minigame, and when no player is there (the scenario tests)."},
+		"feedback_great_from": {"value": 0.8, "status": "placeholder", "owner": "Pessoa 4", "comment": "The rating pop-up after a minigame (team's task list, 21 Nov 2026): a score from here is 'great'. Only the look."},
+		"feedback_good_from": {"value": 0.5, "status": "placeholder", "owner": "Pessoa 4", "comment": "From here 'good', below it 'badly'. Only the look."},
 		"steps_per_tap": {"value": 2, "status": "team decision", "owner": "team", "comment": "Decision 24: one tap is one stride. Real cadences would need more than 2 taps a second otherwise."},
 		"moderate_cadence": {
 			"child": {"value": 115, "status": "from source", "owner": "Pessoa 3", "comment": "Steps per minute at 4 METy, ages 9 to 11. CADENCE-kids (Tudor-Locke 2018), Table 4, heuristic thresholds."},

@@ -58,6 +58,9 @@ signal meal_event(key: String)
 signal match_ended(goals_us: int, goals_them: int)
 ## A sky-jump run ended with this score. best: it is the avatar's new best.
 signal sky_run_ended(score: int, best: bool)
+## A played session of cardio, strength, football or a meal ended (the team's task list, 21 Nov
+## 2026: a short rating pop-up): its kind, option and score (0 to 1). Only the look.
+signal session_result(kind_name: String, option_id: String, final_score: float)
 ## Emitted just before the avatar stops, starts, walks or runs, so Simulation can first run the
 ## minutes that belong to what it was doing (like Activities.changing).
 signal changing
@@ -609,6 +612,9 @@ func _on_activity_ended(_activity_id: String, option_id: String) -> void:
 		_record_run(run.score())
 	if running and kind == MEAL:
 		_meal_result = {"option": option_id, "share": meal_share(), "full_share": full_share()}
+	var played := (kind in [CARDIO, STRENGTH] and strides > 0) or (kind == FOOTBALL and _moved) or (kind == MEAL and bites > 0)
+	if running and played:
+		session_result.emit(kind, option_id, score())
 	_end_session()
 
 

@@ -1,7 +1,8 @@
 extends Control
 ## Milestone 25: the health bar as five rounded pills (documentation/ui_specification_v1.md, 4.2).
-## The pills are only a mask over one continuous bar: health 3.7 fills three pills and 70% of the
-## fourth. The red part is health (1 to 5 shown as 1 to 5 pills); while `danger` it flashes
+## The pills are only a mask over one continuous bar. Since the team's task list (21 Nov 2026,
+## "the pills are hard to read") each pill fills in quarter steps, rounded down: health 3.7 fills
+## three pills and half of the fourth, 3.25 a quarter of it; a full pill is a whole health level. The red part is health (1 to 5 shown as 1 to 5 pills); while `danger` it flashes
 ## (decision 82). The fill moves smoothly to a new value.
 
 const Ui := preload("res://scripts/ui/ui_style.gd")
@@ -55,9 +56,13 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 
-## How much of pill `index` (0 to 4) is red: 0 to 1.
+## Each pill is divided (invisibly) into this many parts.
+const PILL_PARTS := 4.0
+
+
+## How much of pill `index` (0 to 4) is red: 0 to 1, in quarters, rounded down.
 static func pill_fill(health: float, index: int) -> float:
-	return clampf(health - index, 0.0, 1.0)
+	return clampf(floorf((health - index) * PILL_PARTS + 0.0001) / PILL_PARTS, 0.0, 1.0)
 
 
 ## The rectangle of pill `index` in a bar of `bar_size`.

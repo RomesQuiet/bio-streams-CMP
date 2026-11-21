@@ -87,6 +87,7 @@ const Training := preload("res://scripts/health/training.gd")
 const Requests := preload("res://scripts/health/requests.gd")
 const Canteen := preload("res://scripts/health/canteen.gd")
 const MenuTile := preload("res://scripts/ui/menu_tile.gd")
+const FeedbackPopup := preload("res://scripts/ui/feedback_popup.gd")
 const CanteenScreen := preload("res://scripts/ui/canteen.gd")
 const Ui := preload("res://scripts/ui/ui_style.gd")
 ## Placeholder failure messages by cause (HealthModel.failure_cause(); the failure effect is not
@@ -254,6 +255,8 @@ var _last_options := {}
 var _paused_by_settings := false
 ## What the activity dock was last laid out for (Milestone 40).
 var _dock_state := ""
+## The short rating shown when a minigame ends (the team's task list, 21 Nov 2026).
+var feedback_popup: Control
 ## The exercise pictures of the running option, loaded when it starts (never while drawing), and
 ## which one is shown.
 var _exercise_textures := {}
@@ -302,6 +305,11 @@ func _ready() -> void:
 	sleep_button.pressed.connect(_on_sleep_button_pressed)
 	exercise_button.pressed.connect(_open_options.bind("exercise"))
 	entertainment_button.pressed.connect(_open_options.bind("entertainment"))
+	# The rating pop-up after a minigame, over the game and under the panels.
+	feedback_popup = FeedbackPopup.new()
+	add_child(feedback_popup)
+	move_child(feedback_popup, options_panel.get_index())
+	Minigame.session_result.connect(_on_session_result)
 	# Eat opens the canteen (Milestone 21), over the screen and under the failure screen.
 	canteen = CanteenScreen.new()
 	add_child(canteen)
@@ -1148,6 +1156,33 @@ func _refresh_exercise_picture() -> bool:
 	return true
 
 
+## The team's task list (21 Nov 2026): one short line on how the minigame went, from its score
+## (minigame.feedback_great_from and feedback_good_from); a meal says whether the food was good.
+static func feedback_key(kind_name: String, option_id: String, final_score: float) -> String:
+	if kind_name == Minigame.MEAL:
+		return "FEEDBACK_MEAL_FAST" if option_id == "fast_food_meal" else "FEEDBACK_MEAL_GOOD"
+	# [great, good, badly] per minigame; strength says which exercise was done badly.
+	var keys := {
+		Minigame.CARDIO: ["FEEDBACK_CARDIO_GREAT", "FEEDBACK_CARDIO_GOOD", "FEEDBACK_CARDIO_BAD"],
+		Minigame.FOOTBALL: ["FEEDBACK_FOOTBALL_GREAT", "FEEDBACK_FOOTBALL_GOOD", "FEEDBACK_FOOTBALL_BAD"],
+		Minigame.STRENGTH: ["FEEDBACK_STRENGTH_GREAT", "FEEDBACK_STRENGTH_GOOD",
+				{"push_ups": "FEEDBACK_PUSH_UPS_BAD", "sit_ups": "FEEDBACK_SIT_UPS_BAD"}.get(option_id, "FEEDBACK_SQUATS_BAD")],
+	}
+	if not keys.has(kind_name):
+		return ""
+	if final_score >= Config.get_float("minigame.feedback_great_from"):
+		return keys[kind_name][0]
+	if final_score >= Config.get_float("minigame.feedback_good_from"):
+		return keys[kind_name][1]
+	return keys[kind_name][2]
+
+
+func _on_session_result(kind_name: String, option_id: String, final_score: float) -> void:
+	var key := feedback_key(kind_name, option_id, final_score)
+	if not key.is_empty() and GameState.failed_cause.is_empty():
+		feedback_popup.show_text(tr(key))
+
+
 ## The avatar is asleep in bed: the sleep activity runs.
 func _in_bed() -> bool:
 	return Activities.is_running() and Activities.current_activity == "sleep"
@@ -1367,7 +1402,9 @@ func _refresh_activity_speech() -> void:
 	if not Activities.is_running():
 		return
 	if Activities.current_activity == "sleep":
-		_set_speech(tr("SPEECH_PROGRESS") % ["Zzz...", Settings.number(Activities.elapsed_hours, 1),
+		# The team's task list (21 Nov 2026): say that the night takes real time and the player can
+		# wait or come back later (Milestone 23: time away counts as sleep).
+		_set_speech(tr("SPEECH_SLEEPING_WAIT") % [Settings.number(Activities.elapsed_hours, 1),
 				Settings.number(Activities.target_hours, 1)], "", "activity:sleep")
 		return
 	_set_speech(tr("SPEECH_PROGRESS_MINUTES") % ["%s..." % tr(Activities.current_option_data().get("name", "")),

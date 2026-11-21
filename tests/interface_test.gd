@@ -36,7 +36,10 @@ func _test_pills() -> void:
 	_check("health 1.0: one full pill", is_equal_approx(pills.pill_fill(1.0, 0), 1.0) and pills.pill_fill(1.0, 1) == 0.0)
 	_check("health 2.5: two pills and half of the third", is_equal_approx(pills.pill_fill(2.5, 1), 1.0)
 			and is_equal_approx(pills.pill_fill(2.5, 2), 0.5) and pills.pill_fill(2.5, 3) == 0.0)
-	_check("health 3.7: three pills and 70% of the fourth", is_equal_approx(pills.pill_fill(3.7, 3), 0.7))
+	# The team's task list (21 Nov 2026): quarter steps, rounded down.
+	_check("health 3.7: three pills and half of the fourth (quarters, rounded down)", is_equal_approx(pills.pill_fill(3.7, 3), 0.5))
+	_check("health 3.24: the fourth pill still empty; 3.25: a quarter", pills.pill_fill(3.24, 3) == 0.0
+			and is_equal_approx(pills.pill_fill(3.25, 3), 0.25))
 	var all := true
 	for i in 5:
 		all = all and is_equal_approx(pills.pill_fill(5.0, i), 1.0)

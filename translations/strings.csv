@@ -45,7 +45,6 @@ SPEECH_NOT_SLEEPY,I'm not sleepy.,Não tenho sono.
 SPEECH_SAD,I'm sad.,Estou triste.
 SPEECH_LEVEL_UP,Level up! Level %d,Subiste de nível! Nível %d
 SPEECH_SLEPT_AWAY,%s slept %d h %02d min while you were away.,%s dormiu %d h %02d min enquanto estiveste fora.
-SPEECH_PROGRESS,%s (%s of %s h),%s (%s de %s h)
 SPEECH_PROGRESS_MINUTES,%s (%d of %d min),%s (%d de %d min)
 SPEECH_GAVE_UP,"You stopped tapping, so I stopped.","Deixaste de tocar, por isso parei."
 SPEECH_TOO_SOON,My muscles still need rest.,Os meus músculos ainda precisam de descanso.
@@ -290,3 +289,19 @@ EAT_CHOOSE_TITLE,Let's eat!,Vamos comer!
 EAT_CHOOSE_QUESTION,What would you like to eat?,O que queres comer?
 EAT_GOOD_SUB,"Vegetables, fruit, fish","Legumes, fruta, peixe"
 EAT_FAST_SUB,"High in fat, sugar and salt","Muita gordura, açúcar e sal"
+SPEECH_SLEEPING_WAIT,"Zzz... (%s of %s h)
+The night takes real time: you can wait, or close the game and come back later.","Zzz... (%s de %s h)
+A noite demora tempo real: podes esperar, ou fechar o jogo e voltar mais tarde."
+FEEDBACK_CARDIO_GREAT,Great running rhythm!,Ótimo ritmo de corrida!
+FEEDBACK_CARDIO_GOOD,Good run!,Boa corrida!
+FEEDBACK_CARDIO_BAD,Your running rhythm was off.,O teu ritmo de corrida falhou.
+FEEDBACK_STRENGTH_GREAT,Great technique!,Ótima técnica!
+FEEDBACK_STRENGTH_GOOD,Well done!,Bem feito!
+FEEDBACK_SQUATS_BAD,You did the squats badly.,Fizeste mal os agachamentos.
+FEEDBACK_PUSH_UPS_BAD,You did the push-ups badly.,Fizeste mal as flexões.
+FEEDBACK_SIT_UPS_BAD,You did the sit-ups badly.,Fizeste mal os abdominais.
+FEEDBACK_FOOTBALL_GREAT,Great match!,Ótimo jogo!
+FEEDBACK_FOOTBALL_GOOD,Good game!,Bom jogo!
+FEEDBACK_FOOTBALL_BAD,You didn't play well.,Não jogaste bem.
+FEEDBACK_MEAL_GOOD,You ate good food.,Comeste comida saudável.
+FEEDBACK_MEAL_FAST,You ate bad food.,Comeste comida má.

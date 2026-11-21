@@ -171,6 +171,14 @@ The user asked "add a football ball to the button" and chose the Entertainment b
 
 **Change 7 again (user, 21 Nov 2026: "unskip change 7"):** not built. A new "Watch" option was proposed and the user said no; the user has not yet chosen between "replace the video game" and "around the video game".
 
+### The team's task list (Google Drive "Bio-Streams-tasks.xlsx", sheet 1, 21 Nov 2026)
+
+The user asked to fix the rows with a description on the right; the user chose the details:
+- **Health pills:** each pill fills in quarter steps, rounded down (3.7 shows three pills and half of the fourth; `health_pills.gd` `pill_fill`). "Health N" unchanged.
+- **While the avatar sleeps** the balloon says "Zzz... (x of y h) The night takes real time: you can wait, or close the game and come back later." (`SPEECH_SLEEPING_WAIT`; `SPEECH_PROGRESS` deleted).
+- **When a played minigame ends** (cardio, squats, push-ups, sit-ups, football, a meal; not the video game) a short pop-up for about 3 s gives one line from its score (`minigame.feedback_great_from` 0.8 and `feedback_good_from` 0.5, placeholders): e.g. "Great running rhythm!", "You did the push-ups badly.", "You ate bad food." (`scripts/ui/feedback_popup.gd`, `Minigame.session_result`, `FEEDBACK_*` keys). Only the look.
+- Checked: `minigame_test`, `interface_test`, `translation_test`, `config_test`, `clock_test`, `measures_test`, `failure_test`, `scenery_test`, `requests_test` ALL PASSED. `failure_test` also prints "triangulation failed" twice; it did so already before these changes (not fixed yet).
+
 ## Where Milestone 40 stands
 
 All 12 changes are done (7 skipped by the user), plus the splash screen. Each was committed alone. **Not pushed, and not to be published** until the team confirms that the image tool's terms allow CC BY 4.0 (`documentation/ui_v2/licence.md`); the web build in `docs/` was not exported again. Open for the user: Done always enabled (change 2), the cardio status not shown (change 4), how Wake up works (change 8), whether `documentation/ui_v2/assets/` and `work/` should be committed. Not checked on a real phone.
