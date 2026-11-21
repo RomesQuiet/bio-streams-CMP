@@ -15,7 +15,7 @@ const LIGHT := Color("#ffe7a0")
 
 
 ## Draws the icon `kind` ("heart", "gear", "pause", "play", "exercise", "sleep", "eat",
-## "entertainment", "jump" (an arrow up, the sky-jump button, Milestone 35), the main menu's "person_add", "people", "upload" and "info" (Milestone 40), or a request: "tired", "hungry", "fast_food", "healthy", "screens", "football").
+## "entertainment", "jump" (an arrow up, the sky-jump button, Milestone 35), the main menu's "person_add", "people", "upload" and "info", the exercises "squat", "pushup" and "situp", and "fork" (Milestone 40), or a request: "tired", "hungry", "fast_food", "healthy", "screens", "football").
 ## color is used by the one-colour icons (gear, pause, play, runner, bed, cutlery, screen).
 static func draw(canvas: CanvasItem, kind: String, centre: Vector2, box: float, color := Ui.ICON_INK) -> void:
 	canvas.draw_set_transform(centre, 0.0, Vector2.ONE * box / 100.0)
@@ -56,6 +56,14 @@ static func draw(canvas: CanvasItem, kind: String, centre: Vector2, box: float, 
 			_upload(canvas, color)
 		"info":
 			_info(canvas, color)
+		"squat":
+			_squat(canvas, color)
+		"pushup":
+			_pushup(canvas, color)
+		"situp":
+			_situp(canvas, color)
+		"fork":
+			_fork(canvas, color)
 	canvas.draw_set_transform(Vector2.ZERO)
 
 
@@ -254,3 +262,46 @@ static func _info(canvas: CanvasItem, color: Color) -> void:
 	canvas.draw_arc(Vector2.ZERO, 40.0, 0.0, TAU, 48, color, 7.0, true)
 	_circle(canvas, Vector2(0, -20), 6.5, color)
 	Ui.draw_round_line(canvas, Vector2(0, -3), Vector2(0, 22), color, 10.0)
+
+
+# --- The activity dock's icons (Milestone 40) --------------------------------------------------
+
+## A figure squatting, seen from the side.
+static func _squat(canvas: CanvasItem, color: Color) -> void:
+	_circle(canvas, Vector2(-6, -36), 12.0, color)
+	var lines := [
+		[Vector2(-8, -22), Vector2(-14, 6)],
+		[Vector2(-10, -16), Vector2(16, -14), Vector2(36, -14)],
+		[Vector2(-14, 6), Vector2(14, 8), Vector2(8, 38)],
+		[Vector2(8, 38), Vector2(20, 38)],
+	]
+	for line in lines:
+		for i in line.size() - 1:
+			Ui.draw_round_line(canvas, line[i], line[i + 1], color, 12.0 if i == 0 and line.size() == 2 else 10.0)
+
+
+## A figure in a push-up, lying face down on straight arms.
+static func _pushup(canvas: CanvasItem, color: Color) -> void:
+	_circle(canvas, Vector2(-34, -16), 11.0, color)
+	Ui.draw_round_line(canvas, Vector2(-22, -8), Vector2(38, 12), color, 12.0)
+	Ui.draw_round_line(canvas, Vector2(-20, -6), Vector2(-20, 24), color, 9.0)
+	Ui.draw_round_line(canvas, Vector2(38, 12), Vector2(44, 24), color, 9.0)
+	Ui.draw_round_line(canvas, Vector2(-46, 30), Vector2(48, 30), color, 6.0)
+
+
+## A figure doing a sit-up: lying, knees up, the chest rising.
+static func _situp(canvas: CanvasItem, color: Color) -> void:
+	_circle(canvas, Vector2(-30, -20), 11.0, color)
+	Ui.draw_round_line(canvas, Vector2(-24, -8), Vector2(-4, 18), color, 12.0)
+	Ui.draw_round_line(canvas, Vector2(-4, 18), Vector2(20, -6), color, 10.0)
+	Ui.draw_round_line(canvas, Vector2(20, -6), Vector2(36, 18), color, 10.0)
+	Ui.draw_round_line(canvas, Vector2(-20, -2), Vector2(4, -6), color, 8.0)
+	Ui.draw_round_line(canvas, Vector2(-46, 26), Vector2(48, 26), color, 6.0)
+
+
+## A fork, upright (it fits a box 64 wide and 100 high).
+static func _fork(canvas: CanvasItem, color: Color) -> void:
+	for x in [-18.0, -6.0, 6.0, 18.0]:
+		Ui.draw_round_line(canvas, Vector2(x, -46), Vector2(x, -18), color, 6.0)
+	_box(canvas, Rect2(-22, -22, 44, 16), 7.5, color)
+	_box(canvas, Rect2(-7, -10, 14, 58), 6.5, color)

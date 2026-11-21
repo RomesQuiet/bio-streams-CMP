@@ -14,7 +14,7 @@ Started 21 Nov 2026 (40 is the user's number; there are no Milestones 36 to 39).
 |---|---|---|---|
 | 1 | Colours (`values.md`) | done, waiting for the user's check | see git log |
 | — | The splash screen (main menu), asked by the user | done, waiting for the user's check | see git log |
-| 2 | Activity dock (squats, push-ups, sit-ups, meal, screens) | | |
+| 2 | Activity dock (squats, push-ups, sit-ups, meal; screens waits for the change 7 question) | done, waiting for the user's check | see git log |
 | 3 | Exercise pictures | | |
 | 4 | Cardio panel and running pictures | | |
 | 5 | Football field, minimap, score, panel | | |
@@ -50,6 +50,22 @@ The user sent a picture of the main menu (900 x 1600, the team's splash screen) 
 - **Continue is not in the splash; it is kept** (Claude's choice, so a player can go straight back to the last avatar): when there is a save, a gold Continue button (a play icon, "Continue" and the avatar's line under it) comes first and the five buttons are a little closer together (tops 644, 740, 836, 932, 1028; 84 high). Without a save the screen is exactly the splash.
 - The buttons and the switch keep their distance from the bottom of the screen; the title, the figures and the hill keep theirs from the top (as before). The Avatars and About pages did not change.
 - Checked: headless start without errors; `menu_test`, `translation_test`, `interface_test`, `settings_test` ALL PASSED; the menu rendered with `tools/render_ui_states.gd` (state M) in English and Portuguese and compared with the picture.
+
+### Change 2: the activity dock (user's go-ahead, 21 Nov 2026: "continue the big task")
+
+For squats, push-ups, sit-ups and meals, at the places of the tables "Squats, push-ups, sit-ups" and "Meal" (changes.md).
+
+- **Where:** the minigame panel is 362 high during these activities, so the stage ends at y 790 and the feet are at y 730; the stop slot is y 806 to 870 and the panel starts at y 886, as the tables say. The panel stays a column of rows (`MinigamePanel`); three spacers (`Gap1` to `Gap3` in `scenes/main.tscn`) put each row at its top: info line y 886, Muscle bar y 922, timing bar y 960 (meal: the Tummy bar at y 944), the two buttons at y 1032. `main.gd`: `_layout_dock()` (only when the minigame, option, keys or language change), `_style_strength_buttons()`, `_style_meal_buttons()`, `_fit_status()` (the status on one line, 22 down to 16). Cardio, football and the video game keep their look until changes 4 and 5.
+- **Stop pill** (`scripts/ui/stop_pill.gd`, new; the `StopButton`): 260 x 64 at x 230, y 806, STOP colour, a 6-pixel thickness, a navy square and "Stop" (ExtraBold 30). The button is 88 high around the pill (touch area, rule 2). It is the stop button of every activity for now (changes 4, 5 and 8 give cardio, football and sleep their own).
+- **Big buttons** (`scripts/ui/dock_button.gd`, new; `DownButton`, `UpButton`, `BiteButton`, `DoneButton`): DOWN 327 x 176 (DOWN colour, white icon, arrow and word, chip "↓  S" outlined), UP (UP colour, navy, chip "↑  W" filled), Bite 444 x 176 (a fork, a divider, "Bite!" ExtraBold 52, "[Space]" under it on a computer), Done 210 x 176 (SLEEP colour, "[D]"); radius 32, a thickness of 8, pressed: the face moves down 8 and comes back in 0.14 s; disabled: 45%. The exercise icon is a squat for squats and a figure lying down for push-ups and sit-ups (`ui_icons.gd`: "squat", "pushup", "situp", "fork").
+- **Timing bar** (`scripts/ui/beat_bar.gd`, rule 5): round ends, a 3-pixel white outline, the green zone (`ZONE_COLOR`) inset 6 with radius 18; for strength the marker is a white ring (radius 22, line 5, 4 ticks of 10). The Tummy bar: the same, with the white fill to the bites eaten and the zone from "full" to the end. Cardio's Beat bar gets the new track and zone now (its height and marker in change 4).
+- **The speech balloon** has its top at y 208 during every activity (rule 8).
+- **Keys:** the chips say S and W, so S and W now press DOWN and UP too (the arrows still work). Only an input; no rule changed.
+- **Not as the table says, on purpose:** Done is **not** disabled until the avatar is full. The table says "disabled at 45% until full, as now", but today Done always works (`Minigame.done()`), and the minigame rules must not change. To decide by the user.
+- **Screen time is not in this change:** its dock (screen-time bar, Keep watching, Take a break) is for plain screen time, but Screens is the video game since Milestone 35 (see below).
+- New colours in `ui_style.gd`: `STOP_COLOR`, `STOP_BASE`, `MINIGAME_UP_COLOR`, `MINIGAME_UP_BASE`, `MINIGAME_DOWN_COLOR`, `MINIGAME_DOWN_BASE`, `SLEEP_BASE`, `ZONE_COLOR`, `CHIP_COLOR`, `DISABLED_ALPHA`.
+- `tools/render_ui_states.gd`: a new state K (squats).
+- Checked: headless start without errors; `minigame_test`, `meal_test`, `canteen_test`, `interface_test`, `translation_test`, `requests_test`, `scenery_test` ALL PASSED; squats (K) and a meal (R) rendered in English, the meal in Portuguese too, and compared with the tables.
 
 ## Contradictions found (to ask before the change they touch)
 

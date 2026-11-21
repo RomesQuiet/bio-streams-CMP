@@ -21,6 +21,8 @@
 [ext_resource type="Script" path="res://scripts/ui/ui_icon.gd" id="22_icon"]
 [ext_resource type="Script" path="res://scripts/ui/outside_dim.gd" id="23_dim"]
 [ext_resource type="Script" path="res://scripts/ui/sky_game.gd" id="40_sky_game"]
+[ext_resource type="Script" path="res://scripts/ui/stop_pill.gd" id="41_stop"]
+[ext_resource type="Script" path="res://scripts/ui/dock_button.gd" id="42_dock"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -241,13 +243,13 @@ mouse_filter = 2
 unique_name_in_owner = true
 focus_mode = 0
 visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 0
+offset_left = 206.0
+offset_top = -12.0
+offset_right = 466.0
+offset_bottom = 76.0
 text = "UI_STOP"
+script = ExtResource("41_stop")
 
 [node name="ActionGrid" type="GridContainer" parent="Margin/Layout"]
 unique_name_in_owner = true
@@ -330,6 +332,12 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 
+[node name="Gap1" type="Control" parent="Margin/Layout/MinigamePanel"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+
 [node name="ReserveRow" type="HBoxContainer" parent="Margin/Layout/MinigamePanel"]
 layout_mode = 2
 theme_override_constants/separation = 12
@@ -349,12 +357,24 @@ max_value = 1.0
 step = 0.0
 show_percentage = false
 
+[node name="Gap2" type="Control" parent="Margin/Layout/MinigamePanel"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+
 [node name="BeatBar" type="Control" parent="Margin/Layout/MinigamePanel"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 mouse_filter = 2
 script = ExtResource("7_beat")
+
+[node name="Gap3" type="Control" parent="Margin/Layout/MinigamePanel"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
 
 [node name="TapButton" type="Button" parent="Margin/Layout/MinigamePanel"]
 unique_name_in_owner = true
@@ -388,48 +408,47 @@ script = ExtResource("9_pad")
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 16
+theme_override_constants/separation = 18
 
 [node name="BiteButton" type="Button" parent="Margin/Layout/MinigamePanel/MealButtons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 120)
+custom_minimum_size = Vector2(444, 184)
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 2.0
 focus_mode = 0
 text = "MINIGAME_BITE"
+script = ExtResource("42_dock")
 
 [node name="DoneButton" type="Button" parent="Margin/Layout/MinigamePanel/MealButtons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 120)
+custom_minimum_size = Vector2(210, 184)
 layout_mode = 2
-size_flags_horizontal = 3
 focus_mode = 0
 text = "MINIGAME_DONE"
+script = ExtResource("42_dock")
 
 [node name="StrengthButtons" type="HBoxContainer" parent="Margin/Layout/MinigamePanel"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 16
+theme_override_constants/separation = 18
 
 [node name="DownButton" type="Button" parent="Margin/Layout/MinigamePanel/StrengthButtons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 120)
+custom_minimum_size = Vector2(0, 184)
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
 text = "MINIGAME_DOWN"
+script = ExtResource("42_dock")
 
 [node name="UpButton" type="Button" parent="Margin/Layout/MinigamePanel/StrengthButtons"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 120)
+custom_minimum_size = Vector2(0, 184)
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
 text = "MINIGAME_UP"
+script = ExtResource("42_dock")
 
 [node name="Hud" type="PanelContainer" parent="."]
 layout_mode = 1

@@ -46,6 +46,21 @@ const SHADOW_COLOR := Color(0.05, 0.07, 0.25, 0.28)
 ## How much the screen is darkened while a panel covers it.
 const DIM_COLOR := Color(0.04, 0.05, 0.16, 0.6)
 
+## Milestone 40 (documentation/ui_v2/values.md, "new"): the activity dock.
+const STOP_COLOR := Color("#fd95b4")
+const STOP_BASE := Color("#e0668e")
+const MINIGAME_UP_COLOR := Color("#8afade")
+const MINIGAME_UP_BASE := Color("#3db38b")
+const MINIGAME_DOWN_COLOR := Color("#6c78c2")
+const MINIGAME_DOWN_BASE := Color("#4c56a0")
+const SLEEP_BASE := Color("#a98ce8")
+## The green zone of every timing bar.
+const ZONE_COLOR := Color("#6bf0b0")
+## Key chips: INK at 35%.
+const CHIP_COLOR := Color(0.105882, 0.145098, 0.321569, 0.35)
+## Pressed and disabled buttons of the new look (changes.md, rule 3).
+const DISABLED_ALPHA := 0.45
+
 ## Milestone 40: the main menu (the team's splash screen, 21 Nov 2026; colours read from its
 ## pixels). Each menu button: its face and its darker thickness.
 const MENU_NEW_FACE := Color("#a9f0e0")

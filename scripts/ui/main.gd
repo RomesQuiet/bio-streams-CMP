@@ -8,6 +8,25 @@ const MENU_SCENE := "res://scenes/ui/menu.tscn"
 const MINIGAME_PANEL_HEIGHT := 256.0
 const FOOTBALL_PAD_TOUCH := 170.0
 const FOOTBALL_PAD_KEYS := 104.0
+## Milestone 40 (documentation/ui_v2/changes.md, change 2): the activity dock of squats, push-ups,
+## sit-ups and meals. The panel is 362 high, so the stage ends at y 790 and the feet are at y 730;
+## each row's top, from the panel's top (y 886): the info line, the Muscle bar, the timing bar
+## (or the Tummy bar) and the two big buttons (faces 176 high and a thickness of 8).
+const DOCK_HEIGHT := 362.0
+const DOCK_STRENGTH_TOPS := [0.0, 36.0, 74.0, 146.0]
+const DOCK_MEAL_TOPS := [0.0, -1.0, 58.0, 146.0]
+const DOCK_BAR_HEIGHT := 24.0
+const DOCK_TIMING_HEIGHT := 48.0
+const DOCK_LABEL_WIDTH := 88.0
+const DOCK_STATUS_WIDTH := 420.0
+const DOCK_FONT_SIZE := 22
+const DOCK_FONT_MIN := 16
+## The cardio Beat bar's height until change 4.
+const BEAT_BAR_HEIGHT := 36.0
+## The icon of the exercise on DOWN and UP, by option.
+const EXERCISE_ICONS := {"strength": "squat", "push_ups": "pushup", "sit_ups": "situp"}
+## During an activity the balloon's top is at y 208 of the column (changes.md, rule 8).
+const SPEECH_TOP_IN_ACTIVITY := 208.0
 ## The food on the fork in the meal minigame.
 const MEAL_HEALTHY_COLOR := Color(0.4, 0.75, 0.35)
 const MEAL_FAST_FOOD_COLOR := Color(0.85, 0.55, 0.25)
@@ -146,6 +165,7 @@ const SPEECH_GAP_UNDER_CAPSULE := 8.0
 @onready var down_button: Button = %DownButton
 @onready var up_button: Button = %UpButton
 @onready var beat_bar: Control = %BeatBar
+@onready var dock_gaps: Array[Control] = [%Gap1, %Gap2, %Gap3]
 @onready var confirm_box: Control = %ConfirmBox
 @onready var failure_screen: ColorRect = %FailureOverlay
 
@@ -169,6 +189,8 @@ var _flash_args := []
 var _options_activity := ""
 ## Whether opening the settings paused the day, so closing them starts it again.
 var _paused_by_settings := false
+## What the activity dock was last laid out for (Milestone 40).
+var _dock_state := ""
 
 
 ## The joystick's direction, on screen.
@@ -315,6 +337,9 @@ func _place_speech() -> void:
 	var stage_bottom: float = speech_bubble.get_parent().get_global_rect().end.y
 	var limit := clock_capsule.get_global_rect().end.y + SPEECH_GAP_UNDER_CAPSULE
 	var bottom := _speech_bottom + maxf(0.0, limit - (stage_bottom + _speech_bottom - height))
+	# During an activity its top is fixed at y 208, under the clock (Milestone 40, rule 8).
+	if Activities.is_running():
+		bottom = get_global_rect().position.y + SPEECH_TOP_IN_ACTIVITY + height - stage_bottom
 	if not is_equal_approx(bottom, speech_bubble.offset_bottom):
 		speech_bubble.offset_bottom = bottom
 		speech_bubble.offset_top = bottom - height
@@ -408,6 +433,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if Minigame.kind == Minigame.MEAL and event is InputEventKey and event.pressed and not event.echo \
 			and event.physical_keycode == KEY_D:
 		Minigame.done()
+	# The key chips of DOWN and UP say S and W too (Milestone 40).
+	if Minigame.kind == Minigame.STRENGTH and event is InputEventKey and event.pressed and not event.echo \
+			and event.physical_keycode in [KEY_S, KEY_W]:
+		Minigame.press(event.physical_keycode == KEY_S)
+		return
 	if event.is_action_pressed("ui_accept"):
 		Minigame.tap()
 		Minigame.shoot_or_tackle()
@@ -793,7 +823,8 @@ func _refresh_minigame() -> void:
 	# On a computer the keys need less room, so the field is larger.
 	var small_pad: bool = football and not football_pad.touch_mode
 	football_pad.custom_minimum_size.y = FOOTBALL_PAD_KEYS if small_pad else FOOTBALL_PAD_TOUCH
-	minigame_panel.custom_minimum_size.y = 0.0 if small_pad else MINIGAME_PANEL_HEIGHT
+	minigame_panel.custom_minimum_size.y = DOCK_HEIGHT if (strength or meal) else (0.0 if small_pad else MINIGAME_PANEL_HEIGHT)
+	_layout_dock(strength, meal)
 	reserve_label.text = tr("MINIGAME_MUSCLE" if strength else "MINIGAME_BREATH")
 	reserve_bar.value = Minigame.reserve
 	if football:
@@ -813,6 +844,7 @@ func _refresh_minigame() -> void:
 		scenery.late_after = 0.0 if Minigame.waiting else Minigame.interval() * (1.0 + Config.get_float("minigame.on_beat_share"))
 		minigame_status.text = tr(status)
 		minigame_steps.text = tr("MINIGAME_STEPS") % [Minigame.steps(), Minigame.steps_goal()]
+	_fit_status(strength)
 	var stopped := Minigame.waiting or Minigame.resting
 	var elapsed := 0.0 if stopped else Minigame.seconds_since_tap / Minigame.interval()
 	beat_bar.show_time(elapsed, Config.get_float("minigame.on_beat_share"), Minigame.last_on_beat)
@@ -852,10 +884,11 @@ func _refresh_meal() -> void:
 	var status := "MEAL_WAITING" if Minigame.waiting else ("MEAL_FULL" if full else "MEAL_EATING")
 	minigame_status.text = tr(status)
 	minigame_steps.text = tr("MEAL_TUMMY") % [Minigame.bites, Config.get_int("minigame.meal.bites")]
+	_fit_status(true)
 	beat_bar.show_level(Minigame.meal_share(), Minigame.full_share(), 1.0)
 	var keys: bool = not football_pad.touch_mode
-	bite_button.text = _with_key("MINIGAME_BITE", "Space", keys)
-	done_button.text = _with_key("MINIGAME_DONE", "D", keys)
+	bite_button.hint = "[Space]" if keys else ""
+	done_button.hint = "[D]" if keys else ""
 	avatar.mouth_open = Minigame.at_mouth()
 	meal_fork.fork = Minigame.fork_position()
 	meal_fork.at_mouth = Minigame.at_mouth()
@@ -868,6 +901,103 @@ func _refresh_meal() -> void:
 	if not Activities.plate.is_empty():
 		var food := Canteen.food(str(Activities.plate[Minigame.bites % Activities.plate.size()]))
 		meal_fork.food_color = Color.html(str(food.get("color", "#888888")))
+
+
+## Milestone 40 (changes.md, change 2): the dock of squats, push-ups, sit-ups and meals, at the
+## tables' places: the rows of the panel are put at their tops with the gaps between them; other
+## minigames keep their look until their own change.
+func _layout_dock(strength: bool, meal: bool) -> void:
+	# Laid out again only when something it depends on changes (it is called every frame).
+	var state := "%s|%s|%s|%s|%s" % [strength, meal, Activities.current_option, football_pad.touch_mode,
+			TranslationServer.get_locale()]
+	if state == _dock_state:
+		return
+	_dock_state = state
+	var dock := strength or meal
+	minigame_panel.add_theme_constant_override("separation", 0 if dock else 8)
+	beat_bar.custom_minimum_size.y = DOCK_TIMING_HEIGHT if dock else BEAT_BAR_HEIGHT
+	beat_bar.marker_style = "ring" if strength else "bar"
+	var reserve_row := reserve_label.get_parent() as HBoxContainer
+	reserve_row.add_theme_constant_override("separation", 8 if dock else 12)
+	reserve_label.custom_minimum_size.x = DOCK_LABEL_WIDTH if dock else 0.0
+	reserve_bar.custom_minimum_size.y = DOCK_BAR_HEIGHT if dock else 28.0
+	if not dock:
+		for gap in dock_gaps:
+			gap.visible = false
+		minigame_status.remove_theme_font_size_override("font_size")
+		return
+	var tops: Array = DOCK_STRENGTH_TOPS if strength else DOCK_MEAL_TOPS
+	var rows: Array[Control] = [minigame_status.get_parent(), reserve_row, beat_bar, strength_buttons if strength else meal_buttons]
+	var y := 0.0
+	for i in rows.size():
+		if tops[i] < 0.0:
+			continue
+		if i > 0:
+			var gap := dock_gaps[i - 1]
+			gap.visible = true
+			gap.custom_minimum_size.y = maxf(0.0, tops[i] - y)
+		y = tops[i] + rows[i].get_combined_minimum_size().y
+	if meal:
+		dock_gaps[1].visible = false
+		_style_meal_buttons()
+	else:
+		_style_strength_buttons()
+
+
+## The status on one line, made smaller (down to 16) when it is longer than 420 pixels.
+func _fit_status(dock: bool) -> void:
+	if not dock:
+		return
+	var fitted := maxi(Ui.fit_font_size(Ui.FONT_BOLD, minigame_status.text, DOCK_FONT_SIZE, DOCK_STATUS_WIDTH), DOCK_FONT_MIN)
+	if minigame_status.get_theme_font_size("font_size") != fitted:
+		minigame_status.add_theme_font_size_override("font_size", fitted)
+
+
+## DOWN and UP (changes.md, "Squats, push-ups, sit-ups"; places from each button's top-left).
+func _style_strength_buttons() -> void:
+	var icon: String = EXERCISE_ICONS.get(Activities.current_option, "squat")
+	var keys: bool = not football_pad.touch_mode
+	for button: Button in [down_button, up_button]:
+		var down := button == down_button
+		button.face = Ui.MINIGAME_DOWN_COLOR if down else Ui.MINIGAME_UP_COLOR
+		button.base = Ui.MINIGAME_DOWN_BASE if down else Ui.MINIGAME_UP_BASE
+		button.ink = Color.WHITE if down else Ui.INK
+		button.icon_kind = icon
+		button.icon_rect = Rect2(32, 32, 80, 80)
+		button.arrow = "down" if down else "up"
+		button.arrow_rect = Rect2(126, 34, 16, 36)
+		button.word_size = 40
+		button.word_x = 162.0
+		button.word_y = 68.0
+		button.chip = ("↓  S" if down else "↑  W") if keys else ""
+		button.chip_rect = Rect2(113, 122, 100, 32)
+		button.chip_fill = Color(0, 0, 0, 0) if down else Ui.MINIGAME_UP_BASE
+		button.queue_redraw()
+
+
+## Bite and Done (changes.md, "Meal"; places from each button's top-left).
+func _style_meal_buttons() -> void:
+	bite_button.face = Ui.MINIGAME_UP_COLOR
+	bite_button.base = Ui.MINIGAME_UP_BASE
+	bite_button.icon_kind = "fork"
+	bite_button.icon_rect = Rect2(48, 38, 64, 100)
+	bite_button.divider = Rect2(144, 40, 3, 96)
+	bite_button.word_size = 52
+	bite_button.word_x = 172.0
+	bite_button.word_y = 74.0
+	var word_width := Ui.FONT_HEAVY.get_string_size(tr(bite_button.text), HORIZONTAL_ALIGNMENT_LEFT, -1, 52).x
+	bite_button.hint_size = 24
+	bite_button.hint_centre = Vector2(172.0 + word_width * 0.5, 128.0)
+	done_button.face = Ui.SLEEP_COLOR
+	done_button.base = Ui.SLEEP_BASE
+	done_button.word_size = 34
+	done_button.word_centred = true
+	done_button.word_x = 105.0
+	done_button.word_y = 74.0
+	done_button.hint_size = 22
+	done_button.hint_centre = Vector2(105.0, 124.0)
+	for button: Button in [bite_button, done_button]:
+		button.queue_redraw()
 
 
 func _with_key(key: String, keyboard_key: String, keys: bool) -> String:
