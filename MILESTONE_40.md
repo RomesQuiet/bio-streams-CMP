@@ -165,6 +165,12 @@ Tables "Canteen (07, 08)": the second step of `scripts/ui/canteen.gd`, at the ta
 - `tests/canteen_test.gd`: new checks (the two lists, every food has its picture, 4 columns of 150 for 8 fast foods).
 - Checked: headless start without errors; `canteen_test`, `translation_test`, `meal_test`, `minutes_slider_test`, `minigame_test` ALL PASSED; I (fast food) rendered.
 
+### After change 12: a football on the Entertainment button (user, 21 Nov 2026)
+
+The user asked "add a football ball to the button" and chose the Entertainment button. Its icon (`ui_icons.gd`, kind "entertainment") is now the brown game controller, a little smaller and to the left, with a football over its lower right (entertainment is the video game and football). The menu's icon and the tiles are unchanged. Checked: `interface_test` ALL PASSED; state C rendered.
+
+**Change 7 again (user, 21 Nov 2026: "unskip change 7"):** not built. A new "Watch" option was proposed and the user said no; the user has not yet chosen between "replace the video game" and "around the video game".
+
 ## Where Milestone 40 stands
 
 All 12 changes are done (7 skipped by the user), plus the splash screen. Each was committed alone. **Not pushed, and not to be published** until the team confirms that the image tool's terms allow CC BY 4.0 (`documentation/ui_v2/licence.md`); the web build in `docs/` was not exported again. Open for the user: Done always enabled (change 2), the cardio status not shown (change 4), how Wake up works (change 8), whether `documentation/ui_v2/assets/` and `work/` should be committed. Not checked on a real phone.

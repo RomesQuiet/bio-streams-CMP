@@ -18,6 +18,12 @@ const LIGHT := Color("#ffe7a0")
 ## "entertainment", "jump" (an arrow up, the sky-jump button, Milestone 35), "controller" (the game controller in one colour), "apple_line" and "burger_line" (the apple and the burger in one colour), the main menu's "person_add", "people", "upload" and "info", the exercises "squat", "pushup" and "situp", "fork", "footprints", and football's "pass" and "goal" (Milestone 40, 100 wide and about 58 high), or a request: "tired", "hungry", "fast_food", "healthy", "screens", "football").
 ## color is used by the one-colour icons (gear, pause, play, runner, bed, cutlery, screen).
 static func draw(canvas: CanvasItem, kind: String, centre: Vector2, box: float, color := Ui.ICON_INK) -> void:
+	# The Entertainment button: the game controller and a football (user, 21 Nov 2026: entertainment
+	# is the video game and football), the ball smaller, over the controller's lower right.
+	if kind == "entertainment":
+		draw(canvas, "controller_brown", centre + Vector2(-0.18, -0.04) * box, box * 0.92, color)
+		draw(canvas, "football", centre + Vector2(0.36, 0.14) * box, box * 0.54, color)
+		return
 	canvas.draw_set_transform(centre, 0.0, Vector2.ONE * box / 100.0)
 	match kind:
 		"heart":
@@ -36,7 +42,7 @@ static func draw(canvas: CanvasItem, kind: String, centre: Vector2, box: float, 
 			_bed(canvas, color)
 		"eat", "healthy":
 			_apple(canvas)
-		"entertainment":
+		"controller_brown":
 			_controller(canvas, Ui.CONTROLLER_BROWN)
 		"controller":
 			_controller(canvas, color)
