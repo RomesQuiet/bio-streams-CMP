@@ -15,7 +15,7 @@ const LIGHT := Color("#ffe7a0")
 
 
 ## Draws the icon `kind` ("heart", "gear", "pause", "play", "exercise", "sleep", "eat",
-## "entertainment", "jump" (an arrow up, the sky-jump button, Milestone 35), the main menu's "person_add", "people", "upload" and "info", the exercises "squat", "pushup" and "situp", and "fork" (Milestone 40), or a request: "tired", "hungry", "fast_food", "healthy", "screens", "football").
+## "entertainment", "jump" (an arrow up, the sky-jump button, Milestone 35), the main menu's "person_add", "people", "upload" and "info", the exercises "squat", "pushup" and "situp", "fork" and "footprints" (Milestone 40), or a request: "tired", "hungry", "fast_food", "healthy", "screens", "football").
 ## color is used by the one-colour icons (gear, pause, play, runner, bed, cutlery, screen).
 static func draw(canvas: CanvasItem, kind: String, centre: Vector2, box: float, color := Ui.ICON_INK) -> void:
 	canvas.draw_set_transform(centre, 0.0, Vector2.ONE * box / 100.0)
@@ -64,6 +64,8 @@ static func draw(canvas: CanvasItem, kind: String, centre: Vector2, box: float, 
 			_situp(canvas, color)
 		"fork":
 			_fork(canvas, color)
+		"footprints":
+			_footprints(canvas, color)
 	canvas.draw_set_transform(Vector2.ZERO)
 
 
@@ -305,3 +307,23 @@ static func _fork(canvas: CanvasItem, color: Color) -> void:
 		Ui.draw_round_line(canvas, Vector2(x, -46), Vector2(x, -18), color, 6.0)
 	_box(canvas, Rect2(-22, -22, 44, 16), 7.5, color)
 	_box(canvas, Rect2(-7, -10, 14, 58), 6.5, color)
+
+
+## Two footprints, one ahead of the other (the cardio Tap button).
+static func _footprints(canvas: CanvasItem, color: Color) -> void:
+	for foot in [[Vector2(-16, 14), -0.25], [Vector2(16, -14), 0.25]]:
+		var centre: Vector2 = foot[0]
+		var turn: float = foot[1]
+		var sole := Ui.ellipse_points(Vector2.ZERO, Vector2(11, 20), 24)
+		var heel := Ui.ellipse_points(Vector2(0, 26), Vector2(9, 8), 16)
+		var placed := PackedVector2Array()
+		for point in sole:
+			placed.append(centre + point.rotated(turn))
+		fill(canvas, placed, color)
+		placed = PackedVector2Array()
+		for point in heel:
+			placed.append(centre + point.rotated(turn))
+		fill(canvas, placed, color)
+		for i in 4:
+			var toe := Vector2(-9 + 6 * i, -27 + absf(i - 1.5) * 2.5)
+			_circle(canvas, centre + toe.rotated(turn), 3.6 if i > 0 else 4.6, color)

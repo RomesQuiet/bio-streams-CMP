@@ -58,6 +58,10 @@ const SLEEP_BASE := Color("#a98ce8")
 const ZONE_COLOR := Color("#6bf0b0")
 ## Key chips: INK at 35%.
 const CHIP_COLOR := Color(0.105882, 0.145098, 0.321569, 0.35)
+## Change 4: the cardio panel's bars and its see-through panel (PANEL_COLOR at 92%).
+const STEPS_FILL := Color("#6df9cf")
+const BREATH_FILL := Color("#29d3fd")
+const PANEL_92 := Color(0.137255, 0.164706, 0.431373, 0.92)
 ## Pressed and disabled buttons of the new look (changes.md, rule 3).
 const DISABLED_ALPHA := 0.45
 

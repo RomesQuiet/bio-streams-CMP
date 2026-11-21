@@ -602,6 +602,12 @@ func _test_screen() -> void:
 	activities.start("exercise", "cardio")
 	_check("cardio: the panel takes their place", main.minigame_panel.visible and not main.action_grid.visible)
 	_check("it asks for the first tap", main.minigame_status.text == "Tap to start!")
+	# Milestone 40, change 4: the cardio panel with its own Stop; the running picture.
+	main._refresh_minigame()
+	_check("cardio: the cardio panel, and the stop slot above it hidden", main.cardio_panel.visible
+			and not main.stop_button.get_parent().visible and not main.minigame_status.get_parent().visible)
+	_check("run_01 while waiting, in the avatar's place", main.exercise_picture.visible and not main.avatar.visible
+			and main.exercise_picture.texture.resource_path.ends_with("child_male/run_01.png"))
 	var stood_still: bool = main.avatar.hop_offset == 0.0 and main.avatar._animation == null
 	_check("the avatar stands still while it waits", stood_still)
 	main.get_node("%TapButton").button_down.emit()
@@ -610,6 +616,9 @@ func _test_screen() -> void:
 	# The avatar art does not move (user, 6 Nov 2026); the egg (no art) still hops.
 	_check("the avatar art stays still with the stride", main.avatar.has_art() and main.avatar.hop_offset == 0.0)
 	_check("the steps are shown", main.minigame_steps.text == "Steps: 2 / %d" % minigame.steps_goal())
+	_check("the panel shows the steps and the minutes", main.cardio_panel.steps_text == "2 / %d" % minigame.steps_goal()
+			and main.cardio_panel.minutes_text.begins_with("0 / ") and main.cardio_panel.minutes_text.ends_with(" min"))
+	_check("each tap shows the next running picture", main.exercise_picture.texture.resource_path.ends_with("child_male/run_02.png"))
 	var space := InputEventKey.new()
 	space.keycode = KEY_SPACE
 	space.pressed = true
@@ -644,7 +653,8 @@ func _test_strength_screen(main: Node, settings: Node) -> void:
 	main._refresh_minigame()
 	var down: Button = main.down_button
 	var up: Button = main.up_button
-	_check("strength: Down and Up in place of the tap button", main.strength_buttons.visible and not main.tap_button.visible)
+	_check("strength: Down and Up in place of the tap button", main.strength_buttons.visible and not main.cardio_panel.visible)
+	_check("the stop slot is back for strength", main.stop_button.get_parent().visible)
 	_check("the bar is the Muscle bar", main.reserve_label.text == "Muscle")
 	_check("only the expected button is enabled", not down.disabled and up.disabled)
 	# Milestone 20: done for real, on trust.

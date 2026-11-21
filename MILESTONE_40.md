@@ -16,7 +16,7 @@ Started 21 Nov 2026 (40 is the user's number; there are no Milestones 36 to 39).
 | — | The splash screen (main menu), asked by the user | done, waiting for the user's check | see git log |
 | 2 | Activity dock (squats, push-ups, sit-ups, meal; screens waits for the change 7 question) | done, waiting for the user's check | see git log |
 | 3 | Exercise pictures | done, waiting for the user's check | see git log |
-| 4 | Cardio panel and running pictures | | |
+| 4 | Cardio panel and running pictures | done, waiting for the user's check | see git log |
 | 5 | Football field, minimap, score, panel | | |
 | 6 | Meal: eating pictures, dock band | | |
 | 7 | Screen time | | |
@@ -74,6 +74,18 @@ For squats, push-ups, sit-ups and meals, at the places of the tables "Squats, pu
 - `main.gd`: `EXERCISE_PICTURES`, `_refresh_exercise_picture()`; the three pictures are loaded when the option or sheet changes, never while drawing. The ground's shadow under the avatar stays.
 - `tests/minigame_test.gd`: new checks (the down and up pictures, the rest picture, sit-ups resting lying down, the rect, the avatar back after the exercise). `tools/render_ui_states.gd`: K is now squats after DOWN; new U (push-ups after DOWN) and V (sit-ups before the first press).
 - Checked: headless start without errors; `minigame_test` ALL PASSED; K, U and V rendered: the three figures stand on the ground line.
+
+### Change 4: cardio (user: "OK, do change 4", 21 Nov 2026)
+
+Table "Cardio on the street (01)".
+
+- `scripts/ui/cardio_panel.gd` (new; `CardioPanel` in the minigame panel, 488 high from y 760): the panel (x 12, y 760, 696 x 496, radius 28, navy at 92%, a white line), the runner icon, "CARDIO" (ExtraBold 30), the minutes "7 / 60 min" (Bold 26, right to x 476), Steps with "16 / 173" and the Steps bar (`STEPS_FILL`), Breath and its bar (`BREATH_FILL`), the timing box (INK at 35%) with "Timing" and "Tap in the green zone!".
+- Its children: `CardioStop` (the small Stop pill, 200 x 48 at x 484, y 780, a thickness of 4; the stop slot above the panel is hidden), `CardioBeat` (the timing bar 640 x 48 at x 40, y 1036, its marker a white bar 8 x 64 with radius 4) and the `TapButton` (648 x 112 at x 36, y 1112, radius 40, footprints and "TAP TO RUN" in capitals; "[Space]" not shown; Space still taps).
+- The stage ends at y 744 (feet on y 684). The dark silhouette is replaced by the running pictures `run_01` to `run_05` (seen from behind) at 80%: rect 228, 336, 264 x 360; a new frame at each tap, `run_01` while waiting.
+- **The status ("Tap to start!", "Running", "Walking: catching my breath") is not in the table**, so it is not shown any more (it is still worked out, in the hidden info line, and the tests read it). To decide by the user whether it should come back somewhere.
+- New keys: `CARDIO_TITLE`, `MINIGAME_STEPS_LABEL`, `TIMING`, `TIMING_HINT` (Portuguese from `changes.md`); `tests/translation_test.gd` knows the `CARDIO_` and `TIMING` keys and reads `cardio_panel.gd`. New: `ui_style.gd` `STEPS_FILL`, `BREATH_FILL`, `PANEL_92`; `ui_icons.gd` "footprints"; `beat_bar.gd` `marker_height` and `marker_radius`; `dock_button.gd` `upper`.
+- `tests/minigame_test.gd`: new checks (the panel and the hidden stop slot, `run_01` while waiting, the next frame after a tap, the panel's steps and minutes, the stop slot back for strength).
+- Checked: headless start without errors; `minigame_test`, `translation_test`, `interface_test`, `scenery_test` ALL PASSED; state S rendered in English and Portuguese.
 
 ## Contradictions found (to ask before the change they touch)
 

@@ -9,7 +9,7 @@ const SCENES: Array[String] = ["res://scenes/main.tscn", "res://scenes/ui/creati
 const SCRIPTS: Array[String] = ["res://scripts/ui/main.gd", "res://scripts/ui/creation.gd", "res://scripts/autoload/settings.gd",
 		"res://scripts/ui/football_help.gd", "res://scripts/health/football_match.gd",
 		"res://scripts/autoload/minigame.gd", "res://scripts/health/requests.gd", "res://scripts/ui/failure_screen.gd", "res://scripts/ui/menu.gd",
-		"res://scripts/ui/canteen.gd", "res://scripts/ui/sky_game.gd"]
+		"res://scripts/ui/canteen.gd", "res://scripts/ui/sky_game.gd", "res://scripts/ui/cardio_panel.gd"]
 const ACTIVITIES := "res://data/activities.json"
 ## Never translated: each language button shows its own name.
 const NOT_TRANSLATED: Array[String] = ["Português", "English", "PT", "EN"]
@@ -84,7 +84,7 @@ func _test_scenes() -> void:
 
 
 func _test_scripts() -> void:
-	var keys := RegEx.create_from_string("\"((?:UI|SPEECH|CREATION|ACTIVITY|MEASURE|FAILURE|SETTINGS|SLEEP|FORMAT|MINIGAME|FOOTBALL|MEAL|MENU|CANTEEN|SKY)_[A-Z_]+)\"")
+	var keys := RegEx.create_from_string("\"((?:UI|SPEECH|CREATION|ACTIVITY|MEASURE|FAILURE|SETTINGS|SLEEP|FORMAT|MINIGAME|FOOTBALL|MEAL|MENU|CANTEEN|SKY|CARDIO)_[A-Z_]+|TIMING(?:_[A-Z_]+)?)\"")
 	for path in SCRIPTS:
 		var missing: Array[String] = []
 		for found in keys.search_all(FileAccess.get_file_as_string(path)):

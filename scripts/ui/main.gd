@@ -34,6 +34,11 @@ const EXERCISE_PICTURES := {
 	"sit_ups": ["situp_down", "situp_up", "situp_down", Rect2(130, 374, 460, 360)],
 }
 const EXERCISE_STAGE_BOTTOM := 790.0
+## Change 4: the running pictures, seen from behind, a new frame at each tap (run_01 while
+## waiting), at 80% on the street: the feet on y 684, 60 above the stage's bottom at y 744.
+const RUN_FRAMES := ["run_01", "run_02", "run_03", "run_04", "run_05"]
+const RUN_RECT := Rect2(228, 336, 264, 360)
+const RUN_STAGE_BOTTOM := 744.0
 const ART_FOLDER := "res://assets/art/avatar/%s/%s.png"
 ## During an activity the balloon's top is at y 208 of the column (changes.md, rule 8).
 const SPEECH_TOP_IN_ACTIVITY := 208.0
@@ -177,6 +182,9 @@ const SPEECH_GAP_UNDER_CAPSULE := 8.0
 @onready var beat_bar: Control = %BeatBar
 @onready var dock_gaps: Array[Control] = [%Gap1, %Gap2, %Gap3]
 @onready var exercise_picture: TextureRect = %ExercisePicture
+@onready var cardio_panel: Control = %CardioPanel
+@onready var cardio_beat: Control = %CardioBeat
+@onready var cardio_stop: Button = %CardioStop
 @onready var confirm_box: Control = %ConfirmBox
 @onready var failure_screen: ColorRect = %FailureOverlay
 
@@ -206,6 +214,8 @@ var _dock_state := ""
 ## which one is shown.
 var _exercise_textures := {}
 var _exercise_key := ""
+## The running picture shown (0 to 4).
+var _run_frame := 0
 
 
 ## The joystick's direction, on screen.
@@ -253,6 +263,8 @@ func _ready() -> void:
 	eat_button.pressed.connect(canteen.open)
 	%OptionsCancelButton.pressed.connect(options_panel.hide)
 	stop_button.pressed.connect(Activities.stop)
+	cardio_stop.pressed.connect(Activities.stop)
+	_style_tap_button()
 	sleep_slider.value_changed.connect(_refresh_sleep_info.unbind(1))
 	minutes_slider.value_changed.connect(_refresh_minutes.unbind(1))
 	%SleepCancelButton.pressed.connect(sleep_panel.hide)
@@ -792,6 +804,7 @@ func _on_stride() -> void:
 	if Minigame.kind == Minigame.STRENGTH:
 		avatar.squat(not Minigame.next_down)
 	elif Minigame.kind == Minigame.CARDIO:
+		_run_frame = (_run_frame + 1) % RUN_FRAMES.size()
 		avatar.stride(Minigame.walking)
 		scenery.stride(Minigame.walking, Minigame.interval())
 	elif Minigame.kind == Minigame.MEAL and Minigame.last_on_beat:
@@ -825,21 +838,26 @@ func _refresh_minigame() -> void:
 	meal_fork.visible = meal
 	if not meal:
 		avatar.mouth_open = false
+	# Change 4: the cardio panel has its own small Stop, so the stop slot above it is hidden.
+	var cardio := Minigame.running and Minigame.kind == Minigame.CARDIO
+	stop_button.get_parent().visible = not cardio
 	if not Minigame.running:
 		return
 	var strength := Minigame.kind == Minigame.STRENGTH
-	tap_button.visible = Minigame.kind == Minigame.CARDIO
+	cardio_panel.visible = cardio
+	minigame_status.get_parent().visible = not cardio
 	jump_button.visible = sky
 	help_button.visible = football
 	meal_buttons.visible = meal
-	reserve_label.get_parent().visible = not (meal or sky)
+	reserve_label.get_parent().visible = not (meal or sky or cardio)
 	strength_buttons.visible = strength
 	football_pad.visible = football
-	beat_bar.visible = not (football or sky)
+	beat_bar.visible = not (football or sky or cardio)
 	# On a computer the keys need less room, so the field is larger.
 	var small_pad: bool = football and not football_pad.touch_mode
 	football_pad.custom_minimum_size.y = FOOTBALL_PAD_KEYS if small_pad else FOOTBALL_PAD_TOUCH
-	minigame_panel.custom_minimum_size.y = DOCK_HEIGHT if (strength or meal) else (0.0 if small_pad else MINIGAME_PANEL_HEIGHT)
+	minigame_panel.custom_minimum_size.y = DOCK_HEIGHT if (strength or meal) else (cardio_panel.HEIGHT if cardio \
+			else (0.0 if small_pad else MINIGAME_PANEL_HEIGHT))
 	_layout_dock(strength, meal)
 	reserve_label.text = tr("MINIGAME_MUSCLE" if strength else "MINIGAME_BREATH")
 	reserve_bar.value = Minigame.reserve
@@ -860,10 +878,18 @@ func _refresh_minigame() -> void:
 		scenery.late_after = 0.0 if Minigame.waiting else Minigame.interval() * (1.0 + Config.get_float("minigame.on_beat_share"))
 		minigame_status.text = tr(status)
 		minigame_steps.text = tr("MINIGAME_STEPS") % [Minigame.steps(), Minigame.steps_goal()]
+		# Change 4: the panel shows the minutes, the steps and the Breath; the status is not in
+		# the table, so it stays only in the (hidden) info line.
+		var goal := maxi(1, Minigame.steps_goal())
+		cardio_panel.show_values("%d / %d min" % [roundi(Activities.elapsed_hours * Clock.MINUTES_PER_HOUR),
+				roundi(Activities.target_hours * Clock.MINUTES_PER_HOUR)], "%d / %d" % [Minigame.steps(), goal],
+				float(Minigame.steps()) / goal, Minigame.reserve)
 	_fit_status(strength)
 	var stopped := Minigame.waiting or Minigame.resting
 	var elapsed := 0.0 if stopped else Minigame.seconds_since_tap / Minigame.interval()
 	beat_bar.show_time(elapsed, Config.get_float("minigame.on_beat_share"), Minigame.last_on_beat)
+	if cardio:
+		cardio_beat.show_time(elapsed, Config.get_float("minigame.on_beat_share"), Minigame.last_on_beat)
 
 
 func _refresh_football() -> void:
@@ -965,29 +991,37 @@ func _layout_dock(strength: bool, meal: bool) -> void:
 ## and the resting one before the first press and while resting. Returns whether one is shown.
 func _refresh_exercise_picture() -> bool:
 	var option := Activities.current_option
-	var shown := Minigame.running and Minigame.kind == Minigame.STRENGTH and EXERCISE_PICTURES.has(option)
+	var running := Minigame.running and Minigame.kind == Minigame.CARDIO
+	var shown := running or (Minigame.running and Minigame.kind == Minigame.STRENGTH and EXERCISE_PICTURES.has(option))
 	exercise_picture.visible = shown
 	if not shown:
 		return false
-	var entry: Array = EXERCISE_PICTURES[option]
-	var key := "%s|%s" % [avatar.sheet, option]
+	var names: Array = RUN_FRAMES if running else EXERCISE_PICTURES[option].slice(0, 3)
+	var key := "%s|%s" % [avatar.sheet, "cardio" if running else option]
 	if not _exercise_textures.has(key):
 		_exercise_textures.clear()
-		for i in 3:
-			var path := ART_FOLDER % [avatar.sheet, entry[i]]
+		for i in names.size():
+			var path := ART_FOLDER % [avatar.sheet, names[i]]
 			_exercise_textures[i] = load(path) if ResourceLoader.exists(path) else null
 		_exercise_textures[key] = true
-		var rect: Rect2 = entry[3]
+		var rect: Rect2 = RUN_RECT if running else EXERCISE_PICTURES[option][3]
+		var bottom := RUN_STAGE_BOTTOM if running else EXERCISE_STAGE_BOTTOM
 		# The stage starts at the Margin's left margin (24), also before the first layout.
 		var stage_left := float($Margin.get_theme_constant("margin_left"))
 		exercise_picture.anchor_top = 1.0
 		exercise_picture.anchor_bottom = 1.0
 		exercise_picture.offset_left = rect.position.x - stage_left
 		exercise_picture.offset_right = rect.end.x - stage_left
-		exercise_picture.offset_top = rect.position.y - EXERCISE_STAGE_BOTTOM
-		exercise_picture.offset_bottom = rect.end.y - EXERCISE_STAGE_BOTTOM
-	# next_down: the next press is DOWN, so the last one was UP (or none yet).
-	var which := 2 if (Minigame.waiting or Minigame.resting) else (1 if Minigame.next_down else 0)
+		exercise_picture.offset_top = rect.position.y - bottom
+		exercise_picture.offset_bottom = rect.end.y - bottom
+	var which := 0
+	if running:
+		if Minigame.waiting:
+			_run_frame = 0
+		which = _run_frame
+	else:
+		# next_down: the next press is DOWN, so the last one was UP (or none yet).
+		which = 2 if (Minigame.waiting or Minigame.resting) else (1 if Minigame.next_down else 0)
 	var texture: Texture2D = _exercise_textures[which]
 	if texture == null:
 		exercise_picture.visible = false
@@ -995,6 +1029,19 @@ func _refresh_exercise_picture() -> bool:
 	if exercise_picture.texture != texture:
 		exercise_picture.texture = texture
 	return true
+
+
+## Change 4: the Tap button (changes.md, "Cardio on the street", places from its top-left).
+func _style_tap_button() -> void:
+	tap_button.face = Ui.MINIGAME_UP_COLOR
+	tap_button.base = Ui.MINIGAME_UP_BASE
+	tap_button.radius = 40.0
+	tap_button.icon_kind = "footprints"
+	tap_button.icon_rect = Rect2(172, 24, 56, 64)
+	tap_button.word_size = 40
+	tap_button.word_x = 248.0
+	tap_button.word_y = 56.0
+	tap_button.upper = true
 
 
 ## The status on one line, made smaller (down to 16) when it is longer than 420 pixels.

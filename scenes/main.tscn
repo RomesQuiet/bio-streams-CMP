@@ -23,6 +23,7 @@
 [ext_resource type="Script" path="res://scripts/ui/sky_game.gd" id="40_sky_game"]
 [ext_resource type="Script" path="res://scripts/ui/stop_pill.gd" id="41_stop"]
 [ext_resource type="Script" path="res://scripts/ui/dock_button.gd" id="42_dock"]
+[ext_resource type="Script" path="res://scripts/ui/cardio_panel.gd" id="43_cardio"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -383,13 +384,53 @@ visible = false
 layout_mode = 2
 mouse_filter = 2
 
-[node name="TapButton" type="Button" parent="Margin/Layout/MinigamePanel"]
+[node name="CardioPanel" type="Control" parent="Margin/Layout/MinigamePanel"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 120)
+visible = false
+custom_minimum_size = Vector2(0, 488)
 layout_mode = 2
-size_flags_vertical = 3
+mouse_filter = 1
+script = ExtResource("43_cardio")
+
+[node name="CardioStop" type="Button" parent="Margin/Layout/MinigamePanel/CardioPanel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 460.0
+offset_right = 660.0
+offset_bottom = 88.0
+focus_mode = 0
+text = "UI_STOP"
+script = ExtResource("41_stop")
+pill_size = Vector2(200, 48)
+depth = 4.0
+square = 20.0
+square_radius = 5.0
+square_left = 20.0
+text_left = 52.0
+font_size = 24
+
+[node name="CardioBeat" type="Control" parent="Margin/Layout/MinigamePanel/CardioPanel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 16.0
+offset_top = 276.0
+offset_right = 656.0
+offset_bottom = 324.0
+mouse_filter = 2
+script = ExtResource("7_beat")
+marker_height = 64.0
+marker_radius = 4.0
+
+[node name="TapButton" type="Button" parent="Margin/Layout/MinigamePanel/CardioPanel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 12.0
+offset_top = 352.0
+offset_right = 660.0
+offset_bottom = 472.0
 focus_mode = 0
 text = "MINIGAME_TAP"
+script = ExtResource("42_dock")
 
 [node name="JumpButton" type="Button" parent="Margin/Layout/MinigamePanel"]
 unique_name_in_owner = true

@@ -13,6 +13,9 @@ const Ui := preload("res://scripts/ui/ui_style.gd")
 @export var marker_width := 8.0
 ## How many intervals the whole bar shows, so the green zone is not at the very end.
 @export var span := 1.5
+## The bar marker's height (0: as high as the bar; cardio: 64, centred) and its corner radius.
+@export var marker_height := 0.0
+@export var marker_radius := 0.0
 ## "bar" or "ring" (radius 22, line 5, with 4 ticks 10 long).
 @export var marker_style := "bar"
 const OUTLINE := 3.0
@@ -78,7 +81,12 @@ func _draw() -> void:
 			var out := Vector2.from_angle(PI * 0.5 * i)
 			Ui.draw_round_line(self, centre + out * (RING_RADIUS + RING_LINE * 0.5), centre + out * (RING_RADIUS + RING_LINE * 0.5 + TICK), color, 4.0)
 	else:
-		draw_rect(Rect2(x - marker_width * 0.5, 0.0, marker_width, size.y), color)
+		var height := marker_height if marker_height > 0.0 else size.y
+		var marker := Rect2(x - marker_width * 0.5, (size.y - height) * 0.5, marker_width, height)
+		if marker_radius > 0.0:
+			draw_colored_polygon(Ui.rounded_rect_points(marker, minf(marker_radius, marker_width * 0.5 - 0.5)), color)
+		else:
+			draw_rect(marker, color)
 
 
 ## A rounded box inside the bar from share a to share b of its width (clipped to the inside).
