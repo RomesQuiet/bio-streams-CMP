@@ -23,7 +23,7 @@ Started 21 Nov 2026 (40 is the user's number; there are no Milestones 36 to 39).
 | 8 | Sleep: bed, window, Wake up | done, waiting for the user's check | see git log |
 | 9 | Exercise and entertainment menus | done, waiting for the user's check | see git log |
 | 10 | Let's eat | done, waiting for the user's check | see git log |
-| 11 | Canteen with pictures | | |
+| 11 | Canteen with pictures | done, waiting for the user's check | see git log |
 | 12 | Canteen list (`data/canteen.json`) | | |
 
 ### Change 1: colours
@@ -144,6 +144,18 @@ Table "Let's eat (06)": the first step of the canteen (`scripts/ui/canteen.gd`).
 - New keys `UI_CONTINUE`, `EAT_CHOOSE_TITLE`, `EAT_CHOOSE_QUESTION`, `EAT_GOOD_SUB`, `EAT_FAST_SUB`; `CANTEEN_CHOOSE` ("What kind of food?") is deleted, as nothing shows it now. New colour `SUBTITLE_COLOR`.
 - `tests/canteen_test.gd`: a card chooses and Continue opens; new checks (Good food chosen at first, a card only chooses, the buttons' places with and without Skip meal). `tools/render_ui_states.gd`: L (Let's eat).
 - Checked: headless start without errors; `canteen_test`, `minutes_slider_test`, `translation_test`, `interface_test`, `settings_panel_test` ALL PASSED; L rendered in English and Portuguese and compared with the table.
+
+### Change 11: the canteen's plate (user: "OK, do change 11", 21 Nov 2026)
+
+Tables "Canteen (07, 08)": the second step of `scripts/ui/canteen.gd`, at the table's places.
+
+- A tall panel (x 24, y 210, 672 x 1022; it covers the four buttons), the kind's icon (white cutlery for good food, a one-colour burger, "burger_line", for fast food) and its title (ExtraBold 44).
+- **The grid** (`scripts/ui/food_tile.gd` rewritten): tiles 118 x 184 in 5 columns for 10 foods, 150 x 184 in 4 columns for 8, rows at y 306 and 502; each shows the team's picture (`assets/art/food/<id>.png`, 100 x 83, loaded when the food is set) and the name (Bold 20, two lines at most). A food on the plate is mint with a green badge; when the plate is full the others are at 45%. A food without a picture keeps the old placeholder (a coloured tile with its first letter): today nuggets, kebab and milkshake, which change 12 removes.
+- "Your plate (2 of 4)" (Bold 28) with a line on each side; **the plate** drawn by code (an ellipse 600 x 200 with a rim 540 x 160 and a shadow 12 px lower); **its 4 places** (120 x 100 at x 96, 232, 368, 504, y 822): a dashed outline when empty, the food's picture when full (a tap takes it off).
+- The hint (Bold 20, white at 60%, one line, smaller down to 15), **Back** (lavender, "←  Back") and **Eat the plate** (mint; at 45% while the plate is empty), 300 x 84 with a thickness of 8.
+- The key `CANTEEN_TITLE` ("Canteen") is deleted (nothing shows it now). New colours `PLATE_COLOR`, `PLATE_RIM`, `SLOT_LINE`.
+- `tests/canteen_test.gd`: new checks (5 columns at the table's places, the plate's places, a food on the plate is chosen and in the first place). `tools/render_ui_states.gd`: T (good food) and I (fast food), two foods on the plate.
+- Checked: headless start without errors; `canteen_test`, `minutes_slider_test`, `translation_test`, `meal_test`, `interface_test` ALL PASSED; T and I rendered in Portuguese and compared with the tables.
 
 ## Contradictions found (to ask before the change they touch)
 

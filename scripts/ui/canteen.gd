@@ -7,7 +7,10 @@ extends ColorRect
 ## Milestone 40 (documentation/ui_v2/changes.md, change 10, "Let's eat"): the first step is a
 ## panel at the table's places: "Let's eat!", the question, two cards with the team's pictures
 ## (a tap only chooses; Good food is chosen when it opens), Skip meal when hungry, Cancel and
-## Continue (it opens the plate of the chosen kind).
+## Continue (it opens the plate of the chosen kind). Change 11 ("Canteen"): the second step is a
+## tall panel at the table's places: the kind's icon and title, a grid of the foods with the
+## team's pictures (5 columns for 10 foods, 4 for 8), "Your plate", a drawn plate with 4 places,
+## the hint, Back and "Eat the plate".
 
 signal closed
 
@@ -35,9 +38,29 @@ const CONTINUE_RECT := Rect2(370, 760, 270, 84)
 const SKIP_SHIFT := 92.0
 const CHOICE_BUTTON_FACE := 76.0
 const CHOICE_PANEL_BELOW := 34.0
-const COLUMNS := 5
-const GOOD_COLOR := Color(0.55, 0.9, 0.55)
-const FAST_COLOR := Color(1.0, 0.65, 0.45)
+## Change 11: places in the column (the table "Canteen").
+const PLATE_PANEL := Rect2(24, 210, 672, 1022)
+const KIND_ICON := Rect2(168, 226, 56, 56)
+const KIND_TITLE := Rect2(232, 226, 320, 56)
+const GRID_LEFT := 45.0
+const GRID_ROWS := [306.0, 502.0]
+## Tiles: 118 wide every 128 (5 columns, 10 foods) or 150 wide every 160 (4 columns, 8 foods).
+const TILE_HEIGHT := 184.0
+const NARROW_TILE := Vector2(118, 128)
+const WIDE_TILE := Vector2(150, 160)
+const PLATE_TITLE := Rect2(45, 724, 630, 36)
+const PLATE_LINE_GAP := 16.0
+const PLATE_CENTRE := Vector2(360, 872)
+const PLATE_RADII := Vector2(300, 100)
+const PLATE_RIM_RADII := Vector2(270, 80)
+const PLATE_SHADOW_DROP := 12.0
+const SLOT_XS := [96.0, 232.0, 368.0, 504.0]
+const SLOT := Vector2(120, 100)
+const SLOT_TOP := 822.0
+const HINT := Rect2(45, 990, 630, 28)
+const BACK_RECT := Rect2(48, 1120, 300, 92)
+const EAT_RECT := Rect2(372, 1120, 300, 92)
+const PLATE_BUTTON_FACE := 84.0
 
 ## The kind being shown: "" (step 1), Canteen.GOOD or Canteen.FAST_FOOD (step 2).
 var kind := ""
@@ -50,12 +73,14 @@ var continue_button: Button
 var cancel_button: Button
 ## Where the first step's panel ends (it is longer with Skip meal).
 var _choice_bottom := 870.0
-var plate_box: VBoxContainer
+var plate_box: Control
 var kind_title: Label
-var good_grid: GridContainer
-var fast_grid: GridContainer
-var plate_row: HBoxContainer
+var good_grid: Control
+var fast_grid: Control
+var plate_row: Control
 var plate_label: Label
+var hint_label: Label
+var back_button: Button
 var good_button: Button
 var fast_button: Button
 var skip_button: Button
@@ -65,51 +90,80 @@ var eat_button: Button
 func _ready() -> void:
 	color = Color(0.04, 0.05, 0.16, 0.6)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var panel := PanelContainer.new()
-	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	panel.grow_vertical = Control.GROW_DIRECTION_BOTH
-	panel.custom_minimum_size = Vector2(680, 0)
-	add_child(panel)
-	var margin := MarginContainer.new()
-	for side in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 18)
-	panel.add_child(margin)
-	var content := VBoxContainer.new()
-	content.add_theme_constant_override("separation", 14)
-	margin.add_child(content)
-	var top_title := _label("CANTEEN_TITLE", 32, content)
-	top_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_build_choice()
-	# Step 2: build a plate of that kind.
-	plate_box = VBoxContainer.new()
-	plate_box.add_theme_constant_override("separation", 10)
-	content.add_child(plate_box)
-	panel.visible = false
-	plate_box.set_meta("panel", panel)
-	kind_title = _label("", 26, plate_box)
-	good_grid = _grid(plate_box)
-	fast_grid = _grid(plate_box)
-	for food_kind in [Canteen.GOOD, Canteen.FAST_FOOD]:
-		for id in Canteen.foods(food_kind):
-			var tile: Button = FoodTile.new()
-			tile.food_id = id
-			tile.pressed.connect(add_food.bind(id))
-			(good_grid if food_kind == Canteen.GOOD else fast_grid).add_child(tile)
-	plate_label = _label("", 24, plate_box)
-	var hint := _label("CANTEEN_PLATE_HINT", 18, plate_box)
-	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	plate_row = HBoxContainer.new()
-	plate_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_build_plate()
+	visible = false
+
+
+## Change 11: the second step, at the table's places.
+func _build_plate() -> void:
+	plate_box = Control.new()
+	plate_box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	plate_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(plate_box)
+	kind_title = _label("", 44, plate_box)
+	kind_title.add_theme_font_override("font", Ui.FONT_HEAVY)
+	kind_title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	kind_title.position = KIND_TITLE.position
+	kind_title.size = KIND_TITLE.size
+	good_grid = _grid(Canteen.GOOD)
+	fast_grid = _grid(Canteen.FAST_FOOD)
+	plate_label = _label("", 28, plate_box)
+	_place_label(plate_label, PLATE_TITLE)
+	hint_label = _label("CANTEEN_PLATE_HINT", 20, plate_box)
+	_place_label(hint_label, HINT)
+	hint_label.add_theme_color_override("font_color", Ui.WHITE_60)
+	plate_row = Control.new()
+	plate_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	plate_box.add_child(plate_row)
 	for i in Config.get_int("canteen.plate_max"):
-		var slot: Button = FoodTile.new()
-		slot.pressed.connect(remove_at.bind(i))
-		plate_row.add_child(slot)
-	eat_button = _button("CANTEEN_EAT", plate_box, 72)
+		var place: Button = FoodTile.new()
+		place.slot = true
+		place.position = Vector2(SLOT_XS[i % SLOT_XS.size()], SLOT_TOP)
+		place.size = SLOT
+		place.pressed.connect(remove_at.bind(i))
+		plate_row.add_child(place)
+	back_button = _plate_button("CANTEEN_BACK", "←  ", Ui.SLEEP_COLOR, Ui.SLEEP_BASE, BACK_RECT)
+	back_button.pressed.connect(show_kind.bind(""))
+	eat_button = _plate_button("CANTEEN_EAT", "", Ui.MINIGAME_UP_COLOR, Ui.MINIGAME_UP_BASE, EAT_RECT)
 	eat_button.pressed.connect(_on_eat)
-	_button("CANTEEN_BACK", plate_box, 64).pressed.connect(show_kind.bind(""))
-	visible = false
+
+
+## The foods of a kind: 5 columns for more than 8 foods, otherwise 4 wider ones (two rows).
+func _grid(food_kind: String) -> Control:
+	var grid := Control.new()
+	grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plate_box.add_child(grid)
+	var ids := Canteen.foods(food_kind)
+	var columns := 5 if ids.size() > 8 else 4
+	var tile_size := NARROW_TILE if columns == 5 else WIDE_TILE
+	for i in ids.size():
+		var tile: Button = FoodTile.new()
+		tile.food_id = ids[i]
+		tile.position = Vector2(GRID_LEFT + tile_size.y * (i % columns), GRID_ROWS[mini(floori(float(i) / columns), GRID_ROWS.size() - 1)])
+		tile.size = Vector2(tile_size.x, TILE_HEIGHT)
+		tile.pressed.connect(add_food.bind(ids[i]))
+		grid.add_child(tile)
+	return grid
+
+
+## Back and "Eat the plate": 300 x 84 and a thickness of 8, radius 26, ExtraBold 32.
+func _plate_button(key: String, prefix: String, face: Color, base: Color, rect: Rect2) -> Button:
+	var button: Button = DockButton.new()
+	button.text = key
+	button.focus_mode = Control.FOCUS_NONE
+	button.face = face
+	button.base = base
+	button.radius = 26.0
+	button.word_size = 32
+	button.word_centred = true
+	button.word_x = rect.size.x * 0.5
+	button.word_y = PLATE_BUTTON_FACE * 0.5
+	button.prefix = prefix
+	button.position = rect.position
+	button.size = rect.size
+	plate_box.add_child(button)
+	return button
 
 
 func _notification(what: int) -> void:
@@ -198,12 +252,32 @@ func _place_choice_buttons(with_skip: bool) -> void:
 ## The first step's panel, its apple and divider (under the children).
 func _draw() -> void:
 	if not kind.is_empty():
+		_draw_plate_step()
 		return
 	var panel := Rect2(CHOICE_PANEL.position, Vector2(CHOICE_PANEL.size.x, _choice_bottom - CHOICE_PANEL.position.y))
 	draw_colored_polygon(Ui.rounded_rect_points(panel, 28.0), Ui.PANEL_COLOR)
 	Ui.draw_outline(self, Ui.rounded_rect_points(panel.grow(-1.0), 27.0), Color.WHITE, Ui.BORDER_THIN)
 	Icons.draw(self, "apple_line", CHOICE_ICON.get_center(), CHOICE_ICON.size.x, Color.WHITE)
 	draw_line(Vector2(CHOICE_DIVIDER.x, CHOICE_DIVIDER_Y), Vector2(CHOICE_DIVIDER.y, CHOICE_DIVIDER_Y), Ui.WHITE_25, 2.0)
+
+
+## Change 11: the tall panel, the kind's icon, the lines beside "Your plate" and the plate.
+func _draw_plate_step() -> void:
+	draw_colored_polygon(Ui.rounded_rect_points(PLATE_PANEL, 28.0), Ui.PANEL_COLOR)
+	Ui.draw_outline(self, Ui.rounded_rect_points(PLATE_PANEL.grow(-1.0), 27.0), Color.WHITE, Ui.BORDER_THIN)
+	Icons.draw(self, "hungry" if kind == Canteen.GOOD else "burger_line", KIND_ICON.get_center(), KIND_ICON.size.x, Color.WHITE)
+	var font_size := plate_label.get_theme_font_size("font_size")
+	var half := Ui.FONT_BOLD.get_string_size(plate_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x * 0.5
+	var y := PLATE_TITLE.get_center().y
+	var middle := PLATE_TITLE.get_center().x
+	draw_line(Vector2(PLATE_TITLE.position.x, y), Vector2(middle - half - PLATE_LINE_GAP, y), Ui.WHITE_60, 2.0)
+	draw_line(Vector2(middle + half + PLATE_LINE_GAP, y), Vector2(PLATE_TITLE.end.x, y), Ui.WHITE_60, 2.0)
+	var shadow := Ui.ellipse_points(PLATE_CENTRE + Vector2(0, PLATE_SHADOW_DROP), PLATE_RADII, 64)
+	draw_colored_polygon(shadow, Ui.SHADOW_INK)
+	var dish := Ui.ellipse_points(PLATE_CENTRE, PLATE_RADII, 64)
+	draw_colored_polygon(dish, Ui.PLATE_COLOR)
+	Ui.draw_outline(self, dish, Ui.PLATE_COLOR, 1.2)
+	Ui.draw_outline(self, Ui.ellipse_points(PLATE_CENTRE, PLATE_RIM_RADII, 64), Ui.PLATE_RIM, Ui.BORDER_MEDIUM)
 
 
 ## Opens on step 1. Skip meal only when the avatar is hungry.
@@ -219,11 +293,11 @@ func show_kind(new_kind: String) -> void:
 	plate.clear()
 	kind_box.visible = kind.is_empty()
 	plate_box.visible = not kind.is_empty()
-	plate_box.get_meta("panel").visible = not kind.is_empty()
 	good_grid.visible = kind == Canteen.GOOD
 	fast_grid.visible = kind == Canteen.FAST_FOOD
 	kind_title.text = "CANTEEN_GOOD" if kind == Canteen.GOOD else "CANTEEN_FAST"
-	kind_title.add_theme_color_override("font_color", GOOD_COLOR if kind == Canteen.GOOD else FAST_COLOR)
+	kind_title.add_theme_font_size_override("font_size", maxi(Ui.fit_font_size(Ui.FONT_HEAVY, tr(kind_title.text), 44,
+			KIND_TITLE.size.x), 31))
 	_place_choice_buttons(Hunger.is_hungry())
 	if kind.is_empty() and chosen_kind.is_empty():
 		choose_kind(Canteen.GOOD)
@@ -259,8 +333,12 @@ func _refresh() -> void:
 	eat_button.disabled = plate.is_empty()
 	for grid in [good_grid, fast_grid]:
 		for tile in grid.get_children():
+			# On the plate: mint with a badge; a full plate takes no more (the others at 45%).
+			tile.chosen = plate.has(tile.food_id)
 			tile.disabled = plate.size() >= plate_max
-			tile.modulate.a = 0.4 if tile.disabled else 1.0
+	hint_label.add_theme_font_size_override("font_size", maxi(Ui.fit_font_size(Ui.FONT_BOLD, tr("CANTEEN_PLATE_HINT"), 20,
+			HINT.size.x), 15))
+	queue_redraw()
 
 
 func _on_eat() -> void:
@@ -274,26 +352,9 @@ func _on_skip() -> void:
 	Hunger.skip()
 
 
-func _grid(parent: Control) -> GridContainer:
-	var grid := GridContainer.new()
-	grid.columns = COLUMNS
-	grid.add_theme_constant_override("h_separation", 6)
-	grid.add_theme_constant_override("v_separation", 4)
-	parent.add_child(grid)
-	return grid
-
-
 func _label(text: String, font_size: int, parent: Control) -> Label:
 	var label := Label.new()
 	label.text = text
 	label.add_theme_font_size_override("font_size", font_size)
 	parent.add_child(label)
 	return label
-
-
-func _button(text: String, parent: Control, height: float) -> Button:
-	var button := Button.new()
-	button.text = text
-	button.custom_minimum_size = Vector2(0, height)
-	parent.add_child(button)
-	return button

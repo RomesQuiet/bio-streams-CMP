@@ -67,6 +67,10 @@ const TILE_COLOR := Color("#eef1fb")
 const BADGE_COLOR := Color("#22b573")
 ## Change 10: the cards' subtitles.
 const SUBTITLE_COLOR := Color("#477297")
+## Change 11: the canteen's plate.
+const PLATE_COLOR := Color("#f4f6ff")
+const PLATE_RIM := Color("#b0c3ee")
+const SLOT_LINE := Color("#7b8eba")
 ## Change 6: the band behind the meal's dock: PANEL_COLOR at 85%.
 const DOCK_BAND := Color(0.137255, 0.164706, 0.431373, 0.85)
 ## Change 5: football (values.md): Pass, Shoot, the field's stripes, keycaps' base, see-through white.

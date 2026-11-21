@@ -15,7 +15,7 @@ const LIGHT := Color("#ffe7a0")
 
 
 ## Draws the icon `kind` ("heart", "gear", "pause", "play", "exercise", "sleep", "eat",
-## "entertainment", "jump" (an arrow up, the sky-jump button, Milestone 35), "controller" (the game controller in one colour), "apple_line" (the apple in one colour), the main menu's "person_add", "people", "upload" and "info", the exercises "squat", "pushup" and "situp", "fork", "footprints", and football's "pass" and "goal" (Milestone 40, 100 wide and about 58 high), or a request: "tired", "hungry", "fast_food", "healthy", "screens", "football").
+## "entertainment", "jump" (an arrow up, the sky-jump button, Milestone 35), "controller" (the game controller in one colour), "apple_line" and "burger_line" (the apple and the burger in one colour), the main menu's "person_add", "people", "upload" and "info", the exercises "squat", "pushup" and "situp", "fork", "footprints", and football's "pass" and "goal" (Milestone 40, 100 wide and about 58 high), or a request: "tired", "hungry", "fast_food", "healthy", "screens", "football").
 ## color is used by the one-colour icons (gear, pause, play, runner, bed, cutlery, screen).
 static func draw(canvas: CanvasItem, kind: String, centre: Vector2, box: float, color := Ui.ICON_INK) -> void:
 	canvas.draw_set_transform(centre, 0.0, Vector2.ONE * box / 100.0)
@@ -42,6 +42,8 @@ static func draw(canvas: CanvasItem, kind: String, centre: Vector2, box: float, 
 			_controller(canvas, color)
 		"apple_line":
 			_apple_one_colour(canvas, color)
+		"burger_line":
+			_burger_one_colour(canvas, color)
 		"hungry", "starving":
 			_cutlery(canvas, color)
 		"fast_food":
@@ -374,3 +376,14 @@ static func _apple_one_colour(canvas: CanvasItem, color: Color) -> void:
 	_circle(canvas, Vector2(0, 18), 26.0, color)
 	Ui.draw_round_line(canvas, Vector2(0, -16), Vector2(4, -32), color, 6.0)
 	fill(canvas, Transform2D(-0.6, Vector2(17, -31)) * Ui.ellipse_points(Vector2.ZERO, Vector2(13, 7), 20), color)
+
+
+## The burger in one colour (the fast-food canteen's icon, change 11).
+static func _burger_one_colour(canvas: CanvasItem, color: Color) -> void:
+	var top := PackedVector2Array()
+	for i in 21:
+		top.append(Vector2.from_angle(PI + PI * i / 20.0) * Vector2(40, 32) + Vector2(0, -6))
+	fill(canvas, top, color)
+	_box(canvas, Rect2(-44, 0, 88, 8), 3.5, color)
+	_box(canvas, Rect2(-40, 12, 80, 10), 4.5, color)
+	_box(canvas, Rect2(-40, 26, 80, 12), 5.5, color)

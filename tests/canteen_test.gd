@@ -134,6 +134,16 @@ func _test_screen() -> void:
 	_check("Good food: build a plate from the good foods only", screen.plate_box.visible and screen.good_grid.visible
 			and not screen.fast_grid.visible and screen.good_grid.get_child_count() == canteen.foods(canteen.GOOD).size()
 			and screen.plate.is_empty() and screen.eat_button.disabled)
+	# Milestone 40, change 11: 10 good foods in 5 columns of 118 (x 45 + 128 per column, rows y 306
+	# and 502); the plate's places at x 96, 232, 368, 504 and y 822; a food on the plate is chosen.
+	var fifth: Control = screen.good_grid.get_child(4)
+	var sixth: Control = screen.good_grid.get_child(5)
+	_check("good food: 5 columns, the table's places", is_equal_approx(fifth.position.x, 557.0) and is_equal_approx(fifth.size.x, 118.0)
+			and is_equal_approx(sixth.position.y, 502.0) and is_equal_approx(screen.plate_row.get_child(3).position.x, 504.0))
+	screen.add_food("vegetable_soup")
+	_check("a food on the plate is chosen, and shows in the first place", screen.good_grid.get_child(0).chosen
+			and screen.plate_row.get_child(0).food_id == "vegetable_soup" and not screen.eat_button.disabled)
+	screen.remove_at(0)
 	for id in ["vegetable_soup", "grilled_fish", "rice", "water", "apple"]:
 		screen.add_food(id)
 	_check("up to 4 foods: the fifth does not fit", screen.plate == ["vegetable_soup", "grilled_fish", "rice", "water"]
