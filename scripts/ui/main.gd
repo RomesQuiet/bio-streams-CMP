@@ -53,6 +53,25 @@ const SLEEP_BUTTONS_ALPHA := 0.35
 const STOP_SLOT_LEFT := 24.0
 const STOP_PILL := Rect2(230, 806, 260, 64)
 const WAKE_PILL := Rect2(212, 850, 296, 64)
+## Change 9: the exercise and entertainment menus (changes.md, "Exercise menu"): tiles 280 x 150
+## (and a thickness of 6) in two columns (x 72 and 368) from y 448, a row every 166; Cancel and
+## Start (280 x 80 and a thickness of 8) 28 under the last row (y 792 for two rows, 626 for one);
+## the panel ends 32 under them (y 904 or 738).
+const TILE_SIZE := Vector2(280, 156)
+const TILE_FACE_HEIGHT := 150.0
+const TILE_XS := [72.0, 368.0]
+const TILE_TOP := 448.0
+const TILE_ROW := 166.0
+const OPTIONS_BUTTON_SIZE := Vector2(280, 88)
+const OPTIONS_BUTTON_GAP := 28.0
+const OPTIONS_BUTTON_FACE := 80.0
+const OPTIONS_PANEL_BELOW := 32.0
+const OPTIONS_TITLE_SIZE := 40
+## Each option's icon on its tile, and each menu's title and icon.
+const OPTION_ICONS := {"cardio": "exercise", "strength": "squat", "push_ups": "pushup", "sit_ups": "situp",
+		"screens": "controller", "football": "football"}
+const MENU_TITLES := {"exercise": "EXERCISE_CHOOSE", "entertainment": "ENTERTAINMENT_CHOOSE"}
+const MENU_ICONS := {"exercise": "exercise", "entertainment": "controller"}
 ## The pictures are in the sheet's folder (data/avatar_art.json): "<folder>/<name>.png".
 const ART_PICTURE := "%s/%s.png"
 ## During an activity the balloon's top is at y 208 of the column (changes.md, rule 8).
@@ -67,6 +86,7 @@ const SleepModel := preload("res://scripts/health/sleep_model.gd")
 const Training := preload("res://scripts/health/training.gd")
 const Requests := preload("res://scripts/health/requests.gd")
 const Canteen := preload("res://scripts/health/canteen.gd")
+const MenuTile := preload("res://scripts/ui/menu_tile.gd")
 const CanteenScreen := preload("res://scripts/ui/canteen.gd")
 const Ui := preload("res://scripts/ui/ui_style.gd")
 ## Placeholder failure messages by cause (HealthModel.failure_cause(); the failure effect is not
@@ -173,9 +193,11 @@ const SPEECH_GAP_UNDER_CAPSULE := 8.0
 @onready var exercise_button: Button = %ExerciseButton
 @onready var entertainment_button: Button = %EntertainmentButton
 @onready var eat_button: Button = %EatButton
-@onready var options_panel: PanelContainer = %OptionsPanel
+@onready var options_panel: ColorRect = %OptionsPanel
 @onready var options_title: Label = %OptionsTitle
-@onready var option_buttons: VBoxContainer = %OptionButtons
+@onready var option_buttons: Control = %OptionButtons
+@onready var options_start: Button = %OptionsStartButton
+@onready var options_cancel: Button = %OptionsCancelButton
 @onready var minutes_box: Control = %MinutesBox
 @onready var minutes_label: Label = %MinutesLabel
 @onready var minutes_slider: HSlider = %MinutesSlider
@@ -225,6 +247,9 @@ var _flash_key := ""
 var _flash_args := []
 ## The activity whose options are in the options panel.
 var _options_activity := ""
+## The option chosen in the menu, and the last one chosen per activity (the menu opens with it).
+var _chosen_option := ""
+var _last_options := {}
 ## Whether opening the settings paused the day, so closing them starts it again.
 var _paused_by_settings := false
 ## What the activity dock was last laid out for (Milestone 40).
@@ -282,7 +307,9 @@ func _ready() -> void:
 	add_child(canteen)
 	move_child(canteen, failure_screen.get_index())
 	eat_button.pressed.connect(canteen.open)
-	%OptionsCancelButton.pressed.connect(options_panel.hide)
+	options_cancel.pressed.connect(options_panel.hide)
+	options_start.pressed.connect(_on_options_start)
+	_style_options_buttons()
 	stop_button.pressed.connect(_on_stop_pressed)
 	cardio_stop.pressed.connect(Activities.stop)
 	football_stop.pressed.connect(Activities.stop)
@@ -399,7 +426,7 @@ func _place_speech() -> void:
 ## On a screen wider than the column, an open panel darkens the rest of the screen too.
 func _refresh_outside_dim() -> void:
 	var amount := 0.0
-	for cover: ColorRect in [settings_overlay, football_help, failure_screen, canteen]:
+	for cover: ColorRect in [settings_overlay, football_help, failure_screen, canteen, options_panel]:
 		if cover and cover.visible:
 			amount = maxf(amount, cover.color.a)
 	outside_dim.amount = amount
@@ -714,6 +741,8 @@ func _on_sleep_button_pressed() -> void:
 func _open_options(activity_id: String) -> void:
 	var definition: Dictionary = Activities.definitions.get(activity_id, {})
 	minutes_box.visible = definition.get("minutes_slider", false)
+	# The menu opens with the last option chosen for this activity (change 9).
+	_options_activity = ""
 	if minutes_box.visible:
 		var first_option: Dictionary = definition.get("options", {}).values()[0]
 		minutes_slider.value = float(first_option.get("duration_hours")) * Clock.MINUTES_PER_HOUR
@@ -727,34 +756,72 @@ func _refresh_minutes() -> void:
 
 
 func _build_options(activity_id: String) -> void:
-	# Remove the old buttons at once (not only at the end of the frame), so the
+	# Remove the old tiles at once (not only at the end of the frame), so the
 	# panel never holds the options of another activity.
 	for child in option_buttons.get_children():
 		option_buttons.remove_child(child)
 		child.queue_free()
-	var options: Dictionary = Activities.definitions.get(activity_id, {}).get("options", {})
+	var definition: Dictionary = Activities.definitions.get(activity_id, {})
+	var options: Dictionary = definition.get("options", {})
+	options_title.text = tr(MENU_TITLES.get(activity_id, str(definition.get("name", activity_id))))
+	options_title.add_theme_font_override("font", Ui.FONT_HEAVY)
+	options_title.add_theme_font_size_override("font_size", maxi(Ui.fit_font_size(Ui.FONT_HEAVY, options_title.text,
+			OPTIONS_TITLE_SIZE, options_title.size.x), int(OPTIONS_TITLE_SIZE * 0.7)))
+	options_panel.icon_kind = MENU_ICONS.get(activity_id, "exercise")
+	# Change 9: a tile only chooses; the menu opens with the last option chosen (the first one the
+	# first time); Start starts it.
+	if _options_activity != activity_id or not options.has(_chosen_option):
+		_chosen_option = str(_last_options.get(activity_id, options.keys()[0] if not options.is_empty() else ""))
 	_options_activity = activity_id
-	options_title.text = str(Activities.definitions.get(activity_id, {}).get("name", activity_id))
-	for option_id in options:
+	var index := 0
+	for option_id: String in options:
 		var option: Dictionary = options[option_id]
-		var button := Button.new()
-		button.text = tr(option.get("name", option_id)) if minutes_box.visible else tr("UI_OPTION") % [
+		var tile := MenuTile.new()
+		tile.text = tr(option.get("name", option_id)) if minutes_box.visible else tr("UI_OPTION") % [
 				tr(option.get("name", option_id)), Settings.decimal_text(str(option.get("duration_hours", "?")))]
-		button.custom_minimum_size = Vector2(0, 72)
-		button.pressed.connect(_on_option_chosen.bind(activity_id, option_id))
-		option_buttons.add_child(button)
-	# A hungry avatar can also skip the meal: hunger stays, the 2-hour gap starts again.
-	if activity_id == "eat" and Hunger.is_hungry():
-		var skip := Button.new()
-		skip.text = "UI_SKIP_MEAL"
-		skip.custom_minimum_size = Vector2(0, 72)
-		skip.pressed.connect(_on_skip_meal)
-		option_buttons.add_child(skip)
+		tile.icon_kind = OPTION_ICONS.get(option_id, "")
+		tile.chosen = option_id == _chosen_option
+		tile.position = Vector2(TILE_XS[index % 2], TILE_TOP + TILE_ROW * floorf(index / 2.0))
+		tile.size = TILE_SIZE
+		tile.pressed.connect(_choose_option.bind(option_id))
+		option_buttons.add_child(tile)
+		index += 1
+	var rows := ceili(index / 2.0)
+	var buttons_top := TILE_TOP + TILE_ROW * (rows - 1) + TILE_FACE_HEIGHT + OPTIONS_BUTTON_GAP
+	options_cancel.position = Vector2(TILE_XS[0], buttons_top)
+	options_cancel.size = OPTIONS_BUTTON_SIZE
+	options_start.position = Vector2(TILE_XS[1], buttons_top)
+	options_start.size = OPTIONS_BUTTON_SIZE
+	options_panel.panel_bottom = buttons_top + OPTIONS_BUTTON_FACE + OPTIONS_PANEL_BELOW
 
 
-func _on_skip_meal() -> void:
-	options_panel.hide()
-	Hunger.skip()
+func _choose_option(option_id: String) -> void:
+	_chosen_option = option_id
+	_last_options[_options_activity] = option_id
+	var options: Array = Activities.definitions.get(_options_activity, {}).get("options", {}).keys()
+	for i in option_buttons.get_child_count():
+		option_buttons.get_child(i).chosen = i < options.size() and options[i] == option_id
+
+
+func _on_options_start() -> void:
+	if _chosen_option.is_empty():
+		return
+	_last_options[_options_activity] = _chosen_option
+	_on_option_chosen(_options_activity, _chosen_option)
+
+
+## Cancel and Start (changes.md, "Exercise menu": radius 26, a thickness of 8, ExtraBold 30).
+func _style_options_buttons() -> void:
+	for button: Button in [options_cancel, options_start]:
+		var start := button == options_start
+		button.face = Ui.MINIGAME_UP_COLOR if start else Ui.TILE_COLOR
+		button.base = Ui.MINIGAME_UP_BASE if start else Ui.TILE_BASE
+		button.radius = 26.0
+		button.word_size = 30
+		button.word_centred = true
+		button.word_x = OPTIONS_BUTTON_SIZE.x * 0.5
+		button.word_y = OPTIONS_BUTTON_FACE * 0.5
+		button.prefix = "▶  " if start else "✕  "
 
 
 func _on_option_chosen(activity_id: String, option_id: String) -> void:

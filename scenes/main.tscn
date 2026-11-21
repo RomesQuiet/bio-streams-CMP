@@ -27,6 +27,8 @@
 [ext_resource type="Script" path="res://scripts/ui/football_panel.gd" id="44_football"]
 [ext_resource type="Script" path="res://scripts/ui/help_strip.gd" id="45_help"]
 [ext_resource type="Script" path="res://scripts/ui/field_mask.gd" id="46_mask"]
+[ext_resource type="Script" path="res://scripts/ui/options_menu.gd" id="47_options"]
+[ext_resource type="Script" path="res://scripts/ui/menu_slider.gd" id="48_slider"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -903,62 +905,77 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 
-[node name="OptionsPanel" type="PanelContainer" parent="."]
+[node name="OptionsPanel" type="ColorRect" parent="."]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -240.0
-offset_right = 300.0
-offset_bottom = 100.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+color = Color(0.04, 0.05, 0.16, 0.6)
+script = ExtResource("47_options")
 
-[node name="Margin" type="MarginContainer" parent="OptionsPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 24
-
-[node name="Content" type="VBoxContainer" parent="OptionsPanel/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="OptionsTitle" type="Label" parent="OptionsPanel/Margin/Content"]
+[node name="OptionsTitle" type="Label" parent="OptionsPanel"]
 unique_name_in_owner = true
-layout_mode = 2
+layout_mode = 0
+offset_left = 72.0
+offset_top = 274.0
+offset_right = 648.0
+offset_bottom = 322.0
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="MinutesBox" type="VBoxContainer" parent="OptionsPanel/Margin/Content"]
+[node name="MinutesBox" type="Control" parent="OptionsPanel"]
 unique_name_in_owner = true
-layout_mode = 2
+layout_mode = 0
+offset_left = 72.0
+offset_top = 344.0
+offset_right = 648.0
+offset_bottom = 428.0
+mouse_filter = 2
 
-[node name="MinutesLabel" type="Label" parent="OptionsPanel/Margin/Content/MinutesBox"]
+[node name="MinutesLabel" type="Label" parent="OptionsPanel/MinutesBox"]
 unique_name_in_owner = true
-layout_mode = 2
+layout_mode = 0
+offset_right = 576.0
+offset_bottom = 32.0
+theme_override_font_sizes/font_size = 26
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="MinutesSlider" type="HSlider" parent="OptionsPanel/Margin/Content/MinutesBox"]
+[node name="MinutesSlider" type="HSlider" parent="OptionsPanel/MinutesBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
+layout_mode = 0
+offset_top = 36.0
+offset_right = 576.0
+offset_bottom = 84.0
+script = ExtResource("48_slider")
 
-[node name="OptionButtons" type="VBoxContainer" parent="OptionsPanel/Margin/Content"]
+[node name="OptionButtons" type="Control" parent="OptionsPanel"]
 unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/separation = 12
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
-[node name="OptionsCancelButton" type="Button" parent="OptionsPanel/Margin/Content"]
+[node name="OptionsCancelButton" type="Button" parent="OptionsPanel"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 64)
-layout_mode = 2
+layout_mode = 0
+focus_mode = 0
 text = "UI_CANCEL"
+script = ExtResource("42_dock")
+
+[node name="OptionsStartButton" type="Button" parent="OptionsPanel"]
+unique_name_in_owner = true
+layout_mode = 0
+focus_mode = 0
+text = "UI_START"
+script = ExtResource("42_dock")
 
 [node name="SleepPanel" type="PanelContainer" parent="."]
 unique_name_in_owner = true

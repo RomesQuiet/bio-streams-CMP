@@ -21,7 +21,7 @@ Started 21 Nov 2026 (40 is the user's number; there are no Milestones 36 to 39).
 | 6 | Meal: eating pictures, dock band | done, waiting for the user's check | see git log |
 | 7 | Screen time | **skipped (user, 21 Nov 2026)**: Screens is the video game (Milestone 35) | — |
 | 8 | Sleep: bed, window, Wake up | done, waiting for the user's check | see git log |
-| 9 | Exercise and entertainment menus | | |
+| 9 | Exercise and entertainment menus | done, waiting for the user's check | see git log |
 | 10 | Let's eat | | |
 | 11 | Canteen with pictures | | |
 | 12 | Canteen list (`data/canteen.json`) | | |
@@ -119,6 +119,18 @@ Table "Sleeping (13, 14, 15)".
 - **Wake up** (`WAKE_UP`, "Wake up" / "Acordar"): the stop slot's pill becomes a lavender pill (296 x 64 at x 212, y 850, a half sun) while the avatar sleeps and when the sleep is over. **How it works (Claude's reading of Q2 and decision 81, to confirm):** while the avatar sleeps it ends the sleep, as Stop did (the play button cannot be pressed then); when the sleep is over it does what the play button does (`Clock.wake_up()`, the day starts). So no rule changes. Afterwards the pill is Stop again.
 - `tests/scenery_test.gd`: new checks (the bed picture, no blanket, the window, the buttons at 35%, Wake up during and after the sleep, Stop again). `tools/render_ui_states.gd`: new state Y (asleep at 2 PM, for the light stripes).
 - Checked: headless start without errors; `scenery_test`, `translation_test`, `interface_test`, `minigame_test`, `offline_sleep_test`, `sleep_test` ALL PASSED; Z (night), Y (day) and W (sleep over) rendered and compared with the table.
+
+### Change 9: the exercise and entertainment menus (user: "OK, do change 9", 21 Nov 2026)
+
+Table "Exercise menu (02)"; the entertainment menu uses the same panel.
+
+- `OptionsPanel` is now a dimmed cover of the column (`scripts/ui/options_menu.gd`, new; the outside of the column is dimmed too) with the panel (x 40, y 214, 640 wide, radius 28, a white line), the icon at its top (a runner; a game controller for entertainment), the title ("Choose exercise", "Choose what to do"; ExtraBold 40), a divider, the minutes (Bold 26) and the slider (`scripts/ui/menu_slider.gd`, new: a track 12 high, the cyan fill, a white handle of radius 16 with a shadow; 48 high to touch).
+- **Tiles** (`scripts/ui/menu_tile.gd`, new): 280 x 150 with a thickness of 6, an icon and the name; Cardio, Squats, Push-ups and Sit-ups in two rows (y 448 and 614), Video game and Football in one row. **A tile only chooses** (mint, a green thickness and a green badge with a white check); **Start starts** the chosen option with the minutes of the slider. The menu opens with the last option chosen for that activity (the first one the first time; kept while the game is open). The video game's tile shows a game controller, football's a ball.
+- **Cancel and Start** (the `DockButton` style): 280 x 80 with a thickness of 8, radius 26, "✕  Cancel" on the light tile colour and "▶  Start" in mint; at y 792 (exercise; the panel ends at y 904) or y 626 (entertainment; the panel ends at y 738).
+- The old "Skip meal" button of this panel is gone with the meal options (since Milestone 21 Eat opens the canteen, which has its own Skip meal).
+- New keys `UI_START`, `EXERCISE_CHOOSE`, `ENTERTAINMENT_CHOOSE`; new colours `TILE_COLOR`, `BADGE_COLOR`; icon "controller" (one colour); `dock_button.gd` `prefix`.
+- `tests/minutes_slider_test.gd`: the tiles choose and Start starts; new checks (Cardio chosen first, a tile only chooses, the last option chosen, the places of Start and the panel's bottom for both menus, Cancel). `tools/render_ui_states.gd`: O (exercise menu) and Q (entertainment menu).
+- Checked: headless start without errors; `minutes_slider_test`, `settings_panel_test`, `translation_test`, `interface_test`, `minigame_test` ALL PASSED; O in English and Q in Portuguese rendered and compared with the table.
 
 ## Contradictions found (to ask before the change they touch)
 

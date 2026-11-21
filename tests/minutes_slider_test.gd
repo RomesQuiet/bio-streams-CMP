@@ -51,7 +51,14 @@ func _test_exercise() -> void:
 	_check("the options show no fixed time", main.option_buttons.get_child(0).text == "Cardio")
 	main.minutes_slider.value = 40.0
 	_check("the label follows the slider", main.minutes_label.text == "Minutes: 40")
+	# Milestone 40, change 9: a tile only chooses; Start starts the chosen option.
+	_check("the menu opens with Cardio chosen", main.option_buttons.get_child(0).chosen
+			and not main.option_buttons.get_child(1).chosen)
+	main.option_buttons.get_child(1).pressed.emit()
+	_check("a tile only chooses", not activities.is_running() and main.option_buttons.get_child(1).chosen
+			and not main.option_buttons.get_child(0).chosen)
 	main.option_buttons.get_child(0).pressed.emit()
+	main.options_start.pressed.emit()
 	_check("the activity runs for the chosen minutes", activities.current_option == "cardio"
 			and is_equal_approx(activities.target_hours, 40.0 / 60.0))
 	_check("the speech bubble counts in minutes", main.speech_label.text == "Cardio... (0 of 40 min)")
@@ -60,16 +67,27 @@ func _test_exercise() -> void:
 	_check("the slider starts again at the duration next time", is_equal_approx(main.minutes_slider.value, 60.0))
 	main.minutes_slider.value = 240.0
 	main.option_buttons.get_child(1).pressed.emit()
+	main.options_start.pressed.emit()
 	_check("4 hours are possible, for the too-much-exercise rule", activities.current_option == "strength"
 			and is_equal_approx(activities.target_hours, 4.0))
 	activities.stop()
+	main.get_node("%ExerciseButton").pressed.emit()
+	_check("the menu opens with the last option chosen", main.option_buttons.get_child(1).chosen)
+	_check("Cancel and Start are at y 792, the panel ends at y 904", is_equal_approx(main.options_start.position.y, 792.0)
+			and is_equal_approx(main.options_panel.panel_bottom, 904.0))
+	main.options_cancel.pressed.emit()
+	_check("Cancel closes it", not main.options_panel.visible and not activities.is_running())
 
 
 func _test_entertainment() -> void:
 	main.get_node("%EntertainmentButton").pressed.emit()
 	_check("entertainment shows the slider", main.minutes_box.visible)
 	main.minutes_slider.value = 120.0
+	_check("two tiles in one row, Start at y 626, the panel ends at y 738", main.option_buttons.get_child_count() == 2
+			and is_equal_approx(main.option_buttons.get_child(1).position.y, 448.0)
+			and is_equal_approx(main.options_start.position.y, 626.0) and is_equal_approx(main.options_panel.panel_bottom, 738.0))
 	main.option_buttons.get_child(0).pressed.emit()
+	main.options_start.pressed.emit()
 	_check("screens run for the chosen minutes", activities.current_option == "screens" and is_equal_approx(activities.target_hours, 2.0))
 	activities.stop()
 

@@ -286,3 +286,6 @@ FOOTBALL_CONTROLS_TOUCH,Joystick: move • Pass • Shoot,Joystick: mover • Pa
 FOOTBALL_CONTROLS_KEYS,WASD: move • Z: pass • X: shoot,WASD: mover • Z: passe • X: rematar
 FOOTBALL_MOVE,Move,Mover
 WAKE_UP,Wake up,Acordar
+UI_START,Start,Começar
+EXERCISE_CHOOSE,Choose exercise,Escolhe o exercício
+ENTERTAINMENT_CHOOSE,Choose what to do,Escolhe o que fazer

@@ -31,6 +31,8 @@ var word_y := 0.0
 var word_centred := false
 ## The word in capitals (the cardio Tap button).
 var upper := false
+## Text before the word ("✕  " on Cancel, "▶  " on Start; change 9).
+var prefix := ""
 ## A key under the word on a computer ("" for none), centred at hint_centre.
 var hint := ""
 var hint_size := 24
@@ -84,7 +86,7 @@ func _draw() -> void:
 		_draw_arrow(Rect2(arrow_rect.position + offset, arrow_rect.size), arrow == "down")
 	if divider.has_area():
 		draw_rect(Rect2(divider.position + offset, divider.size), Color(ink, 0.25))
-	var word := atr(text).to_upper() if upper else atr(text)
+	var word := prefix + (atr(text).to_upper() if upper else atr(text))
 	var room := size.x - (word_x if not word_centred else 0.0) - 20.0
 	var fitted := Ui.fit_font_size(Ui.FONT_HEAVY, word, word_size, room)
 	fitted = maxi(fitted, int(word_size * 0.7))
