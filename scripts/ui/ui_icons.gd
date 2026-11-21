@@ -15,7 +15,7 @@ const LIGHT := Color("#ffe7a0")
 
 
 ## Draws the icon `kind` ("heart", "gear", "pause", "play", "exercise", "sleep", "eat",
-## "entertainment", "jump" (an arrow up, the sky-jump button, Milestone 35), "controller" (the game controller in one colour), "apple_line" and "burger_line" (the apple and the burger in one colour), the main menu's "person_add", "people", "upload" and "info", the exercises "squat", "pushup" and "situp", "fork", "footprints", and football's "pass" and "goal" (Milestone 40, 100 wide and about 58 high), or a request: "tired", "hungry", "fast_food", "healthy", "screens", "football").
+## "entertainment", "jump" (an arrow up, the sky-jump button, Milestone 35), "controller" (the game controller in one colour), "apple_line" and "burger_line" (the apple and the burger in one colour), the creation screen's "child", "teen", "male" and "female", the main menu's "person_add", "people", "upload" and "info", the exercises "squat", "pushup" and "situp", "fork", "footprints", and football's "pass" and "goal" (Milestone 40, 100 wide and about 58 high), or a request: "tired", "hungry", "fast_food", "healthy", "screens", "football").
 ## color is used by the one-colour icons (gear, pause, play, runner, bed, cutlery, screen).
 static func draw(canvas: CanvasItem, kind: String, centre: Vector2, box: float, color := Ui.ICON_INK) -> void:
 	# The Entertainment button: the game controller and a football (user, 21 Nov 2026: entertainment
@@ -50,6 +50,14 @@ static func draw(canvas: CanvasItem, kind: String, centre: Vector2, box: float, 
 			_apple_one_colour(canvas, color)
 		"burger_line":
 			_burger_one_colour(canvas, color)
+		"child":
+			_person(canvas, color, 0.78)
+		"teen":
+			_person(canvas, color, 1.0)
+		"male":
+			_male(canvas, color)
+		"female":
+			_female(canvas, color)
 		"hungry", "starving":
 			_cutlery(canvas, color)
 		"fast_food":
@@ -393,3 +401,29 @@ static func _burger_one_colour(canvas: CanvasItem, color: Color) -> void:
 	_box(canvas, Rect2(-44, 0, 88, 8), 3.5, color)
 	_box(canvas, Rect2(-40, 12, 80, 10), 4.5, color)
 	_box(canvas, Rect2(-40, 26, 80, 12), 5.5, color)
+
+
+## A standing person, front view; `tall` scales it (a child is smaller than a teenager).
+static func _person(canvas: CanvasItem, color: Color, tall: float) -> void:
+	var t := Transform2D(0.0, Vector2.ONE * tall, 0.0, Vector2(0, 50 * (1.0 - tall)))
+	_circle(canvas, t * Vector2(0, -38), 11.0 * tall, color)
+	fill(canvas, t * Ui.rounded_rect_points(Rect2(-17, -24, 34, 38), 12.0, 4), color)
+	fill(canvas, t * Ui.rounded_rect_points(Rect2(-14, 10, 12, 40), 5.0, 3), color)
+	fill(canvas, t * Ui.rounded_rect_points(Rect2(2, 10, 12, 40), 5.0, 3), color)
+	fill(canvas, t * Ui.rounded_rect_points(Rect2(-27, -20, 9, 32), 4.0, 3), color)
+	fill(canvas, t * Ui.rounded_rect_points(Rect2(18, -20, 9, 32), 4.0, 3), color)
+
+
+## The male sign: a ring with an arrow up and to the right.
+static func _male(canvas: CanvasItem, color: Color) -> void:
+	canvas.draw_arc(Vector2(-10, 10), 26.0, 0.0, TAU, 40, color, 9.0, true)
+	Ui.draw_round_line(canvas, Vector2(9, -9), Vector2(34, -34), color, 9.0)
+	Ui.draw_round_line(canvas, Vector2(34, -34), Vector2(14, -34), color, 9.0)
+	Ui.draw_round_line(canvas, Vector2(34, -34), Vector2(34, -14), color, 9.0)
+
+
+## The female sign: a ring with a cross under it.
+static func _female(canvas: CanvasItem, color: Color) -> void:
+	canvas.draw_arc(Vector2(0, -14), 24.0, 0.0, TAU, 40, color, 9.0, true)
+	Ui.draw_round_line(canvas, Vector2(0, 11), Vector2(0, 44), color, 9.0)
+	Ui.draw_round_line(canvas, Vector2(-14, 30), Vector2(14, 30), color, 9.0)

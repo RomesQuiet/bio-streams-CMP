@@ -45,6 +45,23 @@ const DIFFICULTIES := {
 	},
 }
 
+## The look of the team's picture (21 Nov 2026): each choice's colour and icon (the chosen one has
+## a check), read from the picture's pixels.
+const ChoiceButton := preload("res://scripts/ui/choice_button.gd")
+const Ui := preload("res://scripts/ui/ui_style.gd")
+const CHOICE_LOOKS := {
+	"child": ["#7efcfd", "child"], "teenager": ["#d2cbfe", "teen"],
+	"male": ["#fec864", "male"], "female": ["#afc7ad", "female"],
+	"easy": ["#84fb87", ""], "normal": ["#fede57", ""], "hard": ["#ff6d5e", ""], "very_hard": ["#b0234e", ""],
+}
+## Faces with white text.
+const LIGHT_TEXT := ["very_hard"]
+const NAME_BORDER := Color("#7dfaf9")
+const LANGUAGE_ON := Color("#5efbdc")
+const LANGUAGE_OFF := Color("#dcdffb")
+const START_FACE := Color("#4afcda")
+const LABEL_COLOR := Color("#f4f2fc")
+
 @onready var name_edit: LineEdit = %NameEdit
 @onready var age_buttons: HBoxContainer = %AgeButtons
 @onready var sex_buttons: HBoxContainer = %SexButtons
@@ -66,6 +83,7 @@ func _ready() -> void:
 	var browser_box := OS.has_feature("web") and DisplayServer.is_touchscreen_available()
 	if browser_box:
 		use_browser_name_box()
+	_style_screen()
 	_add_choice_buttons(age_buttons, AGE_GROUPS, func(id: String) -> void: _age_group = id)
 	_add_choice_buttons(sex_buttons, SEXES, func(id: String) -> void: _sex = id)
 	var difficulty_names := {}
@@ -85,6 +103,56 @@ func _ready() -> void:
 	_refresh()
 	if not browser_box:
 		name_edit.grab_focus()
+
+
+## The title, labels, name field, language pills, Start and Back in the picture's look.
+func _style_screen() -> void:
+	var title: Label = %Title
+	title.add_theme_font_override("font", Ui.FONT_HEAVY)
+	title.add_theme_color_override("font_color", Color.WHITE)
+	title.add_theme_color_override("font_shadow_color", Color(Ui.INK, 0.35))
+	title.add_theme_constant_override("shadow_offset_y", 3)
+	title.add_theme_font_size_override("font_size", maxi(Ui.fit_font_size(Ui.FONT_HEAVY, tr(title.text), 60, 660.0), 42))
+	for label: Label in [$NameLabel, $AgeLabel, $SexLabel, $DifficultyLabel]:
+		label.add_theme_font_override("font", Ui.FONT_HEAVY)
+		label.add_theme_color_override("font_color", LABEL_COLOR)
+	difficulty_info.add_theme_color_override("font_color", LABEL_COLOR)
+	var field := StyleBoxFlat.new()
+	field.bg_color = Color.WHITE
+	field.border_color = NAME_BORDER
+	field.set_border_width_all(4)
+	field.set_corner_radius_all(24)
+	field.content_margin_left = 22.0
+	field.content_margin_right = 22.0
+	for style in ["normal", "focus", "read_only"]:
+		name_edit.add_theme_stylebox_override(style, field)
+	name_edit.add_theme_font_override("font", Ui.FONT_HEAVY)
+	name_edit.add_theme_font_size_override("font_size", 29)
+	name_edit.add_theme_color_override("font_color", Ui.INK)
+	name_edit.add_theme_color_override("font_placeholder_color", Color(Ui.INK, 0.45))
+	name_edit.add_theme_color_override("caret_color", Ui.INK)
+	for button: Button in [portuguese_button, english_button]:
+		button.face = LANGUAGE_OFF
+		button.chosen_face = LANGUAGE_ON
+		button.show_check = false
+		button.font_size = 26
+	start_button.face = START_FACE
+	start_button.base = START_FACE.darkened(0.3)
+	start_button.radius = 30.0
+	start_button.word_size = 44
+	start_button.word_centred = true
+	start_button.word_x = start_button.size.x * 0.5
+	start_button.word_y = (start_button.size.y - 8.0) * 0.5
+	start_button.prefix = "▶  "
+	var back: Button = %BackButton
+	back.face = Ui.SLEEP_COLOR
+	back.base = Ui.SLEEP_BASE
+	back.radius = 28.0
+	back.word_size = 32
+	back.word_centred = true
+	back.word_x = back.size.x * 0.5
+	back.word_y = (back.size.y - 8.0) * 0.5
+	back.prefix = "←  "
 
 
 ## Touch screens in a browser: the name field never takes focus (so Godot does not open its
@@ -123,12 +191,19 @@ func set_typed_name(answer: Variant) -> void:
 func _add_choice_buttons(container: Container, choices: Dictionary, on_chosen: Callable) -> void:
 	var group := ButtonGroup.new()
 	for id in choices:
-		var button := Button.new()
+		var button: Button = ChoiceButton.new()
 		button.text = choices[id]
 		button.toggle_mode = true
 		button.button_group = group
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.custom_minimum_size = Vector2(0, 88)
+		button.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		var look: Array = CHOICE_LOOKS.get(id, ["#eef1fb", ""])
+		button.face = Color(look[0])
+		button.icon_kind = look[1]
+		button.ink = Color.WHITE if id in LIGHT_TEXT else Ui.INK
+		button.font_size = 35 if container == difficulty_buttons else 32
+		button.icon_box = 80.0 if container == age_buttons else 56.0
+		button.custom_minimum_size = Vector2(0, 100 if container == difficulty_buttons else 0)
 		button.pressed.connect(func() -> void:
 			on_chosen.call(id)
 			_refresh())
@@ -137,6 +212,8 @@ func _add_choice_buttons(container: Container, choices: Dictionary, on_chosen: C
 
 func _refresh() -> void:
 	difficulty_info.text = DIFFICULTIES[_difficulty]["description"] if _difficulty else "CREATION_CHOOSE_DIFFICULTY"
+	for button in [portuguese_button, english_button, start_button]:
+		button.queue_redraw()
 	start_button.disabled = name_edit.text.strip_edges().is_empty() \
 			or _age_group.is_empty() or _sex.is_empty() or _difficulty.is_empty()
 

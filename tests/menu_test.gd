@@ -75,6 +75,9 @@ func _test_menu_screen() -> void:
 	_check("the menu opens with the game emptied", not gs.is_created() and clock.halted)
 	_check("Continue shows the avatar played last", menu._continue_button.visible
 			and menu._continue_button.text.begins_with("Continue\nRui · level 0"))
+	# The user (21 Nov 2026): Continue takes New avatar's place, in the first button's place.
+	_check("with an avatar, New avatar is not on the first screen", not menu._new_avatar_button.visible
+			and is_equal_approx(menu._continue_button.offset_top, 691.0 - 1280.0))
 	menu._open_avatars()
 	_check("the avatars page has a card per place", menu._cards.get_child_count() == 3)
 	_make_avatar(0, "Ana")

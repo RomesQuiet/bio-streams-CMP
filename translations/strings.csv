@@ -129,8 +129,8 @@ CREATION_NAME_HINT,Type a name,Escreve um nome
 CREATION_TAP_HINT,Tap to type a name,Toca para escrever um nome
 CREATION_NAME_QUESTION,Name of your avatar:,Nome do teu avatar:
 CREATION_AGE,Age group,Faixa etária
-CREATION_CHILD,Child\n(6 to 12 years),Criança\n(6 a 12 anos)
-CREATION_TEENAGER,Teenager\n(13 to 18 years),Adolescente\n(13 a 18 anos)
+CREATION_CHILD,Child\n6 to 12 years,Criança\n6 a 12 anos
+CREATION_TEENAGER,Teenager\n13 to 18 years,Adolescente\n13 a 18 anos
 CREATION_SEX,Sex,Sexo
 CREATION_MALE,Male,Masculino
 CREATION_FEMALE,Female,Feminino

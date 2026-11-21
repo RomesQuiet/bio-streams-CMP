@@ -67,7 +67,15 @@ func _run() -> void:
 	clock.reset()
 	if letter == "M" or letter == "N":
 		var scene := "res://scenes/ui/menu.tscn" if letter == "M" else "res://scenes/ui/creation.tscn"
-		root.add_child(load(scene).instantiate())
+		var screen: Node = load(scene).instantiate()
+		root.add_child(screen)
+		if letter == "N":
+			# A name and three choices made, as in the team's picture (Milestone 40).
+			screen.get_node("%NameEdit").text = "Alex"
+			for path in ["%AgeButtons", "%SexButtons", "%DifficultyButtons"]:
+				var first: Button = screen.get_node(path).get_child(0)
+				first.button_pressed = true
+				first.pressed.emit()
 		await _save(out, "M_menu" if letter == "M" else "N_creation")
 		return
 	# A fourth argument "teen" renders a teenage girl (Milestone 40: the other sheets' pictures).

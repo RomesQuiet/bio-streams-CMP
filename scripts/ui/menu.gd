@@ -71,13 +71,11 @@ const BUTTON_WIDTH := 540.0
 ## Without Continue: the four buttons of the splash (faces 86 high and a 6-pixel thickness).
 const BUTTON_TOPS := [691.0, 799.0, 908.0, 1016.0]
 const BUTTON_HEIGHT := 92.0
-## With Continue (not in the splash; Claude): five buttons a little closer together.
-const BUTTON_TOPS_WITH_CONTINUE := [644.0, 740.0, 836.0, 932.0, 1028.0]
-const BUTTON_HEIGHT_WITH_CONTINUE := 84.0
 const TOGGLE_RECT := Rect2(242, 1142, 238, 56)
 const REFERENCE_HEIGHT := 1280.0
 
 var _title: Label
+var _new_avatar_button: Button
 var _subtitle: Label
 var _buttons: Array[Button] = []
 var _backdrop: Control
@@ -141,8 +139,10 @@ func _build() -> void:
 	_home.set_anchors_preset(PRESET_FULL_RECT)
 	_home.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_home)
-	_continue_button = _menu_button("", _continue, Ui.MENU_CONTINUE_FACE, Ui.MENU_CONTINUE_BASE, "play")
-	_menu_button("MENU_NEW_AVATAR", _new_avatar, Ui.MENU_NEW_FACE, Ui.MENU_NEW_BASE, "person_add")
+	# The user (21 Nov 2026): Continue takes New avatar's place; New avatar is on the first screen
+	# only while there is no avatar (later it is in the Avatars page, for an empty place).
+	_continue_button = _menu_button("", _continue, Ui.MENU_NEW_FACE, Ui.MENU_NEW_BASE, "play")
+	_new_avatar_button = _menu_button("MENU_NEW_AVATAR", _new_avatar, Ui.MENU_NEW_FACE, Ui.MENU_NEW_BASE, "person_add")
 	_menu_button("MENU_AVATARS", _open_avatars, Ui.MENU_AVATARS_FACE, Ui.MENU_AVATARS_BASE, "people")
 	_menu_button("MENU_LOAD_BACKUP", _load_backup, Ui.MENU_BACKUP_FACE, Ui.MENU_BACKUP_BASE, "upload")
 	_menu_button("MENU_ABOUT", _open_about, Ui.MENU_ABOUT_FACE, Ui.MENU_ABOUT_BASE, "info")
@@ -186,16 +186,14 @@ func _menu_button(key: String, on_pressed: Callable, face: Color, base: Color, i
 	return button
 
 
-## The buttons at the splash's places, or five a little closer when Continue is shown.
+## The four buttons at the splash's places (Continue or New avatar first).
 func _layout_buttons() -> void:
 	var shown: Array[Button] = []
 	for button in _buttons:
 		if button.visible:
 			shown.append(button)
-	var tops: Array = BUTTON_TOPS if shown.size() <= BUTTON_TOPS.size() else BUTTON_TOPS_WITH_CONTINUE
-	var height := BUTTON_HEIGHT if shown.size() <= BUTTON_TOPS.size() else BUTTON_HEIGHT_WITH_CONTINUE
-	for i in shown.size():
-		place(shown[i], Rect2(BUTTON_X, tops[i], BUTTON_WIDTH, height), true)
+	for i in mini(shown.size(), BUTTON_TOPS.size()):
+		place(shown[i], Rect2(BUTTON_X, BUTTON_TOPS[i], BUTTON_WIDTH, BUTTON_HEIGHT), true)
 
 
 ## The title and subtitle as large as fit (Portuguese is longer), down to 70% of its size.
@@ -263,9 +261,10 @@ func _button(text: String, on_pressed: Callable, height: float, expand := false)
 # --- What the menu shows ---------------------------------------------------------------------
 
 func _refresh() -> void:
-	var last := Settings.last_slot if Settings.last_slot < SaveGame.slot_count() else 0
-	var avatar := SaveGame.slot_summary(last)
+	var place := continue_place()
+	var avatar := SaveGame.slot_summary(place) if place >= 0 else {}
 	_continue_button.visible = not avatar.is_empty()
+	_new_avatar_button.visible = avatar.is_empty()
 	if not avatar.is_empty():
 		_continue_button.text = "%s\n%s" % [tr("MENU_CONTINUE"), summary_text(avatar)]
 	_layout_buttons()
@@ -347,8 +346,22 @@ func _build_cards() -> void:
 
 # --- Actions ---------------------------------------------------------------------------------
 
+## The place Continue opens: the avatar played last, or else the first place with an avatar;
+## -1 when there is no avatar at all (then New avatar is shown instead).
+func continue_place() -> int:
+	var last := Settings.last_slot if Settings.last_slot < SaveGame.slot_count() else 0
+	if not SaveGame.slot_summary(last).is_empty():
+		return last
+	for place in SaveGame.slot_count():
+		if not SaveGame.slot_summary(place).is_empty():
+			return place
+	return -1
+
+
 func _continue() -> void:
-	_play(Settings.last_slot if Settings.last_slot < SaveGame.slot_count() else 0)
+	var place := continue_place()
+	if place >= 0:
+		_play(place)
 
 
 func _play(place: int) -> void:

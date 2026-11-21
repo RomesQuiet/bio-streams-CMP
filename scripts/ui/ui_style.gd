@@ -99,9 +99,6 @@ const MENU_BACKUP_FACE := Color("#dec0fc")
 const MENU_BACKUP_BASE := Color("#a283fa")
 const MENU_ABOUT_FACE := Color("#fbc1da")
 const MENU_ABOUT_BASE := Color("#f986bf")
-## Continue is not in the splash screen; it keeps the entertainment gold (Claude's choice).
-const MENU_CONTINUE_FACE := Color("#ffe385")
-const MENU_CONTINUE_BASE := Color("#e6b94a")
 ## The title's outline and shadow, and the chosen half of the language switch.
 const MENU_TITLE_OUTLINE := Color("#20236c")
 const MENU_TOGGLE_ON := Color("#d2e3fd")
