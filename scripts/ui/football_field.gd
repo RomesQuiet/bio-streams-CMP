@@ -4,10 +4,11 @@ extends Control
 ## where a good shot starts, a line shows where a pass would go, rings show who is free and who
 ## can be tackled, a small map shows the whole field, and a line of text says what to do next.
 
-## Colours of Milestone 25 (scripts/ui/ui_style.gd): a mint-green pitch, a blue team, a salmon-red
-## team, the avatar in gold, navy outlines.
-const GRASS_COLOR := Color("#2fa877")
-const STRIPE_COLOR := Color("#38b582")
+## Colours of Milestone 25 (scripts/ui/ui_style.gd): a blue team, a salmon-red team, the avatar in
+## gold, navy outlines. Milestone 40 (documentation/ui_v2/changes.md, change 5): 8 fixed stripes,
+## a white line around the rounded field (FieldMask clips it), the small map in its new look, and
+## the score in a capsule at the top right.
+const Ui := preload("res://scripts/ui/ui_style.gd")
 const LINE_COLOR := Color(1, 1, 1, 0.85)
 const TEAM_COLOR := Color("#3f86f0")
 const YOU_COLOR := Color("#ffd84a")
@@ -26,7 +27,6 @@ const LINE_WIDTH := 3.0
 const BALL_LEAD := 1.2
 const GOAL_WIDTH := 10.0
 const GOAL_DEPTH := 14.0
-const STRIPES := 6
 ## Share of the view below the avatar.
 const VIEW_BELOW := 0.4
 ## Screen pixels kept around the field at each end.
@@ -34,8 +34,18 @@ const VIEW_MARGIN := 24.0
 const CAMERA_SPEED := 5.0
 ## Share of the way from the avatar to the ball that the view looks at.
 const CAMERA_TO_BALL := 0.3
-const MAP_SIZE := Vector2(84, 126)
-const MAP_MARGIN := 8.0
+## Milestone 40: the field's stripes and line, the small map and the score capsule (places in the
+## field, whose top-left is x 20, y 210 of the column).
+const FIELD_STRIPES := 8
+const FIELD_RADIUS := 28.0
+const FIELD_LINE := 3.0
+const MAP_RECT := Rect2(16, 16, 90, 100)
+const MAP_RADIUS := 8.0
+const MAP_DOT := 3.0
+const MAP_RED := Color("#fe5c65")
+const MAP_BLUE := Color("#2990fe")
+const MAP_YOU := Color("#fde23b")
+const SCORE_RECT := Rect2(564, 16, 100, 40)
 const HINT_HEIGHT := 44.0
 const HINT_FONT := 24
 const EVENT_FONT := 44
@@ -47,6 +57,8 @@ var game: RefCounted = null
 var hint := ""
 ## The label over the avatar, already translated.
 var you_text := ""
+## The score, already written ("Goals: 1 – 0").
+var score_text := ""
 
 var _camera := -1.0
 var _pulse := 0.0
@@ -82,25 +94,33 @@ static func draw_egg(canvas: CanvasItem, centre: Vector2, radius: float, color: 
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), GRASS_COLOR)
-	if game == null:
-		return
-	var scale_x: float = size.x / game.width
-	var ground := _ground_y(scale_x)
-	_draw_grass(scale_x, ground)
-	_draw_lines(scale_x, ground)
-	_draw_shot_zone(scale_x, ground)
-	_draw_pass_line(scale_x, ground)
-	_draw_players(scale_x, ground)
-	_draw_ball(scale_x, ground)
-	_draw_map()
-	_draw_banner()
+	# 8 stripes of equal height, the first (at the top) FIELD_STRIPE_A.
+	var stripe := size.y / FIELD_STRIPES
+	for i in FIELD_STRIPES:
+		draw_rect(Rect2(0.0, stripe * i, size.x, stripe + 1.0), Ui.FIELD_STRIPE_A if i % 2 == 0 else Ui.FIELD_STRIPE_B)
+	if game != null:
+		var scale_x: float = size.x / game.width
+		var ground := _ground_y(scale_x)
+		_draw_grass(scale_x, ground)
+		_draw_lines(scale_x, ground)
+		_draw_shot_zone(scale_x, ground)
+		_draw_pass_line(scale_x, ground)
+		_draw_players(scale_x, ground)
+		_draw_ball(scale_x, ground)
+		if not _whole_field_fits(scale_x):
+			_draw_map()
+		_draw_score()
+		_draw_banner()
+	var half := FIELD_LINE * 0.5
+	Ui.draw_outline(self, Ui.rounded_rect_points(Rect2(Vector2.ZERO, size).grow(-half), FIELD_RADIUS - half), Color.WHITE, FIELD_LINE)
+
+
+## The small map is only needed when the view shows part of the field.
+func _whole_field_fits(scale_x: float) -> bool:
+	return game.length * scale_x + 2.0 * VIEW_MARGIN + GOAL_DEPTH <= size.y
 
 
 func _draw_grass(scale_x: float, ground: float) -> void:
-	var stripe: float = game.length / STRIPES * scale_x
-	for i in range(0, STRIPES, 2):
-		draw_rect(Rect2(0.0, ground - stripe * (i + 1), size.x, stripe), STRIPE_COLOR)
 	# Arrows up the field: this is the way to attack.
 	for share in [0.3, 0.5, 0.7]:
 		var tip := _screen(Vector2(game.width * 0.5, game.length * share), scale_x, ground)
@@ -184,23 +204,27 @@ func _draw_ball(scale_x: float, ground: float) -> void:
 	draw_arc(point, BALL_RADIUS, 0.0, TAU, 20, OUTLINE_COLOR, 2.0)
 
 
-## The whole field, small, in a corner: the view only shows part of it.
+## The whole field, small, in a corner (Milestone 40: 90 x 100, the second stripe colour, a white
+## line, the players as dots: red, blue, and the avatar in yellow).
 func _draw_map() -> void:
-	var corner := Vector2(MAP_MARGIN, MAP_MARGIN)
-	draw_rect(Rect2(corner, MAP_SIZE), Color(GRASS_COLOR, 0.85))
-	draw_rect(Rect2(corner, MAP_SIZE), LINE_COLOR, false, 2.0)
-	var half_goal: float = MAP_SIZE.x * GOAL_WIDTH / game.width * 0.5
-	var middle := corner.x + MAP_SIZE.x * 0.5
-	draw_line(Vector2(middle - half_goal, corner.y), Vector2(middle + half_goal, corner.y), OTHER_COLOR, 5.0)
-	draw_line(Vector2(middle - half_goal, corner.y + MAP_SIZE.y), Vector2(middle + half_goal, corner.y + MAP_SIZE.y), TEAM_COLOR, 5.0)
+	var points := Ui.rounded_rect_points(MAP_RECT, MAP_RADIUS)
+	draw_colored_polygon(points, Ui.FIELD_STRIPE_B)
+	Ui.draw_outline(self, points, Color.WHITE, Ui.BORDER_THIN)
 	for i in range(game.positions.size() - 1, 0, -1):
-		draw_circle(_on_map(game.positions[i], corner), 4.0, TEAM_COLOR if i < game.team_size else OTHER_COLOR)
-	draw_circle(_on_map(game.positions[0], corner), 6.0, YOU_COLOR)
-	draw_circle(_on_map(game.ball, corner), 3.0, BALL_COLOR)
+		draw_circle(_on_map(game.positions[i]), MAP_DOT, MAP_BLUE if i < game.team_size else MAP_RED, true, -1.0, true)
+	draw_circle(_on_map(game.positions[0]), MAP_DOT, MAP_YOU, true, -1.0, true)
 
 
-func _on_map(point: Vector2, corner: Vector2) -> Vector2:
-	return corner + Vector2(point.x / game.width * MAP_SIZE.x, (1.0 - point.y / game.length) * MAP_SIZE.y)
+func _on_map(point: Vector2) -> Vector2:
+	var inner := MAP_RECT.grow(-MAP_DOT - 2.0)
+	return inner.position + Vector2(point.x / game.width * inner.size.x, (1.0 - point.y / game.length) * inner.size.y)
+
+
+## The score in a capsule at the top right.
+func _draw_score() -> void:
+	draw_colored_polygon(Ui.rounded_rect_points(SCORE_RECT, SCORE_RECT.size.y * 0.5 - 0.5), Ui.CHIP_COLOR)
+	var fitted := maxi(Ui.fit_font_size(Ui.FONT_BOLD, score_text, 22, SCORE_RECT.size.x - 12.0), 15)
+	Ui.draw_centred_text(self, Ui.FONT_BOLD, SCORE_RECT.get_center(), score_text, fitted, Color.WHITE)
 
 
 func _draw_banner() -> void:

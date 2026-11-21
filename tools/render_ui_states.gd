@@ -9,7 +9,7 @@ extends SceneTree
 ## S (the street), Z (the bedroom), W (the sleep is over: the play button), H (the measures panel
 ## open, with 2.4 h of sleep debt and two thirds of today's sleep need; Milestone 27), M (the menu),
 ## N (the creation screen), K (squats after DOWN: the activity dock and
-## the squat picture, Milestone 40), U (push-ups after DOWN), V (sit-ups before the first press).
+## the squat picture, Milestone 40), U (push-ups after DOWN), V (sit-ups before the first press), G (football), J (football on a touch screen: the joystick).
 
 ## [name, minute of the day, health, XP].
 const STATES := {
@@ -28,6 +28,8 @@ const STATES := {
 	"K": ["K_squats", 11 * 60, 3.0, 250.0],
 	"U": ["U_push_ups", 11 * 60, 3.0, 250.0],
 	"V": ["V_sit_ups", 11 * 60, 3.0, 250.0],
+	"G": ["G_football", 16 * 60, 3.0, 250.0],
+	"J": ["J_football_touch", 16 * 60, 3.0, 250.0],
 	"H": ["H_measures_sleep", 18 * 60, 3.0, 250.0],
 }
 
@@ -82,6 +84,9 @@ func _run() -> void:
 			activities.start("exercise", "push_ups", 0.5)
 		"V":
 			activities.start("exercise", "sit_ups", 0.5)
+		"G", "J":
+			root.get_node("Settings").football_help_seen = true
+			activities.start("entertainment", "football", 1.0)
 		"Z":
 			gs.hours_awake = 6.0
 			activities.start("sleep", "sleep", 8.0)
@@ -101,6 +106,8 @@ func _run() -> void:
 		main.eat_button.disabled = true
 	if letter == "S":
 		root.get_node("Minigame").tap()
+	if letter == "J":
+		main.football_pad.touch_mode = true
 	if letter == "K" or letter == "U":
 		root.get_node("Minigame").press(true)
 	if letter == "H":

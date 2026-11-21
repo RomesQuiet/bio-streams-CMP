@@ -17,7 +17,7 @@ Started 21 Nov 2026 (40 is the user's number; there are no Milestones 36 to 39).
 | 2 | Activity dock (squats, push-ups, sit-ups, meal; screens waits for the change 7 question) | done, waiting for the user's check | see git log |
 | 3 | Exercise pictures | done, waiting for the user's check | see git log |
 | 4 | Cardio panel and running pictures | done, waiting for the user's check | see git log |
-| 5 | Football field, minimap, score, panel | | |
+| 5 | Football field, minimap, score, panel | done, waiting for the user's check | see git log |
 | 6 | Meal: eating pictures, dock band | | |
 | 7 | Screen time | | |
 | 8 | Sleep: bed, window, Wake up | | |
@@ -86,6 +86,18 @@ Table "Cardio on the street (01)".
 - New keys: `CARDIO_TITLE`, `MINIGAME_STEPS_LABEL`, `TIMING`, `TIMING_HINT` (Portuguese from `changes.md`); `tests/translation_test.gd` knows the `CARDIO_` and `TIMING` keys and reads `cardio_panel.gd`. New: `ui_style.gd` `STEPS_FILL`, `BREATH_FILL`, `PANEL_92`; `ui_icons.gd` "footprints"; `beat_bar.gd` `marker_height` and `marker_radius`; `dock_button.gd` `upper`.
 - `tests/minigame_test.gd`: new checks (the panel and the hidden stop slot, `run_01` while waiting, the next frame after a tap, the panel's steps and minutes, the stop slot back for strength).
 - Checked: headless start without errors; `minigame_test`, `translation_test`, `interface_test`, `scenery_test` ALL PASSED; state S rendered in English and Portuguese.
+
+### Change 5: football (user: "OK, do change 5", 21 Nov 2026)
+
+Table "Football (11, 12)". For a circle the table's x and y are its centre (as for the plate's ellipses); the check picture `work/layout_check/football.png` confirms it (the joystick at 156, 1044 with radius 92 ends above the help strip).
+
+- **Field:** x 20, y 210, 680 wide, down to y 796 (it stretches with the screen). `scripts/ui/field_mask.gd` (new; `FieldMask` around `FootballField`) draws the rounded shape (radius 28) and clips the field to it with `clip_children` (checked in a render: it works with the Compatibility renderer). `football_field.gd`: 8 fixed stripes (`FIELD_STRIPE_A` at the top, then B), a 3-pixel white line around, the minimap 90 x 100 at the field's top left (`FIELD_STRIPE_B`, a white line, the players as dots of radius 3: red, blue, the avatar yellow; hidden when the whole field fits), the score in a capsule 100 x 40 at the top right (INK at 35%). The markings, arrows, players, ball and hint banner are as before. The plain backdrop colour of football is no longer drawn (it showed as a box at the rounded corners).
+- **Panel:** `scripts/ui/football_panel.gd` (new; `FootballPanel`, 436 high from y 812): the panel (16, 812, 688 x 424), the ball icon, "FOOTBALL", the minutes, a divider, Breath and its bar. The stop slot above it is hidden; its own small Stop pill (`FootballStop`, 188 x 48 at x 500, y 828).
+- **Controls:** `scripts/ui/football_pad.gd` rewritten to the table: on a touch screen the joystick (centre 156, 1044, radius 92, four small arrows, a white thumb with a shadow); on a computer the keys box (W A S D keycaps, "Move", "W A S D"); Pass (`PASS_COLOR`, a runner with a ball, chip "Z") and Shoot or Tackle (`SHOOT_COLOR`, a goal with a net, chip "X"), 176 x 176 with a thickness of 8, the face down 8 when pressed; disabled at 45%. The keys are the same as before (arrows or WASD, Z or J, X, K or Space, P, H).
+- **Help strip:** `scripts/ui/help_strip.gd` (new; the `HelpButton`, moved from the info line): a see-through pill 656 x 64 at y 1152 with a white "?" and "Joystick: move • Pass • Shoot" or "WASD: move • Z: pass • X: shoot"; the whole strip opens the help, 88 high to touch.
+- Texts: new `FOOTBALL_TITLE`, `FOOTBALL_CONTROLS_TOUCH`, `FOOTBALL_CONTROLS_KEYS`, `FOOTBALL_MOVE`; `FOOTBALL_KEYS` (the old list of keys under the joystick) is deleted, as nothing shows it now. The status ("Playing (12 of 60 min)") is not shown any more (the minutes are in the panel's header).
+- New colours in `ui_style.gd`: `PASS_COLOR`, `PASS_BASE`, `SHOOT_COLOR`, `SHOOT_BASE`, `FIELD_STRIPE_A`, `FIELD_STRIPE_B`, `TILE_BASE`, `WHITE_08`, `WHITE_25`, `WHITE_60`, `SHADOW_INK`; icons "pass" and "goal". `tools/render_ui_states.gd`: G (football) and J (football on a touch screen).
+- Checked: headless start without errors; `minigame_test`, `football_test`, `translation_test`, `interface_test`, `settings_panel_test`, `scenery_test` ALL PASSED; G in English and Portuguese and J rendered and compared with the table.
 
 ## Contradictions found (to ask before the change they touch)
 

@@ -4,10 +4,8 @@ extends Control
 
 const CREATION_SCENE := "res://scenes/ui/creation.tscn"
 const MENU_SCENE := "res://scenes/ui/menu.tscn"
-## Height of the minigame panel, and of the football controls on a touch screen and on a computer.
+## Height of the minigame panel (the video game; Milestone 40 gives the others their own panels).
 const MINIGAME_PANEL_HEIGHT := 256.0
-const FOOTBALL_PAD_TOUCH := 170.0
-const FOOTBALL_PAD_KEYS := 104.0
 ## Milestone 40 (documentation/ui_v2/changes.md, change 2): the activity dock of squats, push-ups,
 ## sit-ups and meals. The panel is 362 high, so the stage ends at y 790 and the feet are at y 730;
 ## each row's top, from the panel's top (y 886): the info line, the Muscle bar, the timing bar
@@ -142,6 +140,9 @@ const SPEECH_GAP_UNDER_CAPSULE := 8.0
 @onready var bite_button: Button = %BiteButton
 @onready var done_button: Button = %DoneButton
 @onready var help_button: Button = %HelpButton
+@onready var football_panel: Control = %FootballPanel
+@onready var football_stop: Button = %FootballStop
+@onready var field_mask: Control = %FieldMask
 @onready var speech_label: Label = %SpeechLabel
 @onready var speech_bubble: PanelContainer = %SpeechBubble
 @onready var speech_divider: Control = %SpeechDivider
@@ -264,6 +265,7 @@ func _ready() -> void:
 	%OptionsCancelButton.pressed.connect(options_panel.hide)
 	stop_button.pressed.connect(Activities.stop)
 	cardio_stop.pressed.connect(Activities.stop)
+	football_stop.pressed.connect(Activities.stop)
 	_style_tap_button()
 	sleep_slider.value_changed.connect(_refresh_sleep_info.unbind(1))
 	minutes_slider.value_changed.connect(_refresh_minutes.unbind(1))
@@ -755,7 +757,9 @@ func _refresh_activity(instant := false) -> void:
 	var alpha := 0.0
 	if Activities.is_running():
 		place = str(option.get("scenery", ""))
-		if place.is_empty():
+		# Change 5: the rounded football field stands on the main screen's own sky and ground;
+		# its old plain backdrop would show as a box at the field's corners.
+		if place.is_empty() and str(option.get("minigame", "")) != "football":
 			activity_backdrop.color = Color.html(str(option.get("background_color", "#000000")))
 			alpha = activity_backdrop_alpha
 	_refresh_animation()
@@ -825,6 +829,7 @@ func _refresh_minigame() -> void:
 	# The video game (Milestone 35) takes the avatar's place, like the football field.
 	var sky := Minigame.running and Minigame.kind == Minigame.SKY
 	football_field.visible = football
+	field_mask.visible = football
 	sky_game.visible = sky
 	var exercise := _refresh_exercise_picture()
 	avatar.visible = not (football or sky or exercise)
@@ -840,24 +845,21 @@ func _refresh_minigame() -> void:
 		avatar.mouth_open = false
 	# Change 4: the cardio panel has its own small Stop, so the stop slot above it is hidden.
 	var cardio := Minigame.running and Minigame.kind == Minigame.CARDIO
-	stop_button.get_parent().visible = not cardio
+	# Change 5: so has the football panel.
+	stop_button.get_parent().visible = not (cardio or football)
 	if not Minigame.running:
 		return
 	var strength := Minigame.kind == Minigame.STRENGTH
 	cardio_panel.visible = cardio
-	minigame_status.get_parent().visible = not cardio
+	minigame_status.get_parent().visible = not (cardio or football)
 	jump_button.visible = sky
-	help_button.visible = football
 	meal_buttons.visible = meal
-	reserve_label.get_parent().visible = not (meal or sky or cardio)
+	reserve_label.get_parent().visible = not (meal or sky or cardio or football)
 	strength_buttons.visible = strength
-	football_pad.visible = football
+	football_panel.visible = football
 	beat_bar.visible = not (football or sky or cardio)
-	# On a computer the keys need less room, so the field is larger.
-	var small_pad: bool = football and not football_pad.touch_mode
-	football_pad.custom_minimum_size.y = FOOTBALL_PAD_KEYS if small_pad else FOOTBALL_PAD_TOUCH
 	minigame_panel.custom_minimum_size.y = DOCK_HEIGHT if (strength or meal) else (cardio_panel.HEIGHT if cardio \
-			else (0.0 if small_pad else MINIGAME_PANEL_HEIGHT))
+			else (football_panel.HEIGHT if football else MINIGAME_PANEL_HEIGHT))
 	_layout_dock(strength, meal)
 	reserve_label.text = tr("MINIGAME_MUSCLE" if strength else "MINIGAME_BREATH")
 	reserve_bar.value = Minigame.reserve
@@ -903,12 +905,18 @@ func _refresh_football() -> void:
 	football_field.hint = tr(_football_hint())
 	var keys: bool = not football_pad.touch_mode
 	var ask: bool = game.team_mate_has_ball()
-	football_pad.pass_text = _with_key("MINIGAME_ASK" if ask else "MINIGAME_PASS", "Z", keys)
-	football_pad.shoot_text = _with_key("MINIGAME_TACKLE" if game.defending() else "MINIGAME_SHOOT", "X", keys)
+	# Milestone 40, change 5: the words alone (the key is on a chip), the score on the field,
+	# the minutes and Breath in the panel, the controls' line on the help strip.
+	football_pad.pass_text = tr("MINIGAME_ASK" if ask else "MINIGAME_PASS")
+	football_pad.shoot_text = tr("MINIGAME_TACKLE" if game.defending() else "MINIGAME_SHOOT")
 	football_pad.pass_enabled = game.has_ball() or ask
 	football_pad.shoot_enabled = game.has_ball() or ask or game.in_tackle_reach()
-	football_pad.keys_text = tr("FOOTBALL_KEYS")
+	football_pad.move_text = tr("FOOTBALL_MOVE")
 	football_pad.queue_redraw()
+	football_field.score_text = minigame_steps.text
+	football_panel.show_values("%d / %d min" % [roundi(Activities.elapsed_hours * Clock.MINUTES_PER_HOUR),
+			roundi(Activities.target_hours * Clock.MINUTES_PER_HOUR)], Minigame.reserve)
+	help_button.line_key = "FOOTBALL_CONTROLS_KEYS" if keys else "FOOTBALL_CONTROLS_TOUCH"
 
 
 ## The video game (Milestone 35): the minutes, the score and the Jump button.

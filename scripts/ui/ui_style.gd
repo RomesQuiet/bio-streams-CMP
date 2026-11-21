@@ -62,6 +62,19 @@ const CHIP_COLOR := Color(0.105882, 0.145098, 0.321569, 0.35)
 const STEPS_FILL := Color("#6df9cf")
 const BREATH_FILL := Color("#29d3fd")
 const PANEL_92 := Color(0.137255, 0.164706, 0.431373, 0.92)
+## Change 5: football (values.md): Pass, Shoot, the field's stripes, keycaps' base, see-through white.
+const PASS_COLOR := Color("#6cd6fd")
+const PASS_BASE := Color("#2a9fd6")
+const SHOOT_COLOR := Color("#fd98a8")
+const SHOOT_BASE := Color("#d9566f")
+const FIELD_STRIPE_A := Color("#2db576")
+const FIELD_STRIPE_B := Color("#25a56a")
+const TILE_BASE := Color("#9babde")
+const WHITE_08 := Color(1, 1, 1, 0.08)
+const WHITE_25 := Color(1, 1, 1, 0.25)
+const WHITE_60 := Color(1, 1, 1, 0.6)
+## Floor and plate shadows: INK at 30% (alpha given per element).
+const SHADOW_INK := Color(0.105882, 0.145098, 0.321569, 0.3)
 ## Pressed and disabled buttons of the new look (changes.md, rule 3).
 const DISABLED_ALPHA := 0.45
 

@@ -24,6 +24,9 @@
 [ext_resource type="Script" path="res://scripts/ui/stop_pill.gd" id="41_stop"]
 [ext_resource type="Script" path="res://scripts/ui/dock_button.gd" id="42_dock"]
 [ext_resource type="Script" path="res://scripts/ui/cardio_panel.gd" id="43_cardio"]
+[ext_resource type="Script" path="res://scripts/ui/football_panel.gd" id="44_football"]
+[ext_resource type="Script" path="res://scripts/ui/help_strip.gd" id="45_help"]
+[ext_resource type="Script" path="res://scripts/ui/field_mask.gd" id="46_mask"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -154,7 +157,21 @@ mouse_filter = 2
 script = ExtResource("13_scenery")
 front = true
 
-[node name="FootballField" type="Control" parent="Margin/Layout/Stage"]
+[node name="FieldMask" type="Control" parent="Margin/Layout/Stage"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -4.0
+offset_right = 4.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("46_mask")
+
+[node name="FootballField" type="Control" parent="Margin/Layout/Stage/FieldMask"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
@@ -326,15 +343,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 22
 
-[node name="HelpButton" type="Button" parent="Margin/Layout/MinigamePanel/InfoRow"]
-unique_name_in_owner = true
-visible = false
-custom_minimum_size = Vector2(44, 40)
-layout_mode = 2
-focus_mode = 0
-auto_translate_mode = 2
-text = "?"
-
 [node name="MinigameSteps" type="Label" parent="Margin/Layout/MinigamePanel/InfoRow"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -443,14 +451,50 @@ text = "SKY_JUMP"
 script = ExtResource("18_action")
 kind = "jump"
 
-[node name="FootballPad" type="Control" parent="Margin/Layout/MinigamePanel"]
+[node name="FootballPanel" type="Control" parent="Margin/Layout/MinigamePanel"]
 unique_name_in_owner = true
 visible = false
-custom_minimum_size = Vector2(0, 170)
+custom_minimum_size = Vector2(0, 436)
 layout_mode = 2
-size_flags_vertical = 3
+mouse_filter = 1
+script = ExtResource("44_football")
+
+[node name="FootballStop" type="Button" parent="Margin/Layout/MinigamePanel/FootballPanel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 476.0
+offset_top = -4.0
+offset_right = 664.0
+offset_bottom = 84.0
+focus_mode = 0
+text = "UI_STOP"
+script = ExtResource("41_stop")
+pill_size = Vector2(188, 48)
+depth = 4.0
+square = 20.0
+square_radius = 5.0
+square_left = 18.0
+text_left = 50.0
+font_size = 24
+
+[node name="FootballPad" type="Control" parent="Margin/Layout/MinigamePanel/FootballPanel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_top = 136.0
+offset_right = 672.0
+offset_bottom = 332.0
 mouse_filter = 2
 script = ExtResource("9_pad")
+
+[node name="HelpButton" type="Button" parent="Margin/Layout/MinigamePanel/FootballPanel"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 8.0
+offset_top = 328.0
+offset_right = 664.0
+offset_bottom = 416.0
+focus_mode = 0
+script = ExtResource("45_help")
 
 [node name="MealButtons" type="HBoxContainer" parent="Margin/Layout/MinigamePanel"]
 unique_name_in_owner = true

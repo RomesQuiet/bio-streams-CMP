@@ -15,7 +15,7 @@ const LIGHT := Color("#ffe7a0")
 
 
 ## Draws the icon `kind` ("heart", "gear", "pause", "play", "exercise", "sleep", "eat",
-## "entertainment", "jump" (an arrow up, the sky-jump button, Milestone 35), the main menu's "person_add", "people", "upload" and "info", the exercises "squat", "pushup" and "situp", "fork" and "footprints" (Milestone 40), or a request: "tired", "hungry", "fast_food", "healthy", "screens", "football").
+## "entertainment", "jump" (an arrow up, the sky-jump button, Milestone 35), the main menu's "person_add", "people", "upload" and "info", the exercises "squat", "pushup" and "situp", "fork", "footprints", and football's "pass" and "goal" (Milestone 40, 100 wide and about 58 high), or a request: "tired", "hungry", "fast_food", "healthy", "screens", "football").
 ## color is used by the one-colour icons (gear, pause, play, runner, bed, cutlery, screen).
 static func draw(canvas: CanvasItem, kind: String, centre: Vector2, box: float, color := Ui.ICON_INK) -> void:
 	canvas.draw_set_transform(centre, 0.0, Vector2.ONE * box / 100.0)
@@ -66,6 +66,10 @@ static func draw(canvas: CanvasItem, kind: String, centre: Vector2, box: float, 
 			_fork(canvas, color)
 		"footprints":
 			_footprints(canvas, color)
+		"pass":
+			_pass(canvas, color)
+		"goal":
+			_goal(canvas, color)
 	canvas.draw_set_transform(Vector2.ZERO)
 
 
@@ -327,3 +331,33 @@ static func _footprints(canvas: CanvasItem, color: Color) -> void:
 		for i in 4:
 			var toe := Vector2(-9 + 6 * i, -27 + absf(i - 1.5) * 2.5)
 			_circle(canvas, centre + toe.rotated(turn), 3.6 if i > 0 else 4.6, color)
+
+
+## A runner kicking a ball (football's Pass), about 100 x 58.
+static func _pass(canvas: CanvasItem, color: Color) -> void:
+	_circle(canvas, Vector2(-20, -22), 8.0, color)
+	var limbs := [
+		[Vector2(-22, -12), Vector2(-28, 8)],
+		[Vector2(-22, -10), Vector2(-8, -4), Vector2(2, -12)],
+		[Vector2(-24, -8), Vector2(-38, -2)],
+		[Vector2(-28, 8), Vector2(-16, 16), Vector2(-2, 18)],
+		[Vector2(-28, 8), Vector2(-38, 22), Vector2(-48, 22)],
+	]
+	for limb in limbs:
+		for i in limb.size() - 1:
+			Ui.draw_round_line(canvas, limb[i], limb[i + 1], color, 8.0)
+	canvas.draw_arc(Vector2(24, 12), 13.0, 0.0, TAU, 28, color, 5.0, true)
+	_circle(canvas, Vector2(24, 12), 4.5, color)
+	for i in 3:
+		Ui.draw_round_line(canvas, Vector2(6 + 7 * i, -14 + 4 * i), Vector2(14 + 7 * i, -10 + 4 * i), color, 3.0)
+
+
+## A goal with its net (football's Shoot), about 100 x 58.
+static func _goal(canvas: CanvasItem, color: Color) -> void:
+	var frame := PackedVector2Array([Vector2(-44, 28), Vector2(-44, -26), Vector2(44, -26), Vector2(44, 28)])
+	canvas.draw_polyline(frame, color, 7.0, true)
+	for x in [-26.0, -8.0, 10.0, 28.0]:
+		canvas.draw_line(Vector2(x, -22), Vector2(x, 26), Color(color, 0.7), 2.5, true)
+	for y in [-10.0, 6.0, 20.0]:
+		canvas.draw_line(Vector2(-40, y), Vector2(40, y), Color(color, 0.7), 2.5, true)
+	Ui.draw_round_line(canvas, Vector2(-50, 28), Vector2(50, 28), color, 5.0)

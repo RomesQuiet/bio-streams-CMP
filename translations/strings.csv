@@ -92,11 +92,6 @@ SPEECH_FULL,I'm full!,Barriga cheia!
 MINIGAME_ASK,Ask for ball,Pedir bola
 FOOTBALL_YOU,YOU,TU
 FOOTBALL_PAUSED,Paused,Em pausa
-FOOTBALL_KEYS,"Move: arrows or WASD
-Shoot: X, K or Space
-Pause: P   Help: H","Mover: setas ou WASD
-Rematar: X, K ou Espaço
-Pausa: P   Ajuda: H"
 FOOTBALL_HINT_START_KEYS,Press an arrow key or WASD to start,Carrega numa seta ou em WASD para começar
 FOOTBALL_HINT_START_TOUCH,Move the joystick to start,Mexe o joystick para começar
 FOOTBALL_HINT_RUN,Run up towards the red goal,"Corre para cima, até à baliza vermelha"
@@ -286,3 +281,7 @@ CARDIO_TITLE,CARDIO,CARDIO
 MINIGAME_STEPS_LABEL,Steps,Passos
 TIMING,Timing,Ritmo
 TIMING_HINT,Tap in the green zone!,Toca na zona verde!
+FOOTBALL_TITLE,FOOTBALL,FUTEBOL
+FOOTBALL_CONTROLS_TOUCH,Joystick: move • Pass • Shoot,Joystick: mover • Passe • Rematar
+FOOTBALL_CONTROLS_KEYS,WASD: move • Z: pass • X: shoot,WASD: mover • Z: passe • X: rematar
+FOOTBALL_MOVE,Move,Mover
