@@ -4,10 +4,12 @@ extends Control
 ## (decision 89): shapes, soft gradients, navy outlines, the palette of the main screen.
 ## "outside" is the main screen's own sky and curved ground (nothing is drawn here). "room" (meals)
 ## is a calm blue room with a violet floor and two windows that show the real sky of the hour
-## (scripts/ui/sky_palette.gd), with stars at night. "bedroom" (sleep) is a dark blue floor and a
-## bed seen from above: the avatar faces the player, so from above it lies on its back, its head on
-## the pillow, and a lavender blanket covers it from the chest down. The blanket is drawn by a
-## second Scenery node in front of the avatar (front = true). "street" (Milestone 19, cardio) is a
+## (scripts/ui/sky_palette.gd), with stars at night. "bedroom" (sleep) is the dark blue boards as
+## before; since Milestone 40 (documentation/ui_v2/changes.md, change 8) it has the team's window
+## with a roller blind, the sky of the hour drawn behind its glass, three warm light stripes by
+## day and the shadow under the bed; the bed (the avatar asleep in it) is a picture in main.gd, so
+## the code-drawn bed, pillow and blanket are gone (the second node, front = true, draws nothing
+## now). "street" (Milestone 19, cardio) is a
 ## street with round trees seen from behind the running avatar: the avatar stays in place and the
 ## street comes closer, one step for every stride (stride()), so it looks as if it always runs
 ## forward; it moves all the time while the player keeps tapping, as fast as they tap, and stops
@@ -36,13 +38,6 @@ const ROOM_NIGHT := 0.35
 const BEDROOM_FLOOR_TOP := Color("#3a409e")
 const BEDROOM_FLOOR_BOTTOM := Color("#272c7e")
 const PLANK_COLOR := Color(1, 1, 1, 0.06)
-const BED_FRAME_COLOR := Color("#7a68cf")
-const MATTRESS_COLOR := Color("#f4f6ff")
-const PILLOW_COLOR := Color(1, 1, 1)
-const PILLOW_SHADE := Color("#e3e6fb")
-const BLANKET_COLOR := Ui.SLEEP_COLOR
-const BLANKET_FOLD_COLOR := Color("#e7defe")
-const BLANKET_STRIPE := Color(1, 1, 1, 0.22)
 
 ## Where the ground line is, from the bottom of this control (where the avatar's feet are).
 const GROUND_FROM_BOTTOM := Ui.GROUND_FROM_BOTTOM
@@ -53,19 +48,24 @@ const WINDOW_SIDE := 22.0
 const FRAME := 10.0
 const SKIRTING := 16.0
 const PLANK_GAP := 46.0
-## The bed around the avatar's picture: how much wider than it, and how far above its top.
-const BED_SIDE := 40.0
-const BED_ABOVE := 36.0
-const BED_FRAME := 14.0
-const BED_RADIUS := 26.0
-## The pillow is under the head (seen from above): it ends just below the chin, by this share of
-## the avatar's height under the mouth, and reaches up to PILLOW_HEIGHT, staying on the mattress.
-const PILLOW_WIDTH := 290.0
-const PILLOW_HEIGHT := 190.0
-const PILLOW_BELOW_MOUTH := 0.06
-## Where the blanket starts: below the mouth, by this share of the avatar's height.
-const CHEST_BELOW_MOUTH := 0.13
-const FOLD := 34.0
+## Change 8 (the table "Sleeping"): places in the column, kept at their distance from the stage's
+## bottom (y 834 on a 1280-high screen); the stage's left edge is x 24.
+const BEDROOM_STAGE := Vector2(24, 834)
+const WINDOW_PICTURE := "res://assets/art/scenery/window_blind.png"
+const WINDOW_RECT := Rect2(160, 296, 400, 384)
+const GLASS_RECT := Rect2(186, 330, 348, 330)
+## The light stripes: their top-left x on the window's bottom edge, 40 wide, down-left at 20
+## degrees to y 900, #ffb85c at 18% (only by day).
+const LIGHT_XS := [170.0, 250.0, 330.0]
+const LIGHT_TOP := 680.0
+const LIGHT_BOTTOM := 900.0
+const LIGHT_WIDTH := 40.0
+const LIGHT_SLANT_DEGREES := 20.0
+const LIGHT_COLOR := Color("#ffb85c")
+const LIGHT_ALPHA := 0.18
+const BED_SHADOW_CENTRE := Vector2(360, 778)
+const BED_SHADOW_RADII := Vector2(180, 18)
+const BED_SHADOW_ALPHA := 0.35
 ## The stars in the windows at night, as shares of a window.
 const STARS := [Vector2(0.2, 0.15), Vector2(0.7, 0.3), Vector2(0.35, 0.6), Vector2(0.8, 0.75), Vector2(0.15, 0.85)]
 
@@ -117,13 +117,18 @@ var kind := "":
 	set(value):
 		if value != kind:
 			kind = value
+			# Loaded when the place changes, never while drawing (it would be drawn white).
+			if kind == BEDROOM and _window == null and not front:
+				_window = load(WINDOW_PICTURE)
 			queue_redraw()
+## The bedroom's window picture (Milestone 40).
+var _window: Texture2D
 ## The game's minute of the day: the windows show the sky of that hour.
 var minute := 420.0:
 	set(value):
 		if value != minute:
 			minute = value
-			if kind == ROOM or kind == STREET:
+			if kind == ROOM or kind == STREET or kind == BEDROOM:
 				queue_redraw()
 ## How much daylight there is (0 night, 1 day; Clock.daylight_amount()).
 var daylight := 1.0:
@@ -136,8 +141,6 @@ var daylight := 1.0:
 func _draw() -> void:
 	var ground := size.y - GROUND_FROM_BOTTOM
 	if front:
-		if kind == BEDROOM and avatar:
-			_draw_blanket(ground)
 		return
 	match kind:
 		ROOM:
@@ -313,40 +316,40 @@ func _draw_bedroom(ground: float) -> void:
 	while x < area.end.x:
 		draw_line(Vector2(x, area.position.y), Vector2(x, area.end.y), PLANK_COLOR, 2.0)
 		x += PLANK_GAP * 2.0
-	if avatar == null:
-		return
-	var bed := _bed(ground)
-	_draw_box(bed, BED_FRAME_COLOR, BED_RADIUS)
-	_draw_box(bed.grow(-BED_FRAME), MATTRESS_COLOR, BED_RADIUS - BED_FRAME * 0.5)
-	var bottom: float = avatar.position.y + avatar.mouth_point().y + avatar.size.y * PILLOW_BELOW_MOUTH
-	var top := maxf(bottom - PILLOW_HEIGHT, bed.position.y + BED_FRAME * 2.0)
-	var pillow := Rect2(bed.get_center().x - PILLOW_WIDTH * 0.5, top, PILLOW_WIDTH, bottom - top)
-	var points := Ui.rounded_rect_points(pillow, 30.0, 6)
-	Ui.fill_vertical_gradient(self, points, pillow.position.y, pillow.end.y, PILLOW_COLOR, PILLOW_SHADE)
-	Ui.draw_outline(self, points, OUTLINE_COLOR, Ui.BORDER_MEDIUM)
+	_draw_bedroom_window()
 
 
-## Over the avatar, from its chest over the foot of the bed (so the feet are covered), with the
-## top folded back and soft stripes.
-func _draw_blanket(ground: float) -> void:
-	var bed := _bed(ground)
-	var top: float = avatar.position.y + avatar.mouth_point().y + avatar.size.y * CHEST_BELOW_MOUTH
-	var blanket := Rect2(bed.position.x + BED_FRAME, top, bed.size.x - BED_FRAME * 2.0, bed.end.y - BED_FRAME - top)
-	var points := Ui.rounded_rect_points(blanket, 14.0, 4)
-	Ui.fill_vertical_gradient(self, points, blanket.position.y, blanket.end.y, BLANKET_COLOR.lightened(0.08), BLANKET_COLOR.darkened(0.06))
-	var y := blanket.position.y + FOLD + 30.0
-	while y < blanket.end.y - 12.0:
-		draw_line(Vector2(blanket.position.x + 8.0, y), Vector2(blanket.end.x - 8.0, y), BLANKET_STRIPE, 6.0)
-		y += 40.0
-	Ui.draw_outline(self, points, OUTLINE_COLOR, Ui.BORDER_MEDIUM)
-	_draw_box(Rect2(blanket.position, Vector2(blanket.size.x, FOLD)), BLANKET_FOLD_COLOR, 12.0)
+## A point of the table (a column point) in this control: its distance from the stage's bottom stays.
+func _from_table(point: Vector2) -> Vector2:
+	return Vector2(point.x - BEDROOM_STAGE.x, size.y - (BEDROOM_STAGE.y - point.y))
 
 
-## The bed: around the avatar's picture, from above its head to the ground line.
-func _bed(ground: float) -> Rect2:
-	var left := avatar.position.x - BED_SIDE
-	var top := avatar.position.y - BED_ABOVE
-	return Rect2(left, top, avatar.size.x + BED_SIDE * 2.0, ground - top)
+func _table_rect(rect: Rect2) -> Rect2:
+	return Rect2(_from_table(rect.position), rect.size)
+
+
+## The sky of the hour behind the glass (with stars at night), the window picture, the light
+## stripes by day and the shadow under the bed.
+func _draw_bedroom_window() -> void:
+	var glass := _table_rect(GLASS_RECT)
+	var corners := PackedVector2Array([glass.position, Vector2(glass.end.x, glass.position.y), glass.end, Vector2(glass.position.x, glass.end.y)])
+	Ui.fill_vertical_gradient(self, corners, glass.position.y, glass.end.y,
+			Palette.color(minute, Palette.SKY_TOP), Palette.color(minute, Palette.SKY_HORIZON))
+	var shine := Palette.stars(minute)
+	if shine > 0.0:
+		for star: Vector2 in STARS:
+			draw_circle(glass.position + star * glass.size, 2.2, Color(1, 1, 1, shine), true, -1.0, true)
+	if _window:
+		draw_texture_rect(_window, _table_rect(WINDOW_RECT), false)
+	if daylight > 0.0:
+		var slant := (LIGHT_BOTTOM - LIGHT_TOP) * tan(deg_to_rad(LIGHT_SLANT_DEGREES))
+		for x: float in LIGHT_XS:
+			var top := _from_table(Vector2(x, LIGHT_TOP))
+			var bottom := _from_table(Vector2(x - slant, LIGHT_BOTTOM))
+			draw_colored_polygon(PackedVector2Array([top, top + Vector2(LIGHT_WIDTH, 0), bottom + Vector2(LIGHT_WIDTH, 0), bottom]),
+					Color(LIGHT_COLOR, LIGHT_ALPHA * daylight))
+	var shadow := Ui.ellipse_points(_from_table(BED_SHADOW_CENTRE), BED_SHADOW_RADII, 40)
+	draw_colored_polygon(shadow, Color(Ui.INK, BED_SHADOW_ALPHA))
 
 
 func _draw_box(box: Rect2, color: Color, radius: float) -> void:

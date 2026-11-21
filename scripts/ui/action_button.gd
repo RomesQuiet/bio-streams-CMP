@@ -18,6 +18,14 @@ const DISABLED_GREY := Color(0.78, 0.8, 0.88)
 		kind = value
 		queue_redraw()
 
+## Milestone 40 (change 8): while the avatar sleeps the grid is at 35%; the buttons are not paled as
+## disabled ones too (they still cannot be pressed).
+var dimmed := false:
+	set(value):
+		if value != dimmed:
+			dimmed = value
+			queue_redraw()
+
 ## 0 up, 1 pressed down.
 var press := 0.0:
 	set(value):
@@ -52,14 +60,15 @@ func _on_up() -> void:
 
 func _draw() -> void:
 	# A disabled button is see-through as a whole (icon and text included), and paler.
-	var alpha := 0.62 if disabled else 1.0
+	var paled := disabled and not dimmed
+	var alpha := 0.62 if paled else 1.0
 	if self_modulate.a != alpha:
 		self_modulate = Color(1, 1, 1, alpha)
 	var depth := Ui.BUTTON_BASE_DEPTH
 	var offset := Ui.BUTTON_PRESS_OFFSET * press
 	var radius := Ui.BUTTON_CORNER_RADIUS
 	var color := Ui.action_color(kind)
-	if disabled:
+	if paled:
 		color = color.lerp(DISABLED_GREY, 0.5)
 	elif is_hovered():
 		color = color.lightened(0.05)

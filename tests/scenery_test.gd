@@ -78,13 +78,29 @@ func _test_places(main: Node, activities: Node, minigame: Node) -> void:
 	main._refresh_activity(true)
 	_check("sleep: the bedroom", scenery.kind == "bedroom" and scenery.modulate.a == 1.0)
 	_check("sleeping after a meal: no fork", not main.meal_fork.visible)
-	var blanket: Control = main.blanket
-	_check("...the blanket over the avatar", blanket.kind == "bedroom" and blanket.modulate.a == 1.0
-			and blanket.front and blanket.get_index() > main.avatar.get_index())
-	_check("...the bed under it", not scenery.front and scenery.get_index() < main.avatar.get_index()
-			and scenery.avatar == main.avatar)
-	activities.stop()
-	root.get_node("Clock").wake_up()
+	# Milestone 40, change 8: the bed picture takes the avatar's place (no code-drawn bed or blanket),
+	# the window is loaded, the four buttons at 35%, Wake up in the stop slot.
+	_check("...the bed picture in the avatar's place, no blanket", main.exercise_picture.visible
+			and main.exercise_picture.texture.resource_path.ends_with("child_male/bed.png")
+			and not main.avatar.visible and not main.blanket.visible)
+	_check("...its canvas bottom on y 778 (56 above the stage's bottom)", is_equal_approx(main.exercise_picture.offset_bottom, 778.0 - 834.0))
+	_check("...the window picture behind it", scenery._window != null and not scenery.front
+			and scenery.get_index() < main.exercise_picture.get_index())
+	_check("...the four buttons at 35%, not pressable", is_equal_approx(main.action_grid.modulate.a, 0.35)
+			and main.exercise_button.disabled and main.exercise_button.dimmed)
+	_check("...Wake up in the stop slot", main.stop_button.visible and main.stop_button.text == "WAKE_UP"
+			and main.stop_button.mark == "sun")
+	main.stop_button.pressed.emit()
+	main._refresh_activity(true)
+	var clock: Node = root.get_node("Clock")
+	_check("Wake up while sleeping ends the sleep, and the game waits", not activities.is_running()
+			and clock.phase == clock.Phase.SLEEP_OVER)
+	_check("...Wake up stays, the avatar and the buttons are back", main.stop_button.visible and main.stop_button.text == "WAKE_UP"
+			and main.avatar.visible and not main.exercise_picture.visible and main.action_grid.modulate.a == 1.0)
+	main.stop_button.pressed.emit()
+	_check("...and then it starts the day, as the play button", clock.phase == clock.Phase.DAY)
+	main._refresh_phase()
+	_check("...and the pill is Stop again for the next activity", main.stop_button.text == "UI_STOP" and not main.stop_button.visible)
 	activities.start("exercise", "strength")
 	main._refresh_activity(true)
 	_check("strength: outside, no building", scenery.kind == "outside" and main.activity_backdrop.modulate.a == 0.0

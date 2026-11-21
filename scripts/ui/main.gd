@@ -43,6 +43,16 @@ const RUN_STAGE_BOTTOM := 744.0
 const EAT_FRAMES := ["eat_closed", "eat_open"]
 const EAT_RECT := Rect2(110, 290, 500, 500)
 const EAT_OPEN_SECONDS := 0.25
+## Change 8: asleep, the avatar is the bed picture (the whole bed seen from the front), its canvas
+## bottom on y 778, 56 above the stage's bottom (y 834); the four buttons at 35%; Wake up in the
+## stop slot (296 x 64 at x 212).
+const BED_FRAMES := ["bed"]
+const BED_RECT := Rect2(210, 431, 300, 347)
+const SLEEP_STAGE_BOTTOM := 834.0
+const SLEEP_BUTTONS_ALPHA := 0.35
+const STOP_SLOT_LEFT := 24.0
+const STOP_PILL := Rect2(230, 806, 260, 64)
+const WAKE_PILL := Rect2(212, 850, 296, 64)
 ## The pictures are in the sheet's folder (data/avatar_art.json): "<folder>/<name>.png".
 const ART_PICTURE := "%s/%s.png"
 ## During an activity the balloon's top is at y 208 of the column (changes.md, rule 8).
@@ -273,7 +283,7 @@ func _ready() -> void:
 	move_child(canteen, failure_screen.get_index())
 	eat_button.pressed.connect(canteen.open)
 	%OptionsCancelButton.pressed.connect(options_panel.hide)
-	stop_button.pressed.connect(Activities.stop)
+	stop_button.pressed.connect(_on_stop_pressed)
 	cardio_stop.pressed.connect(Activities.stop)
 	football_stop.pressed.connect(Activities.stop)
 	_style_tap_button()
@@ -333,6 +343,8 @@ func _ready() -> void:
 	level_display.animate = false
 	_refresh_activity(true)
 	_refresh()
+	# Once the avatar's sheet is known, the activity's picture (a bed after loading mid-sleep).
+	_refresh_minigame()
 	health_pills.animate = true
 	level_display.animate = true
 	_refresh_clock()
@@ -1019,21 +1031,25 @@ func _refresh_exercise_picture() -> bool:
 	var option := Activities.current_option
 	var running := Minigame.running and Minigame.kind == Minigame.CARDIO
 	var eating := Minigame.running and Minigame.kind == Minigame.MEAL
-	var shown := running or eating or (Minigame.running and Minigame.kind == Minigame.STRENGTH and EXERCISE_PICTURES.has(option))
+	var sleeping := _in_bed()
+	var shown := running or eating or sleeping or (Minigame.running and Minigame.kind == Minigame.STRENGTH and EXERCISE_PICTURES.has(option))
 	exercise_picture.visible = shown
 	if not shown or avatar.art_folder().is_empty():
 		exercise_picture.visible = false
+		blanket.visible = true
 		return false
-	var names: Array = RUN_FRAMES if running else (EAT_FRAMES if eating else EXERCISE_PICTURES[option].slice(0, 3))
-	var key := "%s|%s" % [avatar.sheet, "cardio" if running else ("meal" if eating else option)]
+	# The bed picture has its own blanket (change 8).
+	blanket.visible = not sleeping
+	var names: Array = RUN_FRAMES if running else (EAT_FRAMES if eating else (BED_FRAMES if sleeping else EXERCISE_PICTURES[option].slice(0, 3)))
+	var key := "%s|%s" % [avatar.sheet, "cardio" if running else ("meal" if eating else ("sleep" if sleeping else option))]
 	if not _exercise_textures.has(key):
 		_exercise_textures.clear()
 		for i in names.size():
 			var path := ART_PICTURE % [avatar.art_folder(), names[i]]
 			_exercise_textures[i] = load(path) if ResourceLoader.exists(path) else null
 		_exercise_textures[key] = true
-		var rect: Rect2 = RUN_RECT if running else (EAT_RECT if eating else EXERCISE_PICTURES[option][3])
-		var bottom := RUN_STAGE_BOTTOM if running else EXERCISE_STAGE_BOTTOM
+		var rect: Rect2 = RUN_RECT if running else (EAT_RECT if eating else (BED_RECT if sleeping else EXERCISE_PICTURES[option][3]))
+		var bottom := RUN_STAGE_BOTTOM if running else (SLEEP_STAGE_BOTTOM if sleeping else EXERCISE_STAGE_BOTTOM)
 		# The stage starts at the Margin's left margin (24), also before the first layout.
 		var stage_left := float($Margin.get_theme_constant("margin_left"))
 		exercise_picture.anchor_top = 1.0
@@ -1049,6 +1065,8 @@ func _refresh_exercise_picture() -> bool:
 		which = _run_frame
 	elif eating:
 		which = 1 if Time.get_ticks_msec() < _mouth_open_until else 0
+	elif sleeping:
+		which = 0
 	else:
 		# next_down: the next press is DOWN, so the last one was UP (or none yet).
 		which = 2 if (Minigame.waiting or Minigame.resting) else (1 if Minigame.next_down else 0)
@@ -1059,6 +1077,35 @@ func _refresh_exercise_picture() -> bool:
 	if exercise_picture.texture != texture:
 		exercise_picture.texture = texture
 	return true
+
+
+## The avatar is asleep in bed: the sleep activity runs.
+func _in_bed() -> bool:
+	return Activities.is_running() and Activities.current_activity == "sleep"
+
+
+## Change 8: the stop slot's pill. While the avatar sleeps it is "Wake up" (it ends the sleep, as
+## Stop did), and when the sleep is over it stays and does what the play button does (decision 81,
+## changes.md Q2); otherwise it is Stop.
+func _style_stop_pill(wake: bool) -> void:
+	var pill := WAKE_PILL if wake else STOP_PILL
+	stop_button.text = "WAKE_UP" if wake else "UI_STOP"
+	stop_button.mark = "sun" if wake else "square"
+	stop_button.face = Ui.SLEEP_COLOR if wake else Ui.STOP_COLOR
+	stop_button.base = Ui.SLEEP_BASE if wake else Ui.STOP_BASE
+	stop_button.pill_size = pill.size
+	stop_button.square_left = 32.0
+	stop_button.text_left = 92.0 if wake else 74.0
+	stop_button.offset_left = pill.position.x - STOP_SLOT_LEFT
+	stop_button.offset_right = pill.end.x - STOP_SLOT_LEFT
+	stop_button.queue_redraw()
+
+
+func _on_stop_pressed() -> void:
+	if Clock.phase == Clock.Phase.SLEEP_OVER:
+		Clock.wake_up()
+	else:
+		Activities.stop()
 
 
 ## Change 6: during a meal a navy band (85%) covers the whole width of the screen from the stage's
@@ -1275,7 +1322,13 @@ func _refresh_phase() -> void:
 	var waiting := Clock.paused or phase == Clock.Phase.SLEEP_OVER
 	pause_icon.kind = "play" if waiting else "pause"
 	pause_button.tooltip_text = WAKE_TIP if phase == Clock.Phase.SLEEP_OVER else (PLAY_TIP if waiting else PAUSE_TIP)
-	stop_button.visible = running
+	var wake := phase == Clock.Phase.SLEEP_OVER or _in_bed()
+	stop_button.visible = running or phase == Clock.Phase.SLEEP_OVER
+	_style_stop_pill(wake)
+	# While the avatar sleeps the four buttons fade to 35% (they cannot be pressed, as before).
+	action_grid.modulate.a = SLEEP_BUTTONS_ALPHA if _in_bed() else 1.0
+	for button in action_buttons:
+		button.dimmed = _in_bed()
 	for button in action_buttons:
 		button.disabled = running
 	# Enabled while awake even when the avatar is not sleepy, so it can say so.

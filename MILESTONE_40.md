@@ -19,8 +19,8 @@ Started 21 Nov 2026 (40 is the user's number; there are no Milestones 36 to 39).
 | 4 | Cardio panel and running pictures | done, waiting for the user's check | see git log |
 | 5 | Football field, minimap, score, panel | done, waiting for the user's check | see git log |
 | 6 | Meal: eating pictures, dock band | done, waiting for the user's check | see git log |
-| 7 | Screen time | | |
-| 8 | Sleep: bed, window, Wake up | | |
+| 7 | Screen time | **skipped (user, 21 Nov 2026)**: Screens is the video game (Milestone 35) | — |
+| 8 | Sleep: bed, window, Wake up | done, waiting for the user's check | see git log |
 | 9 | Exercise and entertainment menus | | |
 | 10 | Let's eat | | |
 | 11 | Canteen with pictures | | |
@@ -109,6 +109,17 @@ Table "Meal minigame (09)".
 - `tests/minigame_test.gd`: new checks (eat_closed, the band, the fork's aim, eat_open after a bite, both gone after the meal, a teenager's pictures). `tools/render_ui_states.gd`: a fourth argument `teen` renders a teenage girl.
 - Checked: headless start without errors; `minigame_test`, `meal_test`, `avatar_art_test`, `canteen_test`, `scenery_test` ALL PASSED; state R rendered for a boy and a teenage girl.
 
+### Change 8: sleep (user: "Skip change 7", 21 Nov 2026, so the next change)
+
+Table "Sleeping (13, 14, 15)".
+
+- **The bed picture** (`bed.png`: the whole bed from the front, the avatar asleep, "Zzz") takes the avatar's place while it sleeps: rect 210, 431, 300 x 347, the canvas's bottom on y 778 (56 above the stage's bottom at y 834). The avatar and the `Blanket` node are hidden. It is shown again after loading a game in the middle of a sleep.
+- **The bedroom** (`scenery.gd`): the dark blue boards as before ("wall and floor as now": the old bedroom was seen from above, all boards, so the boards are the wall behind the window); the code-drawn bed, pillow and blanket are deleted. New: the sky of the hour (`SkyPalette`, with stars at night) in the glass (186, 330, 348 x 330), the window picture `scenery/window_blind.png` over it (160, 296, 400 x 384; loaded when the bedroom starts, never while drawing), by day three light stripes (40 wide, `#ffb85c` at 18% x the daylight, from y 680 at x 170, 250, 330, down-left at 20 degrees to y 900), and the floor shadow (centre 360, 778, 360 x 36, INK at 35%).
+- **The four buttons** are at 35% while the avatar sleeps and cannot be pressed (as before); `action_button.gd` has `dimmed`, so they are not paled a second time.
+- **Wake up** (`WAKE_UP`, "Wake up" / "Acordar"): the stop slot's pill becomes a lavender pill (296 x 64 at x 212, y 850, a half sun) while the avatar sleeps and when the sleep is over. **How it works (Claude's reading of Q2 and decision 81, to confirm):** while the avatar sleeps it ends the sleep, as Stop did (the play button cannot be pressed then); when the sleep is over it does what the play button does (`Clock.wake_up()`, the day starts). So no rule changes. Afterwards the pill is Stop again.
+- `tests/scenery_test.gd`: new checks (the bed picture, no blanket, the window, the buttons at 35%, Wake up during and after the sleep, Stop again). `tools/render_ui_states.gd`: new state Y (asleep at 2 PM, for the light stripes).
+- Checked: headless start without errors; `scenery_test`, `translation_test`, `interface_test`, `minigame_test`, `offline_sleep_test`, `sleep_test` ALL PASSED; Z (night), Y (day) and W (sleep over) rendered and compared with the table.
+
 ## Contradictions found (to ask before the change they touch)
 
-- **Change 7 (screen time) and Milestone 35.** `changes.md` was written for Screens as plain screen time (Q1: "decision 54 stays open"; a room, the tablet picture, a screen-time bar, Keep watching and Take a break). Since Milestone 35 Screens is the "Video game" with its own Cloud jump screen (decision 54 is answered by decisions 103 to 108). Ask the user before change 7.
+- **Change 7 (screen time) and Milestone 35.** `changes.md` was written for Screens as plain screen time (Q1: "decision 54 stays open"; a room, the tablet picture, a screen-time bar, Keep watching and Take a break). Since Milestone 35 Screens is the "Video game" with its own Cloud jump screen (decision 54 is answered by decisions 103 to 108). **The user chose "Skip change 7" (21 Nov 2026):** the video game stays as it is; the screen-time dock of change 2 and the keys `SCREEN_*` are not added; `tablet.png` and the side table, plant and lamp are not used for now.
