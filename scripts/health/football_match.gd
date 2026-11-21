@@ -72,19 +72,33 @@ func _init(seed_value: int) -> void:
 
 
 ## Everyone back to their places. The team that kicks off has the ball.
-## stop: the match stops for a moment first, so the player can see what happened.
-func kick_off(ours: bool, stop := false) -> void:
+## stop: the match stops for a moment first, so the player can see what happened, and the kicker
+## cannot be tackled for restart_protect_seconds (user, 21 Nov 2026: spamming Tackle stole the
+## ball straight from the restart). goal_kick: after a miss the ball goes to the keeper of the
+## team that restarts (its deepest player), not to the middle of the field.
+func kick_off(ours: bool, stop := false, goal_kick := false) -> void:
 	_pause_left = _value("restart_seconds") if stop else 0.0
 	for i in positions.size():
 		positions[i] = _home(i, false)
 		_beaten_left[i] = 0.0
 	owner = 0 if ours else team_size
+	if goal_kick:
+		owner = _deepest(0 if ours else 1)
 	ball = positions[owner]
 	flight = Flight.NONE
 	_receiver = NOBODY
 	_decide_left = _value("cpu_decide_seconds")
 	_tackle_left = _value("cpu_tackle_seconds")
-	_safe_left = _value("protect_seconds")
+	_safe_left = _value("restart_protect_seconds") if stop else _value("protect_seconds")
+
+
+## The deepest player of a team in the formation (the keeper).
+func _deepest(team: int) -> int:
+	var best := team * team_size
+	for i in range(team * team_size, team * team_size + team_size):
+		if float(_formation[i - team * team_size][1]) < float(_formation[best - team * team_size][1]):
+			best = i
+	return best
 
 
 ## Real seconds passed. Runs whole steps, so the frame rate does not change the match.
@@ -104,8 +118,10 @@ func defending() -> bool:
 	return owner != NOBODY and _team(owner) == 1
 
 
+## The kicker of a restart, or a player who just got the ball, is protected from every tackle
+## for a moment, the player's too (user, 21 Nov 2026), and nobody tackles while the match stops.
 func can_tackle() -> bool:
-	return defending() and _own_tackle_left <= 0.0
+	return defending() and _own_tackle_left <= 0.0 and _safe_left <= 0.0 and not stopped()
 
 
 ## The player the button would use to tackle: the avatar if it is close enough, or the nearest
@@ -121,7 +137,7 @@ func tackler_in_reach() -> int:
 
 
 func in_tackle_reach() -> bool:
-	return tackler_in_reach() != NOBODY
+	return _safe_left <= 0.0 and not stopped() and tackler_in_reach() != NOBODY
 
 
 ## A player lost a tackle a moment ago.
@@ -274,8 +290,9 @@ func _move_ball(seconds: float) -> void:
 			happened.emit("FOOTBALL_GOAL_THEM")
 		else:
 			happened.emit("FOOTBALL_MISSED")
-		# After a goal or a miss the other team restarts the game.
-		kick_off(_shooter_team == 1, true)
+		# After a goal the other team kicks off from the middle; after a miss it has a goal kick
+		# from its keeper (user, 21 Nov 2026).
+		kick_off(_shooter_team == 1, true, not _shot_scores)
 
 
 func _receive(player: int) -> void:

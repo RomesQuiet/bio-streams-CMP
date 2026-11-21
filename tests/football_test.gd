@@ -110,11 +110,14 @@ func _test_actions() -> void:
 
 	game = _new_match()
 	game.kick_off(false)
+	_check("the kicker cannot be tackled at once", not game.can_tackle())
+	game._safe_left = 0.0
 	game.positions[0] = game.positions[4] + Vector2(10, 0)
 	_check("a tackle out of reach fails", not game.tackle() and game.defending())
 	game.positions[0] = game.positions[4] + Vector2(1, 0)
 	game = _new_match()
 	game.kick_off(false)
+	game._safe_left = 0.0
 	game.positions[0] = game.positions[4] + Vector2(1, 0)
 	game._values["tackle_chance"] = 1.0
 	_check("tackles within reach win the ball", game.tackle() and game.has_ball())
@@ -396,8 +399,19 @@ func _test_events() -> void:
 	var before: Vector2 = game.positions[1]
 	game.advance(1.0)
 	_check("the match stops for a moment after a restart", game.stopped() and game.positions[1] == before)
-	game.advance(2.0)
+	game.advance(3.0)
 	_check("then it goes on", not game.stopped())
+	game.kick_off(false, true)
+	game.positions[0] = game.positions[game.owner] + Vector2(1, 0)
+	_check("while the match stops nobody can tackle", not game.can_tackle())
+	game._pause_left = 0.0
+	_check("after a restart the kicker is protected from the player's tackle too", not game.can_tackle() and not game.in_tackle_reach())
+	game._safe_left = 0.0
+	_check("...and can be tackled after the protection", game.can_tackle() and game.in_tackle_reach())
+	game.kick_off(false, true, true)
+	_check("a goal kick: red's keeper has the ball, deep in its own half", game.owner == 7 and game.positions[7].y > game.length * 0.8)
+	game.kick_off(true, true, true)
+	_check("a goal kick for blue: blue's keeper", game.owner == 3 and game.positions[3].y < game.length * 0.2)
 
 
 func _test_asking_for_the_ball() -> void:
@@ -425,6 +439,7 @@ func _test_tackles() -> void:
 	var seen := []
 	game.tackled.connect(func(tackler: int, _carrier: int, won: bool) -> void: seen.append([tackler, won]))
 	game.kick_off(false)
+	game._safe_left = 0.0  # the kicker's protection has passed
 	_clear_field(game)
 	game.positions[4] = Vector2(15, 20)
 	game.positions[1] = Vector2(16, 20)
@@ -440,6 +455,7 @@ func _test_tackles() -> void:
 	seen = []
 	game.tackled.connect(func(tackler: int, _carrier: int, won: bool) -> void: seen.append([tackler, won]))
 	game.kick_off(false)
+	game._safe_left = 0.0  # the kicker's protection has passed
 	game.positions[4] = Vector2(15, 20)
 	game.positions[0] = Vector2(16, 20)
 	game._values["tackle_chance"] = 1.0

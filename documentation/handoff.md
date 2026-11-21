@@ -1,4 +1,5 @@
 # Handoff — state of the project and how to continue
+- **21 Nov 2026: Milestone 30, football restarts (decision 102, `MILESTONE_30.md`):** goal kick after a miss, 3 s stop, the kicker protected from every tackle for 3 s.
 - **21 Nov 2026: Milestone 29, failure by hunger (decisions 99 to 101, `MILESTONE_29.md`):** starving after 18 h without food, failure after 36 h or when health or happiness fail while starving; a never-fed avatar used to fail "by happiness".
 - **21 Nov 2026: Milestone 28, a 15-minute day (decision 98, `MILESTONE_28.md`):** 56 avatar minutes per real minute; the night stays 2 real hours; football slowdown 6.67 so a match lasts as before.
 - **20 Nov 2026: renamed to "My Healthy Avatar"** (project name, menu title, page title, documents); the storage keys `plasticine_tamagotchi_*` stay so browser saves keep loading. On the Mac the editor's save folder is now `app_userdata/My Healthy Avatar/`.
