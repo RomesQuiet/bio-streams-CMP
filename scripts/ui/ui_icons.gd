@@ -15,7 +15,7 @@ const LIGHT := Color("#ffe7a0")
 
 
 ## Draws the icon `kind` ("heart", "gear", "pause", "play", "exercise", "sleep", "eat",
-## "entertainment", or a request: "tired", "hungry", "fast_food", "healthy", "screens", "football").
+## "entertainment", "jump" (an arrow up, the sky-jump button, Milestone 35), or a request: "tired", "hungry", "fast_food", "healthy", "screens", "football").
 ## color is used by the one-colour icons (gear, pause, play, runner, bed, cutlery, screen).
 static func draw(canvas: CanvasItem, kind: String, centre: Vector2, box: float, color := Ui.ICON_INK) -> void:
 	canvas.draw_set_transform(centre, 0.0, Vector2.ONE * box / 100.0)
@@ -46,6 +46,8 @@ static func draw(canvas: CanvasItem, kind: String, centre: Vector2, box: float, 
 			_screen(canvas, color)
 		"football":
 			_ball(canvas)
+		"jump":
+			_jump_arrow(canvas, color)
 	canvas.draw_set_transform(Vector2.ZERO)
 
 
@@ -85,6 +87,16 @@ static func _gear(canvas: CanvasItem, color: Color) -> void:
 			along * 30.0 - across * 9.5, along * 46.0 - across * 7.0,
 			along * 46.0 + across * 7.0, along * 30.0 + across * 9.5])
 		fill(canvas, tooth, color)
+
+
+## Milestone 35: an arrow up over a short line, for the Jump button of the video game.
+static func _jump_arrow(canvas: CanvasItem, color: Color) -> void:
+	var head := PackedVector2Array([Vector2(0, -40), Vector2(32, -2), Vector2(-32, -2)])
+	fill(canvas, head, color)
+	for i in 3:
+		Ui.draw_round_line(canvas, head[i], head[(i + 1) % 3], color, 8.0)
+	_box(canvas, Rect2(-12, -6, 24, 30), 5.0, color)
+	_box(canvas, Rect2(-34, 32, 68, 10), 5.0, color)
 
 
 static func _pause(canvas: CanvasItem, color: Color) -> void:

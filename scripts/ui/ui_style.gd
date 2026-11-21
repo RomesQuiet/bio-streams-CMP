@@ -80,7 +80,7 @@ static func action_color(kind: String) -> Color:
 			return SLEEP_COLOR
 		"eat":
 			return EAT_COLOR
-		"entertainment":
+		"entertainment", "jump":
 			return ENTERTAINMENT_COLOR
 	return NEUTRAL_COLOR
 

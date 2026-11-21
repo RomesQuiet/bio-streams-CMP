@@ -145,7 +145,8 @@ func _test_when_it_runs() -> void:
 	activities.stop()
 	minigame.attach()
 	activities.start("entertainment", "screens")
-	_check("screens have no minigame", not minigame.running)
+	_check("screens are the video game (Milestone 35), a session that never waits", minigame.running
+			and minigame.kind == "sky" and not minigame.is_waiting())
 	activities.stop()
 	clock.debug_speed = 60.0
 	activities.start("exercise", "cardio")

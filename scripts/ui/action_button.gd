@@ -12,7 +12,8 @@ const Icons := preload("res://scripts/ui/ui_icons.gd")
 ## A disabled button's colour moves halfway to this grey.
 const DISABLED_GREY := Color(0.78, 0.8, 0.88)
 
-@export_enum("exercise", "sleep", "eat", "entertainment") var kind := "exercise":
+## "jump" is the Jump button of the video game (Milestone 35), in the entertainment colour.
+@export_enum("exercise", "sleep", "eat", "entertainment", "jump") var kind := "exercise":
 	set(value):
 		kind = value
 		queue_redraw()

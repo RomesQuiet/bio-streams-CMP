@@ -140,6 +140,8 @@ const SPEECH_GAP_UNDER_CAPSULE := 8.0
 @onready var reserve_label: Label = %ReserveLabel
 @onready var reserve_bar: ProgressBar = %ReserveBar
 @onready var tap_button: Button = %TapButton
+@onready var jump_button: Button = %JumpButton
+@onready var sky_game: Control = %SkyGame
 @onready var strength_buttons: Control = %StrengthButtons
 @onready var down_button: Button = %DownButton
 @onready var up_button: Button = %UpButton
@@ -255,6 +257,9 @@ func _ready() -> void:
 	help_button.pressed.connect(_open_football_help)
 	bite_button.button_down.connect(Minigame.tap)
 	done_button.pressed.connect(Minigame.done)
+	jump_button.button_down.connect(Minigame.jump.bind(true))
+	jump_button.button_up.connect(Minigame.jump.bind(false))
+	Minigame.sky_run_ended.connect(sky_game.on_run_ended)
 	Minigame.meal_event.connect(func(key: String) -> void: meal_fork.show_event(tr(key)))
 	football_help.closed.connect(_close_football_help)
 	Activities.started.connect(_open_football_help_first_time.unbind(2))
@@ -386,9 +391,17 @@ func _close_football_help() -> void:
 
 ## On a computer Space plays cardio, the arrow keys Down and Up play strength, and in football
 ## arrow keys or WASD move, Z or J passes, X, K or Space shoots or tackles, P pauses and H helps.
-## In a meal Space bites and D is Done.
+## In a meal Space bites and D is Done. In the video game Space, the arrow up or W jump while
+## held, and P pauses.
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not Minigame.running:
+		return
+	if Minigame.kind == Minigame.SKY:
+		if event is InputEventKey and not event.echo:
+			if event.physical_keycode in [KEY_SPACE, KEY_UP, KEY_W, KEY_ENTER]:
+				Minigame.jump(event.pressed)
+			elif event.physical_keycode == KEY_P and event.pressed:
+				Clock.toggle_pause()
 		return
 	if Minigame.kind == Minigame.FOOTBALL and event is InputEventKey and event.pressed and not event.echo:
 		_on_football_key(event.physical_keycode)
@@ -751,13 +764,16 @@ func _refresh_minigame() -> void:
 	minigame_panel.visible = Minigame.running
 	action_grid.visible = not Minigame.running
 	var football := Minigame.running and Minigame.kind == Minigame.FOOTBALL
+	# The video game (Milestone 35) takes the avatar's place, like the football field.
+	var sky := Minigame.running and Minigame.kind == Minigame.SKY
 	football_field.visible = football
-	avatar.visible = not football
-	ground.shadow_visible = not football
+	sky_game.visible = sky
+	avatar.visible = not (football or sky)
+	ground.shadow_visible = not (football or sky)
 	_refresh_sky_bodies()
-	# The bubble would cover the match or the fork: it only comes back for a short message.
+	# The bubble would cover the match, the game or the fork: it only comes back for a short message.
 	var meal := Minigame.running and Minigame.kind == Minigame.MEAL
-	speech_bubble.visible = not (football or meal) or not _flash_key.is_empty()
+	speech_bubble.visible = not (football or meal or sky) or not _flash_key.is_empty()
 	# Before the return below: after a meal the fork and its zone must go (they stayed during
 	# the sleep that followed; user, 7 Nov 2026).
 	meal_fork.visible = meal
@@ -767,12 +783,13 @@ func _refresh_minigame() -> void:
 		return
 	var strength := Minigame.kind == Minigame.STRENGTH
 	tap_button.visible = Minigame.kind == Minigame.CARDIO
+	jump_button.visible = sky
 	help_button.visible = football
 	meal_buttons.visible = meal
-	reserve_label.get_parent().visible = not meal
+	reserve_label.get_parent().visible = not (meal or sky)
 	strength_buttons.visible = strength
 	football_pad.visible = football
-	beat_bar.visible = not football
+	beat_bar.visible = not (football or sky)
 	# On a computer the keys need less room, so the field is larger.
 	var small_pad: bool = football and not football_pad.touch_mode
 	football_pad.custom_minimum_size.y = FOOTBALL_PAD_KEYS if small_pad else FOOTBALL_PAD_TOUCH
@@ -784,6 +801,9 @@ func _refresh_minigame() -> void:
 		return
 	if meal:
 		_refresh_meal()
+		return
+	if sky:
+		_refresh_sky_game()
 		return
 	if strength:
 		_refresh_strength()
@@ -815,6 +835,15 @@ func _refresh_football() -> void:
 	football_pad.shoot_enabled = game.has_ball() or ask or game.in_tackle_reach()
 	football_pad.keys_text = tr("FOOTBALL_KEYS")
 	football_pad.queue_redraw()
+
+
+## The video game (Milestone 35): the minutes, the score and the Jump button.
+func _refresh_sky_game() -> void:
+	minigame_status.text = tr("SPEECH_PROGRESS_MINUTES") % [tr("MINIGAME_PLAYING"),
+			roundi(Activities.elapsed_hours * Clock.MINUTES_PER_HOUR), roundi(Activities.target_hours * Clock.MINUTES_PER_HOUR)]
+	minigame_steps.text = tr("SKY_SCORE") % Minigame.run.score()
+	sky_game.run = Minigame.run
+	jump_button.text = _with_key("SKY_JUMP", "Space", not football_pad.touch_mode)
 
 
 ## The meal minigame (Milestone 15): the fork, the mouth, the Tummy bar and the buttons.
@@ -960,7 +989,7 @@ func _refresh_activity_speech() -> void:
 ## Milestone 24 (decision 78): no sun or moon during football (the field fills the stage) or
 ## while the avatar sleeps or waits for Wake (the bedroom fills it).
 func _refresh_sky_bodies() -> void:
-	sky_bodies.visible = not football_field.visible and Clock.phase == Clock.Phase.DAY
+	sky_bodies.visible = not football_field.visible and not sky_game.visible and Clock.phase == Clock.Phase.DAY
 
 
 func _refresh_phase() -> void:

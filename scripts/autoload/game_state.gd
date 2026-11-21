@@ -54,6 +54,10 @@ var hours_since_meal: float
 ## Avatar hours (clock time, awake and asleep) since the avatar last ate anything (Milestone 29):
 ## a skipped meal does not reset it. Starving and the hunger failure read it.
 var hours_without_food: float
+## Milestone 35: the avatar's best score in the screens minigame (sky jump), and an id that tells
+## it apart from other avatars with the same name in the device's leaderboard (Settings).
+var sky_best: int
+var avatar_id: String
 ## Body weight in kg, body age in months and height in metres (Milestone 10, v1 Step 2).
 ## Weight changes with energy eaten minus energy spent; the body ages with body time
 ## (body.k) up to the end of its age group; height is the WHO median for the body age.
@@ -231,6 +235,8 @@ func to_dict() -> Dictionary:
 		"happiness_low_hours": happiness_low_hours,
 		"danger_hours": danger_hours,
 		"hours_without_food": hours_without_food,
+		"sky_best": sky_best,
+		"avatar_id": avatar_id,
 		"failed_cause": failed_cause,
 		"failed_day": failed_day,
 		"best_health": best_health,
@@ -296,6 +302,11 @@ func from_dict(data: Dictionary) -> void:
 	happiness_low_hours = float(data.get("happiness_low_hours", 0.0))
 	danger_hours = float(data.get("danger_hours", 0.0))
 	hours_without_food = float(data.get("hours_without_food", 0.0))
+	sky_best = int(data.get("sky_best", 0))
+	# A save from before Milestone 35 has no id: it gets one now.
+	avatar_id = str(data.get("avatar_id", ""))
+	if avatar_id.is_empty():
+		avatar_id = _new_avatar_id()
 	failed_cause = str(data.get("failed_cause", ""))
 	failed_day = float(data.get("failed_day", 0.0))
 	risk_index = float(data.get("risk_index", 0.0))
@@ -322,6 +333,11 @@ func start_new_avatar(new_name: String, new_age_group: String, new_sex: String, 
 	health = calculate_health()
 	best_health = health
 	changed.emit()
+
+
+## A random id for a new avatar (Milestone 35), only used to tell avatars apart.
+func _new_avatar_id() -> String:
+	return "%08x%08x" % [randi(), randi()]
 
 
 ## Starting body (Milestone 10): body age from the age group, the starting z of the
@@ -360,6 +376,8 @@ func _apply_body_start() -> void:
 	hours_since_meal = Config.get_float("meals.min_gap_h")
 	# Milestone 29: a new avatar has just woken from a normal night without food.
 	hours_without_food = Config.get_float("fail.starve_start_h")
+	sky_best = 0
+	avatar_id = _new_avatar_id()
 	# Happiness and diet (v1 Steps 7 and 10).
 	var path := "health.difficulties.%s." % difficulty_id
 	happiness = Config.get_float(path + "happiness")

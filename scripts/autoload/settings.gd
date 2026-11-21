@@ -24,6 +24,9 @@ var language := ""
 var football_help_seen := false
 ## The avatar place played last (Milestone 18): the main menu's Continue.
 var last_slot := 0
+## The best scores of the screens minigame on this device (Milestone 35), best first, one per
+## avatar: {"id", "name", "score"}. An avatar that was deleted or failed keeps its place.
+var sky_leaderboard: Array[Dictionary] = []
 
 ## The language the player chose, or "" while the game follows the browser.
 var _chosen_language := ""
@@ -40,6 +43,13 @@ func load_settings() -> void:
 	_chosen_language = saved if saved in LANGUAGES else ""
 	football_help_seen = bool(data.get("football_help_seen", false))
 	last_slot = int(data.get("last_slot", 0))
+	sky_leaderboard.clear()
+	var board: Variant = data.get("sky_leaderboard", [])
+	if board is Array:
+		for entry: Variant in board:
+			if entry is Dictionary:
+				sky_leaderboard.append({"id": str(entry.get("id", "")), "name": str(entry.get("name", "")),
+						"score": int(entry.get("score", 0))})
 	_apply(saved if saved in LANGUAGES else language_for_locale(OS.get_locale_language()))
 
 
@@ -64,6 +74,27 @@ func set_last_slot(place: int) -> void:
 	_save()
 
 
+## A run of the screens minigame ended with this score: it is the avatar's place on the device's
+## leaderboard when it is the avatar's best and good enough. Returns true if the board changed.
+func record_sky_score(avatar_id: String, avatar_name: String, score: int) -> bool:
+	if score <= 0:
+		return false
+	for entry in sky_leaderboard:
+		if entry.id == avatar_id:
+			if score <= int(entry.score):
+				return false
+			sky_leaderboard.erase(entry)
+			break
+	sky_leaderboard.append({"id": avatar_id, "name": avatar_name, "score": score})
+	sky_leaderboard.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.score > b.score)
+	var kept := Config.get_int("minigame.sky.leaderboard_size")
+	var changed := sky_leaderboard.find_custom(func(e: Dictionary) -> bool: return e.id == avatar_id) < kept
+	sky_leaderboard.resize(mini(sky_leaderboard.size(), kept))
+	if changed:
+		_save()
+	return changed
+
+
 ## The player has seen the explanation of football.
 func mark_football_help_seen() -> void:
 	football_help_seen = true
@@ -71,7 +102,7 @@ func mark_football_help_seen() -> void:
 
 
 func _save() -> void:
-	var data := {"football_help_seen": football_help_seen, "last_slot": last_slot}
+	var data := {"football_help_seen": football_help_seen, "last_slot": last_slot, "sky_leaderboard": sky_leaderboard}
 	if not _chosen_language.is_empty():
 		data["language"] = _chosen_language
 	var text := JSON.stringify(data, "\t")

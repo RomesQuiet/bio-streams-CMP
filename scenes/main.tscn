@@ -20,6 +20,7 @@
 [ext_resource type="Script" path="res://scripts/ui/speech_balloon.gd" id="21_balloon"]
 [ext_resource type="Script" path="res://scripts/ui/ui_icon.gd" id="22_icon"]
 [ext_resource type="Script" path="res://scripts/ui/outside_dim.gd" id="23_dim"]
+[ext_resource type="Script" path="res://scripts/ui/sky_game.gd" id="40_sky_game"]
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -155,6 +156,21 @@ grow_vertical = 2
 mouse_filter = 2
 clip_contents = true
 script = ExtResource("8_field")
+
+[node name="SkyGame" type="Control" parent="Margin/Layout/Stage"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_right = -4.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("40_sky_game")
 
 [node name="MealFork" type="Control" parent="Margin/Layout/Stage"]
 unique_name_in_owner = true
@@ -347,6 +363,17 @@ layout_mode = 2
 size_flags_vertical = 3
 focus_mode = 0
 text = "MINIGAME_TAP"
+
+[node name="JumpButton" type="Button" parent="Margin/Layout/MinigamePanel"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+size_flags_vertical = 3
+focus_mode = 0
+text = "SKY_JUMP"
+script = ExtResource("18_action")
+kind = "jump"
 
 [node name="FootballPad" type="Control" parent="Margin/Layout/MinigamePanel"]
 unique_name_in_owner = true

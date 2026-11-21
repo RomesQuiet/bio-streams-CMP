@@ -18,6 +18,11 @@ extends Node
 ## Meal (decisions 52 to 55): a fork swings left and right, faster with every bite; a tap with
 ## the fork at the mouth is a bite, a miss drops the food. Done ends the meal; at full_bites the
 ## avatar is full. Simulation reads the result when the meal ends (take_meal_result()).
+## Sky jump (Milestone 35, the screens minigame, a video game): a dinosaur runs by itself and
+## jumps from cloud to cloud with one button (sky_run.gd). A run ends when it falls; Jump starts
+## another. The avatar's best score is in GameState and the device's best scores in Settings.
+## The score never changes health: screen time counts as before, played or not, so this session
+## never waits and never gives up.
 ## With no tap or press the avatar stands still and waits, nothing counts, and the activity ends
 ## after minigame.wait_seconds. The rest between sets is not waiting.
 ## A session only exists with the main screen open (attach()), at normal speed, for an option
@@ -29,11 +34,13 @@ const CardioPace := preload("res://scripts/health/cardio_pace.gd")
 const StrengthLoad := preload("res://scripts/health/strength_load.gd")
 const FootballLoad := preload("res://scripts/health/football_load.gd")
 const FootballMatch := preload("res://scripts/health/football_match.gd")
+const SkyRun := preload("res://scripts/health/sky_run.gd")
 
 const CARDIO := "cardio"
 const STRENGTH := "strength"
 const FOOTBALL := "football"
 const MEAL := "meal"
+const SKY := "sky"
 
 ## A stride or a press was made. on_beat: it came at the right time.
 signal strode(on_beat: bool)
@@ -49,12 +56,14 @@ signal football_event(key: String)
 signal meal_event(key: String)
 ## A football match the player played ended, with this score.
 signal match_ended(goals_us: int, goals_them: int)
+## A sky-jump run ended with this score. best: it is the avatar's new best.
+signal sky_run_ended(score: int, best: bool)
 ## Emitted just before the avatar stops, starts, walks or runs, so Simulation can first run the
 ## minutes that belong to what it was doing (like Activities.changing).
 signal changing
 
 var running := false
-## CARDIO, STRENGTH, FOOTBALL or MEAL while a session runs.
+## CARDIO, STRENGTH, FOOTBALL, MEAL or SKY while a session runs.
 var kind := ""
 ## True while the avatar stands still, waiting for a tap or press.
 var waiting := false
@@ -84,6 +93,9 @@ var set_reps := 0
 var game: RefCounted = null
 ## Football: the seed of the next match. 0 picks a new one.
 var match_seed := 0
+## Sky jump: the run being played, and the seed of the next one (0 picks a new one).
+var run: RefCounted = null
+var run_seed := 0
 ## Meal: bites eaten and food dropped.
 var bites := 0
 var misses := 0
@@ -202,6 +214,8 @@ func score() -> float:
 func time_share() -> float:
 	if running and kind == FOOTBALL and not waiting:
 		return 1.0 / Config.get_float("minigame.football.time_slowdown")
+	if running and kind == SKY:
+		return 1.0 / Config.get_float("minigame.sky.time_slowdown")
 	return 1.0
 
 
@@ -305,6 +319,16 @@ func press(down: bool) -> void:
 		_finish_repetition()
 
 
+## The player pressed (down) or let go of Jump (sky jump). After a run ended, a press starts
+## the next one.
+func jump(down: bool) -> void:
+	if not running or kind != SKY or (Clock.paused and down):
+		return
+	if down and run.can_restart():
+		_new_run()
+	run.press(down)
+
+
 ## The player moved the joystick (football). Moving starts or wakes the session.
 func set_stick(direction: Vector2) -> void:
 	if not running or kind != FOOTBALL or (Clock.paused and direction != Vector2.ZERO):
@@ -344,6 +368,9 @@ func shoot_or_tackle() -> void:
 ## Real time passed while the game is not paused.
 func advance(seconds: float) -> void:
 	if not running:
+		return
+	if kind == SKY:
+		run.advance(seconds)
 		return
 	if waiting:
 		_waited += seconds
@@ -485,6 +512,20 @@ func _new_game() -> void:
 	_set_body()
 
 
+func _new_run() -> void:
+	run = SkyRun.new(run_seed if run_seed != 0 else randi())
+	run.ended.connect(_record_run)
+
+
+## A run ended (or the activity ended during one): the avatar's best and the device's board.
+func _record_run(score: int) -> void:
+	var best := score > GameState.sky_best
+	if best:
+		GameState.sky_best = score
+	Settings.record_sky_score(GameState.avatar_id, GameState.avatar_name, score)
+	sky_run_ended.emit(score, best)
+
+
 ## Up finished a repetition. The set ends at its repetitions or when the muscles are tired: the
 ## avatar never trains to failure.
 func _finish_repetition() -> void:
@@ -546,22 +587,26 @@ func _on_activity_started(_activity_id: String, option_id: String) -> void:
 			reserve = GameState.strength_recovery
 			sets_goal = StrengthLoad.sets_goal()
 			_start_set()
-		else:
+		elif kind != SKY:
 			# Cardio and football share the Breath bar.
 			reserve = GameState.cardio_recovery
 			walking = reserve <= 0.0
 	_restored = false
 	if kind == FOOTBALL:
 		_new_game()
+	if kind == SKY:
+		_new_run()
 	running = true
-	# A rest goes on by itself after a reload; anything else waits for the player.
-	waiting = not resting
+	# A rest goes on by itself after a reload; anything else but the video game waits for the player.
+	waiting = not resting and kind != SKY
 	session_changed.emit()
 
 
 func _on_activity_ended(_activity_id: String, option_id: String) -> void:
 	if running and kind == FOOTBALL and _moved:
 		match_ended.emit(game.goals_us, game.goals_them)
+	if running and kind == SKY and run.state in [SkyRun.State.RUNNING, SkyRun.State.FALLING]:
+		_record_run(run.score())
 	if running and kind == MEAL:
 		_meal_result = {"option": option_id, "share": meal_share(), "full_share": full_share()}
 	_end_session()
@@ -602,6 +647,7 @@ func _clear() -> void:
 	_goals_us = 0
 	_goals_them = 0
 	game = null
+	run = null
 	bites = 0
 	misses = 0
 	_fork_time = 0.0

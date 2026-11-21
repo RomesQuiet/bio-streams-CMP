@@ -161,7 +161,7 @@ ACTIVITY_EAT,Eat,Comer
 ACTIVITY_HEALTHY_MEAL,Healthy meal,Refeição saudável
 ACTIVITY_FAST_FOOD_MEAL,Fast-food meal,Refeição de fast food
 ACTIVITY_ENTERTAINMENT,Entertainment,Entretenimento
-ACTIVITY_SCREENS,Screens,Ecrãs
+ACTIVITY_SCREENS,Video game,Videojogo
 ACTIVITY_FOOTBALL,Football,Futebol
 SETTINGS_TITLE,Settings,Definições
 SETTINGS_LANGUAGE,Language,Idioma
@@ -171,14 +171,14 @@ SETTINGS_NEW_AVATAR_CONFIRM,"Yes, start again","Sim, recomeçar"
 SETTINGS_CLOSE,Close,Fechar
 SPEECH_WANT_FAST_FOOD,I want fast food!,Quero fast food!
 SPEECH_WANT_HEALTHY,I'd like a healthy meal.,Apetece-me uma refeição saudável.
-SPEECH_WANT_SCREENS,Can I watch something?,Posso ver alguma coisa?
+SPEECH_WANT_SCREENS,Can I play a video game?,Posso jogar um videojogo?
 SPEECH_WANT_FOOTBALL,Can I play football with my friends?,Posso ir jogar à bola com os meus amigos?
 SPEECH_YES_FAST_FOOD,"Yes, fast food!","Boa, fast food!"
 SPEECH_NOT_AGAIN,Not this again...,Outra vez isto...
 SPEECH_JUST_WHAT_I_WANTED,Just what I wanted!,Era mesmo isto que me apetecia!
 SPEECH_LETS_GO,Let's go!,Vamos lá!
 SPEECH_DO_I_HAVE_TO,Do I have to?,Tenho mesmo de ir?
-SPEECH_NO_SCREENS,You never let me watch anything.,Nunca me deixas ver nada.
+SPEECH_NO_SCREENS,You never let me play video games.,Nunca me deixas jogar videojogos.
 FAILURE_TITLE,Failure,Falha
 FAILURE_PHRASE_THINNESS,%s lost too much weight.,%s perdeu demasiado peso.
 FAILURE_PHRASE_HEALTH,%s's health got too low.,A saúde de %s ficou demasiado baixa.
@@ -270,3 +270,15 @@ CANTEEN_PLATE,Your plate (%d of %d),O teu prato (%d de %d)
 CANTEEN_PLATE_HINT,Tap a food to put it on your plate. Tap it on the plate to take it off.,Toca num alimento para o pôr no prato. Toca nele no prato para o tirar.
 CANTEEN_EAT,Eat the plate,Comer o prato
 CANTEEN_BACK,Back,Voltar
+SKY_JUMP,Jump,Saltar
+SKY_TITLE,Cloud jump,Salto nas nuvens
+SKY_RULES,"Jump from cloud to cloud. Hitting a cloud's side, or falling, ends the run. Hold Jump to keep jumping.","Salta de nuvem em nuvem. Bater na parte de lado de uma nuvem, ou cair, acaba a corrida. Mantém Saltar carregado para continuar a saltar."
+SKY_START,Press Jump to start,Carrega em Saltar para começar
+SKY_GAME_OVER,Game over,Fim do jogo
+SKY_SCORE,Score %d,Pontos %d
+SKY_NEW_BEST,New record!,Novo recorde!
+SKY_AGAIN,Press Jump to play again,Carrega em Saltar para jogar outra vez
+SKY_BEST_SHORT,Best,Recorde
+SKY_LEADERBOARD,Best on this device,Melhores neste dispositivo
+SKY_NO_SCORES,No scores yet,Ainda não há pontuações
+SKY_PAUSED,Paused: press play next to the clock,Em pausa: carrega em continuar junto ao relógio
