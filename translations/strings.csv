@@ -258,7 +258,6 @@ FOOD_SOFT_DRINK,Soft drink,Refrigerante
 FOOD_MILKSHAKE,Milkshake,Batido
 FOOD_DOUGHNUT,Doughnut,Donut
 CANTEEN_TITLE,Canteen,Cantina
-CANTEEN_CHOOSE,What kind of food?,Que tipo de comida?
 CANTEEN_GOOD,Good food,Comida saudável
 CANTEEN_FAST,Fast food,Fast food
 CANTEEN_PLATE,Your plate (%d of %d),O teu prato (%d de %d)
@@ -289,3 +288,8 @@ WAKE_UP,Wake up,Acordar
 UI_START,Start,Começar
 EXERCISE_CHOOSE,Choose exercise,Escolhe o exercício
 ENTERTAINMENT_CHOOSE,Choose what to do,Escolhe o que fazer
+UI_CONTINUE,Continue,Continuar
+EAT_CHOOSE_TITLE,Let's eat!,Vamos comer!
+EAT_CHOOSE_QUESTION,What would you like to eat?,O que queres comer?
+EAT_GOOD_SUB,"Vegetables, fruit, fish","Legumes, fruta, peixe"
+EAT_FAST_SUB,"High in fat, sugar and salt","Muita gordura, açúcar e sal"

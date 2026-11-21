@@ -22,7 +22,7 @@ Started 21 Nov 2026 (40 is the user's number; there are no Milestones 36 to 39).
 | 7 | Screen time | **skipped (user, 21 Nov 2026)**: Screens is the video game (Milestone 35) | — |
 | 8 | Sleep: bed, window, Wake up | done, waiting for the user's check | see git log |
 | 9 | Exercise and entertainment menus | done, waiting for the user's check | see git log |
-| 10 | Let's eat | | |
+| 10 | Let's eat | done, waiting for the user's check | see git log |
 | 11 | Canteen with pictures | | |
 | 12 | Canteen list (`data/canteen.json`) | | |
 
@@ -131,6 +131,19 @@ Table "Exercise menu (02)"; the entertainment menu uses the same panel.
 - New keys `UI_START`, `EXERCISE_CHOOSE`, `ENTERTAINMENT_CHOOSE`; new colours `TILE_COLOR`, `BADGE_COLOR`; icon "controller" (one colour); `dock_button.gd` `prefix`.
 - `tests/minutes_slider_test.gd`: the tiles choose and Start starts; new checks (Cardio chosen first, a tile only chooses, the last option chosen, the places of Start and the panel's bottom for both menus, Cancel). `tools/render_ui_states.gd`: O (exercise menu) and Q (entertainment menu).
 - Checked: headless start without errors; `minutes_slider_test`, `settings_panel_test`, `translation_test`, `interface_test`, `minigame_test` ALL PASSED; O in English and Q in Portuguese rendered and compared with the table.
+
+### Change 10: Let's eat (user: "OK, do change 10", 21 Nov 2026)
+
+Table "Let's eat (06)": the first step of the canteen (`scripts/ui/canteen.gd`).
+
+- The panel (x 52, y 214, 616 wide, radius 28, a white line; drawn by the canteen), a white apple (icon "apple_line"), "Let's eat!" (ExtraBold 44), a divider, "What would you like to eat?" (Bold 26).
+- **Two cards** (`scripts/ui/eat_card.gd`, new): 560 x 156 with a thickness of 8, the team's pictures without words (`menu/eat_choice_good.png`, `eat_choice_fast.png`, 260 x 130, loaded when the card is made), a thin divider, the title ("Good food", "Fast food"; ExtraBold 34) and the subtitle ("Vegetables, fruit, fish", "High in fat, sugar and salt"; Bold 20, `SUBTITLE_COLOR`, two lines at most). **A card only chooses** (mint, a green badge with a white check); it opens with Good food chosen; **Continue** opens the plate of the chosen kind.
+- **Skip meal** (only when hungry) at y 760, 560 wide; **Cancel** and **Continue** (270 x 76, a thickness of 8) at y 760, or y 852 with Skip meal; the panel ends at y 870 or 962.
+- **One small change from the table:** a card's title is made smaller so that it ends 8 px before the badge (in Portuguese "Comida saudável" ran under the check). In English it does not change.
+- The second step (the plate) keeps its old look until change 11.
+- New keys `UI_CONTINUE`, `EAT_CHOOSE_TITLE`, `EAT_CHOOSE_QUESTION`, `EAT_GOOD_SUB`, `EAT_FAST_SUB`; `CANTEEN_CHOOSE` ("What kind of food?") is deleted, as nothing shows it now. New colour `SUBTITLE_COLOR`.
+- `tests/canteen_test.gd`: a card chooses and Continue opens; new checks (Good food chosen at first, a card only chooses, the buttons' places with and without Skip meal). `tools/render_ui_states.gd`: L (Let's eat).
+- Checked: headless start without errors; `canteen_test`, `minutes_slider_test`, `translation_test`, `interface_test`, `settings_panel_test` ALL PASSED; L rendered in English and Portuguese and compared with the table.
 
 ## Contradictions found (to ask before the change they touch)
 

@@ -119,7 +119,18 @@ func _test_screen() -> void:
 	_check("Eat opens the canteen on the first step: good food or fast food", screen.visible and screen.kind_box.visible
 			and not screen.plate_box.visible and screen.fast_button.text == "CANTEEN_FAST")
 	_check("Skip meal only when hungry", screen.skip_button.visible == root.get_node("Simulation").Hunger.is_hungry())
+	# Milestone 40, change 10: Good food is chosen when it opens; a card only chooses; Continue opens.
+	_check("it opens with Good food chosen", screen.good_button.chosen and not screen.fast_button.chosen)
+	screen._place_choice_buttons(true)
+	_check("with Skip meal, Cancel and Continue move to y 852 and the panel ends at y 962",
+			is_equal_approx(screen.continue_button.position.y, 852.0) and is_equal_approx(screen._choice_bottom, 962.0))
+	screen._place_choice_buttons(false)
+	_check("without it, at y 760, and the panel ends at y 870", not screen.skip_button.visible
+			and is_equal_approx(screen.continue_button.position.y, 760.0) and is_equal_approx(screen._choice_bottom, 870.0))
+	screen.fast_button.pressed.emit()
+	_check("a card only chooses", screen.fast_button.chosen and not screen.good_button.chosen and screen.kind_box.visible)
 	screen.good_button.pressed.emit()
+	screen.continue_button.pressed.emit()
 	_check("Good food: build a plate from the good foods only", screen.plate_box.visible and screen.good_grid.visible
 			and not screen.fast_grid.visible and screen.good_grid.get_child_count() == canteen.foods(canteen.GOOD).size()
 			and screen.plate.is_empty() and screen.eat_button.disabled)
@@ -132,6 +143,7 @@ func _test_screen() -> void:
 			and screen.plate_label.text == "Your plate (3 of 4)")
 	screen.show_kind("")
 	screen.fast_button.pressed.emit()
+	screen.continue_button.pressed.emit()
 	_check("Back and Fast food: a new, empty plate of fast foods", screen.fast_grid.visible and not screen.good_grid.visible
 			and screen.plate.is_empty())
 	screen.add_food("burger")

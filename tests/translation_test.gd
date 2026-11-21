@@ -84,7 +84,7 @@ func _test_scenes() -> void:
 
 
 func _test_scripts() -> void:
-	var keys := RegEx.create_from_string("\"((?:UI|SPEECH|CREATION|ACTIVITY|MEASURE|FAILURE|SETTINGS|SLEEP|FORMAT|MINIGAME|FOOTBALL|MEAL|MENU|CANTEEN|SKY|CARDIO|WAKE|EXERCISE|ENTERTAINMENT)_[A-Z_]+|TIMING(?:_[A-Z_]+)?)\"")
+	var keys := RegEx.create_from_string("\"((?:UI|SPEECH|CREATION|ACTIVITY|MEASURE|FAILURE|SETTINGS|SLEEP|FORMAT|MINIGAME|FOOTBALL|MEAL|MENU|CANTEEN|SKY|CARDIO|WAKE|EXERCISE|ENTERTAINMENT|EAT)_[A-Z_]+|TIMING(?:_[A-Z_]+)?)\"")
 	for path in SCRIPTS:
 		var missing: Array[String] = []
 		for found in keys.search_all(FileAccess.get_file_as_string(path)):

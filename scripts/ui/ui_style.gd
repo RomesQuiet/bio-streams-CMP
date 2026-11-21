@@ -65,6 +65,8 @@ const PANEL_92 := Color(0.137255, 0.164706, 0.431373, 0.92)
 ## Change 9: the menus' tiles and the "chosen" badge.
 const TILE_COLOR := Color("#eef1fb")
 const BADGE_COLOR := Color("#22b573")
+## Change 10: the cards' subtitles.
+const SUBTITLE_COLOR := Color("#477297")
 ## Change 6: the band behind the meal's dock: PANEL_COLOR at 85%.
 const DOCK_BAND := Color(0.137255, 0.164706, 0.431373, 0.85)
 ## Change 5: football (values.md): Pass, Shoot, the field's stripes, keycaps' base, see-through white.
