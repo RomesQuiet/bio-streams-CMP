@@ -10,8 +10,8 @@ const MINUTES_PER_DAY := 24.0 * 60.0
 
 ## [hour, sky top, sky middle, sky at the horizon, ground top, ground bottom, stars (0 to 1)].
 const STOPS := [
-	[0.0, Color("#10164a"), Color("#1a2166"), Color("#2b3184"), Color("#2a3388"), Color("#1b2163"), 1.0],
-	[4.75, Color("#10164a"), Color("#1a2166"), Color("#2b3184"), Color("#2a3388"), Color("#1b2163"), 1.0],
+	[0.0, Color("#151a5f"), Color("#1d2471"), Color("#2b3184"), Color("#252d85"), Color("#22287a"), 1.0],
+	[4.75, Color("#151a5f"), Color("#1d2471"), Color("#2b3184"), Color("#252d85"), Color("#22287a"), 1.0],
 	[5.75, Color("#1d2672"), Color("#3c3b90"), Color("#7b5aa8"), Color("#3c3c94"), Color("#232a72"), 0.7],
 	[6.5, Color("#3052b8"), Color("#8f7fd4"), Color("#f6a98a"), Color("#6658b8"), Color("#33358f"), 0.15],
 	[7.5, Color("#2c5fca"), Color("#6c9ae4"), Color("#f6c9a4"), Color("#4f8fb0"), Color("#2f5c98"), 0.0],
@@ -23,7 +23,7 @@ const STOPS := [
 	[19.25, Color("#2f3592"), Color("#7552b0"), Color("#ef8a5c"), Color("#5a46a8"), Color("#2d3188"), 0.0],
 	[20.25, Color("#232a78"), Color("#3d3a96"), Color("#7c58b4"), Color("#3a3a96"), Color("#262b78"), 0.5],
 	[22.25, Color("#1a2068"), Color("#2a3184"), Color("#5a4cc0"), Color("#2e3590"), Color("#20266c"), 1.0],
-	[24.0, Color("#10164a"), Color("#1a2166"), Color("#2b3184"), Color("#2a3388"), Color("#1b2163"), 1.0],
+	[24.0, Color("#151a5f"), Color("#1d2471"), Color("#2b3184"), Color("#252d85"), Color("#22287a"), 1.0],
 ]
 
 const SKY_TOP := 1
