@@ -1,27 +1,25 @@
 extends Control
 ## The main menu (Milestone 18, user, 7 Nov 2026): the first screen. Continue (the avatar played
 ## last), New avatar, Avatars (save.slots places: play, back up, delete), Load a backup, About
-## and the language. The lobby's look: the sky, the grey ground and the last avatar standing; the
-## team's pictures of the creation process and the music come later (placeholders).
+## and the language. Since Milestone 40 it has the look of the team's splash screen (a sunset and
+## night sky, four figures on a hill, coloured buttons with icons, a PT/EN switch); the music comes
+## later.
 ## Every text is a translation key.
 
 const MAIN_SCENE := "res://scenes/main.tscn"
 const CREATION_SCENE := "res://scenes/ui/creation.tscn"
 const AVATAR_SCENE := "res://scenes/avatar/avatar.tscn"
 const Ui := preload("res://scripts/ui/ui_style.gd")
-const SkyBackground := preload("res://scripts/ui/sky_background.gd")
-const CurvedGround := preload("res://scripts/ui/curved_ground.gd")
+const MenuBackdrop := preload("res://scripts/ui/menu_backdrop.gd")
+const MenuButtonScript := preload("res://scripts/ui/menu_button.gd")
+const LanguageToggle := preload("res://scripts/ui/language_toggle.gd")
 const OutsideDim := preload("res://scripts/ui/outside_dim.gd")
-## Milestone 25: the menu's sky and curved ground are those of a morning (only the look).
-const MENU_MINUTE := 9.0 * 60.0
 const DIM_COLOR := Ui.DIM_COLOR
 const CAPTION_COLOR := Color(0.75, 0.77, 0.82)
 const FAILED_COLOR := Color(1.0, 0.5, 0.45)
-const GROUND_TOP := 700.0
 
 var _home: VBoxContainer
 var _continue_button: Button
-var _avatar: Control
 var _avatars_page: Control
 var _cards: VBoxContainer
 var _message: Label
@@ -31,8 +29,6 @@ var _confirm_delete := -1
 ## Kept so the browser callback is not freed while the file is read.
 var _file_callback: JavaScriptObject
 var _file_dialog: FileDialog
-var _sky: Control
-var _ground: Control
 var _outside_dim: Control
 
 
@@ -53,63 +49,106 @@ func _notification(what: int) -> void:
 
 # --- Layout ----------------------------------------------------------------------------------
 
+## Milestone 40: the team's splash screen (21 Nov 2026), measured from its 900 x 1600 picture and
+## scaled to the 720 x 1280 column: the title and subtitle, the four figures on the hill, four
+## buttons and the language switch. Rects are [x, y, w, h]; "B" ones keep their distance from the
+## bottom of the screen (the buttons), the others their distance from the top.
+const TITLE_RECT := Rect2(24, 96, 672, 80)
+const TITLE_FONT_SIZE := 64
+const SUBTITLE_RECT := Rect2(16, 182, 688, 34)
+const SUBTITLE_FONT_SIZE := 24
+## Each figure: its picture, its rect, and the shadow under it (centre, radii). The splash's group:
+## a boy, a girl with obesity, a girl and a boy asleep in bed (the team's art, healthy bodies; the
+## running and apple poses of the splash have no picture, so the standing ones are used).
+const FIGURES := [
+	["res://assets/art/avatar/child_male/healthy_happy.png", Rect2(32.5, 388, 175, 238.5), Vector2(120, 626), Vector2(60, 9)],
+	["res://assets/art/avatar/teen_female/obese_sad.png", Rect2(177, 357, 198, 270), Vector2(275, 626), Vector2(64, 10)],
+	["res://assets/art/avatar/child_female/healthy_happy.png", Rect2(318, 339, 211, 288), Vector2(422, 626), Vector2(56, 9)],
+	["res://assets/art/avatar/teen_male/bed.png", Rect2(474, 415, 196, 227), Vector2(572, 640), Vector2(96, 10)],
+]
+const BUTTON_X := 90.0
+const BUTTON_WIDTH := 540.0
+## Without Continue: the four buttons of the splash (faces 86 high and a 6-pixel thickness).
+const BUTTON_TOPS := [691.0, 799.0, 908.0, 1016.0]
+const BUTTON_HEIGHT := 92.0
+## With Continue (not in the splash; Claude): five buttons a little closer together.
+const BUTTON_TOPS_WITH_CONTINUE := [644.0, 740.0, 836.0, 932.0, 1028.0]
+const BUTTON_HEIGHT_WITH_CONTINUE := 84.0
+const TOGGLE_RECT := Rect2(242, 1142, 238, 56)
+const REFERENCE_HEIGHT := 1280.0
+
+var _title: Label
+var _subtitle: Label
+var _buttons: Array[Button] = []
+var _backdrop: Control
+
+
+## Puts a control at a rect of the column; bottom: it keeps its distance from the bottom.
+static func place(control: Control, rect: Rect2, bottom := false) -> void:
+	var anchor := 1.0 if bottom else 0.0
+	var shift := REFERENCE_HEIGHT if bottom else 0.0
+	control.anchor_left = 0.0
+	control.anchor_right = 0.0
+	control.anchor_top = anchor
+	control.anchor_bottom = anchor
+	control.offset_left = rect.position.x
+	control.offset_right = rect.end.x
+	control.offset_top = rect.position.y - shift
+	control.offset_bottom = rect.end.y - shift
+
+
 func _build() -> void:
-	# A 720-wide column in the middle, as tall as the screen; the sky and the curved ground fill
-	# the whole screen behind it (Milestone 25, decision 87).
+	# A 720-wide column in the middle, as tall as the screen; the backdrop fills the whole screen
+	# behind it (Milestone 25, decision 87).
 	Ui.make_column(self)
-	_sky = SkyBackground.new()
-	_sky.minute = MENU_MINUTE
-	add_child(_sky)
-	_ground = CurvedGround.new()
-	_ground.minute = MENU_MINUTE
-	add_child(_ground)
-	var title := _label("MENU_TITLE", 52)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.set_anchors_preset(PRESET_TOP_WIDE)
-	title.offset_top = 70
-	title.add_theme_color_override("font_outline_color", Ui.INK)
-	title.add_theme_constant_override("outline_size", 10)
-	add_child(title)
-	var subtitle := _label("MENU_SUBTITLE", 24)
+	_backdrop = MenuBackdrop.new()
+	for figure in FIGURES:
+		_backdrop.shadows.append([figure[2], figure[3]])
+	add_child(_backdrop)
+	_title = _label("MENU_TITLE", TITLE_FONT_SIZE)
+	_title.add_theme_font_override("font", Ui.FONT_HEAVY)
+	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_title.add_theme_color_override("font_color", Color.WHITE)
+	_title.add_theme_color_override("font_outline_color", Ui.MENU_TITLE_OUTLINE)
+	_title.add_theme_constant_override("outline_size", 16)
+	_title.add_theme_color_override("font_shadow_color", Ui.MENU_TITLE_OUTLINE)
+	_title.add_theme_constant_override("shadow_offset_x", 0)
+	_title.add_theme_constant_override("shadow_offset_y", 5)
+	_title.add_theme_constant_override("shadow_outline_size", 16)
+	place(_title, TITLE_RECT)
+	add_child(_title)
+	var subtitle := _label("MENU_SUBTITLE", SUBTITLE_FONT_SIZE)
+	_subtitle = subtitle
+	subtitle.add_theme_font_override("font", Ui.FONT_HEAVY)
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	subtitle.set_anchors_preset(PRESET_TOP_WIDE)
-	subtitle.offset_top = 150
+	subtitle.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	subtitle.add_theme_color_override("font_color", Color(1, 1, 1, 0.95))
+	subtitle.add_theme_color_override("font_shadow_color", Color(Ui.MENU_TITLE_OUTLINE, 0.45))
+	subtitle.add_theme_constant_override("shadow_offset_y", 2)
+	subtitle.autowrap_mode = TextServer.AUTOWRAP_OFF
+	place(subtitle, SUBTITLE_RECT)
 	add_child(subtitle)
-	_avatar = load(AVATAR_SCENE).instantiate()
-	_avatar.size = Vector2(330, 450)
-	_avatar.position = Vector2(360 - 165, GROUND_TOP + 10 - 450)
-	add_child(_avatar)
+	for figure in FIGURES:
+		var picture := TextureRect.new()
+		picture.texture = load(figure[0])
+		picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		picture.stretch_mode = TextureRect.STRETCH_SCALE
+		picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		place(picture, figure[1])
+		add_child(picture)
 	_home = VBoxContainer.new()
-	_home.add_theme_constant_override("separation", 14)
-	_home.set_anchors_preset(PRESET_BOTTOM_WIDE)
-	_home.offset_left = 60
-	_home.offset_right = -60
-	_home.offset_top = -470
-	_home.offset_bottom = -40
+	_home.set_anchors_preset(PRESET_FULL_RECT)
+	_home.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_home)
-	_continue_button = _button("", _continue, 96)
-	_home.add_child(_continue_button)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 14)
-	row.add_child(_button("MENU_NEW_AVATAR", _new_avatar, 76, true))
-	row.add_child(_button("MENU_AVATARS", _open_avatars, 76, true))
-	_home.add_child(row)
-	var row2 := HBoxContainer.new()
-	row2.add_theme_constant_override("separation", 14)
-	row2.add_child(_button("MENU_LOAD_BACKUP", _load_backup, 76, true))
-	row2.add_child(_button("MENU_ABOUT", _open_about, 76, true))
-	_home.add_child(row2)
-	var languages := HBoxContainer.new()
-	languages.add_theme_constant_override("separation", 14)
-	var group := ButtonGroup.new()
-	for id in ["pt", "en"]:
-		var language := _button("Português" if id == "pt" else "English", Settings.set_language.bind(id), 64, true)
-		language.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
-		language.toggle_mode = true
-		language.button_group = group
-		language.set_pressed_no_signal(Settings.language == id)
-		languages.add_child(language)
-	_home.add_child(languages)
+	_continue_button = _menu_button("", _continue, Ui.MENU_CONTINUE_FACE, Ui.MENU_CONTINUE_BASE, "play")
+	_menu_button("MENU_NEW_AVATAR", _new_avatar, Ui.MENU_NEW_FACE, Ui.MENU_NEW_BASE, "person_add")
+	_menu_button("MENU_AVATARS", _open_avatars, Ui.MENU_AVATARS_FACE, Ui.MENU_AVATARS_BASE, "people")
+	_menu_button("MENU_LOAD_BACKUP", _load_backup, Ui.MENU_BACKUP_FACE, Ui.MENU_BACKUP_BASE, "upload")
+	_menu_button("MENU_ABOUT", _open_about, Ui.MENU_ABOUT_FACE, Ui.MENU_ABOUT_BASE, "info")
+	var languages := LanguageToggle.new()
+	place(languages, TOGGLE_RECT, true)
+	add_child(languages)
 	_avatars_page = _page("MENU_AVATARS")
 	var content: VBoxContainer = _avatars_page.get_meta("content")
 	_message = _label("", 20)
@@ -138,14 +177,40 @@ func _build() -> void:
 	add_child(_outside_dim)
 
 
-## The ground under the avatar's feet in the middle of the column, the sky's horizon on it, and
-## the dim outside the column while a page is open.
+func _menu_button(key: String, on_pressed: Callable, face: Color, base: Color, icon: String) -> Button:
+	var button := MenuButtonScript.new(face, base, icon)
+	button.text = key
+	button.pressed.connect(on_pressed)
+	add_child(button)
+	_buttons.append(button)
+	return button
+
+
+## The buttons at the splash's places, or five a little closer when Continue is shown.
+func _layout_buttons() -> void:
+	var shown: Array[Button] = []
+	for button in _buttons:
+		if button.visible:
+			shown.append(button)
+	var tops: Array = BUTTON_TOPS if shown.size() <= BUTTON_TOPS.size() else BUTTON_TOPS_WITH_CONTINUE
+	var height := BUTTON_HEIGHT if shown.size() <= BUTTON_TOPS.size() else BUTTON_HEIGHT_WITH_CONTINUE
+	for i in shown.size():
+		place(shown[i], Rect2(BUTTON_X, tops[i], BUTTON_WIDTH, height), true)
+
+
+## The title and subtitle as large as fit (Portuguese is longer), down to 70% of its size.
+func _fit_title() -> void:
+	var fitted := Ui.fit_font_size(Ui.FONT_HEAVY, tr("MENU_TITLE"), TITLE_FONT_SIZE, TITLE_RECT.size.x - 24.0)
+	_title.add_theme_font_size_override("font_size", maxi(fitted, int(TITLE_FONT_SIZE * 0.7)))
+	fitted = Ui.fit_font_size(Ui.FONT_HEAVY, tr("MENU_SUBTITLE"), SUBTITLE_FONT_SIZE, SUBTITLE_RECT.size.x - 8.0)
+	_subtitle.add_theme_font_size_override("font_size", maxi(fitted, int(SUBTITLE_FONT_SIZE * 0.7)))
+
+
+## The backdrop follows the column, and the outside is dimmed while a page is open.
 func _process(_delta: float) -> void:
-	if _ground == null:
+	if _backdrop == null:
 		return
-	var rect := get_global_rect()
-	_ground.centre = Vector2(rect.get_center().x, rect.position.y + GROUND_TOP + 10.0)
-	_sky.horizon_y = _ground.horizon()
+	_backdrop.column_rect = get_global_rect()
 	_outside_dim.amount = DIM_COLOR.a if (_avatars_page.visible or _about_page.visible) else 0.0
 
 
@@ -203,7 +268,8 @@ func _refresh() -> void:
 	_continue_button.visible = not avatar.is_empty()
 	if not avatar.is_empty():
 		_continue_button.text = "%s\n%s" % [tr("MENU_CONTINUE"), summary_text(avatar)]
-	_show_avatar(_avatar, avatar)
+	_layout_buttons()
+	_fit_title()
 	if _avatars_page.visible:
 		_build_cards()
 

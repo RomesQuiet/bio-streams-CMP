@@ -15,7 +15,7 @@ const LIGHT := Color("#ffe7a0")
 
 
 ## Draws the icon `kind` ("heart", "gear", "pause", "play", "exercise", "sleep", "eat",
-## "entertainment", "jump" (an arrow up, the sky-jump button, Milestone 35), or a request: "tired", "hungry", "fast_food", "healthy", "screens", "football").
+## "entertainment", "jump" (an arrow up, the sky-jump button, Milestone 35), the main menu's "person_add", "people", "upload" and "info" (Milestone 40), or a request: "tired", "hungry", "fast_food", "healthy", "screens", "football").
 ## color is used by the one-colour icons (gear, pause, play, runner, bed, cutlery, screen).
 static func draw(canvas: CanvasItem, kind: String, centre: Vector2, box: float, color := Ui.ICON_INK) -> void:
 	canvas.draw_set_transform(centre, 0.0, Vector2.ONE * box / 100.0)
@@ -48,6 +48,14 @@ static func draw(canvas: CanvasItem, kind: String, centre: Vector2, box: float, 
 			_ball(canvas)
 		"jump":
 			_jump_arrow(canvas, color)
+		"person_add":
+			_person_add(canvas, color)
+		"people":
+			_people(canvas, color)
+		"upload":
+			_upload(canvas, color)
+		"info":
+			_info(canvas, color)
 	canvas.draw_set_transform(Vector2.ZERO)
 
 
@@ -207,3 +215,42 @@ static func _ball(canvas: CanvasItem) -> void:
 		for j in 5:
 			side.append(out * 30.0 + Vector2.from_angle(TAU * j / 5.0 + out.angle()) * 6.0)
 		fill(canvas, side, Ui.INK)
+
+
+# --- The main menu's icons (Milestone 40, the team's splash screen) ----------------------------
+
+## A person with a plus: New avatar.
+static func _person_add(canvas: CanvasItem, color: Color) -> void:
+	_circle(canvas, Vector2(-14, -20), 17.0, color)
+	_box(canvas, Rect2(-46, 2, 64, 38), 18.0, color)
+	_box(canvas, Rect2(18, -22, 34, 9), 4.0, color)
+	_box(canvas, Rect2(30.5, -34, 9, 34), 4.0, color)
+
+
+## Three people: the avatars.
+static func _people(canvas: CanvasItem, color: Color) -> void:
+	for side in [-1.0, 1.0]:
+		_circle(canvas, Vector2(34 * side, -12), 12.0, color)
+		_box(canvas, Rect2(34 * side - 19, 4, 38, 30), 13.0, color)
+	_circle(canvas, Vector2(0, -18), 16.0, color)
+	_box(canvas, Rect2(-27, 2, 54, 38), 17.0, color)
+
+
+## A cloud with an arrow up: Load a backup.
+static func _upload(canvas: CanvasItem, color: Color) -> void:
+	var width := 8.0
+	canvas.draw_arc(Vector2(-26, 10), 18.0, PI * 0.5, PI * 1.55, 16, color, width, true)
+	canvas.draw_arc(Vector2(0, -6), 26.0, PI * 1.12, PI * 1.95, 18, color, width, true)
+	canvas.draw_arc(Vector2(28, 10), 18.0, PI * 1.45, PI * 2.5, 16, color, width, true)
+	Ui.draw_round_line(canvas, Vector2(-26, 28), Vector2(-12, 28), color, width)
+	Ui.draw_round_line(canvas, Vector2(12, 28), Vector2(28, 28), color, width)
+	Ui.draw_round_line(canvas, Vector2(0, 42), Vector2(0, 2), color, width)
+	Ui.draw_round_line(canvas, Vector2(0, 0), Vector2(-13, 13), color, width)
+	Ui.draw_round_line(canvas, Vector2(0, 0), Vector2(13, 13), color, width)
+
+
+## An "i" in a circle: About.
+static func _info(canvas: CanvasItem, color: Color) -> void:
+	canvas.draw_arc(Vector2.ZERO, 40.0, 0.0, TAU, 48, color, 7.0, true)
+	_circle(canvas, Vector2(0, -20), 6.5, color)
+	Ui.draw_round_line(canvas, Vector2(0, -3), Vector2(0, 22), color, 10.0)

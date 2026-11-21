@@ -46,6 +46,23 @@ const SHADOW_COLOR := Color(0.05, 0.07, 0.25, 0.28)
 ## How much the screen is darkened while a panel covers it.
 const DIM_COLOR := Color(0.04, 0.05, 0.16, 0.6)
 
+## Milestone 40: the main menu (the team's splash screen, 21 Nov 2026; colours read from its
+## pixels). Each menu button: its face and its darker thickness.
+const MENU_NEW_FACE := Color("#a9f0e0")
+const MENU_NEW_BASE := Color("#3ad3b7")
+const MENU_AVATARS_FACE := Color("#b3e0ff")
+const MENU_AVATARS_BASE := Color("#4eacf4")
+const MENU_BACKUP_FACE := Color("#dec0fc")
+const MENU_BACKUP_BASE := Color("#a283fa")
+const MENU_ABOUT_FACE := Color("#fbc1da")
+const MENU_ABOUT_BASE := Color("#f986bf")
+## Continue is not in the splash screen; it keeps the entertainment gold (Claude's choice).
+const MENU_CONTINUE_FACE := Color("#ffe385")
+const MENU_CONTINUE_BASE := Color("#e6b94a")
+## The title's outline and shadow, and the chosen half of the language switch.
+const MENU_TITLE_OUTLINE := Color("#20236c")
+const MENU_TOGGLE_ON := Color("#d2e3fd")
+
 # --- Sizes (pixels at the 720 x 1280 reference) ----------------------------------------------
 
 const BORDER_THIN := 2.0
