@@ -312,7 +312,7 @@ func _test_strength_set() -> void:
 	_start_strength("normal")
 	_check("the session starts at set 1, waiting for the first press", minigame.is_waiting() and minigame.sets_started == 1)
 	_check("the avatar's repetitions and sets", minigame.set_reps == 9 and minigame.sets_goal == 2)
-	_check("the Muscle bar starts rested", absf(minigame.reserve - gs.strength_recovery) < TOLERANCE)
+	_check("the Strength bar starts rested", absf(minigame.reserve - gs.strength_recovery) < TOLERANCE)
 	minigame.press(false)
 	_check("Up first does not start it", minigame.is_waiting())
 	minigame.press(true)
@@ -372,11 +372,11 @@ func _test_strength_technique() -> void:
 	for i in 3:
 		_repetition(0.5)
 	_check("rushing is poor technique", minigame.rhythm < 0.5)
-	_check("rushing tires the muscles faster", (1.0 - minigame.reserve) > steady * 1.5)
+	_check("rushing tires strength faster", (1.0 - minigame.reserve) > steady * 1.5)
 	activities.stop()
 
 
-## Milestone 13, Task 2: tired muscles end a set early (decision 34), and it lowers the score.
+## Milestone 13, Task 2: tired strength end a set early (decision 34), and it lowers the score.
 func _test_strength_tiring() -> void:
 	_start_strength("normal")
 	gs.strength_recovery = 0.4
@@ -657,7 +657,7 @@ func _test_strength_screen(main: Node, settings: Node) -> void:
 	var up: Button = main.up_button
 	_check("strength: Down and Up in place of the tap button", main.strength_buttons.visible and not main.cardio_panel.visible)
 	_check("the stop slot is back for strength", main.stop_button.get_parent().visible)
-	_check("the bar is the Muscle bar", main.reserve_label.text == "Muscle")
+	_check("the bar is the Strength bar", main.reserve_label.text == "Strength")
 	_check("only the expected button is enabled", not down.disabled and up.disabled)
 	# Milestone 20: done for real, on trust.
 	_check("it asks for the first press, done for real", main.minigame_status.text == "Do each one for real!")
@@ -693,7 +693,7 @@ func _test_strength_screen(main: Node, settings: Node) -> void:
 	_check("while resting, the squat_up picture", main.exercise_picture.texture.resource_path.ends_with(_pic(main, "child_male/squat_up")))
 	settings.set_language("pt")
 	main._refresh_minigame()
-	_check("the texts change language", main.minigame_status.text == "A descansar" and main.reserve_label.text == "Músculo"
+	_check("the texts change language", main.minigame_status.text == "A descansar" and main.reserve_label.text == "Força"
 			and main.minigame_steps.text.begins_with("Repetições:"))
 	settings.set_language("en")
 	minigame.sets_goal = 1
@@ -704,7 +704,7 @@ func _test_strength_screen(main: Node, settings: Node) -> void:
 	activities.stop()
 	main._end_flash()
 	activities.start("exercise", "strength")
-	_check("too soon: the avatar warns", main.speech_label.text == "My muscles still need rest.")
+	_check("too soon: the avatar warns", main.speech_label.text == "My strength still needs rest.")
 	_check("...and the player can still play", minigame.running and activities.is_running())
 	activities.stop()
 	# Sit-ups rest lying down: situp_down before the first press, situp_up after UP.
@@ -725,10 +725,11 @@ func _test_meal_screen(main: Node) -> void:
 			and not main.avatar.visible and main.exercise_picture.texture.resource_path.ends_with(_pic(main, "child_male/eat_closed")))
 	_check("the dock band covers the width from the stage's bottom", main.dock_band.visible
 			and is_equal_approx(main.dock_band.global_position.y, main.dock_band.get_parent().get_global_rect().end.y))
-	var mouth: Vector2 = main.exercise_picture.get_global_transform() * Vector2(250.0, 500.0 * 0.45)
+	var mouth_share: float = main.avatar.art_data()["sheets"]["child_male"]["eat_mouth_y"]
+	var mouth: Vector2 = main.exercise_picture.get_global_transform() * Vector2(250.0, 500.0 * mouth_share)
 	main._refresh_meal()
 	var aim: Vector2 = main.meal_fork.get_global_transform() * main.meal_fork.mouth
-	_check("the fork aims at the picture's mouth (x 360, y 515 on a 1280 screen)", aim.distance_to(mouth) < 0.5)
+	_check("the fork aims at the picture's mouth (x 360, the sheet's eat_mouth_y)", aim.distance_to(mouth) < 0.5)
 	main._mouth_open_until = Time.get_ticks_msec() + 250
 	main._refresh_minigame()
 	_check("after a bite the mouth is open", main.exercise_picture.texture.resource_path.ends_with(_pic(main, "child_male/eat_open")))
@@ -744,27 +745,27 @@ func _test_meal_screen(main: Node) -> void:
 	activities.stop()
 	gs.age_group = "child"
 	main._refresh()
-	# The team's updated zip (22 Nov 2026): the activity pictures in three body sizes.
-	_check("Normal starts overweight: the fuller body's pictures", main.avatar.body_name() == "overweight"
-			and main.avatar.activity_suffix() == "_full")
+	# The team's activity sheets (22 Nov 2026): one activity picture per body.
+	_check("Normal starts overweight: the overweight body's pictures", main.avatar.body_name() == "overweight"
+			and main.avatar.activity_suffix() == "_overweight")
 	var looks: Dictionary = main.avatar.states.duplicate()
 	main.avatar.states = {"thin": true}
 	activities.start("exercise", "strength")
 	main._refresh_minigame()
-	_check("a thin avatar's squats show the slim body", main.exercise_picture.visible
-			and main.exercise_picture.texture.resource_path.ends_with("child_male/squat_up_slim.png"))
+	_check("a thin avatar's squats show the thin body", main.exercise_picture.visible
+			and main.exercise_picture.texture.resource_path.ends_with("child_male/squat_up_thin.png"))
 	activities.stop()
 	main.avatar.states = {"muscular": true}
 	activities.start("exercise", "cardio")
 	main._refresh_minigame()
-	_check("a muscular avatar runs with the medium body", main.exercise_picture.visible
-			and main.exercise_picture.texture.resource_path.ends_with("child_male/run_left.png"))
+	_check("a muscular avatar runs with the muscular body", main.exercise_picture.visible
+			and main.exercise_picture.texture.resource_path.ends_with("child_male/run_left_muscular.png"))
 	activities.stop()
 	main.avatar.states = looks
 	main._refresh()
 
 
-## The picture's path for the avatar's body size ("<name>_full.png", "<name>.png", "<name>_slim.png").
+## The picture's path for the avatar's body ("<name>_overweight.png" and the others).
 func _pic(main: Node, name: String) -> String:
 	return name + main.avatar.activity_suffix() + ".png"
 

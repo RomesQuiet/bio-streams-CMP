@@ -197,6 +197,16 @@ The user asked to fix the rows with a description on the right; the user chose t
 - `tools/render_ui_states.gd`: new state g (the video game, 1.2 s into a run).
 - Checked: headless start without errors; `minigame_test` (three new checks: Normal is overweight and uses the fuller pictures, a thin avatar's squats are slim, a muscular one runs with the medium body), `avatar_art_test`, `scenery_test`, `menu_test`, `translation_test`, `sky_test`, `interface_test` ALL PASSED; rendered S, K, R, U (teenager), g, and M at 720 x 1280, 960 x 1280 and 1600 x 900.
 
+### The team's activity sheets (user, 22 Nov 2026: "replace all the activity/minigame sprites", the zip `261122a.zip`)
+
+Eight sheets in a new, simpler style (the standing avatar's style): for each character an activity sheet (8 rows: run_left, run_right, squat_up, squat_down, situp_up, situp_down, pushup_down, pushup_up) and an eating sheet (eat_open, eat_closed, and a bed under them), each row with the **five bodies** (obese, overweight, healthy, thin, muscular). Saved in `assets/art/avatar/source/activity/<character>_activity.png` and `_eat.png` (not imported, `.gdignore`).
+- **One picture per body now** (it replaces the three sizes above): `<name>_<body>.png`, for example `run_left_obese.png`; `avatar.activity_suffix()` is `"_" + body_name()`, and `activity_builds` is removed from `data/avatar_art.json`. A muscular avatar now has its own muscular pictures.
+- `tools/cut_activity_sheets.py` cuts the sheets onto the canvases the game already uses (so the rects in `main.gd` did not change): one scale per sheet, so the healthy body standing is as tall as the medium body was (child_male and teen_female a little smaller, so every figure fits its canvas), each figure kept in its place in its cell, the feet on the old feet line. The eating pictures are scaled so the healthy one is as tall as the old one, on the old bottom. Imported as lossy WebP (0.85) with mipmaps, like before. The figures are upscaled about 4 times from the sheets (the team's sheets are 1122 x 1402), so they are a little softer than the old pictures.
+- `eat_mouth_y` follows the new pictures (found by the tool, the healthy body's open mouth): child_male 0.382, child_female 0.414, teen_male 0.328, teen_female 0.352. The other bodies are within 0.01.
+- **Not replaced yet (user):** the sleeping pictures (`bed.png`, the beds in the eating sheets) and the standing avatar (`<body>_<face>.png`).
+- The old activity pictures (`<name>.png`, `_full`, `_slim`) are deleted (they are in the git history).
+- Checked: headless start without errors; `minigame_test` (the body checks now ask for `_overweight`, `_thin` and `_muscular`; the fork test reads `eat_mouth_y` from the data instead of 0.45), `avatar_art_test`, `scenery_test` ALL PASSED; rendered R, S, K, U and V at 720 x 1280. Not committed.
+
 ## Where Milestone 40 stands
 
 All 12 changes are done (7 skipped by the user), plus the splash screen. Each was committed alone. **Not pushed, and not to be published** until the team confirms that the image tool's terms allow CC BY 4.0 (`documentation/ui_v2/licence.md`); the web build in `docs/` was not exported again. Open for the user: Done always enabled (change 2), the cardio status not shown (change 4), how Wake up works (change 8), whether `documentation/ui_v2/work/` should be committed (the old pictures in `documentation/ui_v2/assets/` were moved to the Trash by the user's request, 22 Nov 2026: the game's copies are in `assets/art/`). Not checked on a real phone.
@@ -204,3 +214,8 @@ All 12 changes are done (7 skipped by the user), plus the splash screen. Each wa
 ## Contradictions found (to ask before the change they touch)
 
 - **Change 7 (screen time) and Milestone 35.** `changes.md` was written for Screens as plain screen time (Q1: "decision 54 stays open"; a room, the tablet picture, a screen-time bar, Keep watching and Take a break). Since Milestone 35 Screens is the "Video game" with its own Cloud jump screen (decision 54 is answered by decisions 103 to 108). **The user chose "Skip change 7" (21 Nov 2026):** the video game stays as it is; the screen-time dock of change 2 and the keys `SCREEN_*` are not added; `tablet.png` and the side table, plant and lamp are not used for now.
+
+
+## After Milestone 40: no screen-time penalty (decision 109, 22 Nov 2026)
+
+The user asked to remove the screen penalty and give a very small boost instead. Done: `scripts/health/happiness.gd` has no `screen_excess()` and no baseline term; `data/config.json` loses `mood.baseline.screen_excess`, `mood.screen_excess_from_min` and `mood.screen_excess_range_min` and gains `mood.events.screens_after_cap_per_h` (0.005 per hour, placeholder); the debug panel, the CSV log (`screen_excess` column gone) and `tests/parity_test.gd` follow. `tests/happiness_test.gd` checks the boost; it still has its two Milestone 27 failures (guideline happiness, switches end in the same place).

@@ -66,7 +66,7 @@ func _test_v1_groups(config: Node) -> void:
 			and not config._data.has("thresholds") and not config._data["xp"].has("gain_per_avatar_hour"))
 	_check("a placeholder status counts as a placeholder", config.is_placeholder("sleep.debt_ref_h") and not config.is_placeholder("body.k"))
 	var activities: Node = root.get_node("Activities")
-	_check("METy: cardio 7.0, muscle strength 5.0 (Milestone 10, replaces kcal_per_hour)",
+	_check("METy: cardio 7.0, strength 5.0 (Milestone 10, replaces kcal_per_hour)",
 			activities.option_value(activities.get_option("exercise", "cardio"), "mety") == 7.0
 			and activities.option_value(activities.get_option("exercise", "strength"), "mety") == 5.0)
 	_check("alpha_bar is kept at 0.37 (decision 1)", is_equal_approx(config.get_float("health.alpha_bar"), 0.37))

@@ -105,7 +105,7 @@ func _test_too_soon_and_beyond_capacity() -> void:
 
 
 ## Milestone 10.5 (team review): a strength session that starts less than train.strength_min_gap_h
-## (36 h) after the start of the previous one is too soon, even when the muscles have recovered
+## (36 h) after the start of the previous one is too soon, even when strength has recovered
 ## past train.strength_ready (0.6, reached about 23 h after a full session).
 func _test_minimum_gap() -> void:
 	var gap: float = root.get_node("Config").get_float("train.strength_min_gap_h")
@@ -115,7 +115,7 @@ func _test_minimum_gap() -> void:
 	_steps(23.0)
 	print("  24 h after the last start: recovery %.2f (ready at 0.60), %.1f h since that start (gap %.0f h)"
 			% [gs.strength_recovery, gs.hours_since_strength, gap])
-	_check("24 h later the muscles have recovered past 0.6", gs.strength_recovery >= 0.6)
+	_check("24 h later strength has recovered past 0.6", gs.strength_recovery >= 0.6)
 	var effective_before: float = training.effective_minutes("strength")
 	var overreach_before: float = gs.overreach
 	_play_activity("exercise", "strength", 1.0)

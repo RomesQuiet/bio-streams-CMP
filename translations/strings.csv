@@ -47,7 +47,7 @@ SPEECH_LEVEL_UP,Level up! Level %d,Subiste de nível! Nível %d
 SPEECH_SLEPT_AWAY,%s slept %d h %02d min while you were away.,%s dormiu %d h %02d min enquanto estiveste fora.
 SPEECH_PROGRESS_MINUTES,%s (%d of %d min),%s (%d de %d min)
 SPEECH_GAVE_UP,"You stopped tapping, so I stopped.","Deixaste de tocar, por isso parei."
-SPEECH_TOO_SOON,My muscles still need rest.,Os meus músculos ainda precisam de descanso.
+SPEECH_TOO_SOON,My strength still needs rest.,A minha força ainda precisa de descanso.
 SPEECH_SLEPT,"I slept %s h. Press play, by the clock, to start the day.","Dormi %s h. Carrega em continuar, junto ao relógio, para começar o dia."
 SLEEP_INFO,%s h of sleep (%d real min)\nNext day: %s h (%s real min),%s h de sono (%d min reais)\nPróximo dia: %s h (%s min reais)
 SLEEP_AT_MOST,At most %s h now.,No máximo %s h agora.
@@ -65,7 +65,7 @@ MINIGAME_BREATH,Breath,Fôlego
 MINIGAME_STEPS,Steps: %d / %d,Passos: %d / %d
 MINIGAME_DOWN,Down,Baixar
 MINIGAME_UP,Up,Subir
-MINIGAME_MUSCLE,Muscle,Músculo
+MINIGAME_STRENGTH,Strength,Força
 MINIGAME_RESTING,Resting,A descansar
 MINIGAME_SET,Set %d of %d,Série %d de %d
 MINIGAME_SET_EXTRA,Extra set %d,Série extra %d

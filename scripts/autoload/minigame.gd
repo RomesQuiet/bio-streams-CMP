@@ -7,7 +7,7 @@ extends Node
 ## running, faster above the interval, and at 0 the avatar walks until it has partly refilled.
 ## Strength (decisions 31 to 38): Down then Up is one repetition. Rhythm: the technique, each
 ## press in turn at a controlled pace. Pace: repetitions done of those planned. The reserve
-## (Muscle) falls with each repetition, faster when rushing; a set ends at its repetitions or
+## (Strength) falls with each repetition, faster when rushing; a set ends at its repetitions or
 ## with the reserve empty, and the avatar rests. More sets follow until the time ends.
 ## Football (decisions 39 to 46): a match (football_match.gd) that the player steers. Rhythm: the
 ## timing of passes, shots and tackles. Pace: the share of recent time the avatar kept moving.
@@ -74,7 +74,7 @@ var waiting := false
 var walking := false
 ## Strength: true during the rest between sets.
 var resting := false
-## The fatigue of the session, 0 to 1: the Breath or Muscle bar.
+## The fatigue of the session, 0 to 1: the Breath or Strength bar.
 var reserve := 1.0
 ## Share of the last strides or presses on the beat, 0 to 1.
 var rhythm := 1.0
@@ -529,7 +529,7 @@ func _record_run(score: int) -> void:
 	sky_run_ended.emit(score, best)
 
 
-## Up finished a repetition. The set ends at its repetitions or when the muscles are tired: the
+## Up finished a repetition. The set ends at its repetitions or when strength is tired: the
 ## avatar never trains to failure.
 func _finish_repetition() -> void:
 	strides += 1

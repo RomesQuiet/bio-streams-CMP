@@ -7,10 +7,12 @@ extends RefCounted
 ## how fast happiness gets there; a slower time constant alone would make every hourly event
 ## stronger.
 ## Baseline = base + physical x Physical + sleep x Sleep + diet x Q + fun x Fun - deficit x U
-## - screen_excess x screen excess - overreach x O, from 0 to 1.
+## - overreach x O, from 0 to 1. There is no screen-time penalty (user, 22 Nov 2026): v1's
+## screen excess term is removed.
 ## - Fun = the minutes of the last 24 avatar hours of football x 1.0, screens x 0.6 (only the
 ##   first 120 minutes of each day) and exercise x 0.3, divided by 90, at most 1.
-## - Screen excess = (screen minutes in the last 24 avatar hours - 120) / 120, from 0 to 1.
+## - Screens beyond the first 120 minutes of the day give a very small boost instead
+##   (mood.events.screens_after_cap_per_h), never a loss.
 ## Events (mood.events): meals, starting exercise (it does not want to), exercise within or
 ## beyond the daily capacity, football, screens, 4 awake hours without screens (a wish
 ## refused), being hungry while awake, waking up (night quality) and being kept awake while
@@ -42,18 +44,13 @@ static func fun() -> float:
 	return clampf(window_minutes / Config.get_float("mood.fun.full_at_min"), 0.0, 1.0)
 
 
-static func screen_excess() -> float:
-	var minutes := HourWindow.total(GameState.fun_window, GameState.sim_hours, SCREENS)
-	return clampf((minutes - Config.get_float("mood.screen_excess_from_min")) / Config.get_float("mood.screen_excess_range_min"), 0.0, 1.0)
-
-
 static func baseline() -> float:
 	var gs := GameState
 	var path := "mood.baseline."
 	return clampf(Config.get_float(path + "base") + Config.get_float(path + "physical") * gs.physical
 			+ Config.get_float(path + "sleep") * gs.sleep + Config.get_float(path + "diet") * gs.diet_quality
 			+ Config.get_float(path + "fun") * fun() - Config.get_float(path + "deficit") * gs.deficit_u
-			- Config.get_float(path + "screen_excess") * screen_excess() - Config.get_float(path + "overreach") * gs.overreach,
+			- Config.get_float(path + "overreach") * gs.overreach,
 			0.0, 1.0)
 
 
@@ -75,6 +72,8 @@ static func step(hours: float, asleep: bool) -> void:
 			gs.screen_minutes_today += minutes
 			HourWindow.add(gs.fun_window, gs.sim_hours, FUN, counted * Config.get_float("mood.fun.screens"))
 			change += Config.get_float(events + "screens_per_h") * counted / Config.get_float("units.minutes_per_hour")
+			# Beyond the daily cap: a very small boost, never a loss (user, 22 Nov 2026).
+			change += Config.get_float(events + "screens_after_cap_per_h") * (minutes - counted) / Config.get_float("units.minutes_per_hour")
 		"exercise":
 			HourWindow.add(gs.fun_window, gs.sim_hours, FUN, minutes * Config.get_float("mood.fun.exercise"))
 			var beyond := minf(gs.beyond_capacity_minutes_step, minutes)

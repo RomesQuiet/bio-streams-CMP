@@ -178,7 +178,6 @@ func _record_step(result: Dictionary, hours: float, asleep: bool) -> void:
 		"diet": _config.get_float(path + "diet") * gs.diet_quality,
 		"fun": _config.get_float(path + "fun") * happiness_script.fun(),
 		"deficit": -_config.get_float(path + "deficit") * gs.deficit_u,
-		"screen_excess": -_config.get_float(path + "screen_excess") * happiness_script.screen_excess(),
 		"overreach": -_config.get_float(path + "overreach") * gs.overreach,
 	}
 	for key in parts:
@@ -287,7 +286,7 @@ func _print_difference_1(parity: Dictionary, player: Dictionary, meals: Dictiona
 ## events, which are what keeps happiness away from its baseline).
 func _print_difference_2(parity: Dictionary, football: Dictionary, screens_2h: Dictionary) -> void:
 	print("\n=== Difference 2: happiness over days %d to %d, parity run (v1 happiness at day 21 in brackets) ===" % [SHORT - LAST_DAYS, SHORT])
-	print("Baseline = 0.15 + Physical + Sleep + diet + fun parts - deficit - screen excess - overreaching; events = happiness - baseline.")
+	print("Baseline = 0.15 + Physical + Sleep + diet + fun parts - deficit - overreaching; events = happiness - baseline.")
 	print("The hunger penalty is the share of it from being hungry while awake (0.05 per hour, kept for about 12 h).")
 	var rows := {}
 	for scenario in HAPPINESS_ROWS:
@@ -302,10 +301,10 @@ func _print_difference_2(parity: Dictionary, football: Dictionary, screens_2h: D
 		var scenario: String = key.split(" (")[0]
 		var hungry_rate: float = r.get("late_hungry_hours", 0.0) / maxf(r.get("late_hours", 0.0), TOLERANCE) \
 				* _config.get_float("mood.events.hungry_per_h")
-		print("  %-38s happiness %.2f (v1 %.2f)  baseline %.2f = Physical %.2f + Sleep %.2f + diet %.2f + fun %.2f %+.2f deficit %+.2f screens %+.2f overreaching;  events %+.2f, of which hunger about %+.2f" % [
+		print("  %-38s happiness %.2f (v1 %.2f)  baseline %.2f = Physical %.2f + Sleep %.2f + diet %.2f + fun %.2f %+.2f deficit %+.2f overreaching;  events %+.2f, of which hunger about %+.2f" % [
 				(TITLES[scenario].left(30) + key.substr(scenario.length())).left(38), _late(r, "happiness"), V1[scenario][6],
 				_late(r, "baseline"), _late(r, "physical"), _late(r, "sleep"), _late(r, "diet"), _late(r, "fun"), _late(r, "deficit"),
-				_late(r, "screen_excess"), _late(r, "overreach"), _late(r, "happiness") - _late(r, "baseline"),
+				_late(r, "overreach"), _late(r, "happiness") - _late(r, "baseline"),
 				hungry_rate * _config.get_float("mood.tau_h")])
 
 

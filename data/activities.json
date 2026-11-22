@@ -32,7 +32,7 @@
 				"scenery": "street",
 				"animation": "cardio",
 				"placeholder": true,
-				"comment": "Cardio spends more energy than muscle strength. Fitness and strength are trained every step (config.json: train; v1 Step 6)."
+				"comment": "Cardio spends more energy than strength. Fitness and strength are trained every step (config.json: train; v1 Step 6)."
 			},
 			"strength": {
 				"name": "ACTIVITY_SQUATS",

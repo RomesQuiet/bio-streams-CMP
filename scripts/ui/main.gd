@@ -8,7 +8,7 @@ const MENU_SCENE := "res://scenes/ui/menu.tscn"
 const MINIGAME_PANEL_HEIGHT := 256.0
 ## Milestone 40 (documentation/ui_v2/changes.md, change 2): the activity dock of squats, push-ups,
 ## sit-ups and meals. The panel is 362 high, so the stage ends at y 790 and the feet are at y 730;
-## each row's top, from the panel's top (y 886): the info line, the Muscle bar, the timing bar
+## each row's top, from the panel's top (y 886): the info line, the Strength bar, the timing bar
 ## (or the Tummy bar) and the two big buttons (faces 176 high and a thickness of 8).
 const DOCK_HEIGHT := 362.0
 const DOCK_STRENGTH_TOPS := [0.0, 36.0, 74.0, 146.0]
@@ -75,7 +75,7 @@ const OPTION_ICONS := {"cardio": "exercise", "strength": "squat", "push_ups": "p
 const MENU_TITLES := {"exercise": "EXERCISE_CHOOSE", "entertainment": "ENTERTAINMENT_CHOOSE"}
 const MENU_ICONS := {"exercise": "exercise", "entertainment": "controller"}
 ## The pictures are in the sheet's folder (data/avatar_art.json): "<folder>/<name><body>.png",
-## with the body size's ending (avatar.activity_suffix(); the bed has one size only).
+## with the body's ending (avatar.activity_suffix(), "_healthy" and the others; the bed has one only).
 const ART_PICTURE := "%s/%s%s.png"
 ## During an activity the balloon's top is at y 208 of the column (changes.md, rule 8).
 const SPEECH_TOP_IN_ACTIVITY := 208.0
@@ -155,7 +155,7 @@ const SPEECH_GAP_UNDER_CAPSULE := 8.0
 @onready var physical_bar: ProgressBar = %PhysicalBar
 @onready var values_panel: PanelContainer = %ValuesPanel
 @onready var calories_label: Label = %CaloriesLabel
-@onready var muscle_label: Label = %MuscleLabel
+@onready var strength_label: Label = %StrengthLabel
 @onready var fitness_label: Label = %FitnessLabel
 @onready var weight_label: Label = %WeightLabel
 @onready var height_label: Label = %HeightLabel
@@ -746,7 +746,7 @@ func _on_sleep_button_pressed() -> void:
 	sleep_panel.show()
 
 
-## Opens the list of options of an activity (cardio and muscle strength for exercise), built
+## Opens the list of options of an activity (cardio and strength for exercise), built
 ## from data/activities.json. The player first chooses the minutes on the slider, then clicks
 ## the option; meals have no slider because their portions are fixed.
 func _open_options(activity_id: String) -> void:
@@ -963,7 +963,7 @@ func _refresh_minigame() -> void:
 	minigame_panel.custom_minimum_size.y = DOCK_HEIGHT if (strength or meal) else (cardio_panel.HEIGHT if cardio \
 			else (football_panel.HEIGHT if football else MINIGAME_PANEL_HEIGHT))
 	_layout_dock(strength, meal)
-	reserve_label.text = tr("MINIGAME_MUSCLE" if strength else "MINIGAME_BREATH")
+	reserve_label.text = tr("MINIGAME_STRENGTH" if strength else "MINIGAME_BREATH")
 	reserve_bar.value = Minigame.reserve
 	if football:
 		_refresh_football()
@@ -1365,7 +1365,7 @@ func _refresh() -> void:
 	sleep_label.text = tr("MEASURE_SLEEP_DEBT") % Settings.number(SleepModel.effective_debt(), 1)
 	sleep_need_bar.value = minf(1.0, GameState.sleep_need / SleepModel.day_need(GameState.age_group))
 	calories_label.text = tr("MEASURE_CALORIES") % roundi(GameState.calories_spent)
-	muscle_label.text = tr("MEASURE_STRENGTH") % Settings.number(GameState.strength, 2)
+	strength_label.text = tr("MEASURE_STRENGTH") % Settings.number(GameState.strength, 2)
 	fitness_label.text = tr("MEASURE_FITNESS") % Settings.number(GameState.fitness, 2)
 	weight_label.text = tr("MEASURE_WEIGHT") % Settings.number(GameState.weight_kg, 1)
 	height_label.text = tr("MEASURE_HEIGHT") % (GameState.height_m * Config.get_float("units.cm_per_m"))

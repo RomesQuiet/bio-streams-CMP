@@ -94,7 +94,7 @@ var last_sleep_hours: float
 var beyond_capacity_minutes_step := 0.0
 ## kcal spent in the last 5-minute step (not saved; worked out again every step).
 var energy_spent_step := 0.0
-## Muscle strength, 0 to 1 (v1 Step 6; called muscle before Milestone 10). Trained every step
+## Strength, 0 to 1 (v1 Step 6; called muscle before Milestone 10). Trained every step
 ## by Training from strength sessions (and a little from cardio).
 var strength: float
 ## Total kcal spent by exercise so far (not limited to 1). A record only.

@@ -60,8 +60,8 @@ func _refresh() -> void:
 	lines.append("  calories spent while exercising (record) %.0f kcal%s" % [gs.calories_spent,
 			"  strength session started too soon" if gs.strength_too_soon and Activities.is_running() else ""])
 	lines.append("Diet  quality Q %.2f  craving C %.2f  habituation A %.2f" % [gs.diet_quality, gs.craving, gs.habituation])
-	lines.append("Happiness %.3f -> baseline %.3f  fun %.2f  screen excess %.2f" % [gs.happiness, gs.happiness_baseline,
-			Happiness.fun(), Happiness.screen_excess()])
+	lines.append("Happiness %.3f -> baseline %.3f  fun %.2f" % [gs.happiness, gs.happiness_baseline,
+			Happiness.fun()])
 	lines.append("Measures")
 	lines.append("  physical %.3f  happiness %.3f  sleep %.3f" % [gs.physical, gs.happiness, gs.sleep])
 	lines.append("Health target %.2f  displayed %.2f (level %d)" % [gs.target_health, gs.health, gs.health_level])

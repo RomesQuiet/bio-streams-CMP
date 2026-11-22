@@ -2,7 +2,7 @@ extends SceneTree
 ## Tests for diet and happiness (Milestone 10, Task 7; v1 Steps 7 and 10). Run from the project folder:
 ##   Godot --headless --path . -s res://tests/happiness_test.gd
 ## Checks how Q, C and A move with each meal, the meal, exercise, screens, hunger and waking
-## events, fun, screen excess and the baseline, and then plays v1 scenarios for 21 avatar days
+## events, fun, the screens boost after the cap and the baseline, and then plays v1 scenarios for 21 avatar days
 ## through the real game: the guideline plan reaches happiness near 1, and, starting with a
 ## fast-food craving of 0.9, an abrupt switch to healthy food drops happiness lower than a
 ## gradual switch over a week. Uses a test save path; the real save is never touched.
@@ -133,16 +133,29 @@ func _test_baseline() -> void:
 	gs = _new_avatar("normal")
 	for i in 4:
 		_play_activity("entertainment", "screens", 1.0)
-	print("  4 h of screens: fun %.2f (only the first 120 min count: 120 x 0.6 / 90 = 0.8), screen excess %.2f (1.0)"
-			% [happiness.fun(), happiness.screen_excess()])
+	print("  4 h of screens: fun %.2f (only the first 120 min count: 120 x 0.6 / 90 = 0.8)" % happiness.fun())
 	_check("only the first 2 h of screens count for fun", absf(happiness.fun() - 0.8) < 0.01)
-	_check("4 h of screens: screen excess 1", absf(happiness.screen_excess() - 1.0) < 0.01)
+	# Screens beyond the cap: a very small boost, never a loss (user, 22 Nov 2026).
+	var config: Node = root.get_node("Config")
+	var boost: float = config.get_float("mood.events.screens_after_cap_per_h")
+	_check("screens after 2 h give a small boost (0 < boost < screens_per_h)", boost > 0.0
+			and boost < config.get_float("mood.events.screens_per_h"))
+	var held: float = gs.happiness
+	gs.happiness_baseline = held
+	gs.screen_minutes_today = 300.0
+	gs.hunger = 0.0
+	activities.start("entertainment", "screens", 1.0)
+	var expected: float = held + boost * (1.0 / 12.0) * config.get_float("mood.speed")
+	happiness.step(1.0 / 12.0, false)
+	activities.stop()
+	expected += (gs.happiness_baseline - expected) * (1.0 - exp(-(1.0 / 12.0) * config.get_float("mood.speed") / config.get_float("mood.tau_h")))
+	_check("a step of screens after the cap adds the small boost", absf(gs.happiness - expected) < 1e-6)
 	gs.deficit_u = 1.0
 	gs.overreach = 1.0
 	var low: float = happiness.baseline()
 	gs.deficit_u = 0.0
 	gs.overreach = 0.0
-	_check("U, O and screen excess lower the baseline by 0.2 + 0.1", absf(happiness.baseline() - low - 0.3) < TOLERANCE)
+	_check("U and O lower the baseline by 0.2 + 0.1 (no screen penalty)", absf(happiness.baseline() - low - 0.3) < TOLERANCE)
 	_check("a meal is still logged while the Eat activity runs", activities.can_start("eat"))
 
 

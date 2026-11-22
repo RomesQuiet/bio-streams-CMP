@@ -99,7 +99,7 @@ func _test_day_activity(activities: Node, game_state: Node, clock: Node) -> void
 	activities.definitions.erase("test_play")
 
 
-## Cardio and muscle strength add calories spent (a record only) by the values in
+## Cardio and strength add calories spent (a record only) by the values in
 ## data/activities.json. Milestone 10: the calories-spent record is the energy spent while
 ## exercising (BMR / 24 x mety, every 5-minute step). Stop halfway counts half.
 func _test_exercise(activities: Node, game_state: Node, clock: Node) -> void:
