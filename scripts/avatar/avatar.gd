@@ -200,11 +200,7 @@ func mouth_point() -> Vector2:
 ## (data/avatar_art.json). Weight wins over muscles; asleep, tired and sad win over happy.
 func frame() -> Vector2i:
 	var art := art_data()
-	var body := "healthy"
-	for state in ["obese", "overweight", "thin", "muscular"]:
-		if states.get(state, false):
-			body = state
-			break
+	var body := body_name()
 	var face := "neutral"
 	if eyes_closed:
 		face = "asleep"
@@ -215,6 +211,22 @@ func frame() -> Vector2i:
 	elif states.get("happy", false):
 		face = "happy"
 	return Vector2i(art["columns"].find(body), art["rows"].find(face))
+
+
+## The body for the current states: weight wins over muscles.
+func body_name() -> String:
+	for state in ["obese", "overweight", "thin", "muscular"]:
+		if states.get(state, false):
+			return state
+	return "healthy"
+
+
+## The team's updated zip (22 Nov 2026): the activity pictures come in three body sizes. The end
+## of their file name for the current body: "_full", "" (the medium one) or "_slim"
+## (data/avatar_art.json, "activity_builds").
+func activity_suffix() -> String:
+	var build := str(art_data().get("activity_builds", {}).get(body_name(), ""))
+	return "" if build.is_empty() else "_" + build
 
 
 ## Whether the art is drawn (otherwise the egg).

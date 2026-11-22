@@ -606,8 +606,8 @@ func _test_screen() -> void:
 	main._refresh_minigame()
 	_check("cardio: the cardio panel, and the stop slot above it hidden", main.cardio_panel.visible
 			and not main.stop_button.get_parent().visible and not main.minigame_status.get_parent().visible)
-	_check("run_01 while waiting, in the avatar's place", main.exercise_picture.visible and not main.avatar.visible
-			and main.exercise_picture.texture.resource_path.ends_with("child_male/run_01.png"))
+	_check("the first running picture while waiting, in the avatar's place", main.exercise_picture.visible and not main.avatar.visible
+			and main.exercise_picture.texture.resource_path.ends_with(_pic(main, "child_male/run_left")))
 	var stood_still: bool = main.avatar.hop_offset == 0.0 and main.avatar._animation == null
 	_check("the avatar stands still while it waits", stood_still)
 	main.get_node("%TapButton").button_down.emit()
@@ -618,7 +618,7 @@ func _test_screen() -> void:
 	_check("the steps are shown", main.minigame_steps.text == "Steps: 2 / %d" % minigame.steps_goal())
 	_check("the panel shows the steps and the minutes", main.cardio_panel.steps_text == "2 / %d" % minigame.steps_goal()
 			and main.cardio_panel.minutes_text.begins_with("0 / ") and main.cardio_panel.minutes_text.ends_with(" min"))
-	_check("each tap shows the next running picture", main.exercise_picture.texture.resource_path.ends_with("child_male/run_02.png"))
+	_check("each tap shows the next running picture", main.exercise_picture.texture.resource_path.ends_with(_pic(main, "child_male/run_right")))
 	var space := InputEventKey.new()
 	space.keycode = KEY_SPACE
 	space.pressed = true
@@ -666,7 +666,7 @@ func _test_strength_screen(main: Node, settings: Node) -> void:
 	_check("Down leaves the avatar art still", main.avatar.has_art() and main.avatar.scale == Vector2.ONE)
 	# Milestone 40, change 3: the exercise's pictures take the avatar's place.
 	_check("after DOWN the squat_down picture replaces the avatar", main.exercise_picture.visible and not main.avatar.visible
-			and main.exercise_picture.texture.resource_path.ends_with("child_male/squat_down.png"))
+			and main.exercise_picture.texture.resource_path.ends_with(_pic(main, "child_male/squat_down")))
 	_check("its rect is the table's: feet on y 730", is_equal_approx(main.exercise_picture.offset_bottom, 745.0 - 790.0)
 			and is_equal_approx(main.exercise_picture.offset_left, 195.0 - 24.0))
 	_check("the set is shown", main.minigame_status.text == "Set 1 of %d" % minigame.sets_goal)
@@ -675,7 +675,7 @@ func _test_strength_screen(main: Node, settings: Node) -> void:
 	up.button_down.emit()
 	main._refresh_minigame()
 	_check("the repetitions are shown", main.minigame_steps.text == "Repetitions: 1 / %d" % minigame.set_reps)
-	_check("after UP the squat_up picture", main.exercise_picture.texture.resource_path.ends_with("child_male/squat_up.png"))
+	_check("after UP the squat_up picture", main.exercise_picture.texture.resource_path.ends_with(_pic(main, "child_male/squat_up")))
 	var key := InputEventKey.new()
 	key.pressed = true
 	key.keycode = KEY_DOWN
@@ -690,7 +690,7 @@ func _test_strength_screen(main: Node, settings: Node) -> void:
 	_play_set(1.0)
 	main._refresh_minigame()
 	_check("the rest is shown, with both buttons off", main.minigame_status.text == "Resting" and down.disabled and up.disabled)
-	_check("while resting, the squat_up picture", main.exercise_picture.texture.resource_path.ends_with("child_male/squat_up.png"))
+	_check("while resting, the squat_up picture", main.exercise_picture.texture.resource_path.ends_with(_pic(main, "child_male/squat_up")))
 	settings.set_language("pt")
 	main._refresh_minigame()
 	_check("the texts change language", main.minigame_status.text == "A descansar" and main.reserve_label.text == "Músculo"
@@ -710,7 +710,7 @@ func _test_strength_screen(main: Node, settings: Node) -> void:
 	# Sit-ups rest lying down: situp_down before the first press, situp_up after UP.
 	activities.start("exercise", "sit_ups")
 	main._refresh_minigame()
-	_check("sit-ups: situp_down before the first press", main.exercise_picture.texture.resource_path.ends_with("child_male/situp_down.png"))
+	_check("sit-ups: situp_down before the first press", main.exercise_picture.texture.resource_path.ends_with(_pic(main, "child_male/situp_down")))
 	activities.stop()
 	main._refresh_minigame()
 	_check("after the exercise the avatar is back", main.avatar.visible and not main.exercise_picture.visible)
@@ -722,7 +722,7 @@ func _test_meal_screen(main: Node) -> void:
 	activities.start("eat", "healthy_meal")
 	main._refresh_minigame()
 	_check("meal: the eating picture with the mouth closed, in the avatar's place", main.exercise_picture.visible
-			and not main.avatar.visible and main.exercise_picture.texture.resource_path.ends_with("child_male/eat_closed.png"))
+			and not main.avatar.visible and main.exercise_picture.texture.resource_path.ends_with(_pic(main, "child_male/eat_closed")))
 	_check("the dock band covers the width from the stage's bottom", main.dock_band.visible
 			and is_equal_approx(main.dock_band.global_position.y, main.dock_band.get_parent().get_global_rect().end.y))
 	var mouth: Vector2 = main.exercise_picture.get_global_transform() * Vector2(250.0, 500.0 * 0.45)
@@ -731,7 +731,7 @@ func _test_meal_screen(main: Node) -> void:
 	_check("the fork aims at the picture's mouth (x 360, y 515 on a 1280 screen)", aim.distance_to(mouth) < 0.5)
 	main._mouth_open_until = Time.get_ticks_msec() + 250
 	main._refresh_minigame()
-	_check("after a bite the mouth is open", main.exercise_picture.texture.resource_path.ends_with("child_male/eat_open.png"))
+	_check("after a bite the mouth is open", main.exercise_picture.texture.resource_path.ends_with(_pic(main, "child_male/eat_open")))
 	activities.stop()
 	main._refresh_minigame()
 	_check("after the meal the band and the picture go", not main.dock_band.visible and not main.exercise_picture.visible)
@@ -740,10 +740,33 @@ func _test_meal_screen(main: Node) -> void:
 	activities.start("exercise", "push_ups")
 	main._refresh_minigame()
 	_check("a teenager's pictures come from teen_male", main.exercise_picture.visible
-			and main.exercise_picture.texture.resource_path.ends_with("teen_male/pushup_up.png"))
+			and main.exercise_picture.texture.resource_path.ends_with(_pic(main, "teen_male/pushup_up")))
 	activities.stop()
 	gs.age_group = "child"
 	main._refresh()
+	# The team's updated zip (22 Nov 2026): the activity pictures in three body sizes.
+	_check("Normal starts overweight: the fuller body's pictures", main.avatar.body_name() == "overweight"
+			and main.avatar.activity_suffix() == "_full")
+	var looks: Dictionary = main.avatar.states.duplicate()
+	main.avatar.states = {"thin": true}
+	activities.start("exercise", "strength")
+	main._refresh_minigame()
+	_check("a thin avatar's squats show the slim body", main.exercise_picture.visible
+			and main.exercise_picture.texture.resource_path.ends_with("child_male/squat_up_slim.png"))
+	activities.stop()
+	main.avatar.states = {"muscular": true}
+	activities.start("exercise", "cardio")
+	main._refresh_minigame()
+	_check("a muscular avatar runs with the medium body", main.exercise_picture.visible
+			and main.exercise_picture.texture.resource_path.ends_with("child_male/run_left.png"))
+	activities.stop()
+	main.avatar.states = looks
+	main._refresh()
+
+
+## The picture's path for the avatar's body size ("<name>_full.png", "<name>.png", "<name>_slim.png").
+func _pic(main: Node, name: String) -> String:
+	return name + main.avatar.activity_suffix() + ".png"
 
 
 ## The team's task list (21 Nov 2026): the rating pop-up after a minigame.

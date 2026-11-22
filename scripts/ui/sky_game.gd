@@ -1,7 +1,9 @@
 extends Control
 ## Milestone 35: the screens minigame on screen, a video game in a screen with a navy frame. A
-## dinosaur (simple shapes, not pixels) runs over clouds in a day sky; faint clouds far behind move
-## slower. The score and the avatar's best are at the top right. Before a run and after it ends a
+## dinosaur runs over clouds in a day sky; faint clouds far behind move slower. The team's updated
+## zip (22 Nov 2026): the dinosaur, the clouds and the flat sky colour are the team's pictures
+## (assets/art/videogame/, loaded once in _ready, never while drawing); a cloud of any width is
+## the small cloud's left end, its middle hump once or more, and its right end. The score and the avatar's best are at the top right. Before a run and after it ends a
 ## card shows what to do, the score and the best scores of every avatar on this device; while the day
 ## is paused a banner says so (Jump does nothing then). Only the
 ## look: the run is scripts/health/sky_run.gd, played through the Minigame autoload.
@@ -11,16 +13,26 @@ const SkyRun := preload("res://scripts/health/sky_run.gd")
 
 const FRAME := 10.0
 const FRAME_RADIUS := 22.0
-const SKY_TOP := Color("#59b8f5")
-const SKY_BOTTOM := Color("#cdeeff")
-const CLOUD := Color(1, 1, 1)
-const CLOUD_SHADE := Color("#d6e6f7")
+## The team's sky (videogame/cenario/ceu.png is this one flat colour).
+const SKY := Color("#3aa8fd")
 const FAR_CLOUD := Color(1, 1, 1, 0.38)
 const SUN := Color("#fff2b0")
-const DINO := Color("#3fae62")
-const DINO_DARK := Color("#2c8a4b")
-const DINO_BELLY := Color("#a6e3a1")
-const EYE := Color(1, 1, 1)
+const PICTURES := "res://assets/art/videogame/%s.png"
+## The four dinosaur pictures share one canvas: the standing feet are at DINO_ANCHOR (a share of
+## the picture's size), and standing it is DINO_STAND_SHARE of the picture's height tall (the
+## run's dino_height).
+const DINO_FRAMES := ["dino_idle", "dino_run_1", "dino_run_2", "dino_jump"]
+const DINO_ANCHOR := Vector2(0.5016, 0.9677)
+const DINO_STAND_SHARE := 0.9287
+## Running, the picture changes every this share of dino_width.
+const DINO_STRIDE := 0.6
+## The small cloud, cut in three where its top dips beside the middle hump (shares of the
+## picture's width); the dips are the cloud's top (where the dinosaur stands), the picture's
+## bottom is the cloud's underside (cloud_thickness below the top).
+const CLOUD_CUTS := Vector2(0.2716, 0.7257)
+const CLOUD_TOP_SHARE := 0.3172
+## The far clouds: the team's medium and large clouds, this tall (a share of the screen).
+const FAR_HEIGHT := Vector2(0.06, 0.1)
 const CARD := Color(0.137, 0.165, 0.431, 0.94)
 const GOLD := Color("#ffd84a")
 ## Where the dinosaur's back is, as a share of the screen's width.
@@ -44,9 +56,16 @@ var _screen: Control
 var _last_score := 0
 var _last_best := false
 var _time := 0.0
+var _dino: Array[Texture2D] = []
+var _cloud: Texture2D
+var _far: Array[Texture2D] = []
 
 
 func _ready() -> void:
+	for name in DINO_FRAMES:
+		_dino.append(load(PICTURES % name))
+	_cloud = load(PICTURES % "cloud_small")
+	_far = [load(PICTURES % "cloud_medium"), load(PICTURES % "cloud_large")]
 	_screen = Control.new()
 	_screen.clip_contents = true
 	_screen.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -82,8 +101,7 @@ func _draw() -> void:
 
 func _draw_screen() -> void:
 	var area := _screen.size
-	_screen.draw_polygon(PackedVector2Array([Vector2.ZERO, Vector2(area.x, 0), area, Vector2(0, area.y)]),
-			PackedColorArray([SKY_TOP, SKY_TOP, SKY_BOTTOM, SKY_BOTTOM]))
+	_screen.draw_rect(Rect2(Vector2.ZERO, area), SKY)
 	if run == null:
 		return
 	var scale_y := area.y / Config.get_float("minigame.sky.view_height")
@@ -113,61 +131,53 @@ func _draw_far_clouds(camera: float, scale_y: float) -> void:
 	for i in range(first, first + ceili(area.x / scale_y / FAR_SPACING) + 3):
 		var height := fposmod(sin(i * 12.9898) * 43758.5453, 1.0)
 		var centre := Vector2((i * FAR_SPACING - far) * scale_y, area.y * (0.25 + 0.45 * height))
-		var radius := area.y * (0.035 + 0.02 * height)
-		for puff in [Vector2(-1.3, 0.3), Vector2(0, 0), Vector2(1.2, 0.25), Vector2(0.4, 0.45)]:
-			_screen.draw_circle(centre + puff * radius, radius, FAR_CLOUD, true, -1.0, true)
+		var texture: Texture2D = _far[posmod(i, _far.size())]
+		var tall := area.y * lerpf(FAR_HEIGHT.x, FAR_HEIGHT.y, height)
+		var wide := tall * texture.get_width() / texture.get_height()
+		_screen.draw_texture_rect(texture, Rect2(centre - Vector2(wide, tall) * 0.5, Vector2(wide, tall)), false, FAR_CLOUD)
 
 
-## A cloud: a flat top to stand on, puffy sides and a shaded underside.
+## A cloud: rect is its collision box (the top to stand on, cloud_thickness tall). The picture
+## is as tall as makes its dips the top and its bottom the underside; the left end and the right
+## end keep their shape, the middle hump is repeated to fill the width, a little wider or narrower.
 func _draw_cloud(rect: Rect2) -> void:
-	var radius := rect.size.y * 0.5
-	var body := Ui.rounded_rect_points(rect, minf(radius, rect.size.x * 0.5))
-	_screen.draw_colored_polygon(body, CLOUD_SHADE)
-	var upper := Rect2(rect.position, Vector2(rect.size.x, rect.size.y * 0.62))
-	_screen.draw_colored_polygon(Ui.rounded_rect_points(upper, minf(upper.size.y * 0.5, rect.size.x * 0.5)), CLOUD)
-	var puffs := maxi(2, roundi(rect.size.x / (radius * 1.6)))
-	for i in puffs:
-		var t := (i + 0.5) / puffs
-		var puff := radius * (0.55 + 0.15 * sin(i * 2.3))
-		_screen.draw_circle(Vector2(rect.position.x + rect.size.x * t, rect.position.y + puff * 0.45), puff, CLOUD, true, -1.0, true)
+	var size_px := Vector2(_cloud.get_width(), _cloud.get_height())
+	var tall := rect.size.y / (1.0 - CLOUD_TOP_SHARE)
+	var top := rect.position.y - tall * CLOUD_TOP_SHARE
+	var per_px := tall / size_px.y
+	var left := CLOUD_CUTS.x * size_px.x
+	var right := (1.0 - CLOUD_CUTS.y) * size_px.x
+	var middle := size_px.x - left - right
+	var room := maxf(rect.size.x - (left + right) * per_px, 0.0)
+	var humps := maxi(1, roundi(room / (middle * per_px)))
+	var hump := room / humps if room > 0.0 else middle * per_px
+	# A cloud narrower than its two ends: everything is narrowed alike.
+	var squeeze := minf(1.0, rect.size.x / ((left + right) * per_px + hump * humps))
+	var x := rect.position.x
+	_screen.draw_texture_rect_region(_cloud, Rect2(x, top, left * per_px * squeeze, tall), Rect2(0, 0, left, size_px.y))
+	x += left * per_px * squeeze
+	for i in humps:
+		_screen.draw_texture_rect_region(_cloud, Rect2(x, top, hump * squeeze, tall), Rect2(left, 0, middle, size_px.y))
+		x += hump * squeeze
+	_screen.draw_texture_rect_region(_cloud, Rect2(x, top, right * per_px * squeeze, tall), Rect2(left + middle, 0, right, size_px.y))
 
 
-## The dinosaur in its box (back, feet, width, height), drawn from shapes in a 0-1 box (u right,
-## v up). Legs move while it runs; crosses for eyes after a crash.
+## The dinosaur in its box (back, feet, width, height): the team's pictures, standing before the
+## first jump, its two running steps in turn on a cloud, the jump in the air (and falling).
 func _draw_dino(camera: float, scale_y: float) -> void:
 	var area := _screen.size
-	var origin := Vector2(_screen_x(run.x, camera, scale_y), area.y - run.y * scale_y)
-	var box := Vector2(Config.get_float("minigame.sky.dino_width"), Config.get_float("minigame.sky.dino_height")) * scale_y
-	var at := func(u: float, v: float) -> Vector2: return origin + Vector2(u * box.x, -v * box.y)
-	var crashed: bool = run.state == SkyRun.State.FALLING or (run.state == SkyRun.State.OVER and run.run_seconds > 0.0)
-	# Tail.
-	_screen.draw_colored_polygon(PackedVector2Array([at.call(0.0, 0.62), at.call(0.34, 0.66), at.call(0.34, 0.38)]), DINO)
-	# Legs: they swing while running on a cloud.
-	var swing := 0.0
+	var feet := Vector2(_screen_x(run.x + Config.get_float("minigame.sky.dino_width") * 0.5, camera, scale_y),
+			area.y - run.y * scale_y)
+	var which := 0
 	if run.state == SkyRun.State.RUNNING and run.grounded:
-		swing = sin(run.distance / Config.get_float("minigame.sky.dino_width") * 2.2) * 0.12
-	var leg_width := box.x * 0.13
-	Ui.draw_round_line(_screen, at.call(0.4, 0.3), at.call(0.4 + swing, 0.04), DINO_DARK, leg_width)
-	Ui.draw_round_line(_screen, at.call(0.58, 0.3), at.call(0.58 - swing, 0.04), DINO_DARK, leg_width)
-	# Body and belly.
-	_screen.draw_colored_polygon(Ui.ellipse_points(at.call(0.48, 0.47), Vector2(0.27, 0.22) * box), DINO)
-	_screen.draw_colored_polygon(Ui.ellipse_points(at.call(0.52, 0.4), Vector2(0.16, 0.1) * box), DINO_BELLY)
-	# Neck and head.
-	_screen.draw_colored_polygon(PackedVector2Array([at.call(0.58, 0.58), at.call(0.7, 0.86), at.call(0.82, 0.78),
-			at.call(0.74, 0.5)]), DINO)
-	_screen.draw_colored_polygon(Ui.rounded_rect_points(Rect2(at.call(0.6, 1.0), Vector2(0.4, 0.24) * box), box.y * 0.08), DINO)
-	# Arm.
-	Ui.draw_round_line(_screen, at.call(0.72, 0.5), at.call(0.84, 0.42), DINO_DARK, box.x * 0.07)
-	# Eye and mouth.
-	var eye: Vector2 = at.call(0.8, 0.9)
-	var eye_radius := box.x * 0.055
-	if crashed:
-		for d in [Vector2(1, 1), Vector2(1, -1)]:
-			_screen.draw_line(eye - d * eye_radius, eye + d * eye_radius, Ui.INK, box.x * 0.03, true)
-	else:
-		_screen.draw_circle(eye, eye_radius, EYE, true, -1.0, true)
-		_screen.draw_circle(eye + Vector2(eye_radius * 0.3, 0), eye_radius * 0.5, Ui.INK, true, -1.0, true)
-	_screen.draw_line(at.call(0.84, 0.81), at.call(0.98, 0.81), DINO_DARK, box.x * 0.025, true)
+		var stride := Config.get_float("minigame.sky.dino_width") * DINO_STRIDE
+		which = 1 + posmod(floori(run.distance / stride), 2)
+	elif run.state != SkyRun.State.READY and not run.grounded:
+		which = 3
+	var texture: Texture2D = _dino[which]
+	var tall := Config.get_float("minigame.sky.dino_height") * scale_y / DINO_STAND_SHARE
+	var picture := Vector2(tall * texture.get_width() / texture.get_height(), tall)
+	_screen.draw_texture_rect(texture, Rect2(feet - picture * DINO_ANCHOR, picture), false)
 
 
 ## The score at the top right, and the avatar's best before it.

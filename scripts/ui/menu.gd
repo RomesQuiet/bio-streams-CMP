@@ -1,9 +1,10 @@
 extends Control
 ## The main menu (Milestone 18, user, 7 Nov 2026): the first screen. Continue (the avatar played
 ## last), New avatar, Avatars (save.slots places: play, back up, delete), Load a backup, About
-## and the language. Since Milestone 40 it has the look of the team's splash screen (a sunset and
-## night sky, four figures on a hill, coloured buttons with icons, a PT/EN switch); the music comes
-## later.
+## and the language. Since Milestone 40 it has the look of the team's splash screen (coloured
+## buttons with icons, a PT/EN switch); since the team's updated zip (22 Nov 2026) its background
+## is the team's picture, with the four figures on the hill (scripts/ui/menu_backdrop.gd); the
+## music comes later.
 ## Every text is a translation key.
 
 const MAIN_SCENE := "res://scenes/main.tscn"
@@ -50,22 +51,13 @@ func _notification(what: int) -> void:
 # --- Layout ----------------------------------------------------------------------------------
 
 ## Milestone 40: the team's splash screen (21 Nov 2026), measured from its 900 x 1600 picture and
-## scaled to the 720 x 1280 column: the title and subtitle, the four figures on the hill, four
-## buttons and the language switch. Rects are [x, y, w, h]; "B" ones keep their distance from the
+## scaled to the 720 x 1280 column: the title and subtitle, four buttons and the language switch
+## (the figures on the hill are in the background picture). Rects are [x, y, w, h]; "B" ones keep their distance from the
 ## bottom of the screen (the buttons), the others their distance from the top.
 const TITLE_RECT := Rect2(24, 96, 672, 80)
 const TITLE_FONT_SIZE := 64
 const SUBTITLE_RECT := Rect2(16, 182, 688, 34)
 const SUBTITLE_FONT_SIZE := 24
-## Each figure: its picture, its rect, and the shadow under it (centre, radii). The splash's group:
-## a boy, a girl with obesity, a girl and a boy asleep in bed (the team's art, healthy bodies; the
-## running and apple poses of the splash have no picture, so the standing ones are used).
-const FIGURES := [
-	["res://assets/art/avatar/child_male/healthy_happy.png", Rect2(32.5, 388, 175, 238.5), Vector2(120, 626), Vector2(60, 9)],
-	["res://assets/art/avatar/teen_female/obese_sad.png", Rect2(177, 357, 198, 270), Vector2(275, 626), Vector2(64, 10)],
-	["res://assets/art/avatar/child_female/healthy_happy.png", Rect2(318, 339, 211, 288), Vector2(422, 626), Vector2(56, 9)],
-	["res://assets/art/avatar/teen_male/bed.png", Rect2(474, 415, 196, 227), Vector2(572, 640), Vector2(96, 10)],
-]
 const BUTTON_X := 90.0
 const BUTTON_WIDTH := 540.0
 ## Without Continue: the four buttons of the splash (faces 86 high and a 6-pixel thickness).
@@ -100,8 +92,6 @@ func _build() -> void:
 	# behind it (Milestone 25, decision 87).
 	Ui.make_column(self)
 	_backdrop = MenuBackdrop.new()
-	for figure in FIGURES:
-		_backdrop.shadows.append([figure[2], figure[3]])
 	add_child(_backdrop)
 	_title = _label("MENU_TITLE", TITLE_FONT_SIZE)
 	_title.add_theme_font_override("font", Ui.FONT_HEAVY)
@@ -127,14 +117,6 @@ func _build() -> void:
 	subtitle.autowrap_mode = TextServer.AUTOWRAP_OFF
 	place(subtitle, SUBTITLE_RECT)
 	add_child(subtitle)
-	for figure in FIGURES:
-		var picture := TextureRect.new()
-		picture.texture = load(figure[0])
-		picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		picture.stretch_mode = TextureRect.STRETCH_SCALE
-		picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		place(picture, figure[1])
-		add_child(picture)
 	_home = VBoxContainer.new()
 	_home.set_anchors_preset(PRESET_FULL_RECT)
 	_home.mouse_filter = Control.MOUSE_FILTER_IGNORE

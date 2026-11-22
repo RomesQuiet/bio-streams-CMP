@@ -38,6 +38,7 @@ const STATES := {
 	"I": ["I_canteen_fast", 10 * 60, 3.0, 250.0],
 	"p": ["p_feedback_popup", 12 * 60, 3.7, 250.0],
 	"H": ["H_measures_sleep", 18 * 60, 3.0, 250.0],
+	"g": ["g_video_game", 15 * 60, 3.0, 250.0],
 }
 
 
@@ -109,6 +110,8 @@ func _run() -> void:
 		"Z", "Y":
 			gs.hours_awake = 6.0
 			activities.start("sleep", "sleep", 8.0)
+		"g":
+			activities.start("entertainment", "screens", 0.5)
 		"H":
 			gs.sleep_debt = 2.4
 			gs.sleep_need = 3.75
@@ -146,6 +149,13 @@ func _run() -> void:
 		root.get_node("Minigame").press(true)
 	if letter == "H":
 		main._toggle_health_panel()
+	if letter == "g":
+		# A run 1.2 s in: the dinosaur runs on the first cloud, the next ones ahead
+		# (the team's pictures, 22 Nov 2026).
+		var minigame: Node = root.get_node("Minigame")
+		minigame.jump(true)
+		minigame.jump(false)
+		minigame.run.advance(1.2)
 	await _save(out, state[0])
 
 

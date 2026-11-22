@@ -32,9 +32,11 @@ const EXERCISE_PICTURES := {
 	"sit_ups": ["situp_down", "situp_up", "situp_down", Rect2(130, 374, 460, 360)],
 }
 const EXERCISE_STAGE_BOTTOM := 790.0
-## Change 4: the running pictures, seen from behind, a new frame at each tap (run_01 while
-## waiting), at 80% on the street: the feet on y 684, 60 above the stage's bottom at y 744.
-const RUN_FRAMES := ["run_01", "run_02", "run_03", "run_04", "run_05"]
+## Change 4: the running pictures, seen from behind, a new frame at each tap (the first while
+## waiting), at 80% on the street: the feet on y 684, 60 above the stage's bottom at y 744. The
+## team's updated zip (22 Nov 2026): two frames, the left foot up and the right foot up, in turn
+## (the five frames of the first zip are gone).
+const RUN_FRAMES := ["run_left", "run_right"]
 const RUN_RECT := Rect2(228, 336, 264, 360)
 const RUN_STAGE_BOTTOM := 744.0
 ## Change 6: the meal: the avatar seated at a table, mouth closed, open for 0.25 s after each bite;
@@ -72,8 +74,9 @@ const OPTION_ICONS := {"cardio": "exercise", "strength": "squat", "push_ups": "p
 		"screens": "controller", "football": "football"}
 const MENU_TITLES := {"exercise": "EXERCISE_CHOOSE", "entertainment": "ENTERTAINMENT_CHOOSE"}
 const MENU_ICONS := {"exercise": "exercise", "entertainment": "controller"}
-## The pictures are in the sheet's folder (data/avatar_art.json): "<folder>/<name>.png".
-const ART_PICTURE := "%s/%s.png"
+## The pictures are in the sheet's folder (data/avatar_art.json): "<folder>/<name><body>.png",
+## with the body size's ending (avatar.activity_suffix(); the bed has one size only).
+const ART_PICTURE := "%s/%s%s.png"
 ## During an activity the balloon's top is at y 208 of the column (changes.md, rule 8).
 const SPEECH_TOP_IN_ACTIVITY := 208.0
 ## The food on the fork in the meal minigame.
@@ -1101,7 +1104,7 @@ func _layout_dock(strength: bool, meal: bool) -> void:
 
 
 ## Change 3: during squats, push-ups and sit-ups the avatar is replaced by the exercise's
-## pictures (the healthy body for every body, Q8): the "down" one after DOWN, the "up" one after UP,
+## pictures (in the avatar's body size since the team's updated zip): the "down" one after DOWN, the "up" one after UP,
 ## and the resting one before the first press and while resting. Change 4: the running pictures
 ## in cardio; change 6: the eating pictures in a meal. Returns whether one is shown.
 func _refresh_exercise_picture() -> bool:
@@ -1118,11 +1121,12 @@ func _refresh_exercise_picture() -> bool:
 	# The bed picture has its own blanket (change 8).
 	blanket.visible = not sleeping
 	var names: Array = RUN_FRAMES if running else (EAT_FRAMES if eating else (BED_FRAMES if sleeping else EXERCISE_PICTURES[option].slice(0, 3)))
-	var key := "%s|%s" % [avatar.sheet, "cardio" if running else ("meal" if eating else ("sleep" if sleeping else option))]
+	var suffix: String = "" if sleeping else avatar.activity_suffix()
+	var key := "%s|%s|%s" % [avatar.sheet, "cardio" if running else ("meal" if eating else ("sleep" if sleeping else option)), suffix]
 	if not _exercise_textures.has(key):
 		_exercise_textures.clear()
 		for i in names.size():
-			var path := ART_PICTURE % [avatar.art_folder(), names[i]]
+			var path := ART_PICTURE % [avatar.art_folder(), names[i], suffix]
 			_exercise_textures[i] = load(path) if ResourceLoader.exists(path) else null
 		_exercise_textures[key] = true
 		var rect: Rect2 = RUN_RECT if running else (EAT_RECT if eating else (BED_RECT if sleeping else EXERCISE_PICTURES[option][3]))
