@@ -199,7 +199,7 @@ The user asked to fix the rows with a description on the right; the user chose t
 
 ## Where Milestone 40 stands
 
-All 12 changes are done (7 skipped by the user), plus the splash screen. Each was committed alone. **Not pushed, and not to be published** until the team confirms that the image tool's terms allow CC BY 4.0 (`documentation/ui_v2/licence.md`); the web build in `docs/` was not exported again. Open for the user: Done always enabled (change 2), the cardio status not shown (change 4), how Wake up works (change 8), whether `documentation/ui_v2/assets/` and `work/` should be committed. Not checked on a real phone.
+All 12 changes are done (7 skipped by the user), plus the splash screen. Each was committed alone. **Not pushed, and not to be published** until the team confirms that the image tool's terms allow CC BY 4.0 (`documentation/ui_v2/licence.md`); the web build in `docs/` was not exported again. Open for the user: Done always enabled (change 2), the cardio status not shown (change 4), how Wake up works (change 8), whether `documentation/ui_v2/work/` should be committed (the old pictures in `documentation/ui_v2/assets/` were moved to the Trash by the user's request, 22 Nov 2026: the game's copies are in `assets/art/`). Not checked on a real phone.
 
 ## Contradictions found (to ask before the change they touch)
 
