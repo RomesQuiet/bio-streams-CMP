@@ -207,6 +207,13 @@ Eight sheets in a new, simpler style (the standing avatar's style): for each cha
 - The old activity pictures (`<name>.png`, `_full`, `_slim`) are deleted (they are in the git history).
 - Checked: headless start without errors; `minigame_test` (the body checks now ask for `_overweight`, `_thin` and `_muscular`; the fork test reads `eat_mouth_y` from the data instead of 0.45), `avatar_art_test`, `scenery_test` ALL PASSED; rendered R, S, K, U and V at 720 x 1280. Not committed.
 
+### Boxes with 4 numbers on the buttons (user, 22 Nov 2026)
+
+The buttons showed boxes with a hex code (2190, 2191, 2193, 25B6, 2715) in the web build. Those characters (← ↑ ↓ ▶ ✕) are not in the Nunito font, and the browser has no other font to fall back on. On the Mac the system fonts filled the gap, so nobody saw it there. Fixed:
+- `scripts/ui/dock_button.gd` now draws its symbols: `prefix` is a symbol's name ("play", "cross", "back"), drawn before the word, and the key chip draws `chip_arrow` ("down", "up") before its letter. Used in `main.gd` (Cancel and Start in the menus, the Down and Up chips), `creation.gd` (Start, Back) and `canteen.gd` (Back, Cancel, Continue). The XP level's arrow was already drawn.
+- `tests/translation_test.gd` checks that every text in `strings.csv` and every character in the scripts' code (not their comments) is in Nunito. It fails on the old code.
+- Checked: `translation_test`, `interface_test`, `minigame_test`, `creation_test`, `menu_test` ALL PASSED; rendered K, O, T and N; the web build exported again and the creation screen checked in the browser.
+
 ## Where Milestone 40 stands
 
 All 12 changes are done (7 skipped by the user), plus the splash screen. Each was committed alone. **Not pushed, and not to be published** until the team confirms that the image tool's terms allow CC BY 4.0 (`documentation/ui_v2/licence.md`); the web build in `docs/` was not exported again. Open for the user: Done always enabled (change 2), the cardio status not shown (change 4), how Wake up works (change 8), whether `documentation/ui_v2/work/` should be committed (the old pictures in `documentation/ui_v2/assets/` were moved to the Trash by the user's request, 22 Nov 2026: the game's copies are in `assets/art/`). Not checked on a real phone.

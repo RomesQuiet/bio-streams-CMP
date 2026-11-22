@@ -123,7 +123,7 @@ func _build_plate() -> void:
 		place.size = SLOT
 		place.pressed.connect(remove_at.bind(i))
 		plate_row.add_child(place)
-	back_button = _plate_button("CANTEEN_BACK", "←  ", Ui.SLEEP_COLOR, Ui.SLEEP_BASE, BACK_RECT)
+	back_button = _plate_button("CANTEEN_BACK", "back", Ui.SLEEP_COLOR, Ui.SLEEP_BASE, BACK_RECT)
 	back_button.pressed.connect(show_kind.bind(""))
 	eat_button = _plate_button("CANTEEN_EAT", "", Ui.MINIGAME_UP_COLOR, Ui.MINIGAME_UP_BASE, EAT_RECT)
 	eat_button.pressed.connect(_on_eat)
@@ -186,9 +186,9 @@ func _build_choice() -> void:
 	fast_button = _card(Canteen.FAST_FOOD, "CANTEEN_FAST", "EAT_FAST_SUB", FAST_CARD)
 	skip_button = _choice_button("UI_SKIP_MEAL", "", false)
 	skip_button.pressed.connect(_on_skip)
-	cancel_button = _choice_button("UI_CANCEL", "✕  ", false)
+	cancel_button = _choice_button("UI_CANCEL", "cross", false)
 	cancel_button.pressed.connect(close)
-	continue_button = _choice_button("UI_CONTINUE", "▶  ", true)
+	continue_button = _choice_button("UI_CONTINUE", "play", true)
 	continue_button.pressed.connect(func() -> void: show_kind(chosen_kind))
 
 

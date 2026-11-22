@@ -143,7 +143,7 @@ func _style_screen() -> void:
 	start_button.word_centred = true
 	start_button.word_x = start_button.size.x * 0.5
 	start_button.word_y = (start_button.size.y - 8.0) * 0.5
-	start_button.prefix = "▶  "
+	start_button.prefix = "play"
 	var back: Button = %BackButton
 	back.face = Ui.SLEEP_COLOR
 	back.base = Ui.SLEEP_BASE
@@ -152,7 +152,7 @@ func _style_screen() -> void:
 	back.word_centred = true
 	back.word_x = back.size.x * 0.5
 	back.word_y = (back.size.y - 8.0) * 0.5
-	back.prefix = "←  "
+	back.prefix = "back"
 
 
 ## Touch screens in a browser: the name field never takes focus (so Godot does not open its

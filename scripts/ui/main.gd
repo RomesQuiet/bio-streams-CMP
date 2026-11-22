@@ -832,7 +832,7 @@ func _style_options_buttons() -> void:
 		button.word_centred = true
 		button.word_x = OPTIONS_BUTTON_SIZE.x * 0.5
 		button.word_y = OPTIONS_BUTTON_FACE * 0.5
-		button.prefix = "▶  " if start else "✕  "
+		button.prefix = "play" if start else "cross"
 
 
 func _on_option_chosen(activity_id: String, option_id: String) -> void:
@@ -1267,7 +1267,8 @@ func _style_strength_buttons() -> void:
 		button.word_size = 40
 		button.word_x = 162.0
 		button.word_y = 68.0
-		button.chip = ("↓  S" if down else "↑  W") if keys else ""
+		button.chip = ("S" if down else "W") if keys else ""
+		button.chip_arrow = "down" if down else "up"
 		button.chip_rect = Rect2(113, 122, 100, 32)
 		button.chip_fill = Color(0, 0, 0, 0) if down else Ui.MINIGAME_UP_BASE
 		button.queue_redraw()

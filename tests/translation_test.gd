@@ -2,7 +2,9 @@ extends SceneTree
 ## Tests for the translations (Milestone 11, Task 9). Run from the project folder (after --import):
 ##   Godot --headless --path . -s res://tests/translation_test.gd
 ## Every key has both languages with the same formats, every key used in the scenes, the scripts
-## and activities.json exists, no key is unused, and no scene still holds plain text.
+## and activities.json exists, no key is unused, and no scene still holds plain text. Every text and
+## every character in the scripts' code (not their comments) is in the Nunito font: the web build
+## has no other font, so a missing character shows as a box with its code (22 Nov 2026: arrows, ▶, ✕).
 
 const CSV_PATH := "res://translations/strings.csv"
 const SCENES: Array[String] = ["res://scenes/main.tscn", "res://scenes/ui/creation.tscn"]
@@ -11,6 +13,8 @@ const SCRIPTS: Array[String] = ["res://scripts/ui/main.gd", "res://scripts/ui/cr
 		"res://scripts/autoload/minigame.gd", "res://scripts/health/requests.gd", "res://scripts/ui/failure_screen.gd", "res://scripts/ui/menu.gd",
 		"res://scripts/ui/canteen.gd", "res://scripts/ui/sky_game.gd", "res://scripts/ui/cardio_panel.gd", "res://scripts/ui/football_panel.gd", "res://scripts/ui/help_strip.gd"]
 const ACTIVITIES := "res://data/activities.json"
+const FONT := "res://assets/fonts/nunito/Nunito-wght.ttf"
+const SCRIPT_FOLDERS: Array[String] = ["res://scripts/ui", "res://scripts/autoload", "res://scripts/health", "res://scripts/avatar"]
 ## Never translated: each language button shows its own name.
 const NOT_TRANSLATED: Array[String] = ["Português", "English", "PT", "EN"]
 
@@ -27,6 +31,7 @@ func _process(_delta: float) -> bool:
 	_test_scenes()
 	_test_scripts()
 	_test_activities()
+	_test_font()
 	var unused: Array = _strings.keys().filter(func(key: String) -> bool: return not _used.has(key))
 	_check("every key is used %s" % [unused], unused.is_empty())
 	print("%s (%d failed)" % ["ALL PASSED" if _failures == 0 else "SOME FAILED", _failures])
@@ -117,6 +122,27 @@ func _test_activities() -> void:
 		if not _strings.has(dishes[id]["name"]):
 			missing_dishes.append(dishes[id]["name"])
 	_check("every food name is a key %s" % [missing_dishes], missing_dishes.is_empty())
+
+
+func _test_font() -> void:
+	var font: Font = load(FONT)
+	var missing := {}
+	for key: String in _strings:
+		for text: String in _strings[key]:
+			for i in text.length():
+				if text.unicode_at(i) >= 32 and not font.has_char(text.unicode_at(i)):
+					missing["%s (%s)" % [text[i], key]] = true
+	for folder in SCRIPT_FOLDERS:
+		for file_name in DirAccess.get_files_at(folder):
+			if not file_name.ends_with(".gd"):
+				continue
+			for line in FileAccess.get_file_as_string(folder.path_join(file_name)).split("\n"):
+				if line.strip_edges().begins_with("#"):
+					continue
+				for i in line.length():
+					if line.unicode_at(i) > 126 and not font.has_char(line.unicode_at(i)):
+						missing["%s (%s)" % [line[i], file_name]] = true
+	_check("every character of the texts and the scripts is in the Nunito font %s" % [missing.keys()], missing.is_empty())
 
 
 func _check(name: String, ok: bool) -> void:
