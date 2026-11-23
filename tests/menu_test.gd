@@ -78,6 +78,14 @@ func _test_menu_screen() -> void:
 	# The user (21 Nov 2026): Continue takes New avatar's place, in the first button's place.
 	_check("with an avatar, New avatar is not on the first screen", not menu._new_avatar_button.visible
 			and is_equal_approx(menu._continue_button.offset_top, 691.0 - 1280.0))
+	# Where avatars are saved (22 Nov 2026): a note in the web build only.
+	_check("off the web, no note about the browser", not menu._save_note.visible)
+	menu.show_save_note = true
+	menu._refresh()
+	_check("with an avatar, the note suggests a backup", menu._save_note.visible
+			and menu._save_note.text.begins_with("Your avatars are saved only in this browser")
+			and menu._save_note.get_global_rect().end.y <= menu.get_global_rect().end.y - 1280.0 + 1176.0)
+	_check("without an avatar, the note points to Load a backup", menu.save_note_key(false) == "MENU_SAVE_NOTE_EMPTY")
 	menu._open_avatars()
 	_check("the avatars page has a card per place", menu._cards.get_child_count() == 3)
 	_make_avatar(0, "Ana")

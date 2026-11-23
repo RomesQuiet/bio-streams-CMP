@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cfva78bthxqu1"
-path="res://.godot/imported/bed.png-061a1038ac81d2e14c42d28246557c7a.ctex"
+uid="uid://5k2yeyn3v4jj"
+path="res://.godot/imported/sleep_day.png-7b1f3abcb28365ac36c5158b19f4aa78.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/avatar/child_male/bed.png"
-dest_files=["res://.godot/imported/bed.png-061a1038ac81d2e14c42d28246557c7a.ctex"]
+source_file="res://assets/art/avatar/teen_female/sleep_day.png"
+dest_files=["res://.godot/imported/sleep_day.png-7b1f3abcb28365ac36c5158b19f4aa78.ctex"]
 
 [params]
 

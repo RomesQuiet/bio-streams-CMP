@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b5i3da5mc211d"
-path="res://.godot/imported/banana.png-890454d9c9f08cacbf7c2348876bc50a.ctex"
+uid="uid://cxdskqtbplrhe"
+path="res://.godot/imported/sleep_night.png-cbe4a812de61ce427705325689c2b117.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/food/banana.png"
-dest_files=["res://.godot/imported/banana.png-890454d9c9f08cacbf7c2348876bc50a.ctex"]
+source_file="res://assets/art/avatar/child_male/sleep_night.png"
+dest_files=["res://.godot/imported/sleep_night.png-cbe4a812de61ce427705325689c2b117.ctex"]
 
 [params]
 

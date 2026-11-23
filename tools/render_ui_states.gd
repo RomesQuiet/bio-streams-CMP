@@ -95,7 +95,9 @@ func _run() -> void:
 		"X":
 			gs.weight_z = -3.5
 		"R":
+			# A plate of the canteen: the fork carries its first food's picture.
 			activities.start("eat", "healthy_meal")
+			activities.plate = ["apple", "rice"]
 		"S":
 			activities.start("exercise", "cardio", 0.5)
 		"K":

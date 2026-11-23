@@ -18,13 +18,15 @@ const PORTRAIT := "res://assets/art/menu/menu_portrait.png"
 const WIDE := "res://assets/art/menu/menu_wide.png"
 ## The flat colours at the pictures' edges (read from their pixels).
 const PORTRAIT_GROUND := Color8(60, 94, 199)
-const WIDE_SKY := Color8(94, 101, 202)
-const WIDE_GROUND := Color8(64, 102, 217)
+const WIDE_SKY := Color8(57, 83, 225)
+const WIDE_GROUND := Color8(51, 87, 220)
 ## The wide picture's figures are this many times smaller than the vertical one's (measured on
 ## the girl with obesity, 183 and 338 px tall), and the top of her hair is at y 260 in it and at
-## y 482 in the vertical picture.
-const WIDE_FIGURE_SHARE := 1.847
-const WIDE_FIGURE_TOP := 260.0
+## y 482 in the vertical picture. Since 23 Nov 2026 the wide picture is the team's upscaled one
+## (assets/art/menu/source/menu_wide_upscaled.png, made 3476 x 1811 by Claude: 2.001 times the old
+## 1738 x 905), so both numbers are in its pixels now.
+const WIDE_FIGURE_SHARE := 1.847 / 2.001
+const WIDE_FIGURE_TOP := 260.0 * 2.001
 const PORTRAIT_FIGURE_TOP := 482.0
 
 ## The column's rectangle on the screen (set by the menu every frame).

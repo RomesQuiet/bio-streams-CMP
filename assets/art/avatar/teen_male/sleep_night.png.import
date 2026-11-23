@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://1to731j6wgnl"
-path="res://.godot/imported/broccoli.png-9862c89017b88232abdfd0473ebb59bc.ctex"
+uid="uid://f6k0vhr4sspa"
+path="res://.godot/imported/sleep_night.png-76b6d7e5d2f265ff0ef6ed0915f5bf0f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/food/broccoli.png"
-dest_files=["res://.godot/imported/broccoli.png-9862c89017b88232abdfd0473ebb59bc.ctex"]
+source_file="res://assets/art/avatar/teen_male/sleep_night.png"
+dest_files=["res://.godot/imported/sleep_night.png-76b6d7e5d2f265ff0ef6ed0915f5bf0f.ctex"]
 
 [params]
 

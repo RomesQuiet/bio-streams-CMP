@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://jinkriwp2n8e"
-path="res://.godot/imported/tablet.png-f8b8d2b77538efc9d6524e4a3d4af8e0.ctex"
+uid="uid://djji224nkk7qp"
+path="res://.godot/imported/sleep_day.png-9d5f31998c5821356f9e34a9841f58bd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/avatar/child_female/tablet.png"
-dest_files=["res://.godot/imported/tablet.png-f8b8d2b77538efc9d6524e4a3d4af8e0.ctex"]
+source_file="res://assets/art/avatar/child_female/sleep_day.png"
+dest_files=["res://.godot/imported/sleep_day.png-9d5f31998c5821356f9e34a9841f58bd.ctex"]
 
 [params]
 

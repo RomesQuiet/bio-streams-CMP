@@ -733,6 +733,23 @@ func _test_meal_screen(main: Node) -> void:
 	main._mouth_open_until = Time.get_ticks_msec() + 250
 	main._refresh_minigame()
 	_check("after a bite the mouth is open", main.exercise_picture.texture.resource_path.ends_with(_pic(main, "child_male/eat_open")))
+	# Sheet 2 of the team's task list: the fork carries the plate's foods' pictures, in turn.
+	var plate_before: Array = activities.plate
+	var bites_before: int = minigame.bites
+	activities.plate = ["apple", "rice"]
+	minigame.bites = 0
+	main._refresh_meal()
+	var first: Texture2D = main.meal_fork.food_texture
+	minigame.bites = 1
+	main._refresh_meal()
+	var second: Texture2D = main.meal_fork.food_texture
+	_check("the fork carries the plate's foods' pictures in turn", first != null and second != null
+			and first.resource_path.ends_with("food/apple.png") and second.resource_path.ends_with("food/rice.png"))
+	activities.plate = []
+	main._refresh_meal()
+	_check("...and no picture without a plate", main.meal_fork.food_texture == null)
+	activities.plate = plate_before
+	minigame.bites = bites_before
 	activities.stop()
 	main._refresh_minigame()
 	_check("after the meal the band and the picture go", not main.dock_band.visible and not main.exercise_picture.visible)

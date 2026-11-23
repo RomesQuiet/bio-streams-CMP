@@ -45,11 +45,12 @@ const RUN_STAGE_BOTTOM := 744.0
 const EAT_FRAMES := ["eat_closed", "eat_open"]
 const EAT_RECT := Rect2(110, 290, 500, 500)
 const EAT_OPEN_SECONDS := 0.25
-## Change 8: asleep, the avatar is the bed picture (the whole bed seen from the front), its canvas
-## bottom on y 778, 56 above the stage's bottom (y 834); the four buttons at 35%; Wake up in the
-## stop slot (296 x 64 at x 212).
-const BED_FRAMES := ["bed"]
-const BED_RECT := Rect2(210, 431, 300, 347)
+## Change 8: asleep, the avatar is the team's sleeping picture (22 Nov 2026: the window, the bed
+## and the avatar asleep in it; "sleep_day" by day with light stripes, "sleep_night" by night),
+## in Scenery.SLEEP_RECT, its bottom on the stage's bottom (y 834); the four buttons at 35%; Wake
+## up in the stop slot (296 x 64 at x 212).
+const BED_FRAMES := ["sleep_day", "sleep_night"]
+const BED_RECT := Scenery.SLEEP_RECT
 const SLEEP_STAGE_BOTTOM := 834.0
 const SLEEP_BUTTONS_ALPHA := 0.35
 const STOP_SLOT_LEFT := 24.0
@@ -90,6 +91,8 @@ const Training := preload("res://scripts/health/training.gd")
 const Requests := preload("res://scripts/health/requests.gd")
 const Canteen := preload("res://scripts/health/canteen.gd")
 const MenuTile := preload("res://scripts/ui/menu_tile.gd")
+const Scenery := preload("res://scripts/ui/scenery.gd")
+const FOOD_PICTURE := "res://assets/art/food/%s.png"
 const FeedbackPopup := preload("res://scripts/ui/feedback_popup.gd")
 const CanteenScreen := preload("res://scripts/ui/canteen.gd")
 const Ui := preload("res://scripts/ui/ui_style.gd")
@@ -263,6 +266,8 @@ var feedback_popup: Control
 ## The exercise pictures of the running option, loaded when it starts (never while drawing), and
 ## which one is shown.
 var _exercise_textures := {}
+## The canteen foods' pictures for the fork, by id (_food_picture()).
+var _food_pictures := {}
 var _exercise_key := ""
 ## The running picture shown (0 to 4).
 var _run_frame := 0
@@ -1054,12 +1059,24 @@ func _refresh_meal() -> void:
 				* avatar.mouth_point()
 	var healthy := Activities.current_option == "healthy_meal"
 	meal_fork.food_color = MEAL_HEALTHY_COLOR if healthy else MEAL_FAST_FOOD_COLOR
-	# A plate of the canteen (Milestone 21): its foods come on the fork in turn.
+	# A plate of the canteen (Milestone 21): its foods come on the fork in turn. Since the team's
+	# task list (sheet 2, 22 Nov 2026) the fork carries the food's own picture, as on the plate.
+	meal_fork.food_texture = null
 	if not Activities.plate.is_empty():
-		var food := Canteen.food(str(Activities.plate[Minigame.bites % Activities.plate.size()]))
+		var id := str(Activities.plate[Minigame.bites % Activities.plate.size()])
+		var food := Canteen.food(id)
+		meal_fork.food_texture = _food_picture(id)
 		# Milestone 40: foods with a picture have no colour; the fork then keeps the meal's colour.
 		if food.has("color"):
 			meal_fork.food_color = Color.html(str(food["color"]))
+
+
+## The picture of a canteen food (assets/art/food/<id>.png), loaded once, or null.
+func _food_picture(id: String) -> Texture2D:
+	if not _food_pictures.has(id):
+		var path := FOOD_PICTURE % id
+		_food_pictures[id] = load(path) if ResourceLoader.exists(path) else null
+	return _food_pictures[id]
 
 
 ## Milestone 40 (changes.md, change 2): the dock of squats, push-ups, sit-ups and meals, at the
@@ -1147,7 +1164,7 @@ func _refresh_exercise_picture() -> bool:
 	elif eating:
 		which = 1 if Time.get_ticks_msec() < _mouth_open_until else 0
 	elif sleeping:
-		which = 0
+		which = 0 if Scenery.sleep_time(scenery.daylight) == "day" else 1
 	else:
 		# next_down: the next press is DOWN, so the last one was UP (or none yet).
 		which = 2 if (Minigame.waiting or Minigame.resting) else (1 if Minigame.next_down else 0)
@@ -1349,6 +1366,8 @@ func _refresh_sky() -> void:
 	sky_bodies.minute = minute
 	scenery.minute = minute
 	scenery.daylight = Clock.daylight_amount()
+	if _in_bed():
+		_refresh_exercise_picture()
 
 
 func _refresh() -> void:

@@ -64,6 +64,7 @@ func _ready() -> void:
 
 	if use_web_storage:
 		_connect_page_events()
+		_ask_persistent_storage()
 	_ready_done = true
 
 
@@ -325,6 +326,15 @@ func _parse(text: String) -> Dictionary:
 		push_warning("SaveGame: ignoring a save without the avatar creation choices")
 		return {}
 	return parsed
+
+
+## Web only (user, 22 Nov 2026): asks the browser to keep this site's data (the saves in
+## localStorage and IndexedDB) instead of clearing it by itself when space is short or the site
+## has not been visited for a while (Safari on iPhones clears script-written data after about 7
+## days without a visit, unless the storage is persistent). Chrome and Edge decide alone, Firefox
+## may ask the player, and a browser without the feature is skipped. Nothing waits for the answer.
+func _ask_persistent_storage() -> void:
+	JavaScriptBridge.eval("try { if (navigator.storage && navigator.storage.persist) { navigator.storage.persist(); } } catch (e) {}")
 
 
 ## Web only: save when the tab is hidden or closed.

@@ -27,6 +27,7 @@ Activities="*res://scripts/autoload/activities.gd"
 Habits="*res://scripts/autoload/habits.gd"
 HealthLog="*res://scripts/autoload/health_log.gd"
 SaveGame="*res://scripts/autoload/save_game.gd"
+DemoPlayer="*res://scripts/autoload/demo_player.gd"
 
 [display]
 

@@ -18,14 +18,27 @@ sheet (the middle of the cell on the middle of the canvas, the bottom of the row
 line). The tool prints the open mouth of each eating body (dark red near the middle of the
 head), for eat_mouth_y in data/avatar_art.json.
 
+When the team sends an upscaled activity sheet (22 Nov 2026: all four, 8 times larger with an
+AI upscaler, transparent background), it is saved next to the small one as
+<name>_activity_upscaled.png and used instead of it: the scale is worked out from the sheet, so the pictures keep their size and
+place and are only sharper.
+
 Run from the project folder (needs Pillow and NumPy):
-    python3 tools/cut_activity_sheets.py
+    python3 tools/cut_activity_sheets.py            (exercise and eating pictures)
+    python3 tools/cut_activity_sheets.py exercise   (only running, squats, push-ups and sit-ups)
+    python3 tools/cut_activity_sheets.py eating     (only eating: first makes <name>_eat.png from
+                                                     the team's eat_all.jpg of 22 Nov 2026)
 """
+
+import sys
 
 from pathlib import Path
 
 import numpy as np
 from PIL import Image
+
+# The upscaled sheets are about 100 million pixels.
+Image.MAX_IMAGE_PIXELS = None
 
 SOURCE = Path("assets/art/avatar/source/activity")
 OUT = Path("assets/art/avatar")
@@ -138,11 +151,90 @@ def height(sheet, row, col):
 	return ys[-1] - ys[0] + 1
 
 
+# The team's eating sheet of 22 Nov 2026: one picture on black, mouth closed above a white line
+# and open under it; in each half the child (row 1) and the teenager (row 2), boys on the left,
+# girls on the right, 5 bodies each. split_eat_sheet() makes <name>_eat.png from it.
+EAT_ALL = SOURCE / "eat_all.jpg"
+EAT_ALL_DIVIDER = (333, 339)
+EAT_ALL_MIDDLE_X = 1000
+EAT_ALL_PLACES = {"child_male": (0, 0), "child_female": (0, 1), "teen_male": (1, 0), "teen_female": (1, 1)}
+# Brighter than this (any channel) is a figure (black hair is about 25, the background 0); the black outline around it is kept by widening
+# the figure by OUTLINE pixels.
+EAT_ALL_DARK = 12
+# Specks smaller than this (pixels) are not a figure.
+EAT_ALL_SPECK = 9
+EAT_ALL_OUTLINE = 1
+EAT_ALL_EDGE = 4
+EAT_ALL_SOFT = 0.7
+
+
+def split_eat_sheet():
+	"""Makes <name>_eat.png (rows eat_open, eat_closed; transparent) from EAT_ALL."""
+	from PIL import ImageDraw, ImageFilter
+	sheet = Image.open(EAT_ALL).convert("RGB")
+	w, h = sheet.size
+	halves = {"eat_closed": (0, EAT_ALL_DIVIDER[0]), "eat_open": (EAT_ALL_DIVIDER[1], h)}
+	for name, (row, side) in EAT_ALL_PLACES.items():
+		x0, x1 = (0, EAT_ALL_MIDDLE_X) if side == 0 else (EAT_ALL_MIDDLE_X, w)
+		strips = []
+		for picture in EAT_ROWS:
+			top, bottom = halves[picture]
+			# Between the two rows: the darkest line near the middle of the half.
+			counts = (np.array(sheet.crop((0, top, w, bottom))).max(axis=2) > EAT_ALL_DARK).sum(axis=1)
+			quarter = (bottom - top) // 4
+			middle = top + quarter + int(np.argmin(counts[quarter:-quarter]))
+			y0, y1 = (top, middle) if row == 0 else (middle, bottom)
+			part = sheet.crop((x0, y0, x1, y1))
+			bright = (np.array(part).max(axis=2) > EAT_ALL_DARK).astype(np.uint8) * 255
+			# The sheet's own edges have a light line; nothing of a figure is that close to them.
+			bright[:EAT_ALL_EDGE, :] = 0
+			bright[-EAT_ALL_EDGE:, :] = 0
+			bright[:, :EAT_ALL_EDGE] = 0
+			bright[:, -EAT_ALL_EDGE:] = 0
+			bright = Image.fromarray(bright)
+			# Opening removes the JPEG's small specks; widening keeps the outline.
+			bright = bright.filter(ImageFilter.MinFilter(EAT_ALL_SPECK)).filter(ImageFilter.MaxFilter(EAT_ALL_SPECK))
+			bright = bright.filter(ImageFilter.MaxFilter(EAT_ALL_OUTLINE * 2 + 1))
+			# Fill the holes: what the outside does not reach is figure.
+			# (a dark frame of 1 pixel joins every part of the outside to the corner).
+			outside = Image.new("L", (bright.width + 2, bright.height + 2), 0)
+			outside.paste(bright, (1, 1))
+			ImageDraw.floodfill(outside, (0, 0), 128)
+			alpha = Image.fromarray(((np.array(outside)[1:-1, 1:-1] != 128) * 255).astype(np.uint8))
+			# A soft edge (the figure is made about 6 times bigger in the game).
+			alpha = alpha.filter(ImageFilter.GaussianBlur(EAT_ALL_SOFT))
+			part = part.convert("RGBA")
+			part.putalpha(alpha)
+			strips.append(part)
+		gap = 20
+		out = Image.new("RGBA", (x1 - x0, sum(p.height for p in strips) + gap), (0, 0, 0, 0))
+		out.alpha_composite(strips[0], (0, 0))
+		out.alpha_composite(strips[1], (0, strips[0].height + gap))
+		out.save(SOURCE / ("%s_eat.png" % name))
+
+
 def main():
+	only_eating = "eating" in sys.argv[1:]
+	if only_eating:
+		split_eat_sheet()
+	only_exercise = "exercise" in sys.argv[1:]
 	for name, info in SHEETS.items():
 		print(name)
 		folder = OUT / name
-		sheet = Image.open(SOURCE / ("%s_activity.png" % name)).convert("RGBA")
+		if not only_eating:
+			cut_exercise(name, info, folder)
+		if only_exercise:
+			continue
+		cut_eating(name, info, folder)
+
+
+def cut_exercise(name, info, folder):
+	if True:
+		path = SOURCE / ("%s_activity_upscaled.png" % name)
+		if not path.exists():
+			path = SOURCE / ("%s_activity.png" % name)
+		print("  from %s" % path.name)
+		sheet = Image.open(path).convert("RGBA")
 		rows, cols = cells(sheet, len(ACTIVITY_ROWS))
 		scale = info["stand_h"] / height(sheet, rows[ACTIVITY_ROWS.index("squat_up")], cols[HEALTHY])
 		# Smaller when a figure would not fit its canvas (FIT_MARGIN keeps it off the edge).
@@ -156,6 +248,10 @@ def main():
 			for c, body in enumerate(BODIES):
 				place(sheet, rows[r], cols[c], scale, canvas, feet).save(folder / ("%s_%s.png" % (picture, body)))
 
+
+
+def cut_eating(name, info, folder):
+	if True:
 		sheet = Image.open(SOURCE / ("%s_eat.png" % name)).convert("RGBA")
 		rows, cols = cells(sheet, len(EAT_ROWS))
 		scale = info["eat_h"] / height(sheet, rows[EAT_ROWS.index("eat_closed")], cols[HEALTHY])

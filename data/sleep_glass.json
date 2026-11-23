@@ -1,0 +1,61 @@
+{
+	"_comment": "Written by tools/cut_sleep_pictures.py: the glass of each sleeping picture (x, y, width, height as shares of the picture), where scripts/ui/scenery.gd draws the sky of the hour.",
+	"glass": {
+		"child_female": {
+			"day": [
+				0.2472,
+				0.2118,
+				0.517,
+				0.2289
+			],
+			"night": [
+				0.2454,
+				0.2564,
+				0.517,
+				0.2193
+			]
+		},
+		"child_male": {
+			"day": [
+				0.2464,
+				0.2126,
+				0.517,
+				0.2289
+			],
+			"night": [
+				0.2476,
+				0.2121,
+				0.517,
+				0.2285
+			]
+		},
+		"teen_female": {
+			"day": [
+				0.2476,
+				0.2137,
+				0.517,
+				0.2285
+			],
+			"night": [
+				0.247,
+				0.2048,
+				0.517,
+				0.2295
+			]
+		},
+		"teen_male": {
+			"day": [
+				0.2468,
+				0.2121,
+				0.517,
+				0.227
+			],
+			"night": [
+				0.2476,
+				0.2129,
+				0.517,
+				0.262
+			]
+		}
+	}
+}

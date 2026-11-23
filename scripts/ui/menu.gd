@@ -63,7 +63,11 @@ const BUTTON_WIDTH := 540.0
 ## Without Continue: the four buttons of the splash (faces 86 high and a 6-pixel thickness).
 const BUTTON_TOPS := [691.0, 799.0, 908.0, 1016.0]
 const BUTTON_HEIGHT := 92.0
-const TOGGLE_RECT := Rect2(242, 1142, 238, 56)
+const TOGGLE_RECT := Rect2(242, 1176, 238, 56)
+## Where avatars are saved (user, 22 Nov 2026): a short note between the buttons and the language
+## switch, in the web build only (on a computer the save is a file, not the browser's data).
+const SAVE_NOTE_RECT := Rect2(40, 1114, 640, 54)
+const SAVE_NOTE_FONT_SIZE := 18
 const REFERENCE_HEIGHT := 1280.0
 
 var _title: Label
@@ -71,6 +75,9 @@ var _new_avatar_button: Button
 var _subtitle: Label
 var _buttons: Array[Button] = []
 var _backdrop: Control
+var _save_note: Label
+## The note is shown in the web build only; tests turn it on.
+var show_save_note := OS.has_feature("web")
 
 
 ## Puts a control at a rect of the column; bottom: it keeps its distance from the bottom.
@@ -128,6 +135,17 @@ func _build() -> void:
 	_menu_button("MENU_AVATARS", _open_avatars, Ui.MENU_AVATARS_FACE, Ui.MENU_AVATARS_BASE, "people")
 	_menu_button("MENU_LOAD_BACKUP", _load_backup, Ui.MENU_BACKUP_FACE, Ui.MENU_BACKUP_BASE, "upload")
 	_menu_button("MENU_ABOUT", _open_about, Ui.MENU_ABOUT_FACE, Ui.MENU_ABOUT_BASE, "info")
+	_save_note = _label("", SAVE_NOTE_FONT_SIZE)
+	_save_note.add_theme_font_override("font", Ui.FONT_BOLD)
+	_save_note.add_theme_color_override("font_color", Color(1, 1, 1, 0.92))
+	_save_note.add_theme_color_override("font_shadow_color", Color(Ui.MENU_TITLE_OUTLINE, 0.6))
+	_save_note.add_theme_constant_override("shadow_offset_y", 2)
+	_save_note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_save_note.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_save_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_save_note.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	place(_save_note, SAVE_NOTE_RECT, true)
+	add_child(_save_note)
 	var languages := LanguageToggle.new()
 	place(languages, TOGGLE_RECT, true)
 	add_child(languages)
@@ -251,8 +269,16 @@ func _refresh() -> void:
 		_continue_button.text = "%s\n%s" % [tr("MENU_CONTINUE"), summary_text(avatar)]
 	_layout_buttons()
 	_fit_title()
+	_save_note.visible = show_save_note
+	_save_note.text = tr(save_note_key(not avatar.is_empty()))
 	if _avatars_page.visible:
 		_build_cards()
+
+
+## The note about where avatars are saved: with an avatar, make a backup; without one, an avatar
+## from another browser or device is not here, and a backup brings it back.
+static func save_note_key(has_avatar: bool) -> String:
+	return "MENU_SAVE_NOTE" if has_avatar else "MENU_SAVE_NOTE_EMPTY"
 
 
 ## One line about an avatar: its name, level, health and days, or that it failed.

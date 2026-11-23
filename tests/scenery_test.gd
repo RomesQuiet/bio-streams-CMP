@@ -80,12 +80,16 @@ func _test_places(main: Node, activities: Node, minigame: Node) -> void:
 	_check("sleeping after a meal: no fork", not main.meal_fork.visible)
 	# Milestone 40, change 8: the bed picture takes the avatar's place (no code-drawn bed or blanket),
 	# the window is loaded, the four buttons at 35%, Wake up in the stop slot.
-	_check("...the bed picture in the avatar's place, no blanket", main.exercise_picture.visible
-			and main.exercise_picture.texture.resource_path.ends_with("child_male/bed.png")
+	var time_name: String = "sleep_%s.png" % scenery.sleep_time(scenery.daylight)
+	_check("...the sleeping picture of the time of day in the avatar's place, no blanket", main.exercise_picture.visible
+			and main.exercise_picture.texture.resource_path.ends_with("child_male/" + time_name)
 			and not main.avatar.visible and not main.blanket.visible)
-	_check("...its canvas bottom on y 778 (56 above the stage's bottom)", is_equal_approx(main.exercise_picture.offset_bottom, 778.0 - 834.0))
-	_check("...the window picture behind it", scenery._window != null and not scenery.front
-			and scenery.get_index() < main.exercise_picture.get_index())
+	_check("...its bottom on the stage's bottom (y 834)", is_equal_approx(main.exercise_picture.offset_bottom, 0.0))
+	_check("...the room behind it", not scenery.front and scenery.get_index() < main.exercise_picture.get_index())
+	scenery.daylight = 0.0 if time_name == "sleep_day.png" else 1.0
+	main._refresh_exercise_picture()
+	_check("...the other picture when day turns to night (or back)", main.exercise_picture.texture.resource_path.ends_with(
+			"child_male/sleep_%s.png" % scenery.sleep_time(scenery.daylight)) and not main.exercise_picture.texture.resource_path.ends_with(time_name))
 	_check("...the four buttons at 35%, not pressable", is_equal_approx(main.action_grid.modulate.a, 0.35)
 			and main.exercise_button.disabled and main.exercise_button.dimmed)
 	_check("...Wake up in the stop slot", main.stop_button.visible and main.stop_button.text == "WAKE_UP"

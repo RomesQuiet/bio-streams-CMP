@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://xgyus3ehl7um"
-path="res://.godot/imported/tablet.png-de3f84d1ed61aa21f3a77c3cbe3b9771.ctex"
+uid="uid://yhaa7mfa16y6"
+path="res://.godot/imported/sleep_night.png-10d07a8f04dc1d031b4c80280c675e89.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/avatar/teen_female/tablet.png"
-dest_files=["res://.godot/imported/tablet.png-de3f84d1ed61aa21f3a77c3cbe3b9771.ctex"]
+source_file="res://assets/art/avatar/teen_female/sleep_night.png"
+dest_files=["res://.godot/imported/sleep_night.png-10d07a8f04dc1d031b4c80280c675e89.ctex"]
 
 [params]
 
