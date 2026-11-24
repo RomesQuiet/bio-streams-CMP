@@ -427,14 +427,16 @@ func _process(_delta: float) -> void:
 ## The balloon stands over the avatar; a tall one moves down rather than cover the clock capsule
 ## and its play button.
 func _place_speech() -> void:
-	var height := speech_bubble.size.y
+	# The height its text needs now, not its current size: a balloon that once grew (a text wrapped
+	# while its width was briefly tiny, for example when the browser tab comes back) shrinks again.
+	var height := speech_bubble.get_combined_minimum_size().y
 	var stage_bottom: float = speech_bubble.get_parent().get_global_rect().end.y
 	var limit := clock_capsule.get_global_rect().end.y + SPEECH_GAP_UNDER_CAPSULE
 	var bottom := _speech_bottom + maxf(0.0, limit - (stage_bottom + _speech_bottom - height))
 	# During an activity its top is fixed at y 208, under the clock (Milestone 40, rule 8).
 	if Activities.is_running():
 		bottom = get_global_rect().position.y + SPEECH_TOP_IN_ACTIVITY + height - stage_bottom
-	if not is_equal_approx(bottom, speech_bubble.offset_bottom):
+	if not is_equal_approx(bottom, speech_bubble.offset_bottom) or not is_equal_approx(bottom - height, speech_bubble.offset_top):
 		speech_bubble.offset_bottom = bottom
 		speech_bubble.offset_top = bottom - height
 

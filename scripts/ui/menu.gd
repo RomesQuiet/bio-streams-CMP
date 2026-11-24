@@ -7,6 +7,8 @@ extends Control
 ## music comes later.
 ## Every text is a translation key.
 
+## The width of a card's text: the page (640) less its margins, the card's margins and the picture.
+const CARD_TEXT_WIDTH := 460.0
 const MAIN_SCENE := "res://scenes/main.tscn"
 const CREATION_SCENE := "res://scenes/ui/creation.tscn"
 const AVATAR_SCENE := "res://scenes/avatar/avatar.tscn"
@@ -38,6 +40,11 @@ func _ready() -> void:
 	SaveGame.unload()
 	_build()
 	_refresh()
+	# When the browser tab comes back the window can change size: fit the open pages again.
+	get_viewport().size_changed.connect(func() -> void:
+		for page: Control in [_avatars_page, _about_page]:
+			if page.visible:
+				_fit_page.call_deferred(page))
 	if SaveGame.menu_request == "new_avatar":
 		SaveGame.menu_request = ""
 		_new_avatar()
@@ -241,6 +248,16 @@ func _page(title_key: String) -> Control:
 	return dim
 
 
+## A page's panel as small as its content and in the middle again (a panel only ever grows by
+## itself, so a page that once got too tall stayed giant).
+func _fit_page(page: Control) -> void:
+	var panel := page.get_child(0) as Control
+	panel.reset_size()
+	panel.set_anchors_and_offsets_preset(PRESET_CENTER, Control.PRESET_MODE_KEEP_SIZE)
+	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+
+
 func _label(text: String, font_size: int) -> Label:
 	var label := Label.new()
 	label.text = text
@@ -327,6 +344,9 @@ func _build_cards() -> void:
 		column.add_theme_constant_override("separation", 6)
 		var line := _label(tr("MENU_EMPTY_PLACE") if avatar.is_empty() else summary_text(avatar), 20)
 		line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		# A width of its own: a wrapping label in a new card starts 0 wide (one word per line, a
+		# giant page).
+		line.custom_minimum_size = Vector2(CARD_TEXT_WIDTH, 0)
 		if not str(avatar.get("failed_cause", "")).is_empty():
 			line.add_theme_color_override("font_color", FAILED_COLOR)
 		column.add_child(line)
@@ -398,11 +418,13 @@ func _open_avatars(message := "") -> void:
 	_build_cards()
 	_about_page.hide()
 	_avatars_page.show()
+	_fit_page.call_deferred(_avatars_page)
 
 
 func _open_about() -> void:
 	_avatars_page.hide()
 	_about_page.show()
+	_fit_page.call_deferred(_about_page)
 
 
 func _close_pages() -> void:
