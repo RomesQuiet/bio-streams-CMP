@@ -67,7 +67,7 @@ Godot --headless --path . -s res://tests/health_log_test.gd
 
 - Code: MIT (see `LICENSE`).
 - Texts and art: CC BY 4.0.
-- The avatar art (`assets/art/avatar/`) was made by the project team with an AI image tool, and is shared under CC BY 4.0 like the rest of the art.
+- The avatar art (`assets/art/avatar/`) and the other pictures made by the project team (activities, sleep, food, the menu background, the video game), listed in `documentation/ui_v2/licence.md`, were made with **ChatGPT's image tool (DALL·E, OpenAI)**, on a personal ChatGPT Plus account belonging to an adult team member, and are shared under CC BY 4.0 like the rest of the art. OpenAI's Terms of Use assign the output to the user, so the team may offer it under this licence; checked 24 Nov 2026.
 - Original music belongs to its authors (Matilde with Senhor Carlitos), who decide its licence.
 - The font Nunito (`assets/fonts/nunito/`, from Google Fonts' official repository) is by The Nunito Project Authors and is under the SIL Open Font License 1.1 (`assets/fonts/nunito/OFL.txt`).
 - The interface (Milestone 25) is drawn by code; its approved mockups (`documentation/ui_mockups/`) come from the project team.
