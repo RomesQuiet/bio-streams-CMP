@@ -1111,6 +1111,22 @@ custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 text = "SETTINGS_MUSIC"
 
+[node name="SaveFileButton" type="Button" parent="SettingsOverlay/SettingsPanel/Margin/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+text = "SETTINGS_SAVE_FILE"
+
+[node name="SaveFileLabel" type="Label" parent="SettingsOverlay/SettingsPanel/Margin/Content"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(540, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "SETTINGS_SAVE_FILE_DONE"
+horizontal_alignment = 1
+autowrap_mode = 3
+
 [node name="NewAvatarButton" type="Button" parent="SettingsOverlay/SettingsPanel/Margin/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 72)

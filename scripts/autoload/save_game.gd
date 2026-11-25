@@ -95,6 +95,22 @@ func _auto_save() -> void:
 
 func save_game() -> void:
 	_save_count += 1
+	var text := current_text()
+	var file := FileAccess.open(save_path, FileAccess.WRITE)
+	if file == null:
+		push_error("SaveGame: could not write %s (error %d)" % [save_path, FileAccess.get_open_error()])
+	else:
+		file.store_string(text)
+		file.close()
+	if use_web_storage:
+		JavaScriptBridge.eval("try { localStorage.setItem(%s, %s); } catch (e) {}" % [
+			JSON.stringify(_web_key), JSON.stringify(text)])
+
+
+## The avatar being played, as a save file's text, from the game itself and not from storage
+## (25 Nov 2026: in a browser that keeps no site data, such as Brave with all cookies blocked,
+## this is the only copy). The same format as a backup, so Load a backup reads it.
+func current_text() -> String:
 	var data := {
 		"version": SAVE_VERSION,
 		"save_count": _save_count,
@@ -105,16 +121,7 @@ func save_game() -> void:
 		"habits": Habits.to_dict(),
 		"simulation": Simulation.to_dict(),
 	}
-	var text := JSON.stringify(data, "\t")
-	var file := FileAccess.open(save_path, FileAccess.WRITE)
-	if file == null:
-		push_error("SaveGame: could not write %s (error %d)" % [save_path, FileAccess.get_open_error()])
-	else:
-		file.store_string(text)
-		file.close()
-	if use_web_storage:
-		JavaScriptBridge.eval("try { localStorage.setItem(%s, %s); } catch (e) {}" % [
-			JSON.stringify(_web_key), JSON.stringify(text)])
+	return JSON.stringify(data, "\t")
 
 
 ## Loads the newest saved copy. Returns false if there is no valid save.

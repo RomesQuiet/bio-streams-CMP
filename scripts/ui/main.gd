@@ -310,6 +310,7 @@ func _ready() -> void:
 	english_button.pressed.connect(Settings.set_language.bind("en"))
 	music_button.set_pressed_no_signal(Settings.music_enabled)
 	music_button.toggled.connect(Settings.set_music_enabled)
+	%SaveFileButton.pressed.connect(_save_to_file)
 	new_avatar_button.pressed.connect(_show_new_avatar_confirmation.bind(true))
 	%ConfirmCancelButton.pressed.connect(_show_new_avatar_confirmation.bind(false))
 	%ConfirmNewAvatarButton.pressed.connect(_start_new_avatar)
@@ -591,6 +592,7 @@ func _open_settings() -> void:
 	portuguese_button.set_pressed_no_signal(Settings.language == "pt")
 	english_button.set_pressed_no_signal(Settings.language == "en")
 	music_button.set_pressed_no_signal(Settings.music_enabled)
+	%SaveFileLabel.hide()
 	settings_overlay.show()
 	if Clock.phase == Clock.Phase.DAY and not Clock.paused:
 		_paused_by_settings = true
@@ -610,6 +612,34 @@ func _close_settings() -> void:
 func _show_new_avatar_confirmation(show_it: bool) -> void:
 	confirm_box.visible = show_it
 	new_avatar_button.visible = not show_it
+
+
+## The avatar being played, downloaded as a file (25 Nov 2026, user): a browser that keeps no
+## site data (Brave with all cookies blocked, a private window) loses the save, and the menu's
+## Backup only copies what the browser kept. Load a backup in the menu reads this file.
+func _save_to_file() -> void:
+	SaveGame.save_game()
+	var text := SaveGame.current_text()
+	var file_name := "%s-save.json" % GameState.avatar_name.validate_filename()
+	if OS.has_feature("web"):
+		JavaScriptBridge.download_buffer(text.to_utf8_buffer(), file_name, "application/json")
+		%SaveFileLabel.show()
+		return
+	var dialog := FileDialog.new()
+	dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
+	dialog.access = FileDialog.ACCESS_FILESYSTEM
+	dialog.filters = PackedStringArray(["*.json"])
+	dialog.current_file = file_name
+	dialog.file_selected.connect(func(path: String) -> void:
+		var out := FileAccess.open(path, FileAccess.WRITE)
+		if out != null:
+			out.store_string(text)
+			out.close()
+			%SaveFileLabel.show()
+		dialog.queue_free())
+	dialog.canceled.connect(dialog.queue_free)
+	add_child(dialog)
+	dialog.popup_centered_ratio(0.8)
 
 
 ## Back to the main menu (Milestone 18): the avatar is saved, then the menu empties the game.

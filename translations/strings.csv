@@ -160,6 +160,8 @@ ACTIVITY_FOOTBALL,Football,Futebol
 SETTINGS_TITLE,Settings,Definições
 SETTINGS_LANGUAGE,Language,Idioma
 SETTINGS_MUSIC,Music,Música
+SETTINGS_SAVE_FILE,Save to a file,Guardar num ficheiro
+SETTINGS_SAVE_FILE_DONE,"The file was saved. To play this avatar again, use Load a backup in the main menu.","O ficheiro foi guardado. Para voltar a jogar com este avatar, usa Carregar cópia no menu principal."
 SETTINGS_NEW_AVATAR,Start a new avatar,Criar um novo avatar
 SETTINGS_NEW_AVATAR_WARNING,This avatar will be lost. This cannot be undone.,Este avatar vai perder-se. Isto não pode ser desfeito.
 SETTINGS_NEW_AVATAR_CONFIRM,"Yes, start again","Sim, recomeçar"
