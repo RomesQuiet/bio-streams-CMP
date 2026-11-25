@@ -168,8 +168,45 @@ EAT_ALL_EDGE = 4
 EAT_ALL_SOFT = 0.7
 
 
+# The team's upscaled eating sheet of 25 Nov 2026: the same layout as EAT_ALL (rows: child
+# closed, teen closed, child open, teen open; boys on the left, girls on the right), about 3.5
+# times bigger and with a transparent background, so nothing has to be removed. Used instead of
+# EAT_ALL when it is there.
+EAT_ALL_UPSCALED = SOURCE / "eat_all_upscaled.png"
+# Bits of a row thinner than this (sheet pixels) are specks, not a row of figures.
+EAT_MIN_ROW = 100
+
+
+def split_eat_sheet_upscaled():
+	"""Makes <name>_eat.png (rows eat_open, eat_closed) from EAT_ALL_UPSCALED."""
+	sheet = Image.open(EAT_ALL_UPSCALED).convert("RGBA")
+	solid = np.array(sheet)[:, :, 3] >= SOLID
+	rows = [r for r in runs(solid.any(axis=1)) if r[1] - r[0] >= EAT_MIN_ROW]
+	if len(rows) != 4:
+		raise ValueError("expected 4 rows in %s, found %d" % (EAT_ALL_UPSCALED.name, len(rows)))
+	cols = [c for c in runs(solid.any(axis=0)) if c[1] - c[0] >= EAT_MIN_ROW]
+	if len(cols) != 2 * len(BODIES):
+		raise ValueError("expected %d columns in %s, found %d" % (2 * len(BODIES), EAT_ALL_UPSCALED.name, len(cols)))
+	# Between the boys and the girls, and halfway between two rows of figures.
+	middle_x = (cols[len(BODIES) - 1][1] + cols[len(BODIES)][0]) // 2
+	cuts = [0] + [(rows[i][1] + rows[i + 1][0]) // 2 for i in range(3)] + [sheet.height]
+	band = {("eat_closed", 0): 0, ("eat_closed", 1): 1, ("eat_open", 0): 2, ("eat_open", 1): 3}
+	for name, (row, side) in EAT_ALL_PLACES.items():
+		x0, x1 = (0, middle_x) if side == 0 else (middle_x, sheet.width)
+		strips = [sheet.crop((x0, cuts[band[(p, row)]], x1, cuts[band[(p, row)] + 1])) for p in EAT_ROWS]
+		gap = 40
+		out = Image.new("RGBA", (x1 - x0, sum(p.height for p in strips) + gap), (0, 0, 0, 0))
+		out.alpha_composite(strips[0], (0, 0))
+		out.alpha_composite(strips[1], (0, strips[0].height + gap))
+		out.save(SOURCE / ("%s_eat.png" % name))
+
+
 def split_eat_sheet():
 	"""Makes <name>_eat.png (rows eat_open, eat_closed; transparent) from EAT_ALL."""
+	if EAT_ALL_UPSCALED.exists():
+		print("eating from %s" % EAT_ALL_UPSCALED.name)
+		split_eat_sheet_upscaled()
+		return
 	from PIL import ImageDraw, ImageFilter
 	sheet = Image.open(EAT_ALL).convert("RGB")
 	w, h = sheet.size
@@ -255,8 +292,12 @@ def cut_eating(name, info, folder):
 		sheet = Image.open(SOURCE / ("%s_eat.png" % name)).convert("RGBA")
 		rows, cols = cells(sheet, len(EAT_ROWS))
 		scale = info["eat_h"] / height(sheet, rows[EAT_ROWS.index("eat_closed")], cols[HEALTHY])
-		print("  eating scale %.3f" % scale)
 		canvas = CANVAS["eat"][0]
+		# Smaller when a figure (with its chair) would be wider than the canvas.
+		for r in range(len(EAT_ROWS)):
+			for c in range(len(BODIES)):
+				scale = min(scale, largest_scale(sheet, rows[r], cols[c], canvas, info["eat_bottom"]) * FIT_MARGIN)
+		print("  eating scale %.3f" % scale)
 		pictures = {}
 		for r, picture in enumerate(EAT_ROWS):
 			for c, body in enumerate(BODIES):
