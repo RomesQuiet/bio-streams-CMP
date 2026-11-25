@@ -21,3 +21,5 @@ override.cfg
 # The team's upscaled sources are too big for GitHub (over 35 MB each; the menu one 124 MB): kept only locally.
 /assets/art/avatar/source/activity/*_upscaled.png
 /assets/art/menu/source/menu_wide_upscaled.png
+# The eating sheet (25 Nov 2026) is only 14 MB, so it is kept.
+!/assets/art/avatar/source/activity/eat_all_upscaled.png
