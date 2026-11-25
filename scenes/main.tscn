@@ -1105,6 +1105,12 @@ size_flags_horizontal = 3
 toggle_mode = true
 text = "English"
 
+[node name="MusicButton" type="CheckButton" parent="SettingsOverlay/SettingsPanel/Margin/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+text = "SETTINGS_MUSIC"
+
 [node name="NewAvatarButton" type="Button" parent="SettingsOverlay/SettingsPanel/Margin/Content"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 72)

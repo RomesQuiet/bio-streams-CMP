@@ -214,6 +214,7 @@ const SPEECH_GAP_UNDER_CAPSULE := 8.0
 @onready var settings_overlay: Control = %SettingsOverlay
 @onready var portuguese_button: Button = %PortugueseButton
 @onready var english_button: Button = %EnglishButton
+@onready var music_button: CheckButton = %MusicButton
 @onready var new_avatar_button: Button = %NewAvatarButton
 @onready var action_grid: Control = %ActionGrid
 @onready var minigame_panel: Control = %MinigamePanel
@@ -307,6 +308,8 @@ func _ready() -> void:
 	%SettingsCloseButton.pressed.connect(_close_settings)
 	portuguese_button.pressed.connect(Settings.set_language.bind("pt"))
 	english_button.pressed.connect(Settings.set_language.bind("en"))
+	music_button.set_pressed_no_signal(Settings.music_enabled)
+	music_button.toggled.connect(Settings.set_music_enabled)
 	new_avatar_button.pressed.connect(_show_new_avatar_confirmation.bind(true))
 	%ConfirmCancelButton.pressed.connect(_show_new_avatar_confirmation.bind(false))
 	%ConfirmNewAvatarButton.pressed.connect(_start_new_avatar)
@@ -587,6 +590,7 @@ func _notification(what: int) -> void:
 func _open_settings() -> void:
 	portuguese_button.set_pressed_no_signal(Settings.language == "pt")
 	english_button.set_pressed_no_signal(Settings.language == "en")
+	music_button.set_pressed_no_signal(Settings.music_enabled)
 	settings_overlay.show()
 	if Clock.phase == Clock.Phase.DAY and not Clock.paused:
 		_paused_by_settings = true

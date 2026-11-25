@@ -15,6 +15,8 @@ const LANGUAGES: Array[String] = ["pt", "en"]
 ## Emitted after the language changed. Text on screen follows by itself or with
 ## NOTIFICATION_TRANSLATION_CHANGED; this is for screens that show which language is chosen.
 signal language_changed(id: String)
+## Emitted after the music was turned on or off (25 Nov 2026).
+signal music_changed(on: bool)
 
 ## Where the file is saved. Tests change this so they never touch the real settings.
 var settings_path := SETTINGS_PATH
@@ -27,6 +29,8 @@ var last_slot := 0
 ## The best scores of the screens minigame on this device (Milestone 35), best first, one per
 ## avatar: {"id", "name", "score"}. An avatar that was deleted or failed keeps its place.
 var sky_leaderboard: Array[Dictionary] = []
+## Whether the music plays (25 Nov 2026, user choice, on by default; read by the Music autoload).
+var music_enabled := true
 
 ## The language the player chose, or "" while the game follows the browser.
 var _chosen_language := ""
@@ -43,6 +47,7 @@ func load_settings() -> void:
 	_chosen_language = saved if saved in LANGUAGES else ""
 	football_help_seen = bool(data.get("football_help_seen", false))
 	last_slot = int(data.get("last_slot", 0))
+	music_enabled = bool(data.get("music_enabled", true))
 	sky_leaderboard.clear()
 	var board: Variant = data.get("sky_leaderboard", [])
 	if board is Array:
@@ -56,6 +61,15 @@ func load_settings() -> void:
 ## First start (decision 15): any Portuguese gives Portuguese, otherwise defaults.language.
 func language_for_locale(locale_language: String) -> String:
 	return "pt" if locale_language == "pt" else Config.get_string("defaults.language")
+
+
+## The player turned the music on or off: it applies at once and is saved.
+func set_music_enabled(on: bool) -> void:
+	if on == music_enabled:
+		return
+	music_enabled = on
+	music_changed.emit(on)
+	_save()
 
 
 ## The player chose a language: it is used at once and saved.
@@ -102,7 +116,8 @@ func mark_football_help_seen() -> void:
 
 
 func _save() -> void:
-	var data := {"football_help_seen": football_help_seen, "last_slot": last_slot, "sky_leaderboard": sky_leaderboard}
+	var data := {"football_help_seen": football_help_seen, "last_slot": last_slot, "sky_leaderboard": sky_leaderboard,
+			"music_enabled": music_enabled}
 	if not _chosen_language.is_empty():
 		data["language"] = _chosen_language
 	var text := JSON.stringify(data, "\t")
